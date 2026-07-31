@@ -1,17 +1,30 @@
+import isteLogo from "../../assets/logos/iste-logo.png";
+
 import "./Media.css";
 
-const highlights = [
+const mediaItems = [
   {
-    title: "ISTe vs RIVALS, Best Moments",
-    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop",
+    title: "CS2: играю ногами",
+    description: "Запись трансляции на YouTube",
+    type: "YOUTUBE",
+    href: "https://www.youtube.com/watch?v=hWELtNPkou0",
+    image: "https://i.ytimg.com/vi/hWELtNPkou0/maxresdefault.jpg",
   },
   {
-    title: "Clutch 1v4 by KORTAVYJ",
-    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1200&auto=format&fit=crop",
+    title: "Все видео Hell Hound Game",
+    description: "Клипы, записи матчей и новые трансляции",
+    type: "КАНАЛ",
+    href: "https://www.youtube.com/@Hell_Hound_Game",
+    image: isteLogo,
+    isBrandCard: true,
   },
   {
-    title: "Team Highlights, FACEIT CUP",
-    image: "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?q=80&w=1200&auto=format&fit=crop",
+    title: "Стримы KORTAVYJ",
+    description: "Прямые эфиры и записи на Twitch",
+    type: "TWITCH",
+    href: "https://www.twitch.tv/kortavyj",
+    image:
+      "https://static-cdn.jtvnw.net/previews-ttv/live_user_kortavyj-1280x720.jpg",
   },
 ];
 
@@ -20,21 +33,46 @@ export default function Media() {
     <section className="section media-section" id="media">
       <header className="section-header">
         <p className="section-tag">MEDIA</p>
-        <h2 className="section-title">ХАЙЛАЙТЫ И МЕДИА</h2>
+        <h2 className="section-title">МЕДИА ISTe</h2>
+        <p className="media-intro">
+          Реальные трансляции, записи матчей и видео команды
+        </p>
       </header>
 
       <div className="media-grid">
-        {highlights.map((item) => (
-          <article className="media-card" key={item.title}>
-            <img src={item.image} alt="" loading="lazy" />
+        {mediaItems.map((item) => (
+          <a
+            className={`media-card${item.isBrandCard ? " media-card-brand" : ""}`}
+            href={item.href}
+            key={item.href}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`${item.title}. Открыть в новой вкладке`}
+          >
+            <img
+              src={item.image}
+              alt=""
+              loading="lazy"
+              onError={(event) => {
+                event.currentTarget.src = isteLogo;
+                event.currentTarget.classList.add("media-image-fallback");
+              }}
+            />
 
             <div className="media-overlay">
-              <span className="media-play" aria-hidden="true">
-                ▶
-              </span>
-              <h3>{item.title}</h3>
+              <div className="media-meta">
+                <span className="media-type">{item.type}</span>
+                <span className="media-open" aria-hidden="true">
+                  ↗
+                </span>
+              </div>
+
+              <div className="media-copy">
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </div>
             </div>
-          </article>
+          </a>
         ))}
       </div>
     </section>
