@@ -6,6 +6,11 @@ import {
   mergeTeamMatches,
   normalizeTournamentMatch,
 } from "./faceit-match-utils.mjs";
+import {
+  getTeamMemberIds,
+  historyCompetition,
+  isVerifiedTeamHistoryMatch,
+} from "./faceit-history-utils.mjs";
 
 const API_BASE = "https://open.faceit.com/data/v4";
 const TEAM_ID = "fe19e71d-c974-404c-a038-beb9a578fb61";
@@ -270,7 +275,85 @@ async function fetchTournamentMatches(tournament) {
   return { items: [], success: matchEndpointSucceeded };
 }
 
-async function buildTeamMatches(team, tournaments, previousPayload) {
+async function fetchVerifiedTeamHistory(team, fullSync, expectedMatchCount) {
+  const memberIds = getTeamMemberIds(team);
+  const playerIds = [...memberIds];
+  const limit = 100;
+  const maximumItemsPerPlayer = fullSync ? 1000 : 100;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const fromSeconds = fullSync ? 0 : nowSeconds - 90 * 24 * 60 * 60;
+  const uniqueMatches = new Map();
+  let playersScanned = 0;
+  let successfulPlayers = 0;
+
+  for (const playerId of playerIds) {
+    playersScanned += 1;
+    let playerSucceeded = false;
+
+    for (let offset = 0; offset < maximumItemsPerPlayer; offset += limit) {
+      const page = await fetchFaceitOptional(
+        `/players/${playerId}/history?game=${GAME_ID}&from=${fromSeconds}&to=${nowSeconds}&offset=${offset}&limit=${limit}`,
+      );
+
+      if (!page) {
+        break;
+      }
+
+      playerSucceeded = true;
+      const items = Array.isArray(page.items) ? page.items : [];
+
+      for (const rawMatch of items) {
+        if (!isVerifiedTeamHistoryMatch(rawMatch, TEAM_ID, memberIds)) {
+          continue;
+        }
+
+        const matchId = rawMatch?.match_id ?? rawMatch?.id ?? null;
+        if (matchId) {
+          uniqueMatches.set(String(matchId), rawMatch);
+        }
+      }
+
+      if (
+        fullSync &&
+        Number.isFinite(expectedMatchCount) &&
+        expectedMatchCount > 0 &&
+        uniqueMatches.size >= expectedMatchCount
+      ) {
+        break;
+      }
+
+      if (items.length < limit) {
+        break;
+      }
+    }
+
+    if (playerSucceeded) {
+      successfulPlayers += 1;
+    }
+
+    if (
+      fullSync &&
+      Number.isFinite(expectedMatchCount) &&
+      expectedMatchCount > 0 &&
+      uniqueMatches.size >= expectedMatchCount
+    ) {
+      break;
+    }
+  }
+
+  return {
+    matches: [...uniqueMatches.values()],
+    playersScanned,
+    successfulPlayers,
+  };
+}
+
+async function buildTeamMatches(
+  team,
+  tournaments,
+  previousPayload,
+  expectedMatchCount,
+) {
   const previousMatches = Array.isArray(previousPayload?.teamMatches)
     ? previousPayload.teamMatches
     : [];
@@ -306,7 +389,28 @@ async function buildTeamMatches(team, tournaments, previousPayload) {
     }
   }
 
-  const completedFullSync = fullSync && failedTournaments === 0;
+  const historyData = await fetchVerifiedTeamHistory(
+    team,
+    fullSync,
+    expectedMatchCount,
+  );
+
+  for (const rawMatch of historyData.matches) {
+    const normalized = normalizeTournamentMatch(
+      rawMatch,
+      historyCompetition(rawMatch),
+      context,
+    );
+
+    if (normalized) {
+      refreshedMatches.push(normalized);
+    }
+  }
+
+  const historySucceeded =
+    historyData.playersScanned === 0 || historyData.successfulPlayers > 0;
+  const completedFullSync =
+    fullSync && failedTournaments === 0 && historySucceeded;
 
   return {
     matches: mergeTeamMatches(
@@ -318,6 +422,8 @@ async function buildTeamMatches(team, tournaments, previousPayload) {
     fullSync: completedFullSync,
     tournamentsScanned: selectedTournaments.length,
     failedTournaments,
+    historyPlayersScanned: historyData.playersScanned,
+    historyMatchesFound: historyData.matches.length,
   };
 }
 
@@ -612,11 +718,12 @@ const [team, teamStats, tournaments] = await Promise.all([
   fetchAllTournaments(),
 ]);
 
+const matches = findNumericValue(teamStats?.lifetime, METRIC_ALIASES.matches);
+const expectedMatchCount = matches === null ? null : Math.round(matches);
 const [roster, matchData] = await Promise.all([
   buildRoster(team),
-  buildTeamMatches(team, tournaments, previousPayload),
+  buildTeamMatches(team, tournaments, previousPayload, expectedMatchCount),
 ]);
-const matches = findNumericValue(teamStats?.lifetime, METRIC_ALIASES.matches);
 const reportedWins = findNumericValue(teamStats?.lifetime, METRIC_ALIASES.wins);
 const reportedWinRate = findNumericValue(teamStats?.lifetime, METRIC_ALIASES.winRate);
 const calculatedWins =
@@ -644,10 +751,12 @@ const nextPayload = {
   teamMatches: matchData.matches,
   teamMatchCount: matchData.matches.length,
   matchSync: {
-    source: "FACEIT team tournaments",
+    source: "FACEIT tournaments and verified team roster history",
     fullSync: matchData.fullSync,
     tournamentsScanned: matchData.tournamentsScanned,
     failedTournaments: matchData.failedTournaments,
+    historyPlayersScanned: matchData.historyPlayersScanned,
+    historyMatchesFound: matchData.historyMatchesFound,
     lastFullSyncAt: matchData.fullSync
       ? now
       : previousPayload?.matchSync?.lastFullSyncAt ?? null,
