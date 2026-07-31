@@ -40,14 +40,14 @@
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
-      "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/fb468a6a-fe2c-4028-a22e-0eb27c2e92a4.jpg",
-      "country": "ua",
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
+      "country": "al",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2437,
+      "elo": 2824,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -68,26 +68,26 @@
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
-      "nickname": "Lor9n",
-      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
+      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
+      "nickname": "tokyok1ng",
+      "avatar": "https://distribution.faceit-cdn.net/images/fb468a6a-fe2c-4028-a22e-0eb27c2e92a4.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
+      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
       "level": 10,
-      "elo": 2824,
+      "elo": 2437,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/c84b5c2b-af63-4053-85aa-1ad28dc96211.jpg",
-      "country": "al",
+      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
+      "nickname": "Lor9n",
+      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
+      "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
       "elo": 2824,
       "role": "SUPPORT",
@@ -103,12 +103,12 @@
     "fullSync": true,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "lastFullSyncAt": "2026-07-31T17:56:12.754Z"
+    "lastFullSyncAt": "2026-07-31T18:31:03.407Z"
   },
   "roleModel": {
     "name": "ISTe statistical role inference",
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-07-31T17:56:12.754Z"
+  "updatedAt": "2026-07-31T18:31:03.407Z"
 }
