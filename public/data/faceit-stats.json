@@ -98,6 +98,78 @@
   ],
   "teamMatches": [
     {
+      "matchId": "1-ac3a723e-e604-4c74-85b8-88f8875ba358",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-ac3a723e-e604-4c74-85b8-88f8875ba358",
+      "tournamentId": "b21167e5-ba65-4573-b007-ee25ab306946",
+      "competitionName": "Late Night Anubis",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-07-31T21:33:44.000Z",
+      "startedAt": "2026-07-31T21:33:44.000Z",
+      "finishedAt": "2026-07-31T22:07:07.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "team_LenkonFTW",
+        "avatar": "https://distribution.faceit-cdn.net/images/8cbbfbf9-51ea-4523-9a8a-06fdf7bebb42.jpeg",
+        "score": 7
+      }
+    },
+    {
+      "matchId": "1-3f251099-a603-4148-87ad-66d32640f3f2",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-3f251099-a603-4148-87ad-66d32640f3f2",
+      "tournamentId": "b21167e5-ba65-4573-b007-ee25ab306946",
+      "competitionName": "Late Night Anubis",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-07-31T20:35:11.000Z",
+      "startedAt": "2026-07-31T20:35:11.000Z",
+      "finishedAt": "2026-07-31T21:19:02.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Tndelanight",
+        "avatar": "https://distribution.faceit-cdn.net/images/e53d316c-3381-4aa4-b1d2-88aa39f60975.jpg",
+        "score": 10
+      }
+    },
+    {
+      "matchId": "1-66b7807b-7b92-4282-91a0-e370dee39795",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-66b7807b-7b92-4282-91a0-e370dee39795",
+      "tournamentId": "b21167e5-ba65-4573-b007-ee25ab306946",
+      "competitionName": "Late Night Anubis",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-07-31T20:06:25.000Z",
+      "startedAt": "2026-07-31T20:06:25.000Z",
+      "finishedAt": "2026-07-31T20:06:25.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "Samurai",
+        "avatar": "https://distribution.faceit-cdn.net/images/53299853-c546-4d94-964d-a441186da483.jpg",
+        "score": 0
+      }
+    },
+    {
       "matchId": "1-ef45bd7d-b5c0-41c5-b828-1d4a431a8d0a",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-ef45bd7d-b5c0-41c5-b828-1d4a431a8d0a",
       "tournamentId": "f4b1771b-a5de-4613-935e-734c80689bea",
@@ -362,14 +434,14 @@
       }
     }
   ],
-  "teamMatchCount": 11,
+  "teamMatchCount": 14,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
-    "fullSync": true,
+    "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 1,
-    "historyMatchesFound": 11,
+    "historyPlayersScanned": 6,
+    "historyMatchesFound": 14,
     "lastFullSyncAt": "2026-07-31T22:49:27.236Z"
   },
   "roleModel": {
@@ -377,5 +449,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-07-31T22:49:27.236Z"
+  "updatedAt": "2026-07-31T23:41:45.116Z"
 }
