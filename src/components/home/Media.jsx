@@ -4,27 +4,36 @@ import "./Media.css";
 
 const mediaItems = [
   {
-    title: "CS2: играю ногами",
-    description: "Запись трансляции на YouTube",
-    type: "YOUTUBE",
-    href: "https://www.youtube.com/watch?v=hWELtNPkou0",
-    image: "https://i.ytimg.com/vi/hWELtNPkou0/maxresdefault.jpg",
-  },
-  {
-    title: "Все видео Hell Hound Game",
-    description: "Клипы, записи матчей и новые трансляции",
-    type: "КАНАЛ",
-    href: "https://www.youtube.com/@Hell_Hound_Game",
-    image: isteLogo,
-    isBrandCard: true,
-  },
-  {
     title: "Стримы KORTAVYJ",
-    description: "Прямые эфиры и записи на Twitch",
+    description: "Прямые эфиры и записи трансляций ISTe на Twitch",
     type: "TWITCH",
     href: "https://www.twitch.tv/kortavyj",
     image:
       "https://static-cdn.jtvnw.net/previews-ttv/live_user_kortavyj-1280x720.jpg",
+  },
+  {
+    title: "Новости ISTe",
+    description: "Анонсы матчей, обновления состава и новости команды",
+    type: "TELEGRAM",
+    href: "https://t.me/ISTesport",
+    image: isteLogo,
+    isBrandCard: true,
+  },
+  {
+    title: "Сообщество ISTe",
+    description: "Общение с игроками и участниками сообщества",
+    type: "DISCORD",
+    href: "https://discord.gg/AzpCxEgxye",
+    image: isteLogo,
+    isBrandCard: true,
+  },
+  {
+    title: "Группа ISTe",
+    description: "Официальная группа Ice Saber Team в Steam",
+    type: "STEAM",
+    href: "https://steamcommunity.com/groups/IceSaberTeam",
+    image: isteLogo,
+    isBrandCard: true,
   },
 ];
 
@@ -32,10 +41,10 @@ export default function Media() {
   return (
     <section className="section media-section" id="media">
       <header className="section-header">
-        <p className="section-tag">MEDIA</p>
-        <h2 className="section-title">МЕДИА ISTe</h2>
+        <p className="section-tag">ISTe ONLINE</p>
+        <h2 className="section-title">МЕДИА И СООБЩЕСТВО</h2>
         <p className="media-intro">
-          Реальные трансляции, записи матчей и видео команды
+          Только официальные площадки, связанные с ISTe
         </p>
       </header>
 
