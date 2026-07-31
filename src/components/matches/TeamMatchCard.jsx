@@ -16,14 +16,10 @@ const RESULT_LABELS = Object.freeze({
 });
 
 function formatDate(value) {
-  if (!value) {
-    return "Время не назначено";
-  }
+  if (!value) return "Время не назначено";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "Время не назначено";
-  }
+  if (Number.isNaN(date.getTime())) return "Время не назначено";
 
   return new Intl.DateTimeFormat("ru-RU", {
     day: "2-digit",
@@ -75,7 +71,6 @@ export default function TeamMatchCard({ match, compact = false }) {
   const status = match?.status || "upcoming";
   const result = match?.result;
   const resultLabel = RESULT_LABELS[result];
-  const url = match?.faceitUrl || "https://www.faceit.com/ru";
   const className = [
     "team-match-card",
     compact ? "team-match-card--compact" : "",
@@ -86,7 +81,7 @@ export default function TeamMatchCard({ match, compact = false }) {
     .join(" ");
 
   return (
-    <a className={className} href={url} target="_blank" rel="noreferrer">
+    <article className={className}>
       <div className="team-match-card__topline">
         <span className={`team-match-card__status team-match-card__status--${status}`}>
           {STATUS_LABELS[status] || "FACEIT"}
@@ -100,9 +95,7 @@ export default function TeamMatchCard({ match, compact = false }) {
 
       <div className="team-match-card__competition">
         <p>{match?.competitionName || "FACEIT"}</p>
-        <span>
-          {Number.isFinite(match?.bestOf) && match.bestOf > 0 ? `BO${match.bestOf}` : "CS2"}
-        </span>
+        <span>{Number.isFinite(match?.bestOf) && match.bestOf > 0 ? `BO${match.bestOf}` : "CS2"}</span>
       </div>
 
       <div className="team-match-card__versus-row">
@@ -121,11 +114,7 @@ export default function TeamMatchCard({ match, compact = false }) {
 
       <div className="team-match-card__footer">
         <time dateTime={match?.scheduledAt || undefined}>{formatDate(match?.scheduledAt)}</time>
-        <span>
-          Открыть матч FACEIT
-          <b aria-hidden="true">↗</b>
-        </span>
       </div>
-    </a>
+    </article>
   );
 }
