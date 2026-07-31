@@ -103,12 +103,12 @@
     "fullSync": true,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "lastFullSyncAt": "2026-07-31T16:17:24.678Z"
+    "lastFullSyncAt": "2026-07-31T17:56:12.754Z"
   },
   "roleModel": {
     "name": "ISTe statistical role inference",
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-07-31T16:17:24.678Z"
+  "updatedAt": "2026-07-31T17:56:12.754Z"
 }
