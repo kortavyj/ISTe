@@ -1,0 +1,65 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  background: #000;
+  color: #fff;
+
+  --page-bg: #000;
+  --surface-bg: #080808;
+  --surface-raised: #0b0b0b;
+  --text-primary: #fff;
+  --text-secondary: #a7a7a7;
+  --accent: #ff2525;
+  --accent-soft: rgba(255, 37, 37, 0.16);
+  --border-soft: rgba(255, 37, 37, 0.18);
+  --navbar-height: 70px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--navbar-height) + 24px);
+  background: var(--page-bg);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--page-bg);
+  color: var(--text-primary);
+}
+
+button,
+a {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  border: 0;
+}
+
+img {
+  max-width: 100%;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}

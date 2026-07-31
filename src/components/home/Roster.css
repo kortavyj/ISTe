@@ -1,0 +1,321 @@
+.roster-section {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 0, 0, 0.08), transparent 36%),
+    #050505;
+}
+
+.roster-section::before {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+  background-size: 48px 48px;
+  content: "";
+  pointer-events: none;
+}
+
+.roster-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.roster-subtitle {
+  width: min(700px, 100%);
+  margin: 18px auto 0;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.roster-grid {
+  display: grid;
+  width: min(1240px, 100%);
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 24px;
+  margin: 0 auto;
+}
+
+.player-card {
+  position: relative;
+  display: flex;
+  min-height: 310px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 0, 0, 0.17);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.025), transparent 40%),
+    #0b0b0b;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+.player-card::before {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.08);
+  content: "";
+  filter: blur(45px);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.player-card:hover,
+.player-card:focus-visible {
+  border-color: rgba(255, 0, 0, 0.55);
+  box-shadow:
+    0 0 28px rgba(255, 0, 0, 0.16),
+    0 22px 48px rgba(0, 0, 0, 0.68);
+  outline: none;
+  transform: translateY(-8px);
+}
+
+.player-card:hover::before,
+.player-card:focus-visible::before {
+  opacity: 1;
+}
+
+.player-card__external {
+  position: absolute;
+  top: 15px;
+  right: 17px;
+  color: rgba(255, 255, 255, 0.32);
+  font-size: 1rem;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.player-card:hover .player-card__external,
+.player-card:focus-visible .player-card__external {
+  color: #ff3131;
+  transform: translate(2px, -2px);
+}
+
+.player-avatar {
+  position: relative;
+  display: grid;
+  width: 104px;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid rgba(255, 35, 35, 0.75);
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  background:
+    radial-gradient(circle at 35% 30%, #ff4747, #d90000 60%, #750000),
+    #f00;
+  box-shadow:
+    0 0 0 7px rgba(255, 0, 0, 0.06),
+    0 0 25px rgba(255, 0, 0, 0.35);
+  color: #fff;
+  font-size: 2.1rem;
+  font-weight: 900;
+}
+
+.player-avatar span {
+  position: relative;
+  z-index: 0;
+}
+
+.player-avatar img {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.player-card__identity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.player-card h3 {
+  max-width: 175px;
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 1.22rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-country {
+  line-height: 1;
+}
+
+.player-role {
+  margin: 8px 0 16px;
+  color: var(--accent);
+  font-size: 0.94rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.player-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.player-level,
+.player-captain {
+  display: inline-block;
+  padding: 7px 13px;
+  border: 1px solid rgba(255, 0, 0, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 0, 0, 0.1);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.player-captain {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.player-role-note {
+  margin-top: 13px;
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.player-card--skeleton {
+  pointer-events: none;
+}
+
+.skeleton {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.04)
+  );
+  background-size: 220% 100%;
+  animation: roster-skeleton 1.4s linear infinite;
+}
+
+.skeleton--avatar {
+  width: 104px;
+  height: 104px;
+  margin-bottom: 22px;
+}
+
+.skeleton--name {
+  width: 125px;
+  height: 18px;
+  margin-bottom: 13px;
+}
+
+.skeleton--role {
+  width: 70px;
+  height: 12px;
+  margin-bottom: 20px;
+}
+
+.skeleton--level {
+  width: 118px;
+  height: 31px;
+}
+
+.roster-empty {
+  width: min(720px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(255, 0, 0, 0.2);
+  border-radius: 20px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.025);
+  text-align: center;
+}
+
+.roster-empty p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.66);
+  line-height: 1.7;
+}
+
+.roster-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.roster-empty button,
+.roster-empty a {
+  padding: 11px 18px;
+  border: 1px solid rgba(255, 0, 0, 0.45);
+  border-radius: 10px;
+  background: rgba(255, 0, 0, 0.12);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.roster-empty button:hover,
+.roster-empty a:hover {
+  background: rgba(255, 0, 0, 0.23);
+}
+
+@keyframes roster-skeleton {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .roster-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .player-card {
+    min-height: 290px;
+  }
+
+  .roster-subtitle {
+    font-size: 0.88rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-card,
+  .player-card__external,
+  .skeleton {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Стартовая точка главной страницы после завершения интро. */
+.roster-section {
+  min-height: calc(100svh - var(--navbar-height));
+  scroll-margin-top: var(--navbar-height);
+}

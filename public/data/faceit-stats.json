@@ -1,0 +1,24 @@
+{
+  "source": "FACEIT",
+  "sourceUrl": "https://www.faceit.com/ru/teams/fe19e71d-c974-404c-a038-beb9a578fb61",
+  "teamId": "fe19e71d-c974-404c-a038-beb9a578fb61",
+  "teamName": "ISTe",
+  "teamAvatar": null,
+  "gameId": "cs2",
+  "tournaments": null,
+  "matches": null,
+  "wins": null,
+  "winRate": null,
+  "players": null,
+  "roster": [],
+  "teamMatches": [],
+  "teamMatchCount": 0,
+  "matchSync": {
+    "source": "FACEIT team tournaments",
+    "fullSync": false,
+    "tournamentsScanned": 0,
+    "lastFullSyncAt": null
+  },
+  "roleModel": null,
+  "updatedAt": null
+}
