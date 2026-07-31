@@ -5,6 +5,7 @@ import Footer from "./components/layout/Footer.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
 import SiteIntro from "./components/layout/SiteIntro.jsx";
 import Contacts from "./pages/Contacts.jsx";
+import History from "./pages/History.jsx";
 import Home from "./pages/Home.jsx";
 import { Privacy, Terms } from "./pages/Legal.jsx";
 import Matches from "./pages/Matches.jsx";
@@ -29,6 +30,12 @@ export default function App() {
       window.history.scrollRestoration = previousScrollRestoration;
     };
   }, []);
+
+  useEffect(() => {
+    if (!showIntro && location.pathname !== "/") {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }, [location.pathname, showIntro]);
 
   const showRosterAsInitialView = useCallback(() => {
     if (initialViewWasPositionedRef.current || location.pathname !== "/") {
@@ -75,6 +82,7 @@ export default function App() {
           <Route path="/matches" element={<Matches />} />
           <Route path="/news" element={<News />} />
           <Route path="/partners" element={<Partners />} />
+          <Route path="/history" element={<History />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/privacy" element={<Privacy />} />
