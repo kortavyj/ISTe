@@ -1,26 +1,34 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 
+import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import Footer from "./components/layout/Footer.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
 import SiteIntro from "./components/layout/SiteIntro.jsx";
+import Account from "./pages/Account.jsx";
+import BlockedAccount from "./pages/BlockedAccount.jsx";
 import Contacts from "./pages/Contacts.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 import History from "./pages/History.jsx";
 import Home from "./pages/Home.jsx";
 import { Privacy, Terms } from "./pages/Legal.jsx";
+import Login from "./pages/Login.jsx";
 import Matches from "./pages/Matches.jsx";
 import News from "./pages/News.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Partners from "./pages/Partners.jsx";
+import Register from "./pages/Register.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import Shop from "./pages/Shop.jsx";
 import Team from "./pages/Team.jsx";
 
 import "./App.css";
 
 export default function App() {
-  const [showIntro, setShowIntro] = useState(true);
   const location = useLocation();
+  const [showIntro, setShowIntro] = useState(location.pathname === "/");
   const initialViewWasPositionedRef = useRef(false);
+  const introIsActive = showIntro && location.pathname === "/";
 
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration;
@@ -32,10 +40,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!showIntro && location.pathname !== "/") {
+    if (!introIsActive && location.pathname !== "/") {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }
-  }, [location.pathname, showIntro]);
+  }, [location.pathname, introIsActive]);
 
   const showRosterAsInitialView = useCallback(() => {
     if (initialViewWasPositionedRef.current || location.pathname !== "/") {
@@ -70,8 +78,12 @@ export default function App() {
   }, [showRosterAsInitialView]);
 
   return (
-    <div className={`app-shell${showIntro ? " app-shell-loading" : " app-shell-ready"}`}>
-      {showIntro && <SiteIntro onFinish={closeIntro} />}
+    <div
+      className={`app-shell${
+        introIsActive ? " app-shell-loading" : " app-shell-ready"
+      }`}
+    >
+      {introIsActive && <SiteIntro onFinish={closeIntro} />}
 
       <Navbar />
 
@@ -87,6 +99,21 @@ export default function App() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/blocked" element={<BlockedAccount />} />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <Account />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
