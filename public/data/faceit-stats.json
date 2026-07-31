@@ -40,12 +40,12 @@
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/c84b5c2b-af63-4053-85aa-1ad28dc96211.jpg",
-      "country": "al",
+      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
+      "nickname": "Lor9n",
+      "avatar": "https://distribution.faceit-cdn.net/images/f81c1a4f-3a95-4d3c-acd3-53a3ca33d5c7.jpeg",
+      "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
       "elo": 2824,
       "role": "ENTRY",
@@ -82,12 +82,12 @@
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
-      "nickname": "Lor9n",
-      "avatar": "https://distribution.faceit-cdn.net/images/f81c1a4f-3a95-4d3c-acd3-53a3ca33d5c7.jpeg",
-      "country": "ua",
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/c84b5c2b-af63-4053-85aa-1ad28dc96211.jpg",
+      "country": "al",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
       "elo": 2824,
       "role": "SUPPORT",
@@ -103,12 +103,12 @@
     "fullSync": true,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "lastFullSyncAt": "2026-07-31T10:01:48.088Z"
+    "lastFullSyncAt": "2026-07-31T12:06:37.117Z"
   },
   "roleModel": {
     "name": "ISTe statistical role inference",
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-07-31T10:01:48.088Z"
+  "updatedAt": "2026-07-31T12:06:37.117Z"
 }
