@@ -553,12 +553,27 @@
 
 @keyframes site-intro-progress-glow {
   0% {
-    left: 0;
+    left: 0%;
     opacity: 0;
   }
 
   8% {
     opacity: 0.9;
+  }
+
+  28% {
+    left: 18%;
+    opacity: 0.9;
+  }
+
+  54% {
+    left: 44%;
+    opacity: 0.95;
+  }
+
+  77% {
+    left: 78%;
+    opacity: 1;
   }
 
   100% {
