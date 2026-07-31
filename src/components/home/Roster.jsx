@@ -1,6 +1,8 @@
 import useFaceitStats from "../../hooks/useFaceitStats";
 import "./Roster.css";
 
+const EXCLUDED_PLAYER = "kortavyj";
+
 function countryToFlag(countryCode) {
   if (!countryCode || countryCode.length !== 2) {
     return "";
@@ -91,7 +93,11 @@ function RosterSkeleton() {
 
 export default function Roster() {
   const { stats, loading, error, reload } = useFaceitStats();
-  const roster = Array.isArray(stats.roster) ? stats.roster : [];
+  const roster = Array.isArray(stats.roster)
+    ? stats.roster.filter(
+        (player) => String(player.nickname || "").trim().toLowerCase() !== EXCLUDED_PLAYER,
+      )
+    : [];
 
   return (
     <section className="section roster-section" id="roster">
