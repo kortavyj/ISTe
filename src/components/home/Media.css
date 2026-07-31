@@ -14,7 +14,7 @@
 .media-grid {
   display: grid;
   width: min(1200px, 100%);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   margin: 0 auto;
 }
@@ -49,7 +49,7 @@
 .media-card-brand img,
 .media-card img.media-image-fallback {
   object-fit: contain;
-  padding: 48px;
+  padding: 52px;
   background:
     radial-gradient(circle at center, rgba(255, 0, 0, 0.22), transparent 56%),
     #080808;
@@ -145,25 +145,13 @@
   outline-offset: 5px;
 }
 
-@media (max-width: 920px) {
-  .media-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .media-card:last-child {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .media-grid {
     grid-template-columns: 1fr;
   }
 
-  .media-card,
-  .media-card:last-child {
+  .media-card {
     min-height: 220px;
-    grid-column: auto;
   }
 
   .media-card img {
