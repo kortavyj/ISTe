@@ -1,0 +1,198 @@
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
+
+import logo from "../assets/logos/iste-logo.png";
+
+import "./History.css";
+
+const milestones = [
+  {
+    number: "01",
+    title: "С чего всё началось",
+    text:
+      "ISTe появилась как небольшое объединение игроков, которым было мало просто заходить в матч. Хотелось играть системно, разбирать ошибки, усиливать сильные стороны друг друга и постепенно превращать отдельные игровые характеры в одну команду.",
+  },
+  {
+    number: "02",
+    title: "Ice Saber Team",
+    text:
+      "Название Ice Saber Team стало основой короткого тега ISTe. В нём соединились холодный расчёт, резкий стиль и готовность бороться за каждый раунд до конца. Со временем короткое имя стало самостоятельным знаком команды.",
+  },
+  {
+    number: "03",
+    title: "Формирование системы",
+    text:
+      "Совместные игры постепенно превратились в полноценный командный процесс. Появились постоянный состав, распределение ролей, общие правила, разбор матчей и единое понимание того, как ISTe должна действовать на сервере.",
+  },
+  {
+    number: "04",
+    title: "Выход на FACEIT",
+    text:
+      "FACEIT стал основной соревновательной площадкой команды. Здесь состав получает опыт, проверяет тактику против разных соперников и превращает каждую победу и каждое поражение в материал для дальнейшего роста.",
+  },
+  {
+    number: "05",
+    title: "Новый этап ISTe",
+    text:
+      "Собственный сайт объединил состав, матчи, статистику, медиа и историю клуба в одном месте. Это не финальная точка, а начало следующего этапа, в котором ISTe продолжает развиваться как самостоятельный киберспортивный проект.",
+  },
+];
+
+const principles = [
+  {
+    number: "01",
+    title: "Команда важнее эпизода",
+    text:
+      "Яркий момент ценен, но стабильный результат появляется только тогда, когда каждый игрок понимает общую задачу.",
+  },
+  {
+    number: "02",
+    title: "Ошибки превращаются в опыт",
+    text:
+      "Поражение не скрывается и не забывается. Оно разбирается, чтобы следующий матч команда начала сильнее.",
+  },
+  {
+    number: "03",
+    title: "Рост не заканчивается",
+    text:
+      "ISTe не строится вокруг одного турнира или одного состава. Проект развивается вместе с игроками и их амбициями.",
+  },
+];
+
+export default function History() {
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, []);
+
+  return (
+    <section className="history-page">
+      <div className="history-page__grid" aria-hidden="true" />
+      <div className="history-page__glow history-page__glow--one" aria-hidden="true" />
+      <div className="history-page__glow history-page__glow--two" aria-hidden="true" />
+
+      <header className="history-hero">
+        <div className="history-hero__content">
+          <p className="history-eyebrow">ISTe ORIGIN STORY</p>
+          <h1>
+            История
+            <span> ISTe</span>
+          </h1>
+          <p className="history-hero__lead">
+            Путь от небольшой группы игроков до самостоятельного
+            киберспортивного проекта с собственным стилем, составом и системой.
+          </p>
+
+          <div className="history-hero__actions">
+            <Link className="history-button history-button--primary" to="/team">
+              Смотреть состав
+            </Link>
+
+            <a
+              className="history-button history-button--secondary"
+              href="https://www.faceit.com/ru/teams/fe19e71d-c974-404c-a038-beb9a578fb61"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Команда на FACEIT
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+
+        <div className="history-hero__visual" aria-hidden="true">
+          <span className="history-hero__orbit history-hero__orbit--outer" />
+          <span className="history-hero__orbit history-hero__orbit--inner" />
+          <div className="history-hero__logo-frame">
+            <img src={logo} alt="" />
+          </div>
+          <span className="history-hero__code">ICE SABER TEAM</span>
+        </div>
+      </header>
+
+      <section className="history-origin" aria-labelledby="history-origin-title">
+        <div className="history-section-heading">
+          <p className="history-eyebrow">КАК ВСЁ РАЗВИВАЛОСЬ</p>
+          <h2 id="history-origin-title">От идеи до команды</h2>
+          <p>
+            История ISTe состоит не из одного события. Она складывалась из
+            совместных матчей, сложных решений, изменений состава и желания
+            становиться сильнее после каждой игры.
+          </p>
+        </div>
+
+        <div className="history-timeline">
+          {milestones.map((milestone) => (
+            <article className="history-milestone" key={milestone.number}>
+              <div className="history-milestone__marker">
+                <span>{milestone.number}</span>
+              </div>
+
+              <div className="history-milestone__content">
+                <h3>{milestone.title}</h3>
+                <p>{milestone.text}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="history-identity" aria-labelledby="history-identity-title">
+        <div className="history-identity__label">
+          <span>ISTe</span>
+          <small>PLAY  •  COMPETE  •  WIN</small>
+        </div>
+
+        <div className="history-identity__content">
+          <p className="history-eyebrow">ХАРАКТЕР КОМАНДЫ</p>
+          <h2 id="history-identity-title">Что стоит за тегом ISTe</h2>
+          <p>
+            ISTe объединяет холодный расчёт и агрессивное стремление к победе.
+            Команда может менять состав, роли и тактику, но сохраняет главное:
+            дисциплину, взаимное доверие и готовность работать ради общего
+            результата.
+          </p>
+        </div>
+      </section>
+
+      <section className="history-principles" aria-labelledby="history-principles-title">
+        <div className="history-section-heading">
+          <p className="history-eyebrow">ОСНОВА ПРОЕКТА</p>
+          <h2 id="history-principles-title">Принципы ISTe</h2>
+        </div>
+
+        <div className="history-principles__grid">
+          {principles.map((principle) => (
+            <article className="history-principle" key={principle.number}>
+              <span>{principle.number}</span>
+              <h3>{principle.title}</h3>
+              <p>{principle.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="history-future">
+        <p className="history-eyebrow">ИСТОРИЯ ПРОДОЛЖАЕТСЯ</p>
+        <h2>Следующая глава пишется сейчас</h2>
+        <p>
+          Каждый новый игрок, матч, турнир и совместное решение становится
+          частью истории ISTe. Команда продолжает строить собственный путь и
+          двигаться дальше без заранее установленного предела.
+        </p>
+
+        <div className="history-future__actions">
+          <Link className="history-button history-button--primary" to="/matches">
+            Смотреть матчи
+          </Link>
+          <Link className="history-button history-button--secondary" to="/news">
+            Новости команды
+          </Link>
+        </div>
+      </section>
+    </section>
+  );
+}
