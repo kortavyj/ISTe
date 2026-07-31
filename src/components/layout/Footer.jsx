@@ -19,13 +19,8 @@ const footerGroups = [
     links: [
       { label: "ВСЕ МЕДИА", href: "/#media" },
       {
-        label: "ВИДЕО",
-        href: "https://www.youtube.com/@Hell_Hound_Game",
-        external: true,
-      },
-      {
         label: "СТРИМЫ",
-        href: "https://www.twitch.tv/hell_hound_tw",
+        href: "https://www.twitch.tv/kortavyj",
         external: true,
       },
     ],
@@ -42,22 +37,26 @@ const footerGroups = [
 ];
 
 const socialLinks = [
-  { label: "Instagram", href: "https://www.instagram.com/", icon: "instagram" },
-  { label: "X", href: "https://x.com/", icon: "x" },
-  { label: "Telegram", href: "https://t.me/", icon: "telegram" },
-  { label: "TikTok", href: "https://www.tiktok.com/", icon: "tiktok" },
-  { label: "Steam", href: "https://steamcommunity.com/", icon: "steam" },
   {
-    label: "YouTube",
-    href: "https://www.youtube.com/@Hell_Hound_Game",
-    icon: "youtube",
+    label: "Telegram",
+    href: "https://t.me/ISTesport",
+    icon: "telegram",
+  },
+  {
+    label: "Steam",
+    href: "https://steamcommunity.com/groups/IceSaberTeam",
+    icon: "steam",
   },
   {
     label: "Twitch",
-    href: "https://www.twitch.tv/hell_hound_tw",
+    href: "https://www.twitch.tv/kortavyj",
     icon: "twitch",
   },
-  { label: "Discord", href: "https://discord.com/", icon: "discord" },
+  {
+    label: "Discord",
+    href: "https://discord.gg/AzpCxEgxye",
+    icon: "discord",
+  },
 ];
 
 function SocialIcon({ name }) {
@@ -69,37 +68,11 @@ function SocialIcon({ name }) {
     "aria-hidden": "true",
   };
 
-  if (name === "instagram") {
-    return (
-      <svg {...commonProps}>
-        <rect x="3.5" y="3.5" width="17" height="17" rx="5" stroke="currentColor" strokeWidth="2" />
-        <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
-        <circle cx="17.5" cy="6.8" r="1.1" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  if (name === "x") {
-    return (
-      <svg {...commonProps}>
-        <path d="M5 4L19 20M19 4L5 20" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
   if (name === "telegram") {
     return (
       <svg {...commonProps}>
         <path d="M3.6 11.1L19.3 4.6C20.1 4.3 20.8 5 20.5 5.8L15.9 19.1C15.6 20 14.5 20.2 13.9 19.5L10.6 15.9L8.7 17.7C8.3 18.1 7.6 17.9 7.5 17.3L6.7 13.5L3.7 12.5C3 12.3 2.9 11.4 3.6 11.1Z" fill="currentColor" />
         <path d="M7 13.2L16.8 7.2L9.1 14.7" stroke="#121216" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  if (name === "tiktok") {
-    return (
-      <svg {...commonProps}>
-        <path d="M14.1 4V14.3C14.1 17 12.1 19 9.5 19C7.2 19 5.3 17.2 5.3 14.9C5.3 12.6 7.2 10.7 9.5 10.7C10.1 10.7 10.6 10.8 11.1 11V7.9C10.6 7.8 10 7.7 9.5 7.7C5.5 7.7 2.3 10.9 2.3 14.9C2.3 18.8 5.5 22 9.5 22C13.7 22 17.1 18.7 17.1 14.3V9.5C18.3 10.3 19.7 10.7 21.2 10.7V7.7C18.8 7.7 17 6.1 17 4H14.1Z" fill="currentColor" />
       </svg>
     );
   }
@@ -111,15 +84,6 @@ function SocialIcon({ name }) {
         <circle cx="16.8" cy="7.2" r="1.5" fill="currentColor" />
         <circle cx="7.2" cy="16.5" r="3" stroke="currentColor" strokeWidth="2" />
         <path d="M9.7 14.8L14 10.2M4 14.8L1.8 13.8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (name === "youtube") {
-    return (
-      <svg {...commonProps}>
-        <rect x="2.5" y="6" width="19" height="12" rx="4" fill="currentColor" />
-        <path d="M10 9.3L15 12L10 14.7V9.3Z" fill="#121216" />
       </svg>
     );
   }
@@ -206,6 +170,7 @@ export default function Footer() {
           className="footer-socials"
           id="footer-socials"
           aria-label="Социальные сети ISTe"
+          style={{ gridTemplateColumns: "repeat(4, 1fr)", justifyItems: "center" }}
         >
           {socialLinks.map((social) => (
             <a
@@ -216,6 +181,7 @@ export default function Footer() {
               rel="noreferrer"
               aria-label={social.label}
               title={social.label}
+              style={{ justifySelf: "center" }}
             >
               <SocialIcon name={social.icon} />
             </a>
