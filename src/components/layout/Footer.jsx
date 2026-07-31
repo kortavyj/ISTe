@@ -29,7 +29,7 @@ const footerGroups = [
     title: "ПРО КЛУБ",
     links: [
       { label: "ПАРТНЁРЫ", to: "/partners" },
-      { label: "ИСТОРИЯ", to: "/team" },
+      { label: "ИСТОРИЯ", to: "/history" },
       { label: "КОНТАКТЫ", to: "/contacts" },
       { label: "ЛОГОТИП", href: logo, download: "ISTe-logo.png" },
     ],
