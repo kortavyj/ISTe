@@ -2,10 +2,19 @@
   background: #050505;
 }
 
+.media-intro {
+  max-width: 620px;
+  margin: 18px auto 0;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 1rem;
+  line-height: 1.7;
+  text-align: center;
+}
+
 .media-grid {
   display: grid;
   width: min(1200px, 100%);
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   margin: 0 auto;
 }
@@ -13,12 +22,14 @@
 .media-card {
   position: relative;
   display: block;
-  min-height: 240px;
-  border: 1px solid rgba(255, 0, 0, 0.12);
+  min-height: 270px;
+  border: 1px solid rgba(255, 0, 0, 0.14);
   border-radius: 22px;
   overflow: hidden;
   background: #0b0b0b;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  color: #fff;
+  text-decoration: none;
   transition:
     border-color 200ms ease,
     box-shadow 200ms ease,
@@ -28,9 +39,20 @@
 .media-card img {
   display: block;
   width: 100%;
-  height: 240px;
+  height: 270px;
   object-fit: cover;
-  transition: transform 300ms ease;
+  transition:
+    filter 300ms ease,
+    transform 300ms ease;
+}
+
+.media-card-brand img,
+.media-card img.media-image-fallback {
+  object-fit: contain;
+  padding: 48px;
+  background:
+    radial-gradient(circle at center, rgba(255, 0, 0, 0.22), transparent 56%),
+    #080808;
 }
 
 .media-overlay {
@@ -38,36 +60,66 @@
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 24px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.84));
+  justify-content: space-between;
+  padding: 22px;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.9)),
+    linear-gradient(90deg, rgba(90, 0, 0, 0.16), transparent 55%);
 }
 
-.media-play {
-  position: absolute;
-  top: 18px;
-  right: 18px;
+.media-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.media-type {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 55, 55, 0.45);
+  border-radius: 999px;
+  background: rgba(8, 0, 0, 0.72);
+  color: #ff3434;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.media-open {
   display: grid;
-  width: 56px;
+  width: 48px;
   aspect-ratio: 1;
   place-items: center;
   border-radius: 50%;
   background: #f00;
-  box-shadow: 0 0 24px rgba(255, 0, 0, 0.55);
+  box-shadow: 0 0 24px rgba(255, 0, 0, 0.48);
   color: #fff;
+  font-size: 1.3rem;
+  font-weight: 900;
   transition: transform 180ms ease;
 }
 
-.media-overlay h3 {
-  max-width: 90%;
+.media-copy h3 {
+  max-width: 95%;
   margin: 0;
   color: #fff;
-  font-size: 1.1rem;
-  line-height: 1.4;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.media-copy p {
+  max-width: 92%;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
 .media-card:hover {
-  border-color: rgba(255, 0, 0, 0.45);
+  border-color: rgba(255, 0, 0, 0.52);
   box-shadow:
     0 0 28px rgba(255, 0, 0, 0.16),
     0 20px 48px rgba(0, 0, 0, 0.65);
@@ -75,17 +127,59 @@
 }
 
 .media-card:hover img {
-  transform: scale(1.06);
+  filter: brightness(1.06);
+  transform: scale(1.05);
 }
 
-.media-card:hover .media-play {
-  transform: scale(1.12);
+.media-card-brand:hover img,
+.media-card:hover img.media-image-fallback {
+  transform: scale(1.04);
+}
+
+.media-card:hover .media-open {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.media-card:focus-visible {
+  outline: 2px solid #ff2b2b;
+  outline-offset: 5px;
+}
+
+@media (max-width: 920px) {
+  .media-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .media-card:last-child {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 640px) {
+  .media-grid {
+    grid-template-columns: 1fr;
+  }
+
   .media-card,
+  .media-card:last-child {
+    min-height: 220px;
+    grid-column: auto;
+  }
+
   .media-card img {
-    min-height: 200px;
-    height: 200px;
+    height: 220px;
+  }
+
+  .media-overlay {
+    padding: 18px;
+  }
+
+  .media-open {
+    width: 44px;
+  }
+
+  .media-card-brand img,
+  .media-card img.media-image-fallback {
+    padding: 38px;
   }
 }
