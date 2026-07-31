@@ -1,5 +1,7 @@
 import { NavLink } from "react-router-dom";
 
+import { useAuth } from "../../auth/AuthContext.jsx";
+
 import "./Navbar.css";
 
 const navigation = [
@@ -10,6 +12,8 @@ const navigation = [
 ];
 
 export default function Navbar() {
+  const { user, loading } = useAuth();
+
   return (
     <header className="navbar">
       <div className="navbar-container">
@@ -30,6 +34,15 @@ export default function Navbar() {
               {label}
             </NavLink>
           ))}
+
+          <NavLink
+            to={user ? "/account" : "/login"}
+            className={({ isActive }) =>
+              `navbar-account${isActive ? " navbar-account-active" : ""}`
+            }
+          >
+            {loading ? "..." : user ? "Профиль" : "Войти"}
+          </NavLink>
         </nav>
       </div>
     </header>
