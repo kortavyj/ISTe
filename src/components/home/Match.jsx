@@ -42,9 +42,6 @@ export default function Match() {
       <header className="section-header">
         <p className="section-tag">{featured?.tag || "ISTE MATCHES"}</p>
         <h2 className="section-title">{featured?.title || "МАТЧИ КОМАНДЫ"}</h2>
-        <p className="match-section__subtitle">
-          Только матчи командного состава ISTe в турнирах FACEIT. История отдельных игроков сюда не попадает.
-        </p>
       </header>
 
       {featured ? <TeamMatchCard match={featured.match} compact /> : null}
