@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "../auth/AuthContext.jsx";
 import { supabase } from "../lib/supabase.js";
@@ -10,6 +10,15 @@ const STATUS_NAMES = {
   published: "Опубликовано",
   archived: "В архиве",
 };
+
+const IMAGE_BUCKET = "news-images";
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 
 const EMPTY_FORM = {
   title: "",
@@ -89,6 +98,53 @@ function formatDate(value) {
   }).format(date);
 }
 
+function getImageExtension(file) {
+  const typeExtensions = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+  };
+
+  if (typeExtensions[file?.type]) {
+    return typeExtensions[file.type];
+  }
+
+  const extension = String(file?.name ?? "")
+    .split(".")
+    .pop()
+    ?.toLowerCase();
+
+  return extension || "jpg";
+}
+
+function createImagePath(userId, file) {
+  const uniquePart =
+    window.crypto?.randomUUID?.() ??
+    `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  return `${userId}/${uniquePart}.${getImageExtension(file)}`;
+}
+
+function getStoragePathFromPublicUrl(value) {
+  if (!value) {
+    return null;
+  }
+
+  const marker = `/storage/v1/object/public/${IMAGE_BUCKET}/`;
+  const markerIndex = value.indexOf(marker);
+
+  if (markerIndex === -1) {
+    return null;
+  }
+
+  try {
+    return decodeURIComponent(value.slice(markerIndex + marker.length));
+  } catch {
+    return value.slice(markerIndex + marker.length);
+  }
+}
+
 function getErrorMessage(error) {
   const message = String(error?.message ?? "");
 
@@ -129,6 +185,35 @@ export default function AdminNews() {
   const [deletingId, setDeletingId] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const [coverFile, setCoverFile] = useState(null);
+  const [coverPreview, setCoverPreview] = useState("");
+  const [originalCoverUrl, setOriginalCoverUrl] = useState("");
+  const coverPreviewObjectUrlRef = useRef("");
+
+  const releaseCoverPreview = useCallback(() => {
+    if (coverPreviewObjectUrlRef.current) {
+      URL.revokeObjectURL(coverPreviewObjectUrlRef.current);
+      coverPreviewObjectUrlRef.current = "";
+    }
+  }, []);
+
+  const resetCoverState = useCallback(
+    (url = "") => {
+      releaseCoverPreview();
+      setCoverFile(null);
+      setCoverPreview(url);
+      setOriginalCoverUrl(url);
+    },
+    [releaseCoverPreview],
+  );
+
+  useEffect(
+    () => () => {
+      releaseCoverPreview();
+    },
+    [releaseCoverPreview],
+  );
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
@@ -215,9 +300,100 @@ export default function AdminNews() {
     updateForm("slug", slugify(event.target.value));
   }
 
+  function handleCoverUrlChange(event) {
+    const value = event.target.value;
+
+    releaseCoverPreview();
+    setCoverFile(null);
+    setCoverPreview(value.trim());
+    updateForm("coverUrl", value);
+  }
+
+  function handleCoverFileChange(event) {
+    const file = event.target.files?.[0] ?? null;
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      setErrorMessage("Выбери изображение JPEG, PNG, WEBP или GIF.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setErrorMessage("Размер изображения не должен превышать 5 МБ.");
+      return;
+    }
+
+    releaseCoverPreview();
+    const objectUrl = URL.createObjectURL(file);
+    coverPreviewObjectUrlRef.current = objectUrl;
+    setCoverFile(file);
+    setCoverPreview(objectUrl);
+  }
+
+  function removeCover() {
+    releaseCoverPreview();
+    setCoverFile(null);
+    setCoverPreview("");
+    updateForm("coverUrl", "");
+  }
+
+  async function removeStoredImageByUrl(url) {
+    const path = getStoragePathFromPublicUrl(url);
+
+    if (!path) {
+      return;
+    }
+
+    await supabase.storage.from(IMAGE_BUCKET).remove([path]);
+  }
+
+  async function uploadCoverImage(file) {
+    if (!file) {
+      return {
+        url: form.coverUrl.trim() || null,
+        path: null,
+      };
+    }
+
+    const path = createImagePath(user.id, file);
+    const { error: uploadError } = await supabase.storage
+      .from(IMAGE_BUCKET)
+      .upload(path, file, {
+        cacheControl: "3600",
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from(IMAGE_BUCKET)
+      .getPublicUrl(path);
+
+    if (!data?.publicUrl) {
+      await supabase.storage.from(IMAGE_BUCKET).remove([path]);
+      throw new Error("Не удалось получить ссылку на загруженную обложку.");
+    }
+
+    return {
+      url: data.publicUrl,
+      path,
+    };
+  }
+
   function openCreate() {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    resetCoverState();
     setSlugTouched(false);
     setErrorMessage("");
     setSuccessMessage("");
@@ -242,6 +418,7 @@ export default function AdminNews() {
       status: post.status ?? "draft",
       isFeatured: Boolean(post.is_featured),
     });
+    resetCoverState(post.cover_url ?? "");
     setSlugTouched(true);
     setErrorMessage("");
     setSuccessMessage("");
@@ -257,6 +434,7 @@ export default function AdminNews() {
     setEditorOpen(false);
     setEditingId(null);
     setForm(EMPTY_FORM);
+    resetCoverState();
     setSlugTouched(false);
   }
 
@@ -302,43 +480,63 @@ export default function AdminNews() {
       return;
     }
 
-    const payload = {
-      title,
-      slug,
-      excerpt,
-      content,
-      category,
-      cover_url: form.coverUrl.trim() || null,
-      status: canManageAll ? form.status : "draft",
-      is_featured: canManageAll ? form.isFeatured : false,
-    };
+    let uploadedPath = null;
 
-    const request = editingId
-      ? supabase
-          .from("news_posts")
-          .update(payload)
-          .eq("id", editingId)
-      : supabase
-          .from("news_posts")
-          .insert(payload);
+    try {
+      const uploadedCover = await uploadCoverImage(coverFile);
+      uploadedPath = uploadedCover.path;
 
-    const { error } = await request;
+      const payload = {
+        title,
+        slug,
+        excerpt,
+        content,
+        category,
+        cover_url: uploadedCover.url,
+        status: canManageAll ? form.status : "draft",
+        is_featured: canManageAll ? form.isFeatured : false,
+      };
 
-    if (error) {
+      const request = editingId
+        ? supabase
+            .from("news_posts")
+            .update(payload)
+            .eq("id", editingId)
+        : supabase
+            .from("news_posts")
+            .insert(payload);
+
+      const { error } = await request;
+
+      if (error) {
+        if (uploadedPath) {
+          await supabase.storage.from(IMAGE_BUCKET).remove([uploadedPath]);
+        }
+
+        throw error;
+      }
+
+      if (
+        originalCoverUrl &&
+        originalCoverUrl !== uploadedCover.url
+      ) {
+        await removeStoredImageByUrl(originalCoverUrl);
+      }
+
+      setSuccessMessage(
+        editingId ? "Новость успешно обновлена." : "Новость успешно создана.",
+      );
+      setEditorOpen(false);
+      setEditingId(null);
+      setForm(EMPTY_FORM);
+      resetCoverState();
+      setSlugTouched(false);
+      await loadPosts();
+    } catch (error) {
       setErrorMessage(getErrorMessage(error));
+    } finally {
       setSaving(false);
-      return;
     }
-
-    setSuccessMessage(
-      editingId ? "Новость успешно обновлена." : "Новость успешно создана.",
-    );
-    setSaving(false);
-    setEditorOpen(false);
-    setEditingId(null);
-    setForm(EMPTY_FORM);
-    setSlugTouched(false);
-    await loadPosts();
   }
 
   async function handleDelete(post) {
@@ -366,6 +564,7 @@ export default function AdminNews() {
     if (error) {
       setErrorMessage(getErrorMessage(error));
     } else {
+      await removeStoredImageByUrl(post.cover_url);
       setSuccessMessage("Новость удалена.");
       await loadPosts();
     }
@@ -535,20 +734,66 @@ export default function AdminNews() {
                 />
               </label>
 
-              <label className="admin-news-field admin-news-field-wide">
-                <span>Ссылка на обложку</span>
-                <input
-                  type="url"
-                  value={form.coverUrl}
-                  onChange={(event) =>
-                    updateForm("coverUrl", event.target.value)
-                  }
-                  maxLength={1000}
-                  placeholder="https://..."
-                  disabled={saving}
-                />
-                <small>Поле можно оставить пустым.</small>
-              </label>
+              <div className="admin-news-field admin-news-field-wide">
+                <span>Обложка новости</span>
+
+                <div className="admin-news-cover-editor">
+                  <div className="admin-news-cover-preview">
+                    {coverPreview ? (
+                      <img src={coverPreview} alt="Предпросмотр обложки" />
+                    ) : (
+                      <span>ISTe</span>
+                    )}
+                  </div>
+
+                  <div className="admin-news-cover-controls">
+                    <div className="admin-news-cover-actions">
+                      <label className="admin-news-upload-button">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          onChange={handleCoverFileChange}
+                          disabled={saving}
+                        />
+                        {coverFile ? "Выбрать другое" : "Выбрать изображение"}
+                      </label>
+
+                      <button
+                        className="admin-news-secondary"
+                        type="button"
+                        onClick={removeCover}
+                        disabled={saving || !coverPreview}
+                      >
+                        Удалить обложку
+                      </button>
+                    </div>
+
+                    <p>
+                      JPEG, PNG, WEBP или GIF. Максимальный размер 5 МБ.
+                      Изображение загрузится в Supabase при сохранении новости.
+                    </p>
+
+                    {coverFile ? (
+                      <div className="admin-news-selected-file">
+                        <strong>{coverFile.name}</strong>
+                        <span>{(coverFile.size / 1024 / 1024).toFixed(2)} МБ</span>
+                      </div>
+                    ) : null}
+
+                    <label className="admin-news-field">
+                      <span>Или вставь прямую ссылку</span>
+                      <input
+                        type="url"
+                        value={form.coverUrl}
+                        onChange={handleCoverUrlChange}
+                        maxLength={1000}
+                        placeholder="https://..."
+                        disabled={saving}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
 
               {canManageAll ? (
                 <>
