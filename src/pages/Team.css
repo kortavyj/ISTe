@@ -523,3 +523,19 @@
     height: calc(100% - 8px);
   }
 }
+
+
+/* Возвращает заголовок страницы команды сразу под навигацию */
+.team-page {
+  padding-top: calc(var(--navbar-height) + 72px) !important;
+}
+
+.team-page__header {
+  display: block !important;
+  width: min(900px, 100%) !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 auto 72px !important;
+  padding: 0 !important;
+  transform: none !important;
+}
