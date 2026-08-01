@@ -51,7 +51,7 @@ const CUSTOM_PROFILES = Object.freeze([
     ],
   },
   {
-    nickname: null,
+    nickname: "silryd",
     roleLabel: "Rifler",
     title: "Универсальный саппорт",
     description:
@@ -59,6 +59,18 @@ const CUSTOM_PROFILES = Object.freeze([
     strengths: ["Гранаты", "Размены", "Адаптация"],
     portrait: riflerPortrait,
     portraitMode: "cutout",
+    socials: [
+      {
+        name: "Instagram",
+        url: "https://www.instagram.com/silryd/",
+        icon: "instagram",
+      },
+      {
+        name: "Twitch",
+        url: "https://www.twitch.tv/silryd",
+        icon: "twitch",
+      },
+    ],
   },
   {
     nickname: "Lor9n",
