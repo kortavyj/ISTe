@@ -104,10 +104,6 @@ export default function Roster() {
       <header className="section-header">
         <p className="section-tag">ISTE ROSTER</p>
         <h2 className="section-title">СОСТАВ КОМАНДЫ</h2>
-        <p className="roster-subtitle">
-          Никнеймы, аватары и уровни загружаются напрямую из FACEIT. Роли рассчитаны по
-          доступной игровой статистике и могут быть приблизительными.
-        </p>
       </header>
 
       {loading && roster.length === 0 ? <RosterSkeleton /> : null}
