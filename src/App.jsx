@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 
+import OwnerRoute from "./auth/OwnerRoute.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import Footer from "./components/layout/Footer.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
@@ -16,6 +17,7 @@ import Login from "./pages/Login.jsx";
 import Matches from "./pages/Matches.jsx";
 import News from "./pages/News.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import OwnerUsers from "./pages/OwnerUsers.jsx";
 import Partners from "./pages/Partners.jsx";
 import Register from "./pages/Register.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
@@ -111,6 +113,14 @@ export default function App() {
               <ProtectedRoute>
                 <Account />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/owner/users"
+            element={
+              <OwnerRoute>
+                <OwnerUsers />
+              </OwnerRoute>
             }
           />
 
