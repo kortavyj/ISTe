@@ -41,6 +41,7 @@ export default function Navbar() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const accountMenuRef = useRef(null);
+  const canManageNews = ["editor", "admin", "owner"].includes(role);
 
   const initials = useMemo(
     () => getInitials(profile, user),
@@ -214,6 +215,31 @@ export default function Navbar() {
                     <small>Профиль и настройки</small>
                   </span>
                 </NavLink>
+
+                {canManageNews ? (
+                  <NavLink
+                    className="navbar-profile-action"
+                    to="/admin/news"
+                    role="menuitem"
+                    tabIndex={menuOpen ? 0 : -1}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                      />
+                    </svg>
+                    <span>
+                      <strong>Управление новостями</strong>
+                      <small>Черновики и публикации</small>
+                    </span>
+                  </NavLink>
+                ) : null}
 
                 {role === "owner" ? (
                   <NavLink
