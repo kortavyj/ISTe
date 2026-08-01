@@ -3,10 +3,12 @@ import { Route, Routes, useLocation } from "react-router-dom";
 
 import OwnerRoute from "./auth/OwnerRoute.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
+import StaffRoute from "./auth/StaffRoute.jsx";
 import Footer from "./components/layout/Footer.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
 import SiteIntro from "./components/layout/SiteIntro.jsx";
 import Account from "./pages/Account.jsx";
+import AdminNews from "./pages/AdminNews.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
 import Contacts from "./pages/Contacts.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
@@ -107,6 +109,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/blocked" element={<BlockedAccount />} />
+
           <Route
             path="/account"
             element={
@@ -115,6 +118,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/admin/news"
+            element={
+              <StaffRoute>
+                <AdminNews />
+              </StaffRoute>
+            }
+          />
+
           <Route
             path="/owner/users"
             element={
