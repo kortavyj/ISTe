@@ -84,9 +84,7 @@ export default function News() {
         <header className="news-header">
           <p className="page-eyebrow">LATEST UPDATES</p>
           <h1>Новости ISTe</h1>
-          <p>
-            Результаты матчей, анонсы, изменения состава и важные события команды.
-          </p>
+         
         </header>
 
         {loading ? (
