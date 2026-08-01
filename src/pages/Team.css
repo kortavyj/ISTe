@@ -35,7 +35,7 @@
   transform: translateX(-50%);
 }
 
-.team-page > * {
+.team-page > *:not(.team-page__glow) {
   position: relative;
   z-index: 1;
 }
