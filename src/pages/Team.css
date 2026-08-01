@@ -482,3 +482,42 @@
     line-height: 1.68;
   }
 }
+
+
+/* Финальная фиксация верхнего блока страницы команды */
+.team-page {
+  padding-top: calc(var(--navbar-height) + 32px) !important;
+}
+
+.team-page__glow {
+  top: calc(var(--navbar-height) + 8px) !important;
+  width: min(540px, 72vw) !important;
+  opacity: 0.72;
+}
+
+.team-page__header {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 auto 58px !important;
+  padding: 0 !important;
+  align-content: initial !important;
+  justify-content: initial !important;
+  transform: none !important;
+}
+
+@media (max-width: 640px) {
+  .team-page {
+    padding-top: calc(var(--navbar-height) + 24px) !important;
+  }
+
+  .team-page__header {
+    margin-bottom: 42px !important;
+  }
+
+  .team-page__glow {
+    width: min(430px, 88vw) !important;
+  }
+}
