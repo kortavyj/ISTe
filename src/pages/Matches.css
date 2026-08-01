@@ -33,7 +33,7 @@
   transform: translateX(-50%);
 }
 
-.matches-page > * {
+.matches-page > *:not(.matches-page__glow) {
   position: relative;
   z-index: 1;
 }
