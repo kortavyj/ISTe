@@ -103,6 +103,13 @@ const CUSTOM_PROFILES = Object.freeze([
     strengths: ["Первый контакт", "Аим и реакция", "Агрессия"],
     portrait: perinamaraPortrait,
     portraitMode: "cutout",
+    socials: [
+      {
+        name: "Instagram",
+        url: "https://www.instagram.com/nikita5227_st/",
+        icon: "instagram",
+      },
+    ],
   },
 ]);
 
