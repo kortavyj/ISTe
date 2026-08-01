@@ -1,8 +1,22 @@
 import useFaceitStats from "../hooks/useFaceitStats.js";
+import infuriat3Portrait from "../assets/players/infuriat3.png";
 
 import "./Team.css";
 
 const EXCLUDED_PLAYER = "kortavyj";
+const FEATURED_PLAYER = "infuriat3";
+
+const PLAYER_PROFILES = Object.freeze({
+  infuriat3: {
+    role: "IGL",
+    title: "Игровое мышление",
+    description:
+      "Капитан, который читает игру на несколько шагов вперёд и выстраивает стратегию по ходу раунда. Грамотно распределяет ресурсы, координирует действия команды и адаптируется под стиль соперника, сохраняя контроль над ситуацией.",
+    strengths: ["Принятие решений", "Командная координация", "Адаптивность"],
+    portrait: infuriat3Portrait,
+    portraitMode: "cutout",
+  },
+});
 
 const ROLE_PROFILES = Object.freeze({
   IGL: {
@@ -44,6 +58,10 @@ const DEFAULT_PROFILE = Object.freeze({
   strengths: ["Командная игра", "Гибкость", "Самообладание"],
 });
 
+function normalizeNickname(nickname) {
+  return String(nickname || "").trim().toLowerCase();
+}
+
 function countryToFlag(countryCode) {
   if (!countryCode || countryCode.length !== 2) {
     return "";
@@ -56,15 +74,20 @@ function countryToFlag(countryCode) {
     .join("");
 }
 
-function PlayerPortrait({ player }) {
+function PlayerPortrait({ player, profile }) {
   const initial = player.nickname?.charAt(0)?.toUpperCase() || "?";
+  const portrait = profile.portrait || player.avatar;
+  const isCutout = profile.portraitMode === "cutout";
 
   return (
-    <div className="team-profile__portrait" aria-hidden="true">
-      <span>{initial}</span>
-      {player.avatar ? (
+    <div
+      className={`team-profile__portrait${isCutout ? " team-profile__portrait--cutout" : ""}`}
+      aria-hidden="true"
+    >
+      {!isCutout ? <span>{initial}</span> : null}
+      {portrait ? (
         <img
-          src={player.avatar}
+          src={portrait}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
@@ -78,19 +101,24 @@ function PlayerPortrait({ player }) {
 }
 
 function PlayerProfile({ player, index }) {
-  const role = String(player.role || "RIFLER").toUpperCase();
-  const profile = ROLE_PROFILES[role] || DEFAULT_PROFILE;
+  const nicknameKey = normalizeNickname(player.nickname);
+  const playerProfile = PLAYER_PROFILES[nicknameKey];
+  const role = String(playerProfile?.role || player.role || "RIFLER").toUpperCase();
+  const profile = playerProfile || ROLE_PROFILES[role] || DEFAULT_PROFILE;
   const flag = countryToFlag(player.country);
   const level = Number.isFinite(player.level) ? player.level : "?";
   const faceitUrl = player.faceitUrl || "https://www.faceit.com/ru";
+  const isCutout = profile.portraitMode === "cutout";
 
   return (
-    <article className="team-profile">
-      <div className="team-profile__visual">
+    <article className={`team-profile${isCutout ? " team-profile--cutout" : ""}`}>
+      <div
+        className={`team-profile__visual${isCutout ? " team-profile__visual--cutout" : ""}`}
+      >
         <span className="team-profile__number" aria-hidden="true">
           {String(index + 1).padStart(2, "0")}
         </span>
-        <PlayerPortrait player={player} />
+        <PlayerPortrait player={player} profile={profile} />
         <div className="team-profile__scanline" aria-hidden="true" />
       </div>
 
@@ -151,9 +179,13 @@ function ProfilesSkeleton() {
 export default function Team() {
   const { stats, loading, error, reload } = useFaceitStats();
   const players = Array.isArray(stats.roster)
-    ? stats.roster.filter(
-        (player) => String(player.nickname || "").trim().toLowerCase() !== EXCLUDED_PLAYER,
-      )
+    ? stats.roster
+        .filter((player) => normalizeNickname(player.nickname) !== EXCLUDED_PLAYER)
+        .sort((left, right) => {
+          const leftFeatured = normalizeNickname(left.nickname) === FEATURED_PLAYER;
+          const rightFeatured = normalizeNickname(right.nickname) === FEATURED_PLAYER;
+          return Number(rightFeatured) - Number(leftFeatured);
+        })
     : [];
 
   return (
@@ -163,7 +195,10 @@ export default function Team() {
       <header className="team-page__header">
         <p className="page-eyebrow">ISTE PLAYER PROFILES</p>
         <h1>Игроки команды</h1>
-      
+        <p>
+          У каждого участника свой стиль, своя зона ответственности и свой способ влиять
+          на раунд. Здесь собраны игровые портреты основного состава ISTe.
+        </p>
         <div className="team-page__counter">
           <span>{players.length || 4}</span>
           <small>PLAYER PROFILES</small>
