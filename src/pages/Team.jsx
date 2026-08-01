@@ -42,6 +42,13 @@ const CUSTOM_PROFILES = Object.freeze([
     strengths: ["Терпение", "Тайминги", "Контроль карты"],
     portrait: ishidoriPortrait,
     portraitMode: "cutout",
+    socials: [
+      {
+        name: "Instagram",
+        url: "https://www.instagram.com/wasureteikenai/",
+        icon: "instagram",
+      },
+    ],
   },
   {
     nickname: null,
