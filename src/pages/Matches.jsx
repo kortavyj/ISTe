@@ -145,10 +145,6 @@ export default function Matches() {
       <header className="matches-page__header">
         <p className="page-eyebrow">ISTE MATCH CENTER</p>
         <h1>Матчи команды</h1>
-        <p>
-          Здесь собраны матчи именно командного состава ISTe в турнирах FACEIT.
-          Персональная история матчей отдельных игроков не используется.
-        </p>
 
         <div className="matches-page__summary" aria-label="Сводка по матчам">
           <div>
