@@ -1,14 +1,19 @@
 import useFaceitStats from "../hooks/useFaceitStats.js";
 import infuriat3Portrait from "../assets/players/infuriat3.png";
+import ishidoriPortrait from "../assets/players/ishidori.png";
+import riflerPortrait from "../assets/players/rifler-support.png";
+import awpPortrait from "../assets/players/awp-main.png";
+import perinamaraPortrait from "../assets/players/perinamara.png";
 
 import "./Team.css";
 
 const EXCLUDED_PLAYER = "kortavyj";
 const FEATURED_PLAYER = "infuriat3";
 
-const PLAYER_PROFILES = Object.freeze({
-  infuriat3: {
-    role: "IGL",
+const CUSTOM_PROFILES = Object.freeze([
+  {
+    nickname: null,
+    roleLabel: "IGL",
     title: "Игровое мышление",
     description:
       "Капитан, который читает игру на несколько шагов вперёд и выстраивает стратегию по ходу раунда. Грамотно распределяет ресурсы, координирует действия команды и адаптируется под стиль соперника, сохраняя контроль над ситуацией.",
@@ -16,7 +21,47 @@ const PLAYER_PROFILES = Object.freeze({
     portrait: infuriat3Portrait,
     portraitMode: "cutout",
   },
-});
+  {
+    nickname: "Ishidori",
+    roleLabel: "Lurker",
+    title: "Контроль карты и давление",
+    description:
+      "Находит тайминги, наказывает ротации и создаёт постоянную угрозу на флангах. Терпеливо ждёт момент для решающего выхода и меняет ход раунда одним действием.",
+    strengths: ["Терпение", "Тайминги", "Контроль карты"],
+    portrait: ishidoriPortrait,
+    portraitMode: "cutout",
+  },
+  {
+    nickname: null,
+    roleLabel: "Rifler",
+    title: "Универсальный саппорт",
+    description:
+      "Контролирует темп раунда, помогает открывать позиции и обеспечивает команде преимущество за счёт использования гранат.",
+    strengths: ["Гранаты", "Размены", "Адаптация"],
+    portrait: riflerPortrait,
+    portraitMode: "cutout",
+  },
+  {
+    nickname: null,
+    roleLabel: "AWP",
+    title: "Контроль пространства и давление",
+    description:
+      "Снайпер — главный источник огневой мощи и контроля пространства. Обладая феноменальной реакцией и безупречным чувством позиционирования, он превращает AWP в инструмент психологического давления: он не просто собирает первые фраги, он лишает врага права на ошибку и заставляет его бояться каждого открытого угла.",
+    strengths: ["Позиционирование", "Первый фраг", "Давление AWP"],
+    portrait: awpPortrait,
+    portraitMode: "cutout",
+  },
+  {
+    nickname: "Perinamara",
+    roleLabel: "Entry Fragger",
+    title: "Открытие раундов и темп",
+    description:
+      "Открывает раунды и задаёт темп игре. Первым выходит на контакт, берёт на себя риск и находит начальные фраги, ломая оборону соперника. Быстро принимает решения и создаёт пространство, позволяя команде уверенно заходить на позицию.",
+    strengths: ["Первый контакт", "Аим и реакция", "Агрессия"],
+    portrait: perinamaraPortrait,
+    portraitMode: "cutout",
+  },
+]);
 
 const ROLE_PROFILES = Object.freeze({
   IGL: {
@@ -74,8 +119,8 @@ function countryToFlag(countryCode) {
     .join("");
 }
 
-function PlayerPortrait({ player, profile }) {
-  const initial = player.nickname?.charAt(0)?.toUpperCase() || "?";
+function PlayerPortrait({ player, profile, displayName }) {
+  const initial = displayName?.charAt(0)?.toUpperCase() || player.nickname?.charAt(0)?.toUpperCase() || "?";
   const portrait = profile.portrait || player.avatar;
   const isCutout = profile.portraitMode === "cutout";
 
@@ -101,10 +146,12 @@ function PlayerPortrait({ player, profile }) {
 }
 
 function PlayerProfile({ player, index }) {
-  const nicknameKey = normalizeNickname(player.nickname);
-  const playerProfile = PLAYER_PROFILES[nicknameKey];
-  const role = String(playerProfile?.role || player.role || "RIFLER").toUpperCase();
-  const profile = playerProfile || ROLE_PROFILES[role] || DEFAULT_PROFILE;
+  const customProfile = CUSTOM_PROFILES[index] || null;
+  const fallbackRole = String(player.role || "RIFLER").toUpperCase();
+  const fallbackProfile = ROLE_PROFILES[fallbackRole] || DEFAULT_PROFILE;
+  const profile = customProfile || fallbackProfile;
+  const displayName = customProfile?.nickname || player.nickname;
+  const roleLabel = customProfile?.roleLabel || fallbackRole;
   const flag = countryToFlag(player.country);
   const level = Number.isFinite(player.level) ? player.level : "?";
   const faceitUrl = player.faceitUrl || "https://www.faceit.com/ru";
@@ -112,21 +159,19 @@ function PlayerProfile({ player, index }) {
 
   return (
     <article className={`team-profile${isCutout ? " team-profile--cutout" : ""}`}>
-      <div
-        className={`team-profile__visual${isCutout ? " team-profile__visual--cutout" : ""}`}
-      >
+      <div className={`team-profile__visual${isCutout ? " team-profile__visual--cutout" : ""}`}>
         <span className="team-profile__number" aria-hidden="true">
           {String(index + 1).padStart(2, "0")}
         </span>
-        <PlayerPortrait player={player} profile={profile} />
+        <PlayerPortrait player={player} profile={profile} displayName={displayName} />
         <div className="team-profile__scanline" aria-hidden="true" />
       </div>
 
       <div className="team-profile__content">
         <div className="team-profile__heading">
           <div>
-            <p className="team-profile__role">{role}</p>
-            <h2>{player.nickname}</h2>
+            <p className="team-profile__role">{roleLabel}</p>
+            <h2>{displayName}</h2>
           </div>
 
           <div className="team-profile__meta">
@@ -144,12 +189,7 @@ function PlayerProfile({ player, index }) {
           ))}
         </div>
 
-        <a
-          className="team-profile__faceit"
-          href={faceitUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a className="team-profile__faceit" href={faceitUrl} target="_blank" rel="noreferrer">
           Открыть профиль FACEIT
           <span aria-hidden="true">↗</span>
         </a>
@@ -161,7 +201,7 @@ function PlayerProfile({ player, index }) {
 function ProfilesSkeleton() {
   return (
     <div className="team-profiles" aria-label="Загрузка игроков команды">
-      {Array.from({ length: 4 }, (_, index) => (
+      {Array.from({ length: CUSTOM_PROFILES.length }, (_, index) => (
         <div className="team-profile team-profile--loading" key={index} aria-hidden="true">
           <div className="team-profile__visual" />
           <div className="team-profile__content">
@@ -186,6 +226,7 @@ export default function Team() {
           const rightFeatured = normalizeNickname(right.nickname) === FEATURED_PLAYER;
           return Number(rightFeatured) - Number(leftFeatured);
         })
+        .slice(0, CUSTOM_PROFILES.length)
     : [];
 
   return (
@@ -200,7 +241,7 @@ export default function Team() {
           на раунд. Здесь собраны игровые портреты основного состава ISTe.
         </p>
         <div className="team-page__counter">
-          <span>{players.length || 4}</span>
+          <span>{players.length || CUSTOM_PROFILES.length}</span>
           <small>PLAYER PROFILES</small>
         </div>
       </header>
@@ -210,11 +251,7 @@ export default function Team() {
       {!loading && players.length > 0 ? (
         <div className="team-profiles">
           {players.map((player, index) => (
-            <PlayerProfile
-              player={player}
-              index={index}
-              key={player.playerId || player.nickname}
-            />
+            <PlayerProfile player={player} index={index} key={player.playerId || `${index}-${player.nickname || "player"}`} />
           ))}
         </div>
       ) : null}
