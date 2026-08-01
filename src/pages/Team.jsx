@@ -163,10 +163,7 @@ export default function Team() {
       <header className="team-page__header">
         <p className="page-eyebrow">ISTE PLAYER PROFILES</p>
         <h1>Игроки команды</h1>
-        <p>
-          У каждого участника свой стиль, своя зона ответственности и свой способ влиять
-          на раунд. Здесь собраны игровые портреты основного состава ISTe.
-        </p>
+      
         <div className="team-page__counter">
           <span>{players.length || 4}</span>
           <small>PLAYER PROFILES</small>
