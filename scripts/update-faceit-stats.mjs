@@ -733,6 +733,36 @@ const calculatedWins =
 const wins = reportedWins ?? calculatedWins;
 const calculatedWinRate = matches && wins !== null ? (wins / matches) * 100 : null;
 const winRate = reportedWinRate ?? calculatedWinRate;
+const tournamentKeys = new Set();
+
+for (const tournament of tournaments) {
+  const id = tournamentId(tournament);
+
+  if (id) {
+    tournamentKeys.add(`id:${id}`);
+  }
+}
+
+for (const match of matchData.matches) {
+  const id = match?.tournamentId;
+
+  if (id) {
+    tournamentKeys.add(`id:${id}`);
+    continue;
+  }
+
+  const competitionName = String(
+    match?.competitionName ?? "",
+  )
+    .trim()
+    .toLowerCase();
+
+  if (competitionName) {
+    tournamentKeys.add(`name:${competitionName}`);
+  }
+}
+
+const tournamentCount = tournamentKeys.size;
 const now = new Date().toISOString();
 
 const nextPayload = {
@@ -742,7 +772,7 @@ const nextPayload = {
   teamName: team.name ?? team.nickname ?? "ISTe",
   teamAvatar: normalizeAvatar(team.avatar),
   gameId: GAME_ID,
-  tournaments: tournaments.length,
+  tournaments: tournamentCount,
   matches: matches === null ? null : Math.round(matches),
   wins: wins === null ? null : Math.round(wins),
   winRate: winRate === null ? null : Math.round(winRate * 10) / 10,
