@@ -61,7 +61,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2828,
+      "elo": 2798,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -89,7 +89,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2824,
+      "elo": 2794,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -449,5 +449,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-01T09:17:00.951Z"
+  "updatedAt": "2026-08-01T11:51:15.170Z"
 }
