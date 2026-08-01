@@ -5,7 +5,7 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 5,
+  "tournaments": 6,
   "matches": 7,
   "wins": 5,
   "winRate": 71,
@@ -384,16 +384,64 @@
         "avatar": null,
         "score": 0
       }
+    },
+    {
+      "matchId": "1-9ff6dd55-882e-4099-9b00-18c61efcb60b",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-9ff6dd55-882e-4099-9b00-18c61efcb60b",
+      "tournamentId": "da003c14-11b2-48f1-85b1-aeb0325b9585",
+      "competitionName": "JamSkins | 2x2 Wingman (WIN SKINS) with Suns1de",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-07-19T13:11:54.000Z",
+      "startedAt": "2026-07-19T13:11:54.000Z",
+      "finishedAt": "2026-07-19T13:20:48.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 3
+      },
+      "opponent": {
+        "name": "Pink Floyd",
+        "avatar": "https://distribution.faceit-cdn.net/images/a6e3d704-6a9d-428b-9709-822da6b8e84d.jpeg",
+        "score": 9
+      }
+    },
+    {
+      "matchId": "1-11846dcc-815d-4b7d-92aa-0370c2da432f",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-11846dcc-815d-4b7d-92aa-0370c2da432f",
+      "tournamentId": "da003c14-11b2-48f1-85b1-aeb0325b9585",
+      "competitionName": "JamSkins | 2x2 Wingman (WIN SKINS) with Suns1de",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-07-19T13:01:08.000Z",
+      "startedAt": "2026-07-19T13:01:08.000Z",
+      "finishedAt": "2026-07-19T13:09:09.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 9
+      },
+      "opponent": {
+        "name": "Seinajoen Pisu",
+        "avatar": "https://distribution.faceit-cdn.net/images/b3ab5441-a9b0-4df4-90c4-49ba5c06d842.jpg",
+        "score": 2
+      }
     }
   ],
-  "teamMatchCount": 12,
+  "teamMatchCount": 14,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
-    "fullSync": true,
+    "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 3,
-    "historyMatchesFound": 12,
+    "historyPlayersScanned": 6,
+    "historyMatchesFound": 14,
     "lastFullSyncAt": "2026-08-01T14:23:57.395Z"
   },
   "roleModel": {
@@ -401,5 +449,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-01T14:23:57.395Z"
+  "updatedAt": "2026-08-01T15:20:09.854Z"
 }
