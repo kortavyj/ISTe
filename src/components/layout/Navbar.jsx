@@ -215,6 +215,31 @@ export default function Navbar() {
                   </span>
                 </NavLink>
 
+                {role === "owner" ? (
+                  <NavLink
+                    className="navbar-profile-action"
+                    to="/owner/users"
+                    role="menuitem"
+                    tabIndex={menuOpen ? 0 : -1}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M12 3 5 6v5c0 4.5 2.8 8.4 7 10 4.2-1.6 7-5.5 7-10V6l-7-3Zm-3 9 2 2 4-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                      />
+                    </svg>
+                    <span>
+                      <strong>Управление пользователями</strong>
+                      <small>Роли, блокировки и журнал</small>
+                    </span>
+                  </NavLink>
+                ) : null}
+
                 <button
                   className="navbar-profile-action navbar-profile-logout"
                   type="button"
