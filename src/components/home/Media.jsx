@@ -43,9 +43,6 @@ export default function Media() {
       <header className="section-header">
         <p className="section-tag">ISTe ONLINE</p>
         <h2 className="section-title">МЕДИА И СООБЩЕСТВО</h2>
-        <p className="media-intro">
-          Только официальные площадки, связанные с ISTe
-        </p>
       </header>
 
       <div className="media-grid">
