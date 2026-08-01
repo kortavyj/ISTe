@@ -20,6 +20,18 @@ const CUSTOM_PROFILES = Object.freeze([
     strengths: ["Принятие решений", "Командная координация", "Адаптивность"],
     portrait: infuriat3Portrait,
     portraitMode: "cutout",
+    socials: [
+      {
+        name: "Instagram",
+        url: "https://www.instagram.com/jay._.zgg/?hl=ru",
+        icon: "instagram",
+      },
+      {
+        name: "Twitch",
+        url: "https://www.twitch.tv/jayyzzg",
+        icon: "twitch",
+      },
+    ],
   },
   {
     nickname: "Ishidori",
@@ -119,6 +131,103 @@ function countryToFlag(countryCode) {
     .join("");
 }
 
+
+function SocialIcon({ type }) {
+  if (type === "instagram") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="17.4" cy="6.7" r="1.1" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (type === "twitch") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M4 3h17v11.5l-4.8 4.8h-3.7L10 22H7v-2.7H3V6L4 3Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path d="M9 8v5M15 8v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  return null;
+}
+
+function PlayerSocials({ socials, faceitUrl }) {
+  const links = Array.isArray(socials) ? socials : [];
+
+  if (links.length === 0) {
+    return (
+      <a
+        className="team-profile__faceit"
+        href={faceitUrl}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Открыть профиль FACEIT
+        <span aria-hidden="true">↗</span>
+      </a>
+    );
+  }
+
+  return (
+    <div
+      aria-label="Социальные сети игрока"
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "12px",
+        marginTop: "30px",
+      }}
+    >
+      {links.map((social) => (
+        <a
+          key={social.name}
+          href={social.url}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={social.name}
+          title={social.name}
+          style={{
+            display: "grid",
+            width: "46px",
+            height: "46px",
+            placeItems: "center",
+            border: "1px solid rgba(255, 55, 55, 0.42)",
+            borderRadius: "14px",
+            background: "rgba(255, 37, 37, 0.08)",
+            boxShadow: "0 0 24px rgba(255, 37, 37, 0.10)",
+            color: "#ffffff",
+            transition: "transform 180ms ease, background 180ms ease, box-shadow 180ms ease",
+          }}
+          onMouseEnter={(event) => {
+            event.currentTarget.style.transform = "translateY(-3px)";
+            event.currentTarget.style.background = "rgba(255, 37, 37, 0.18)";
+            event.currentTarget.style.boxShadow = "0 0 28px rgba(255, 37, 37, 0.28)";
+          }}
+          onMouseLeave={(event) => {
+            event.currentTarget.style.transform = "translateY(0)";
+            event.currentTarget.style.background = "rgba(255, 37, 37, 0.08)";
+            event.currentTarget.style.boxShadow = "0 0 24px rgba(255, 37, 37, 0.10)";
+          }}
+        >
+          <span style={{ display: "grid", width: "23px", height: "23px" }}>
+            <SocialIcon type={social.icon} />
+          </span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
 function PlayerPortrait({ player, profile, displayName }) {
   const initial = displayName?.charAt(0)?.toUpperCase() || player.nickname?.charAt(0)?.toUpperCase() || "?";
   const portrait = profile.portrait || player.avatar;
@@ -189,10 +298,7 @@ function PlayerProfile({ player, index }) {
           ))}
         </div>
 
-        <a className="team-profile__faceit" href={faceitUrl} target="_blank" rel="noreferrer">
-          Открыть профиль FACEIT
-          <span aria-hidden="true">↗</span>
-        </a>
+        <PlayerSocials socials={profile.socials} faceitUrl={faceitUrl} />
       </div>
     </article>
   );
