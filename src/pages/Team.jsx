@@ -54,7 +54,7 @@ const CUSTOM_PROFILES = Object.freeze([
     portraitMode: "cutout",
   },
   {
-    nickname: null,
+    nickname: "Lor9n",
     roleLabel: "AWP",
     title: "Контроль пространства и давление",
     description:
@@ -62,6 +62,18 @@ const CUSTOM_PROFILES = Object.freeze([
     strengths: ["Позиционирование", "Первый фраг", "Давление AWP"],
     portrait: awpPortrait,
     portraitMode: "cutout",
+    socials: [
+      {
+        name: "Steam",
+        url: "https://steamcommunity.com/id/Lor9n/",
+        icon: "steam",
+      },
+      {
+        name: "Twitch",
+        url: "https://www.twitch.tv/lor9n",
+        icon: "twitch",
+      },
+    ],
   },
   {
     nickname: "Perinamara",
@@ -131,13 +143,28 @@ function countryToFlag(countryCode) {
     .join("");
 }
 
-
 function SocialIcon({ type }) {
   if (type === "instagram") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="2" />
-        <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+        <rect
+          x="3"
+          y="3"
+          width="18"
+          height="18"
+          rx="5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <circle
+          cx="12"
+          cy="12"
+          r="4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
         <circle cx="17.4" cy="6.7" r="1.1" fill="currentColor" />
       </svg>
     );
@@ -153,7 +180,42 @@ function SocialIcon({ type }) {
           strokeWidth="1.8"
           strokeLinejoin="round"
         />
-        <path d="M9 8v5M15 8v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path
+          d="M9 8v5M15 8v5"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (type === "steam") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle
+          cx="15.5"
+          cy="8.5"
+          r="3.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <circle
+          cx="7"
+          cy="16.5"
+          r="2.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M9.2 15.3l3.6-2.2M4.8 15.4 2.5 14.5M18.7 11.1l2.5 1"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
       </svg>
     );
   }
@@ -206,17 +268,20 @@ function PlayerSocials({ socials, faceitUrl }) {
             background: "rgba(255, 37, 37, 0.08)",
             boxShadow: "0 0 24px rgba(255, 37, 37, 0.10)",
             color: "#ffffff",
-            transition: "transform 180ms ease, background 180ms ease, box-shadow 180ms ease",
+            transition:
+              "transform 180ms ease, background 180ms ease, box-shadow 180ms ease",
           }}
           onMouseEnter={(event) => {
             event.currentTarget.style.transform = "translateY(-3px)";
             event.currentTarget.style.background = "rgba(255, 37, 37, 0.18)";
-            event.currentTarget.style.boxShadow = "0 0 28px rgba(255, 37, 37, 0.28)";
+            event.currentTarget.style.boxShadow =
+              "0 0 28px rgba(255, 37, 37, 0.28)";
           }}
           onMouseLeave={(event) => {
             event.currentTarget.style.transform = "translateY(0)";
             event.currentTarget.style.background = "rgba(255, 37, 37, 0.08)";
-            event.currentTarget.style.boxShadow = "0 0 24px rgba(255, 37, 37, 0.10)";
+            event.currentTarget.style.boxShadow =
+              "0 0 24px rgba(255, 37, 37, 0.10)";
           }}
         >
           <span style={{ display: "grid", width: "23px", height: "23px" }}>
