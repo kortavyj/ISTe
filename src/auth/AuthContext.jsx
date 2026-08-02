@@ -1,242 +1,238 @@
+import { useState } from "react";
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+  Link,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
-import { supabase } from "../lib/supabase.js";
+import { useAuth } from "../auth/AuthContext.jsx";
 
-const AuthContext = createContext(null);
+import "./Auth.css";
 
-const PROFILE_COLUMNS =
-  "id, username, display_name, avatar_url, bio, account_number, created_at, updated_at";
+async function readApiResponse(response) {
+  let result;
 
-const LEGACY_PROFILE_COLUMNS =
-  "id, username, display_name, avatar_url, bio, created_at, updated_at";
-
-async function loadProfile(userId) {
-  const profileQuery = await supabase
-    .from("profiles")
-    .select(PROFILE_COLUMNS)
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (!profileQuery.error) {
-    return profileQuery.data;
-  }
-
-  const missingAccountNumber =
-    profileQuery.error.message?.includes("account_number") ||
-    profileQuery.error.details?.includes("account_number");
-
-  if (!missingAccountNumber) {
-    throw profileQuery.error;
-  }
-
-  const legacyQuery = await supabase
-    .from("profiles")
-    .select(LEGACY_PROFILE_COLUMNS)
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (legacyQuery.error) {
-    throw legacyQuery.error;
-  }
-
-  return {
-    ...legacyQuery.data,
-    account_number: null,
-  };
-}
-
-async function loadAccount(userId) {
-  const { data: access, error: accessError } = await supabase
-    .from("user_roles")
-    .select("role, is_blocked, blocked_reason")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (accessError) {
-    throw accessError;
-  }
-
-  const isBlocked = access?.is_blocked ?? false;
-
-  if (isBlocked) {
+  try {
+    result = await response.json();
+  } catch {
     return {
-      profile: null,
-      role: access?.role ?? "user",
-      isBlocked: true,
-      blockedReason: access?.blocked_reason ?? "",
+      ok: false,
+      message:
+        "Сервер вернул некорректный ответ.",
     };
   }
 
-  const profile = await loadProfile(userId);
-
-  return {
-    profile,
-    role: access?.role ?? "user",
-    isBlocked: false,
-    blockedReason: "",
-  };
+  return result;
 }
 
-export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [role, setRole] = useState("user");
-  const [isBlocked, setIsBlocked] = useState(false);
-  const [blockedReason, setBlockedReason] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [accountError, setAccountError] = useState("");
-  const requestNumberRef = useRef(0);
+export default function Login() {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const applySession = useCallback(async (nextSession) => {
-    const requestNumber = requestNumberRef.current + 1;
-    requestNumberRef.current = requestNumber;
+  const {
+    user,
+    loading,
+    isBlocked,
+    refreshSession,
+  } = useAuth();
 
-    const nextUser = nextSession?.user ?? null;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] =
+    useState("");
 
-    setSession(nextSession);
-    setUser(nextUser);
-    setAccountError("");
+  const [submitting, setSubmitting] =
+    useState(false);
 
-    if (!nextUser) {
-      setProfile(null);
-      setRole("user");
-      setIsBlocked(false);
-      setBlockedReason("");
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const account = await loadAccount(nextUser.id);
-
-      if (requestNumber !== requestNumberRef.current) {
-        return;
-      }
-
-      setProfile(account.profile);
-      setRole(account.role);
-      setIsBlocked(account.isBlocked);
-      setBlockedReason(account.blockedReason);
-    } catch (error) {
-      if (requestNumber !== requestNumberRef.current) {
-        return;
-      }
-
-      setProfile(null);
-      setRole("user");
-      setIsBlocked(false);
-      setBlockedReason("");
-      setAccountError(error?.message ?? "Не удалось загрузить профиль.");
-    } finally {
-      if (requestNumber === requestNumberRef.current) {
-        setLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (!isMounted) {
-        return;
-      }
-
-      if (error) {
-        setAccountError(error.message);
-        setLoading(false);
-        return;
-      }
-
-      void applySession(data.session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      window.setTimeout(() => {
-        if (isMounted) {
-          void applySession(nextSession);
-        }
-      }, 0);
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, [applySession]);
-
-  const refreshAccount = useCallback(async () => {
-    if (!user) {
-      return;
-    }
-
-    const account = await loadAccount(user.id);
-
-    setProfile(account.profile);
-    setRole(account.role);
-    setIsBlocked(account.isBlocked);
-    setBlockedReason(account.blockedReason);
-    setAccountError("");
-  }, [user]);
-
-  const signOut = useCallback(async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      throw error;
-    }
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      session,
-      user,
-      profile,
-      role,
-      isBlocked,
-      blockedReason,
-      loading,
-      accountError,
-      isAdministrator: role === "admin" || role === "owner",
-      refreshAccount,
-      signOut,
-    }),
-    [
-      session,
-      user,
-      profile,
-      role,
-      isBlocked,
-      blockedReason,
-      loading,
-      accountError,
-      refreshAccount,
-      signOut,
-    ],
+  const [message, setMessage] = useState(
+    location.state?.message ?? "",
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+  const [errorMessage, setErrorMessage] =
+    useState("");
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider.");
+  if (!loading && user) {
+    return (
+      <Navigate
+        to={
+          isBlocked
+            ? "/blocked"
+            : "/account"
+        }
+        replace
+      />
+    );
   }
 
-  return context;
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    setSubmitting(true);
+    setMessage("");
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(
+        "/api/auth/login",
+        {
+          method: "POST",
+          credentials: "include",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            email: email
+              .trim()
+              .toLowerCase(),
+
+            password,
+          }),
+        },
+      );
+
+      const result =
+        await readApiResponse(response);
+
+      if (
+        !response.ok ||
+        result.ok !== true
+      ) {
+        setErrorMessage(
+          result.message ||
+            "Не удалось выполнить вход.",
+        );
+
+        return;
+      }
+
+      await refreshSession();
+
+      const destination =
+        location.state?.from?.pathname ??
+        "/account";
+
+      navigate(destination, {
+        replace: true,
+      });
+    } catch (error) {
+      console.error(
+        "Ошибка входа:",
+        error,
+      );
+
+      setErrorMessage(
+        "Не удалось связаться с сервером. Повторите попытку.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="auth-page">
+      <div className="auth-shell">
+        <header className="auth-heading">
+          <p className="auth-kicker">
+            ISTe account
+          </p>
+
+          <h1>Вход</h1>
+
+          <p>
+            Войдите в аккаунт участника
+            сообщества ISTe.
+          </p>
+        </header>
+
+        <div className="auth-card auth-card-form">
+          <form
+            className="auth-form"
+            onSubmit={handleSubmit}
+          >
+            {message && (
+              <div className="auth-message auth-message-success">
+                {message}
+              </div>
+            )}
+
+            {errorMessage && (
+              <div
+                className="auth-message auth-message-error"
+                role="alert"
+              >
+                {errorMessage}
+              </div>
+            )}
+
+            <label className="auth-field">
+              <span>
+                Электронная почта
+              </span>
+
+              <input
+                className="auth-input"
+                type="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                inputMode="email"
+                value={email}
+                onChange={(event) =>
+                  setEmail(
+                    event.target.value,
+                  )
+                }
+                placeholder="name@gmail.com"
+                required
+                disabled={submitting}
+              />
+            </label>
+
+            <label className="auth-field">
+              <span>Пароль</span>
+
+              <input
+                className="auth-input"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) =>
+                  setPassword(
+                    event.target.value,
+                  )
+                }
+                placeholder="Введите пароль"
+                maxLength={128}
+                required
+                disabled={submitting}
+              />
+            </label>
+
+            <button
+              className="auth-button"
+              type="submit"
+              disabled={submitting}
+            >
+              {submitting
+                ? "Входим..."
+                : "Войти"}
+            </button>
+          </form>
+
+          <div className="auth-links">
+            <Link to="/forgot-password">
+              Забыли пароль?
+            </Link>
+
+            <Link to="/register">
+              Создать аккаунт
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
