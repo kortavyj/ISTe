@@ -9,10 +9,12 @@ import { supabase } from "../lib/supabase.js";
 import "./Auth.css";
 
 const usernamePattern = /^[A-Za-z0-9_]{3,32}$/;
+const gmailPattern = /^[^\s@]+@gmail\.com$/i;
 
 export default function Register() {
   const navigate = useNavigate();
   const { user, loading, isBlocked } = useAuth();
+
   const [form, setForm] = useState({
     username: "",
     displayName: "",
@@ -20,6 +22,7 @@ export default function Register() {
     password: "",
     passwordRepeat: "",
   });
+
   const [submitting, setSubmitting] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -43,7 +46,7 @@ export default function Register() {
 
     const username = form.username.trim();
     const displayName = form.displayName.trim();
-    const email = form.email.trim();
+    const email = form.email.trim().toLowerCase();
 
     if (!usernamePattern.test(username)) {
       setErrorMessage(
@@ -54,6 +57,13 @@ export default function Register() {
 
     if (displayName.length < 2 || displayName.length > 60) {
       setErrorMessage("Имя должно содержать от 2 до 60 символов.");
+      return;
+    }
+
+    if (!gmailPattern.test(email)) {
+      setErrorMessage(
+        "Регистрация доступна только с почтой Gmail. Адрес должен оканчиваться на @gmail.com.",
+      );
       return;
     }
 
@@ -69,31 +79,57 @@ export default function Register() {
 
     setSubmitting(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password: form.password,
-      options: {
-        emailRedirectTo: getAuthRedirectUrl("/account"),
-        data: {
-          username,
-          display_name: displayName,
+    try {
+      const {
+        data: usernameAvailable,
+        error: usernameCheckError,
+      } = await supabase.rpc("is_username_available", {
+        candidate_username: username,
+      });
+
+      if (usernameCheckError) {
+        console.error("Ошибка проверки никнейма:", usernameCheckError);
+
+        setErrorMessage(
+          "Не удалось проверить никнейм. Повторите попытку через несколько секунд.",
+        );
+        return;
+      }
+
+      if (usernameAvailable !== true) {
+        setErrorMessage("Этот никнейм уже занят. Выберите другой.");
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: form.password,
+        options: {
+          emailRedirectTo: getAuthRedirectUrl("/account"),
+          data: {
+            username,
+            display_name: displayName,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      setErrorMessage(getAuthErrorMessage(error));
+      if (error) {
+        setErrorMessage(getAuthErrorMessage(error));
+        return;
+      }
+
+      if (data.session) {
+        navigate("/account", { replace: true });
+        return;
+      }
+
+      setRegistrationComplete(true);
+    } catch (error) {
+      console.error("Неожиданная ошибка регистрации:", error);
+      setErrorMessage("Произошла ошибка. Повторите попытку.");
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    if (data.session) {
-      navigate("/account", { replace: true });
-      return;
-    }
-
-    setRegistrationComplete(true);
-    setSubmitting(false);
   }
 
   if (registrationComplete) {
@@ -126,6 +162,7 @@ export default function Register() {
         <header className="auth-heading">
           <p className="auth-kicker">ISTe account</p>
           <h1>Регистрация</h1>
+
           <p>
             Создайте аккаунт. После регистрации потребуется подтвердить
             электронную почту.
@@ -143,6 +180,7 @@ export default function Register() {
             <div className="auth-form-row">
               <label className="auth-field">
                 <span>Никнейм</span>
+
                 <input
                   className="auth-input"
                   type="text"
@@ -154,13 +192,16 @@ export default function Register() {
                   required
                   disabled={submitting}
                 />
+
                 <small className="auth-hint">
-                  Латинские буквы, цифры и символ подчёркивания.
+                  Латинские буквы, цифры и символ подчёркивания. Никнейм должен
+                  быть уникальным, регистр букв не учитывается.
                 </small>
               </label>
 
               <label className="auth-field">
                 <span>Отображаемое имя</span>
+
                 <input
                   className="auth-input"
                   type="text"
@@ -177,20 +218,27 @@ export default function Register() {
 
             <label className="auth-field">
               <span>Электронная почта</span>
+
               <input
                 className="auth-input"
                 type="email"
                 autoComplete="email"
                 value={form.email}
                 onChange={updateField("email")}
+                placeholder="name@gmail.com"
                 required
                 disabled={submitting}
               />
+
+              <small className="auth-hint">
+                Разрешена только почта Gmail, например name@gmail.com.
+              </small>
             </label>
 
             <div className="auth-form-row">
               <label className="auth-field">
                 <span>Пароль</span>
+
                 <input
                   className="auth-input"
                   type="password"
@@ -201,11 +249,13 @@ export default function Register() {
                   required
                   disabled={submitting}
                 />
+
                 <small className="auth-hint">Минимум 10 символов.</small>
               </label>
 
               <label className="auth-field">
                 <span>Повтор пароля</span>
+
                 <input
                   className="auth-input"
                   type="password"
