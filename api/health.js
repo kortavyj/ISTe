@@ -6,9 +6,20 @@ export default function handler(request, response) {
     });
   }
 
-  return response.status(200).json({
-    ok: true,
+  const configuration = {
+    supabaseUrl: Boolean(process.env.SUPABASE_URL),
+    supabasePublishableKey: Boolean(
+      process.env.SUPABASE_PUBLISHABLE_KEY,
+    ),
+    appOrigin: Boolean(process.env.APP_ORIGIN),
+  };
+
+  const isConfigured = Object.values(configuration).every(Boolean);
+
+  return response.status(isConfigured ? 200 : 500).json({
+    ok: isConfigured,
     service: "ISTe API",
+    configuration,
     time: new Date().toISOString(),
   });
 }
