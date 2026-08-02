@@ -5,7 +5,7 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 6,
+  "tournaments": 7,
   "matches": 7,
   "wins": 5,
   "winRate": 71,
@@ -40,14 +40,14 @@
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
-      "nickname": "Lor9n",
-      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
-      "country": "ua",
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
+      "country": "ni",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2776,
+      "elo": 2799,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -82,14 +82,14 @@
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
-      "country": "ni",
+      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
+      "nickname": "Lor9n",
+      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
+      "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2799,
+      "elo": 2776,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -97,6 +97,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-e3d0d8ea-4d1a-4658-b853-39c8e46d1306",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-e3d0d8ea-4d1a-4658-b853-39c8e46d1306",
+      "tournamentId": "4bfdaf1f-a7ca-4cf8-ab12-4b160e352320",
+      "competitionName": "Late Night Cache",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-02T19:59:02.000Z",
+      "startedAt": "2026-08-02T19:59:02.000Z",
+      "finishedAt": "2026-08-02T19:59:02.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
     {
       "matchId": "1-ac3a723e-e604-4c74-85b8-88f8875ba358",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-ac3a723e-e604-4c74-85b8-88f8875ba358",
@@ -434,14 +458,14 @@
       }
     }
   ],
-  "teamMatchCount": 14,
+  "teamMatchCount": 15,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 14,
+    "historyMatchesFound": 15,
     "lastFullSyncAt": "2026-08-01T14:23:57.395Z"
   },
   "roleModel": {
@@ -449,5 +473,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-02T18:33:11.652Z"
+  "updatedAt": "2026-08-02T20:36:50.728Z"
 }
