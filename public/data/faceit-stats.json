@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 7,
-  "matches": 7,
-  "wins": 5,
-  "winRate": 71,
+  "matches": 8,
+  "wins": 6,
+  "winRate": 75,
   "players": 6,
   "roster": [
     {
@@ -97,6 +97,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-0122663a-1718-4539-87e7-127037c65f90",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-0122663a-1718-4539-87e7-127037c65f90",
+      "tournamentId": "4bfdaf1f-a7ca-4cf8-ab12-4b160e352320",
+      "competitionName": "Late Night Cache",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-02T20:50:18.000Z",
+      "startedAt": "2026-08-02T20:50:18.000Z",
+      "finishedAt": "2026-08-02T21:11:56.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "RIA",
+        "avatar": "https://distribution.faceit-cdn.net/images/31207c9e-366d-46a4-be80-48eed070bd20.jpg",
+        "score": 0
+      }
+    },
     {
       "matchId": "1-e3d0d8ea-4d1a-4658-b853-39c8e46d1306",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-e3d0d8ea-4d1a-4658-b853-39c8e46d1306",
@@ -458,14 +482,14 @@
       }
     }
   ],
-  "teamMatchCount": 15,
+  "teamMatchCount": 16,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 15,
+    "historyMatchesFound": 16,
     "lastFullSyncAt": "2026-08-01T14:23:57.395Z"
   },
   "roleModel": {
@@ -473,5 +497,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-02T20:36:50.728Z"
+  "updatedAt": "2026-08-02T21:31:07.068Z"
 }
