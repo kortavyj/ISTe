@@ -157,6 +157,16 @@ export default async function handler(
       });
 
     if (error) {
+      console.error(
+        "Supabase login error:",
+        {
+          name: error?.name || "",
+          message: error?.message || "",
+          code: error?.code || "",
+          status: error?.status || null,
+        },
+      );
+
       clearAuthCookies(response);
 
       const mapped =
@@ -228,10 +238,12 @@ export default async function handler(
 
     return response.status(200).json({
       ok: true,
+
       user: {
         id: data.user.id,
         email: data.user.email,
       },
+
       role: access?.role || "user",
     });
   } catch (error) {
@@ -239,7 +251,14 @@ export default async function handler(
 
     console.error(
       "Unexpected login error:",
-      error,
+      {
+        name: error?.name || "",
+        message: error?.message || "",
+        code: error?.code || "",
+        cause:
+          error?.cause?.message || "",
+        stack: error?.stack || "",
+      },
     );
 
     return response.status(500).json({
