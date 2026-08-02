@@ -1,18 +1,30 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
-import { getAuthErrorMessage } from "../auth/authErrors.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { getAuthRedirectUrl } from "../lib/siteUrl.js";
-import { supabase } from "../lib/supabase.js";
 
 import "./Auth.css";
 
 const usernamePattern = /^[A-Za-z0-9_]{3,32}$/;
 const gmailPattern = /^[^\s@]+@gmail\.com$/i;
 
+async function readApiResponse(response) {
+  const contentType = response.headers
+    .get("content-type")
+    ?.toLowerCase();
+
+  if (!contentType?.includes("application/json")) {
+    return {
+      ok: false,
+      message:
+        "Сервер вернул некорректный ответ. Повторите попытку позже.",
+    };
+  }
+
+  return response.json();
+}
+
 export default function Register() {
-  const navigate = useNavigate();
   const { user, loading, isBlocked } = useAuth();
 
   const [form, setForm] = useState({
@@ -24,11 +36,18 @@ export default function Register() {
   });
 
   const [submitting, setSubmitting] = useState(false);
-  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [registrationComplete, setRegistrationComplete] =
+    useState(false);
+
   const [errorMessage, setErrorMessage] = useState("");
 
   if (!loading && user) {
-    return <Navigate to={isBlocked ? "/blocked" : "/account"} replace />;
+    return (
+      <Navigate
+        to={isBlocked ? "/blocked" : "/account"}
+        replace
+      />
+    );
   }
 
   function updateField(field) {
@@ -61,8 +80,13 @@ export default function Register() {
       return;
     }
 
-    if (displayName.length < 2 || displayName.length > 60) {
-      setErrorMessage("Имя должно содержать от 2 до 60 символов.");
+    if (
+      displayName.length < 2 ||
+      displayName.length > 60
+    ) {
+      setErrorMessage(
+        "Имя должно содержать от 2 до 60 символов.",
+      );
       return;
     }
 
@@ -73,8 +97,13 @@ export default function Register() {
       return;
     }
 
-    if (form.password.length < 10) {
-      setErrorMessage("Пароль должен содержать минимум 10 символов.");
+    if (
+      form.password.length < 10 ||
+      form.password.length > 128
+    ) {
+      setErrorMessage(
+        "Пароль должен содержать от 10 до 128 символов.",
+      );
       return;
     }
 
@@ -86,53 +115,44 @@ export default function Register() {
     setSubmitting(true);
 
     try {
-      const {
-        data: usernameAvailable,
-        error: usernameCheckError,
-      } = await supabase.rpc("is_username_available", {
-        candidate_username: username,
-      });
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
 
-      if (usernameCheckError) {
-        console.error("Ошибка проверки никнейма:", usernameCheckError);
-
-        setErrorMessage(
-          "Не удалось проверить никнейм. Повторите попытку через несколько секунд.",
-        );
-        return;
-      }
-
-      if (usernameAvailable !== true) {
-        setErrorMessage("Этот никнейм уже занят. Выберите другой.");
-        return;
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password: form.password,
-        options: {
-          emailRedirectTo: getAuthRedirectUrl("/account"),
-          data: {
-            username,
-            display_name: displayName,
-          },
+        headers: {
+          "Content-Type": "application/json",
         },
+
+        credentials: "same-origin",
+
+        body: JSON.stringify({
+          username,
+          displayName,
+          email,
+          password: form.password,
+          passwordRepeat: form.passwordRepeat,
+        }),
       });
 
-      if (error) {
-        setErrorMessage(getAuthErrorMessage(error));
-        return;
-      }
+      const result = await readApiResponse(response);
 
-      if (data.session) {
-        navigate("/account", { replace: true });
+      if (!response.ok || result.ok !== true) {
+        setErrorMessage(
+          result.message ||
+            "Не удалось создать аккаунт. Повторите попытку.",
+        );
         return;
       }
 
       setRegistrationComplete(true);
     } catch (error) {
-      console.error("Неожиданная ошибка регистрации:", error);
-      setErrorMessage("Произошла ошибка. Повторите попытку.");
+      console.error(
+        "Ошибка запроса регистрации:",
+        error,
+      );
+
+      setErrorMessage(
+        "Не удалось связаться с сервером. Проверьте подключение и повторите попытку.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -143,17 +163,24 @@ export default function Register() {
       <section className="auth-page">
         <div className="auth-shell">
           <header className="auth-heading">
-            <p className="auth-kicker">ISTe account</p>
+            <p className="auth-kicker">
+              ISTe account
+            </p>
+
             <h1>Проверьте почту</h1>
           </header>
 
           <div className="auth-card auth-card-status">
             <div className="auth-message auth-message-success">
-              Мы отправили письмо подтверждения на указанную электронную почту.
-              После подтверждения аккаунт будет активирован.
+              Мы отправили письмо подтверждения на
+              указанную электронную почту. После
+              подтверждения аккаунт будет активирован.
             </div>
 
-            <Link className="auth-button auth-button-secondary" to="/login">
+            <Link
+              className="auth-button auth-button-secondary"
+              to="/login"
+            >
               Перейти ко входу
             </Link>
           </div>
@@ -166,19 +193,28 @@ export default function Register() {
     <section className="auth-page">
       <div className="auth-shell auth-shell-register">
         <header className="auth-heading">
-          <p className="auth-kicker">ISTe account</p>
+          <p className="auth-kicker">
+            ISTe account
+          </p>
+
           <h1>Регистрация</h1>
 
           <p>
-            Создайте аккаунт. После регистрации потребуется подтвердить
-            электронную почту.
+            Создайте аккаунт. После регистрации
+            потребуется подтвердить электронную почту.
           </p>
         </header>
 
         <div className="auth-card auth-card-form">
-          <form className="auth-form" onSubmit={handleSubmit}>
+          <form
+            className="auth-form"
+            onSubmit={handleSubmit}
+          >
             {errorMessage && (
-              <div className="auth-message auth-message-error" role="alert">
+              <div
+                className="auth-message auth-message-error"
+                role="alert"
+              >
                 {errorMessage}
               </div>
             )}
@@ -205,9 +241,13 @@ export default function Register() {
                   disabled={submitting}
                 />
 
-                <small className="auth-hint" id="username-hint">
-                  Латинские буквы, цифры и символ подчёркивания. Никнейм должен
-                  быть уникальным.
+                <small
+                  className="auth-hint"
+                  id="username-hint"
+                >
+                  Латинские буквы, цифры и символ
+                  подчёркивания. Никнейм должен быть
+                  уникальным.
                 </small>
               </label>
 
@@ -228,8 +268,12 @@ export default function Register() {
                   disabled={submitting}
                 />
 
-                <small className="auth-hint" id="display-name-hint">
-                  Это имя будут видеть другие участники сообщества ISTe.
+                <small
+                  className="auth-hint"
+                  id="display-name-hint"
+                >
+                  Это имя будут видеть другие участники
+                  сообщества ISTe.
                 </small>
               </label>
             </div>
@@ -252,8 +296,12 @@ export default function Register() {
                 disabled={submitting}
               />
 
-              <small className="auth-hint" id="email-hint">
-                Разрешена только почта Gmail, например name@gmail.com.
+              <small
+                className="auth-hint"
+                id="email-hint"
+              >
+                Разрешена только почта Gmail, например
+                name@gmail.com.
               </small>
             </label>
 
@@ -269,12 +317,16 @@ export default function Register() {
                   onChange={updateField("password")}
                   placeholder="Минимум 10 символов"
                   minLength={10}
+                  maxLength={128}
                   aria-describedby="password-hint"
                   required
                   disabled={submitting}
                 />
 
-                <small className="auth-hint" id="password-hint">
+                <small
+                  className="auth-hint"
+                  id="password-hint"
+                >
                   Используйте не менее 10 символов.
                 </small>
               </label>
@@ -287,15 +339,21 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   value={form.passwordRepeat}
-                  onChange={updateField("passwordRepeat")}
+                  onChange={updateField(
+                    "passwordRepeat",
+                  )}
                   placeholder="Повторите пароль"
                   minLength={10}
+                  maxLength={128}
                   aria-describedby="password-repeat-hint"
                   required
                   disabled={submitting}
                 />
 
-                <small className="auth-hint" id="password-repeat-hint">
+                <small
+                  className="auth-hint"
+                  id="password-repeat-hint"
+                >
                   Введите тот же пароль ещё раз.
                 </small>
               </label>
@@ -306,7 +364,9 @@ export default function Register() {
               type="submit"
               disabled={submitting}
             >
-              {submitting ? "Создаём аккаунт..." : "Зарегистрироваться"}
+              {submitting
+                ? "Создаём аккаунт..."
+                : "Зарегистрироваться"}
             </button>
           </form>
 
