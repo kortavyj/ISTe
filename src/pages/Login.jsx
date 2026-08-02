@@ -1,234 +1,271 @@
-import { useState } from "react";
+import { guardRequest } from "../lib/requestGuard.js";
 import {
-  Link,
-  Navigate,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+  clearAuthCookies,
+  setAuthCookies,
+} from "../lib/authCookies.js";
+import { getSupabaseServerClient } from "../lib/supabaseServer.js";
 
-import { useAuth } from "../auth/AuthContext.jsx";
+const emailPattern =
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-import "./Auth.css";
-
-async function readApiResponse(response) {
-  try {
-    return await response.json();
-  } catch {
-    return {
-      ok: false,
-      message:
-        "Сервер вернул некорректный ответ.",
-    };
-  }
-}
-
-export default function Login() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const {
-    user,
-    loading,
-    isBlocked,
-    refreshSession,
-  } = useAuth();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] =
-    useState("");
-
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  const [message, setMessage] = useState(
-    location.state?.message ?? "",
-  );
-
-  const [errorMessage, setErrorMessage] =
-    useState("");
-
-  if (!loading && user) {
-    return (
-      <Navigate
-        to={
-          isBlocked
-            ? "/blocked"
-            : "/account"
-        }
-        replace
-      />
-    );
+function readBody(request) {
+  if (
+    request.body &&
+    typeof request.body === "object" &&
+    !Buffer.isBuffer(request.body)
+  ) {
+    return request.body;
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    setSubmitting(true);
-    setMessage("");
-    setErrorMessage("");
-
+  if (typeof request.body === "string") {
     try {
-      const response = await fetch(
-        "/api/auth/login",
-        {
-          method: "POST",
-          credentials: "include",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            email: email
-              .trim()
-              .toLowerCase(),
-
-            password,
-          }),
-        },
-      );
-
-      const result =
-        await readApiResponse(response);
-
-      if (
-        !response.ok ||
-        result.ok !== true
-      ) {
-        setErrorMessage(
-          result.message ||
-            "Не удалось выполнить вход.",
-        );
-
-        return;
-      }
-
-      await refreshSession();
-
-      const destination =
-        location.state?.from?.pathname ??
-        "/account";
-
-      navigate(destination, {
-        replace: true,
-      });
-    } catch (error) {
-      console.error(
-        "Ошибка входа:",
-        error,
-      );
-
-      setErrorMessage(
-        "Не удалось связаться с сервером. Повторите попытку.",
-      );
-    } finally {
-      setSubmitting(false);
+      return JSON.parse(request.body);
+    } catch {
+      return null;
     }
   }
 
-  return (
-    <section className="auth-page">
-      <div className="auth-shell">
-        <header className="auth-heading">
-          <p className="auth-kicker">
-            ISTe account
-          </p>
+  return null;
+}
 
-          <h1>Вход</h1>
+function cleanText(value) {
+  return typeof value === "string"
+    ? value.trim()
+    : "";
+}
 
-          <p>
-            Войдите в аккаунт участника
-            сообщества ISTe.
-          </p>
-        </header>
+function mapLoginError(error) {
+  const message = String(
+    error?.message || "",
+  ).toLowerCase();
 
-        <div className="auth-card auth-card-form">
-          <form
-            className="auth-form"
-            onSubmit={handleSubmit}
-          >
-            {message && (
-              <div className="auth-message auth-message-success">
-                {message}
-              </div>
-            )}
+  const code = String(
+    error?.code || "",
+  ).toLowerCase();
 
-            {errorMessage && (
-              <div
-                className="auth-message auth-message-error"
-                role="alert"
-              >
-                {errorMessage}
-              </div>
-            )}
+  if (
+    message.includes("email not confirmed") ||
+    code.includes("email_not_confirmed")
+  ) {
+    return {
+      status: 403,
+      error: "EMAIL_NOT_CONFIRMED",
+      message:
+        "Сначала подтвердите электронную почту.",
+    };
+  }
 
-            <label className="auth-field">
-              <span>
-                Электронная почта
-              </span>
+  if (
+    message.includes("rate limit") ||
+    code.includes("rate_limit")
+  ) {
+    return {
+      status: 429,
+      error: "TOO_MANY_ATTEMPTS",
+      message:
+        "Слишком много попыток входа. Подождите несколько минут.",
+    };
+  }
 
-              <input
-                className="auth-input"
-                type="email"
-                autoComplete="email"
-                autoCapitalize="none"
-                spellCheck={false}
-                inputMode="email"
-                value={email}
-                onChange={(event) =>
-                  setEmail(
-                    event.target.value,
-                  )
-                }
-                placeholder="name@gmail.com"
-                required
-                disabled={submitting}
-              />
-            </label>
+  return {
+    status: 401,
+    error: "INVALID_CREDENTIALS",
+    message:
+      "Неверная электронная почта или пароль.",
+  };
+}
 
-            <label className="auth-field">
-              <span>Пароль</span>
+export default async function handler(
+  request,
+  response,
+) {
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 8 * 1024,
+  });
 
-              <input
-                className="auth-input"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) =>
-                  setPassword(
-                    event.target.value,
-                  )
-                }
-                placeholder="Введите пароль"
-                maxLength={128}
-                required
-                disabled={submitting}
-              />
-            </label>
+  if (!guard.ok) {
+    if (guard.allow) {
+      response.setHeader(
+        "Allow",
+        guard.allow,
+      );
+    }
 
-            <button
-              className="auth-button"
-              type="submit"
-              disabled={submitting}
-            >
-              {submitting
-                ? "Входим..."
-                : "Войти"}
-            </button>
-          </form>
+    return response.status(guard.status).json({
+      ok: false,
+      error: guard.error,
+      message: "Запрос отклонён сервером.",
+    });
+  }
 
-          <div className="auth-links">
-            <Link to="/forgot-password">
-              Забыли пароль?
-            </Link>
+  const body = readBody(request);
 
-            <Link to="/register">
-              Создать аккаунт
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  if (!body) {
+    return response.status(400).json({
+      ok: false,
+      error: "INVALID_JSON",
+      message:
+        "Некорректный формат запроса.",
+    });
+  }
+
+  const email =
+    cleanText(body.email).toLowerCase();
+
+  const password =
+    typeof body.password === "string"
+      ? body.password
+      : "";
+
+  if (
+    !emailPattern.test(email) ||
+    email.length > 254
+  ) {
+    return response.status(400).json({
+      ok: false,
+      error: "INVALID_EMAIL",
+      message:
+        "Введите корректную электронную почту.",
+    });
+  }
+
+  if (
+    password.length < 1 ||
+    password.length > 128
+  ) {
+    return response.status(400).json({
+      ok: false,
+      error: "INVALID_PASSWORD",
+      message: "Введите пароль.",
+    });
+  }
+
+  try {
+    const supabase =
+      getSupabaseServerClient();
+
+    const {
+      data,
+      error,
+    } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+    if (error) {
+      console.error(
+        "Supabase login error:",
+        {
+          name: error?.name || "",
+          message: error?.message || "",
+          code: error?.code || "",
+          status: error?.status || null,
+        },
+      );
+
+      clearAuthCookies(response);
+
+      const mapped =
+        mapLoginError(error);
+
+      return response
+        .status(mapped.status)
+        .json({
+          ok: false,
+          error: mapped.error,
+          message: mapped.message,
+        });
+    }
+
+    if (!data?.user || !data?.session) {
+      clearAuthCookies(response);
+
+      return response.status(500).json({
+        ok: false,
+        error: "SESSION_NOT_CREATED",
+        message:
+          "Не удалось создать сессию входа.",
+      });
+    }
+
+    const {
+      data: access,
+      error: accessError,
+    } = await supabase
+      .from("user_roles")
+      .select(
+        "role, is_blocked, blocked_reason",
+      )
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+
+    if (accessError) {
+      clearAuthCookies(response);
+
+      console.error(
+        "Account access error:",
+        accessError,
+      );
+
+      return response.status(502).json({
+        ok: false,
+        error: "ACCOUNT_CHECK_FAILED",
+        message:
+          "Не удалось проверить состояние аккаунта.",
+      });
+    }
+
+    if (access?.is_blocked === true) {
+      clearAuthCookies(response);
+
+      return response.status(403).json({
+        ok: false,
+        error: "ACCOUNT_BLOCKED",
+        message:
+          access.blocked_reason?.trim() ||
+          "Этот аккаунт заблокирован.",
+      });
+    }
+
+    setAuthCookies(
+      response,
+      data.session,
+    );
+
+    return response.status(200).json({
+      ok: true,
+
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+      },
+
+      role: access?.role || "user",
+    });
+  } catch (error) {
+    clearAuthCookies(response);
+
+    console.error(
+      "Unexpected login error:",
+      {
+        name: error?.name || "",
+        message: error?.message || "",
+        code: error?.code || "",
+        cause:
+          error?.cause?.message || "",
+        stack: error?.stack || "",
+      },
+    );
+
+    return response.status(500).json({
+      ok: false,
+      error: "INTERNAL_SERVER_ERROR",
+      message:
+        "Произошла серверная ошибка. Повторите попытку позже.",
+    });
+  }
 }
