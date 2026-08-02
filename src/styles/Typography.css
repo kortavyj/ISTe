@@ -1,0 +1,237 @@
+:root {
+  --font-body:
+    "Segoe UI Variable Text",
+    "Segoe UI",
+    Inter,
+    Arial,
+    sans-serif;
+  --font-display:
+    "Segoe UI Variable Display",
+    "Segoe UI",
+    Inter,
+    Arial,
+    sans-serif;
+  --type-body-size: clamp(0.96rem, 0.18vw + 0.92rem, 1.03rem);
+  --type-body-line: 1.72;
+  --type-small-size: 0.78rem;
+  --type-label-spacing: 0.15em;
+  --type-heading-spacing: -0.045em;
+}
+
+html {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+}
+
+body {
+  font-size: var(--type-body-size);
+  font-weight: 450;
+  line-height: var(--type-body-line);
+  letter-spacing: 0.005em;
+}
+
+button,
+input,
+textarea,
+select {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: var(--type-heading-spacing);
+  text-wrap: balance;
+}
+
+h1 {
+  line-height: 0.96;
+}
+
+h2 {
+  line-height: 1.04;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.15;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+strong,
+b {
+  font-weight: 800;
+}
+
+small {
+  line-height: 1.45;
+}
+
+.page-title,
+.section-title,
+.team-page__header h1,
+.team-profile__heading h2,
+.news-header h1,
+.news-featured h2,
+.news-card h2,
+.history-hero h1,
+.history-section-heading h2,
+.history-values h2,
+.history-finale h2,
+.legal-header h1,
+.contacts-hero h1,
+.contacts-section-heading h2,
+.auth-heading h1,
+.owner-heading h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: var(--type-heading-spacing);
+  text-wrap: balance;
+}
+
+.page-title,
+.team-page__header h1,
+.news-header h1,
+.history-hero h1,
+.legal-header h1,
+.contacts-hero h1,
+.auth-heading h1,
+.owner-heading h1 {
+  line-height: 0.96;
+}
+
+.section-title,
+.team-profile__heading h2,
+.news-featured h2,
+.news-card h2,
+.history-section-heading h2,
+.history-values h2,
+.history-finale h2,
+.contacts-section-heading h2 {
+  line-height: 1.04;
+}
+
+.page-eyebrow,
+.section-tag,
+.team-profile__role,
+.history-eyebrow,
+.legal-eyebrow,
+.contacts-eyebrow,
+.contacts-section-heading > p,
+.auth-kicker,
+.footer-group h2,
+.footer-contact-label,
+.news-meta {
+  font-family: var(--font-body);
+  font-size: var(--type-small-size);
+  font-weight: 800;
+  letter-spacing: var(--type-label-spacing);
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.navbar-link,
+.navbar-login-button,
+.footer-link,
+.footer-contact-button,
+.footer-top-button,
+.page-link,
+.history-button,
+.legal-button,
+.contacts-primary-button,
+.contacts-secondary-button,
+.contacts-topic a,
+.owner-button {
+  font-family: var(--font-body);
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  line-height: 1.2;
+}
+
+.page-description,
+.team-page__header > p:not(.page-eyebrow),
+.team-profile__description,
+.history-lead,
+.history-card p,
+.legal-header > p:not(.legal-eyebrow),
+.legal-section p,
+.legal-section li,
+.contacts-hero > p:not(.contacts-eyebrow),
+.contacts-topic p,
+.contacts-safety p,
+.footer-description,
+.footer-contact-card p {
+  font-family: var(--font-body);
+  line-height: var(--type-body-line);
+}
+
+.team-profile__number,
+.history-card-number,
+.contacts-topic-number,
+.owner-summary strong,
+.team-page__counter span,
+.news-meta,
+.footer-copyright {
+  font-variant-numeric: tabular-nums;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+  font-weight: 450;
+  opacity: 1;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family:
+    "Cascadia Code",
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --type-body-size: 0.96rem;
+    --type-body-line: 1.68;
+    --type-small-size: 0.72rem;
+    --type-label-spacing: 0.13em;
+  }
+
+  body {
+    letter-spacing: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

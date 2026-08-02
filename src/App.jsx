@@ -27,6 +27,7 @@ import Shop from "./pages/Shop.jsx";
 import Team from "./pages/Team.jsx";
 
 import "./App.css";
+import "./styles/Typography.css";
 
 export default function App() {
   const location = useLocation();
