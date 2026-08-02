@@ -69,6 +69,10 @@ jobs:
         if: steps.commit.outputs.changed == 'true'
         run: npm run build
 
+      - name: Generate direct route entry files
+        if: steps.commit.outputs.changed == 'true'
+        run: node scripts/generate-static-routes.mjs
+
       - name: Configure GitHub Pages
         if: steps.commit.outputs.changed == 'true'
         uses: actions/configure-pages@v5
