@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { getAuthErrorMessage } from "../auth/authErrors.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { supabase } from "../lib/supabase.js";
+import { formatAccountId } from "../utils/accountId.js";
 
 import "./Auth.css";
+import "./AccountId.css";
 
 const roleNames = {
   user: "Пользователь",
@@ -45,6 +47,7 @@ export default function Account() {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [copyMessage, setCopyMessage] = useState("");
 
   useEffect(() => {
     setForm({
@@ -61,6 +64,8 @@ export default function Account() {
     return source.trim().slice(0, 2).toUpperCase();
   }, [profile, user]);
 
+  const accountId = formatAccountId(profile?.account_number);
+
   function updateField(field) {
     return (event) => {
       setForm((current) => ({
@@ -68,6 +73,19 @@ export default function Account() {
         [field]: event.target.value,
       }));
     };
+  }
+
+  async function handleCopyAccountId() {
+    if (!accountId) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(accountId);
+      setCopyMessage("ID скопирован.");
+    } catch {
+      setCopyMessage("Не удалось скопировать ID.");
+    }
   }
 
   async function handleSave(event) {
@@ -145,6 +163,28 @@ export default function Account() {
             <h2>{profile?.display_name || "Пользователь ISTe"}</h2>
 
             <dl className="account-details">
+              <div className="account-detail account-id-detail">
+                <dt>ID аккаунта</dt>
+                <dd className="account-id-value">
+                  <code>{accountId || "Не создан"}</code>
+                  <button
+                    className="account-id-copy"
+                    type="button"
+                    onClick={handleCopyAccountId}
+                    disabled={!accountId}
+                  >
+                    Копировать
+                  </button>
+                </dd>
+                <span className="account-id-help">
+                  По этому ID вас могут найти другие зарегистрированные
+                  пользователи. Электронная почта при поиске не показывается.
+                </span>
+                <span className="account-id-copy-message" aria-live="polite">
+                  {copyMessage}
+                </span>
+              </div>
+
               <div className="account-detail">
                 <dt>Электронная почта</dt>
                 <dd>{user.email}</dd>
@@ -170,13 +210,19 @@ export default function Account() {
               </div>
             </dl>
 
-            <button
-              className="auth-button auth-button-secondary"
-              type="button"
-              onClick={handleSignOut}
-            >
-              Выйти из аккаунта
-            </button>
+            <div className="account-summary-actions">
+              <Link className="auth-button account-search-button" to="/users">
+                Найти пользователя по ID
+              </Link>
+
+              <button
+                className="auth-button auth-button-secondary"
+                type="button"
+                onClick={handleSignOut}
+              >
+                Выйти из аккаунта
+              </button>
+            </div>
           </aside>
 
           <div className="auth-card account-editor">

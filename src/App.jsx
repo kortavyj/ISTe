@@ -25,6 +25,7 @@ import Register from "./pages/Register.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Shop from "./pages/Shop.jsx";
 import Team from "./pages/Team.jsx";
+import UserSearch from "./pages/UserSearch.jsx";
 
 import "./App.css";
 import "./styles/Typography.css";
@@ -116,6 +117,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Account />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <UserSearch />
               </ProtectedRoute>
             }
           />

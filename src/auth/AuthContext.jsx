@@ -12,6 +12,47 @@ import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
 
+const PROFILE_COLUMNS =
+  "id, username, display_name, avatar_url, bio, account_number, created_at, updated_at";
+
+const LEGACY_PROFILE_COLUMNS =
+  "id, username, display_name, avatar_url, bio, created_at, updated_at";
+
+async function loadProfile(userId) {
+  const profileQuery = await supabase
+    .from("profiles")
+    .select(PROFILE_COLUMNS)
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!profileQuery.error) {
+    return profileQuery.data;
+  }
+
+  const missingAccountNumber =
+    profileQuery.error.message?.includes("account_number") ||
+    profileQuery.error.details?.includes("account_number");
+
+  if (!missingAccountNumber) {
+    throw profileQuery.error;
+  }
+
+  const legacyQuery = await supabase
+    .from("profiles")
+    .select(LEGACY_PROFILE_COLUMNS)
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (legacyQuery.error) {
+    throw legacyQuery.error;
+  }
+
+  return {
+    ...legacyQuery.data,
+    account_number: null,
+  };
+}
+
 async function loadAccount(userId) {
   const { data: access, error: accessError } = await supabase
     .from("user_roles")
@@ -34,17 +75,7 @@ async function loadAccount(userId) {
     };
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select(
-      "id, username, display_name, avatar_url, bio, created_at, updated_at",
-    )
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (profileError) {
-    throw profileError;
-  }
+  const profile = await loadProfile(userId);
 
   return {
     profile,

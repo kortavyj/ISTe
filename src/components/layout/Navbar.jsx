@@ -217,6 +217,36 @@ export default function Navbar() {
                   </span>
                 </NavLink>
 
+                <NavLink
+                  className="navbar-profile-action"
+                  to="/users"
+                  role="menuitem"
+                  tabIndex={menuOpen ? 0 : -1}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle
+                      cx="10.5"
+                      cy="10.5"
+                      r="5.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                    <path
+                      d="m15 15 5 5M10.5 8v5M8 10.5h5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeWidth="1.8"
+                    />
+                  </svg>
+                  <span>
+                    <strong>Найти пользователя</strong>
+                    <small>Поиск по точному ID аккаунта</small>
+                  </span>
+                </NavLink>
+
                 {canManageNews ? (
                   <NavLink
                     className="navbar-profile-action"

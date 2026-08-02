@@ -1,0 +1,82 @@
+.account-id-detail {
+  gap: 8px;
+}
+
+.account-id-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-id-value code {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 37, 37, 0.32);
+  border-radius: 10px;
+  background: rgba(255, 37, 37, 0.07);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.account-id-copy {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 10px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.74rem;
+  font-weight: 800;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.account-id-copy:hover,
+.account-id-copy:focus-visible {
+  border-color: rgba(255, 37, 37, 0.48);
+  background: rgba(255, 37, 37, 0.09);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.account-id-copy:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.account-id-help {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.account-id-copy-message {
+  min-height: 18px;
+  color: #9aefb7;
+  font-size: 0.7rem;
+}
+
+.account-summary-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.account-search-button {
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-id-copy {
+    transition: none;
+  }
+}
