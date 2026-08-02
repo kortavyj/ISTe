@@ -1,0 +1,408 @@
+.contacts-page {
+  position: relative;
+  min-height: 100vh;
+  padding:
+    calc(var(--navbar-height) + 58px)
+    clamp(18px, 5vw, 72px)
+    110px;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    #030303;
+  background-size: 58px 58px;
+}
+
+.contacts-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(960px, 95vw);
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 37, 37, 0.16), transparent 66%);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.contacts-shell {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.contacts-hero {
+  max-width: 900px;
+  margin: 0 auto 62px;
+  text-align: center;
+}
+
+.contacts-eyebrow,
+.contacts-section-heading > p {
+  margin: 0 0 16px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.contacts-hero h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(3rem, 7vw, 6.6rem);
+  font-weight: 950;
+  letter-spacing: -0.052em;
+  line-height: 0.94;
+  text-transform: uppercase;
+}
+
+.contacts-hero > p:not(.contacts-eyebrow) {
+  max-width: 720px;
+  margin: 26px auto 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 1.04rem;
+  line-height: 1.76;
+}
+
+.contacts-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.contacts-primary-button,
+.contacts-secondary-button {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  border-radius: 13px;
+  color: #fff;
+  font-size: 0.81rem;
+  font-weight: 900;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.contacts-primary-button {
+  border: 1px solid rgba(255, 80, 80, 0.64);
+  background: linear-gradient(180deg, #ff3434, #d90808);
+  box-shadow: 0 12px 30px rgba(255, 37, 37, 0.22);
+}
+
+.contacts-secondary-button {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.contacts-primary-button svg,
+.contacts-secondary-button svg,
+.contacts-topic a svg,
+.contacts-channel > svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.contacts-primary-button:hover,
+.contacts-primary-button:focus-visible,
+.contacts-secondary-button:hover,
+.contacts-secondary-button:focus-visible {
+  transform: translateY(-3px);
+}
+
+.contacts-primary-button:hover,
+.contacts-primary-button:focus-visible {
+  box-shadow: 0 16px 38px rgba(255, 37, 37, 0.32);
+}
+
+.contacts-secondary-button:hover,
+.contacts-secondary-button:focus-visible {
+  border-color: rgba(255, 37, 37, 0.48);
+  background: rgba(255, 37, 37, 0.08);
+}
+
+.contacts-topic-list {
+  display: grid;
+  gap: 14px;
+}
+
+.contacts-topic {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  min-height: 138px;
+  padding: 26px 30px;
+  border: 1px solid rgba(255, 37, 37, 0.15);
+  border-radius: 21px;
+  background:
+    linear-gradient(110deg, rgba(255, 37, 37, 0.055), transparent 38%),
+    #090909;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.contacts-topic:hover {
+  border-color: rgba(255, 37, 37, 0.38);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.28);
+  transform: translateY(-3px);
+}
+
+.contacts-topic-number {
+  color: rgba(255, 255, 255, 0.12);
+  font-size: 2.8rem;
+  font-weight: 950;
+  letter-spacing: -0.06em;
+}
+
+.contacts-topic h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.2rem, 2.5vw, 1.75rem);
+}
+
+.contacts-topic p {
+  max-width: 690px;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.contacts-topic a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 15px;
+  border: 1px solid rgba(255, 37, 37, 0.28);
+  border-radius: 11px;
+  background: rgba(255, 37, 37, 0.065);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  white-space: nowrap;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.contacts-topic a:hover,
+.contacts-topic a:focus-visible {
+  border-color: rgba(255, 75, 75, 0.68);
+  background: rgba(255, 37, 37, 0.14);
+  transform: translateY(-2px);
+}
+
+.contacts-channels {
+  margin-top: 96px;
+}
+
+.contacts-section-heading {
+  margin-bottom: 30px;
+}
+
+.contacts-section-heading h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.contacts-channel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contacts-channel {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 48px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 15px;
+  min-height: 92px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.025);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.contacts-channel:hover,
+.contacts-channel:focus-visible {
+  border-color: rgba(255, 37, 37, 0.4);
+  background: rgba(255, 37, 37, 0.06);
+  transform: translateY(-3px);
+}
+
+.contacts-channel-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(255, 37, 37, 0.32);
+  border-radius: 14px;
+  background: rgba(255, 37, 37, 0.09);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 950;
+}
+
+.contacts-channel > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.contacts-channel strong {
+  color: #fff;
+  font-size: 0.92rem;
+}
+
+.contacts-channel small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contacts-channel > svg {
+  color: rgba(255, 255, 255, 0.45);
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.contacts-channel:hover > svg,
+.contacts-channel:focus-visible > svg {
+  color: var(--accent);
+  transform: translate(2px, -2px);
+}
+
+.contacts-safety {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+  margin-top: 72px;
+  padding: 26px;
+  border: 1px solid rgba(255, 190, 80, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 180, 60, 0.035);
+}
+
+.contacts-safety-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(255, 190, 80, 0.34);
+  border-radius: 50%;
+  color: #ffc46b;
+  font-weight: 950;
+}
+
+.contacts-safety h2 {
+  margin: 2px 0 8px;
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.contacts-safety p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 850px) {
+  .contacts-topic {
+    grid-template-columns: 54px minmax(0, 1fr);
+  }
+
+  .contacts-topic a {
+    grid-column: 2;
+    width: fit-content;
+  }
+}
+
+@media (max-width: 650px) {
+  .contacts-page {
+    padding:
+      calc(var(--navbar-height) + 38px)
+      14px
+      78px;
+  }
+
+  .contacts-hero {
+    margin-bottom: 44px;
+  }
+
+  .contacts-hero h1 {
+    font-size: clamp(2.5rem, 14vw, 4.2rem);
+  }
+
+  .contacts-hero-actions {
+    display: grid;
+  }
+
+  .contacts-topic {
+    grid-template-columns: 1fr;
+    gap: 13px;
+    padding: 22px 20px;
+  }
+
+  .contacts-topic-number {
+    font-size: 2rem;
+  }
+
+  .contacts-topic a {
+    grid-column: auto;
+  }
+
+  .contacts-channel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contacts-channels {
+    margin-top: 72px;
+  }
+
+  .contacts-safety {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contacts-primary-button,
+  .contacts-secondary-button,
+  .contacts-topic,
+  .contacts-topic a,
+  .contacts-channel,
+  .contacts-channel > svg {
+    transition: none;
+  }
+}
