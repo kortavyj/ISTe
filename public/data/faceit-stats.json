@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 7,
-  "matches": 8,
-  "wins": 6,
-  "winRate": 75,
+  "matches": 9,
+  "wins": 7,
+  "winRate": 78,
   "players": 6,
   "roster": [
     {
@@ -33,7 +33,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2833,
+      "elo": 2810,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
@@ -54,14 +54,14 @@
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
-      "nickname": "silryd",
-      "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
+      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
+      "nickname": "Lor9n",
+      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/silryd",
+      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2720,
+      "elo": 2776,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -82,14 +82,14 @@
       "roleSource": "FACEIT statistical inference"
     },
     {
-      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
-      "nickname": "Lor9n",
-      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
+      "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
+      "nickname": "silryd",
+      "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
+      "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2776,
+      "elo": 2720,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -97,6 +97,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-47833b2f-3352-4c67-81d7-bde635ad2472",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-47833b2f-3352-4c67-81d7-bde635ad2472",
+      "tournamentId": "4bfdaf1f-a7ca-4cf8-ab12-4b160e352320",
+      "competitionName": "Late Night Cache",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-02T21:41:58.000Z",
+      "startedAt": "2026-08-02T21:41:58.000Z",
+      "finishedAt": "2026-08-02T22:07:46.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "team_VeToo",
+        "avatar": "https://distribution.faceit-cdn.net/images/ba19a632-2a90-447c-bcfd-70e2c43cc45e.jpg",
+        "score": 3
+      }
+    },
     {
       "matchId": "1-0122663a-1718-4539-87e7-127037c65f90",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-0122663a-1718-4539-87e7-127037c65f90",
@@ -482,14 +506,14 @@
       }
     }
   ],
-  "teamMatchCount": 16,
+  "teamMatchCount": 17,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 16,
+    "historyMatchesFound": 17,
     "lastFullSyncAt": "2026-08-01T14:23:57.395Z"
   },
   "roleModel": {
@@ -497,5 +521,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-02T21:31:07.068Z"
+  "updatedAt": "2026-08-02T22:29:39.216Z"
 }
