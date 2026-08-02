@@ -1,130 +1,123 @@
-import { Link } from "react-router-dom";
-
-import logo from "../assets/logos/iste-logo.png";
+import founderPhoto from "../assets/history/evgeniy_kortavyj.webp";
 
 import "./History.css";
 
-const milestones = [
-  {
-    number: "01",
-    title: "Начало идеи",
-    text: "ISTe появилась как объединение игроков, которым было недостаточно просто участвовать в матчах. Команда создавалась вокруг дисциплины, взаимного уважения и общего стремления становиться сильнее.",
-  },
-  {
-    number: "02",
-    title: "Формирование состава",
-    text: "Следующим этапом стал поиск игроков, способных работать как единое целое. Важными стали не только индивидуальный уровень, но и коммуникация, надёжность и готовность играть на результат.",
-  },
-  {
-    number: "03",
-    title: "Выход на FACEIT",
-    text: "FACEIT стал основной соревновательной площадкой ISTe. Здесь команда собирает состав, участвует в матчах, отслеживает прогресс и постепенно формирует собственную игровую историю.",
-  },
-  {
-    number: "04",
-    title: "Развитие ISTe",
-    text: "Сегодня ISTe продолжает развиваться как киберспортивный проект. Сайт объединяет состав, статистику, матчи, медиа и площадки команды в одном месте.",
-  },
-];
-
-const principles = [
-  "Командная игра выше личной статистики",
-  "Спокойствие и дисциплина в каждом матче",
-  "Постоянный разбор ошибок и развитие",
-  "Уважение к соперникам и своей команде",
+const founderFacts = [
+  { value: "21", label: "год" },
+  { value: "Днепр", label: "Украина" },
+  { value: "Kortavyj", label: "медийный ник" },
+  { value: "ISTe", label: "создатель и основатель" },
 ];
 
 export default function History() {
   return (
-    <section className="history-page">
-      <div className="history-glow history-glow-one" aria-hidden="true" />
-      <div className="history-glow history-glow-two" aria-hidden="true" />
+    <main className="history-page">
+      <div
+        className="history-page__glow history-page__glow--top"
+        aria-hidden="true"
+      />
+      <div
+        className="history-page__glow history-page__glow--bottom"
+        aria-hidden="true"
+      />
 
-      <div className="history-container">
-        <header className="history-hero">
-          <div className="history-logo-wrap" aria-hidden="true">
-            <span className="history-logo-ring" />
-            <img src={logo} alt="" className="history-logo" />
-          </div>
+      <section className="history-hero" aria-labelledby="history-title">
+        <div className="history-hero__copy">
+          <p className="history-hero__eyebrow">ИСТОРИЯ ISTe</p>
 
-          <div className="history-hero-copy">
-            <p className="history-eyebrow">ISTe STORY</p>
-            <h1>История команды</h1>
-            <p className="history-lead">
-              ISTe, Ice Saber Team, это киберспортивная команда, созданная вокруг
-              общей цели, сильной коммуникации и желания расти вместе.
-            </p>
+          <h1 id="history-title">
+            Евгений,
+            <span> создатель и основатель ISTe</span>
+          </h1>
 
-            <div className="history-actions">
-              <Link className="history-button history-button-primary" to="/team">
-                Смотреть состав
-              </Link>
-              <Link className="history-button history-button-secondary" to="/matches">
-                Матчи команды
-              </Link>
-            </div>
-          </div>
-        </header>
+          <p className="history-hero__lead">
+            Известный в интернете под ником Kortavyj, Евгений развивает
+            собственный проект, объединяющий киберспорт, игровое сообщество,
+            медиа и командные соревнования.
+          </p>
 
-        <div className="history-divider" />
-
-        <section className="history-section">
-          <div className="history-section-heading">
-            <p>ПУТЬ ISTe</p>
-            <h2>Как формировалась команда</h2>
-          </div>
-
-          <div className="history-timeline">
-            {milestones.map((milestone) => (
-              <article className="history-card" key={milestone.number}>
-                <span className="history-card-number">{milestone.number}</span>
-                <div>
-                  <h3>{milestone.title}</h3>
-                  <p>{milestone.text}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="history-values">
-          <div className="history-values-copy">
-            <p className="history-eyebrow">НАШ ПОДХОД</p>
-            <h2>Принципы ISTe</h2>
-            <p>
-              Команда строится не вокруг одного игрока. Результат появляется,
-              когда каждый понимает свою роль, доверяет партнёрам и отвечает за
-              собственные решения.
-            </p>
-          </div>
-
-          <div className="history-principles">
-            {principles.map((principle, index) => (
-              <div className="history-principle" key={principle}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <p>{principle}</p>
+          <div
+            className="history-hero__facts"
+            aria-label="Информация о создателе ISTe"
+          >
+            {founderFacts.map((fact) => (
+              <div
+                className="history-fact"
+                key={`${fact.value}-${fact.label}`}
+              >
+                <strong>{fact.value}</strong>
+                <span>{fact.label}</span>
               </div>
             ))}
           </div>
-        </section>
+        </div>
 
-        <section className="history-finale">
-          <p className="history-eyebrow">PLAY · COMPETE · WIN</p>
-          <h2>История ISTe продолжается</h2>
+        <figure className="history-founder-photo">
+          <div className="history-founder-photo__frame">
+            <img
+              src={founderPhoto}
+              alt="Евгений, создатель и основатель ISTe"
+              loading="eager"
+            />
+          </div>
+
+          <figcaption>
+            <span>KORTAVYJ</span>
+            <strong>FOUNDER OF ISTe</strong>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section
+        className="history-story"
+        aria-labelledby="founder-story-title"
+      >
+        <header className="history-story__header">
+          <p>ОСНОВАТЕЛЬ ПРОЕКТА</p>
+          <h2 id="founder-story-title">
+            От личного увлечения к собственной компании
+          </h2>
+        </header>
+
+        <div className="history-story__content">
           <p>
-            Новые матчи, изменения состава и результаты команды автоматически
-            появляются на сайте через интеграцию с FACEIT.
+            Евгений живёт в Днепре, Украина. Интерес к соревновательным играм,
+            стримингу и созданию контента постепенно привёл его к идее основать
+            ISTe. Он хотел создать не просто игровую команду, а полноценную
+            компанию со своим узнаваемым стилем, официальными площадками и
+            активным сообществом.
           </p>
-          <a
-            className="history-button history-button-primary"
-            href="https://www.faceit.com/ru/teams/fe19e71d-c974-404c-a038-beb9a578fb61"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Открыть команду FACEIT
-          </a>
-        </section>
-      </div>
-    </section>
+
+          <p>
+            Сегодня Евгений лично занимается развитием ISTe, формированием
+            команды, подготовкой новостей, турниров, розыгрышей и
+            медиаконтента. Проект находится в начале своего пути, но уже имеет
+            собственную визуальную айдентику, официальные площадки и планы по
+            дальнейшему расширению.
+          </p>
+
+          <p>
+            Для Евгения ISTe является личным проектом, созданным с нуля. Его
+            основная цель состоит в том, чтобы построить сильное
+            киберспортивное сообщество, где игроки смогут развиваться, находить
+            команду, участвовать в соревнованиях и становиться частью общей
+            истории.
+          </p>
+        </div>
+      </section>
+
+      <section className="history-mission" aria-label="Главная идея ISTe">
+        <span className="history-mission__mark" aria-hidden="true">
+          “
+        </span>
+        <p>
+          Евгений создал ISTe, чтобы превратить личное увлечение играми и медиа
+          в полноценную компанию и пространство для развития других игроков.
+        </p>
+        <span className="history-mission__signature">
+          EVGENIY · KORTAVYJ
+        </span>
+      </section>
+    </main>
   );
 }
