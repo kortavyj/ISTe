@@ -33,7 +33,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2810,
+      "elo": 2836,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
@@ -521,5 +521,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-02T22:29:39.216Z"
+  "updatedAt": "2026-08-02T23:30:17.500Z"
 }
