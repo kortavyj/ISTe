@@ -37,6 +37,9 @@ jobs:
       - name: Build website
         run: npm run build
 
+      - name: Generate direct route entry files
+        run: node scripts/generate-static-routes.mjs
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
