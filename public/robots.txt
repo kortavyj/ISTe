@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+Disallow: /account
+Disallow: /users
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /blocked
+Disallow: /admin/
+Disallow: /owner/
+Disallow: /shop
+
+Sitemap: https://istesport.com/sitemap.xml

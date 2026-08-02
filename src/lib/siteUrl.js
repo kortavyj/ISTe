@@ -1,13 +1,15 @@
-export function getSiteRootUrl() {
-  const path = window.location.pathname.endsWith("/")
-    ? window.location.pathname
-    : `${window.location.pathname}/`;
+const PRODUCTION_SITE_URL = "https://istesport.com";
 
-  return `${window.location.origin}${path}`;
+export function getSiteRootUrl() {
+  if (import.meta.env.PROD) {
+    return PRODUCTION_SITE_URL;
+  }
+
+  return window.location.origin;
 }
 
 export function getAuthRedirectUrl(route) {
   const normalizedRoute = route.startsWith("/") ? route : `/${route}`;
 
-  return `${getSiteRootUrl()}#${normalizedRoute}`;
+  return `${getSiteRootUrl()}${normalizedRoute}`;
 }

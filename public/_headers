@@ -1,0 +1,46 @@
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-5h4UdKWANZkdg9+Q+0QSogRE/00UjpzicuBNZt/zPWo='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://niwgrrprbcgbdaloijhq.supabase.co wss://niwgrrprbcgbdaloijhq.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; media-src 'self' https:; manifest-src 'self'; upgrade-insecure-requests
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/account
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/users
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/login
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/register
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/forgot-password
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/reset-password
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/blocked
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/admin/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/owner/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/shop
+  X-Robots-Tag: noindex, follow, noarchive
+
+/privacy
+  X-Robots-Tag: noindex, follow, noarchive
+
+/terms
+  X-Robots-Tag: noindex, follow, noarchive
