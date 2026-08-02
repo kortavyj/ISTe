@@ -33,10 +33,16 @@ export default function Register() {
 
   function updateField(field) {
     return (event) => {
+      const value = event.target.value;
+
       setForm((current) => ({
         ...current,
-        [field]: event.target.value,
+        [field]: value,
       }));
+
+      if (errorMessage) {
+        setErrorMessage("");
+      }
     };
   }
 
@@ -158,7 +164,7 @@ export default function Register() {
 
   return (
     <section className="auth-page">
-      <div className="auth-shell">
+      <div className="auth-shell auth-shell-register">
         <header className="auth-heading">
           <p className="auth-kicker">ISTe account</p>
           <h1>Регистрация</h1>
@@ -172,7 +178,7 @@ export default function Register() {
         <div className="auth-card auth-card-form">
           <form className="auth-form" onSubmit={handleSubmit}>
             {errorMessage && (
-              <div className="auth-message auth-message-error">
+              <div className="auth-message auth-message-error" role="alert">
                 {errorMessage}
               </div>
             )}
@@ -185,17 +191,23 @@ export default function Register() {
                   className="auth-input"
                   type="text"
                   autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  inputMode="text"
                   value={form.username}
                   onChange={updateField("username")}
+                  placeholder="user_nik"
+                  pattern="[A-Za-z0-9_]{3,32}"
                   minLength={3}
                   maxLength={32}
+                  aria-describedby="username-hint"
                   required
                   disabled={submitting}
                 />
 
-                <small className="auth-hint">
+                <small className="auth-hint" id="username-hint">
                   Латинские буквы, цифры и символ подчёркивания. Никнейм должен
-                  быть уникальным, регистр букв не учитывается.
+                  быть уникальным.
                 </small>
               </label>
 
@@ -208,11 +220,17 @@ export default function Register() {
                   autoComplete="name"
                   value={form.displayName}
                   onChange={updateField("displayName")}
+                  placeholder="Например, Евгений"
                   minLength={2}
                   maxLength={60}
+                  aria-describedby="display-name-hint"
                   required
                   disabled={submitting}
                 />
+
+                <small className="auth-hint" id="display-name-hint">
+                  Это имя будут видеть другие участники сообщества ISTe.
+                </small>
               </label>
             </div>
 
@@ -223,14 +241,18 @@ export default function Register() {
                 className="auth-input"
                 type="email"
                 autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                inputMode="email"
                 value={form.email}
                 onChange={updateField("email")}
                 placeholder="name@gmail.com"
+                aria-describedby="email-hint"
                 required
                 disabled={submitting}
               />
 
-              <small className="auth-hint">
+              <small className="auth-hint" id="email-hint">
                 Разрешена только почта Gmail, например name@gmail.com.
               </small>
             </label>
@@ -245,12 +267,16 @@ export default function Register() {
                   autoComplete="new-password"
                   value={form.password}
                   onChange={updateField("password")}
+                  placeholder="Минимум 10 символов"
                   minLength={10}
+                  aria-describedby="password-hint"
                   required
                   disabled={submitting}
                 />
 
-                <small className="auth-hint">Минимум 10 символов.</small>
+                <small className="auth-hint" id="password-hint">
+                  Используйте не менее 10 символов.
+                </small>
               </label>
 
               <label className="auth-field">
@@ -262,10 +288,16 @@ export default function Register() {
                   autoComplete="new-password"
                   value={form.passwordRepeat}
                   onChange={updateField("passwordRepeat")}
+                  placeholder="Повторите пароль"
                   minLength={10}
+                  aria-describedby="password-repeat-hint"
                   required
                   disabled={submitting}
                 />
+
+                <small className="auth-hint" id="password-repeat-hint">
+                  Введите тот же пароль ещё раз.
+                </small>
               </label>
             </div>
 
