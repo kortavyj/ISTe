@@ -1,19 +1,34 @@
-import { Navigate, useLocation } from "react-router-dom";
+import {
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 
 import { useAuth } from "./AuthContext.jsx";
 
-const MANAGEMENT_ROLES = new Set(["admin", "owner"]);
-
-export default function OwnerRoute({ children }) {
+export default function OwnerRoute({
+  children,
+}) {
   const location = useLocation();
-  const { user, role, loading, isBlocked } = useAuth();
+
+  const {
+    user,
+    role,
+    loading,
+    isBlocked,
+  } = useAuth();
 
   if (loading) {
     return (
       <section className="auth-page">
         <div className="auth-card auth-card-status">
-          <span className="auth-loader" aria-hidden="true" />
-          <p>Проверяем права управления...</p>
+          <span
+            className="auth-loader"
+            aria-hidden="true"
+          />
+
+          <p>
+            Проверяем права владельца...
+          </p>
         </div>
       </section>
     );
@@ -30,11 +45,21 @@ export default function OwnerRoute({ children }) {
   }
 
   if (isBlocked) {
-    return <Navigate to="/blocked" replace />;
+    return (
+      <Navigate
+        to="/blocked"
+        replace
+      />
+    );
   }
 
-  if (!MANAGEMENT_ROLES.has(role)) {
-    return <Navigate to="/account" replace />;
+  if (role !== "owner") {
+    return (
+      <Navigate
+        to="/account"
+        replace
+      />
+    );
   }
 
   return children;
