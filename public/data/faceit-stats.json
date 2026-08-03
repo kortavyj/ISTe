@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 8,
-  "matches": 10,
-  "wins": 7,
-  "winRate": 70,
+  "matches": 12,
+  "wins": 9,
+  "winRate": 75,
   "players": 6,
   "roster": [
     {
@@ -97,6 +97,54 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-7276b9d1-425e-4ff6-a24e-c2c451a0438b",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-7276b9d1-425e-4ff6-a24e-c2c451a0438b",
+      "tournamentId": "2342f7d9-e28a-44ba-bd16-690766dd36ad",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-03T18:58:30.000Z",
+      "startedAt": "2026-08-03T18:58:30.000Z",
+      "finishedAt": "2026-08-03T19:29:49.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "team_Flez1n",
+        "avatar": "https://distribution.faceit-cdn.net/images/9feb360d-b253-4661-919a-5e0b324748b9.jpg",
+        "score": 6
+      }
+    },
+    {
+      "matchId": "1-9d5d17dd-7c6c-4ce1-9395-c82e90530a1d",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-9d5d17dd-7c6c-4ce1-9395-c82e90530a1d",
+      "tournamentId": "2342f7d9-e28a-44ba-bd16-690766dd36ad",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-03T18:32:05.000Z",
+      "startedAt": "2026-08-03T18:32:05.000Z",
+      "finishedAt": "2026-08-03T18:56:18.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "indeex esports",
+        "avatar": "https://distribution.faceit-cdn.net/images/c720d0ed-432b-43e9-bc37-05dc859c4c94.jpg",
+        "score": 3
+      }
+    },
     {
       "matchId": "1-b0aba489-c41d-4536-89bb-802f5d938063",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-b0aba489-c41d-4536-89bb-802f5d938063",
@@ -554,14 +602,14 @@
       }
     }
   ],
-  "teamMatchCount": 19,
+  "teamMatchCount": 21,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 19,
+    "historyMatchesFound": 21,
     "lastFullSyncAt": "2026-08-01T14:23:57.395Z"
   },
   "roleModel": {
@@ -569,5 +617,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-03T18:17:36.687Z"
+  "updatedAt": "2026-08-03T20:01:27.522Z"
 }
