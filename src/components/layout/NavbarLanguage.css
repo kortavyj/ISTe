@@ -1,139 +1,189 @@
 .navbar-auth {
-  gap: 8px;
+  gap: 10px;
 }
 
+/* Переключатель языка */
 .navbar-auth .language-switcher {
-  height: 48px;
-  gap: 2px;
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 126px;
+  height: 44px;
   padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   background:
-    linear-gradient(180deg, rgba(19, 19, 21, 0.98), rgba(7, 7, 8, 0.98));
+    linear-gradient(180deg, rgba(18, 18, 20, 0.98), rgba(7, 7, 8, 0.98));
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+    0 8px 22px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .navbar-auth .language-switcher-button {
-  width: 30px;
-  height: 38px;
+  position: relative;
+  z-index: 1;
+  width: auto;
+  height: 34px;
+  padding: 0;
   border: 1px solid transparent;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.44);
-  font-size: 0.65rem;
-  font-weight: 850;
-  letter-spacing: 0.035em;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.055em;
   transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease,
-    color 180ms ease;
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .navbar-auth .language-switcher-button:hover,
 .navbar-auth .language-switcher-button:focus-visible {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.045);
-  color: rgba(255, 255, 255, 0.86);
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.84);
   transform: none;
 }
 
 .navbar-auth .language-switcher-button-active,
 .navbar-auth .language-switcher-button-active:hover,
 .navbar-auth .language-switcher-button-active:focus-visible {
-  border-color: rgba(255, 103, 103, 0.46);
+  border-color: rgba(255, 91, 91, 0.48);
   background:
-    linear-gradient(180deg, rgba(255, 48, 48, 0.98), rgba(196, 5, 5, 0.98));
+    linear-gradient(180deg, #ff3838 0%, #c90505 100%);
   box-shadow:
-    0 5px 14px rgba(255, 37, 37, 0.2),
+    0 5px 14px rgba(255, 37, 37, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
   color: #fff;
 }
 
-.navbar-auth .language-switcher-button:focus-visible,
-.navbar-auth .navbar-account-trigger:focus-visible {
-  outline: 2px solid rgba(255, 76, 76, 0.56);
-  outline-offset: 2px;
-}
-
+/* Кнопка кабинета */
 .navbar-auth .navbar-account-trigger {
-  min-width: 238px;
-  min-height: 48px;
-  grid-template-columns: 38px minmax(0, 1fr) 16px;
+  position: relative;
+  min-width: 222px;
+  min-height: 44px;
+  grid-template-columns: 34px minmax(0, 1fr) 28px;
   gap: 10px;
-  padding: 4px 12px 4px 5px;
+  padding: 4px 7px 4px 5px;
   overflow: hidden;
-  border-color: rgba(255, 54, 54, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.085);
   border-radius: 14px;
   background:
-    radial-gradient(circle at 18% 0%, rgba(255, 42, 42, 0.08), transparent 34%),
     linear-gradient(180deg, rgba(18, 18, 20, 0.98), rgba(7, 7, 8, 0.98));
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+    0 8px 22px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.navbar-auth .navbar-account-trigger::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 2px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #ff4545, #9d0000);
+  box-shadow: 0 0 10px rgba(255, 37, 37, 0.42);
+  content: "";
+  opacity: 0.78;
 }
 
 .navbar-auth .navbar-account-trigger:hover,
 .navbar-auth .navbar-account-trigger:focus-visible,
 .navbar-auth .navbar-account-trigger-open {
-  border-color: rgba(255, 67, 67, 0.62);
+  border-color: rgba(255, 65, 65, 0.38);
   background:
-    radial-gradient(circle at 18% 0%, rgba(255, 42, 42, 0.14), transparent 36%),
-    linear-gradient(180deg, rgba(24, 13, 14, 0.98), rgba(8, 7, 8, 0.98));
+    linear-gradient(180deg, rgba(24, 15, 16, 0.98), rgba(8, 7, 8, 0.98));
   box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.38),
-    0 0 18px rgba(255, 37, 37, 0.09),
-    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    0 10px 26px rgba(0, 0, 0, 0.38),
+    0 0 16px rgba(255, 37, 37, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
   transform: none;
 }
 
 .navbar-auth .navbar-account-avatar {
-  width: 38px;
-  border-color: rgba(255, 83, 83, 0.48);
-  border-radius: 11px;
+  width: 34px;
+  border: 1px solid rgba(255, 77, 77, 0.5);
+  border-radius: 50%;
   background:
-    radial-gradient(circle at 34% 22%, rgba(255, 112, 112, 0.3), transparent 44%),
-    linear-gradient(145deg, #290707, #110202);
+    radial-gradient(circle at 35% 25%, rgba(255, 118, 118, 0.34), transparent 42%),
+    linear-gradient(145deg, #2a0707, #120202);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 0 14px rgba(255, 37, 37, 0.1);
-  font-size: 0.74rem;
+    0 0 0 3px rgba(255, 37, 37, 0.045);
+  font-size: 0.69rem;
+  font-weight: 900;
 }
 
 .navbar-auth .navbar-account-copy {
-  gap: 3px;
+  gap: 1px;
 }
 
 .navbar-auth .navbar-account-title {
-  font-size: 0.72rem;
-  font-weight: 850;
-  letter-spacing: 0.055em;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.61rem;
+  font-weight: 800;
+  letter-spacing: 0.085em;
+  text-transform: uppercase;
 }
 
 .navbar-auth .navbar-account-name {
-  color: rgba(255, 255, 255, 0.46);
-  font-size: 0.69rem;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .navbar-auth .navbar-account-chevron {
-  width: 16px;
-  justify-self: end;
-  color: rgba(255, 255, 255, 0.48);
+  width: 28px;
+  height: 28px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.44);
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 200ms ease;
 }
 
 .navbar-auth .navbar-account-trigger:hover .navbar-account-chevron,
 .navbar-auth .navbar-account-trigger:focus-visible .navbar-account-chevron,
 .navbar-auth .navbar-account-trigger-open .navbar-account-chevron {
-  color: rgba(255, 255, 255, 0.86);
+  border-color: rgba(255, 75, 75, 0.22);
+  background: rgba(255, 37, 37, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.navbar-auth .navbar-account-trigger-open .navbar-account-chevron {
+  transform: rotate(180deg);
+}
+
+.navbar-auth .language-switcher-button:focus-visible,
+.navbar-auth .navbar-account-trigger:focus-visible {
+  outline: 2px solid rgba(255, 77, 77, 0.52);
+  outline-offset: 2px;
 }
 
 @media (max-width: 860px) {
   .navbar-auth .navbar-account-trigger {
-    min-width: 48px;
-    grid-template-columns: 38px;
+    min-width: 44px;
+    grid-template-columns: 34px;
     padding: 4px;
+  }
+
+  .navbar-auth .navbar-account-trigger::before,
+  .navbar-auth .navbar-account-copy,
+  .navbar-auth .navbar-account-chevron {
+    display: none;
   }
 }
 
@@ -148,57 +198,39 @@
   }
 
   .navbar-auth .language-switcher {
-    height: 42px;
+    width: 105px;
+    height: 40px;
     padding: 3px;
     border-radius: 12px;
   }
 
   .navbar-auth .language-switcher-button {
-    width: 27px;
-    height: 34px;
+    height: 32px;
     border-radius: 9px;
-    font-size: 0.6rem;
+    font-size: 0.58rem;
   }
 
   .navbar-auth .navbar-account-trigger {
-    min-width: 42px;
-    min-height: 42px;
-    grid-template-columns: 34px;
+    min-width: 40px;
+    min-height: 40px;
+    grid-template-columns: 32px;
     padding: 3px;
     border-radius: 12px;
   }
 
   .navbar-auth .navbar-account-avatar {
-    width: 34px;
-    border-radius: 9px;
-    font-size: 0.68rem;
-  }
-
-  .navbar-login-button {
-    min-width: 76px;
-    padding: 0 10px;
-    font-size: 0.72rem;
+    width: 32px;
+    font-size: 0.64rem;
   }
 }
 
 @media (max-width: 430px) {
-  .navbar-links {
-    gap: 13px;
-  }
-
-  .navbar-link {
-    font-size: 0.76rem;
+  .navbar-auth .language-switcher {
+    width: 94px;
   }
 
   .navbar-auth .language-switcher-button {
-    width: 24px;
-    font-size: 0.56rem;
-  }
-
-  .navbar-login-button {
-    min-width: 68px;
-    padding: 0 8px;
-    font-size: 0.68rem;
+    font-size: 0.54rem;
   }
 }
 
