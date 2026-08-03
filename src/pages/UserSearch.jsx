@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext.jsx";
-import { supabase } from "../lib/supabase.js";
 import {
   formatAccountId,
   isValidAccountId,
@@ -36,32 +35,28 @@ function getInitials(profile) {
   return source.trim().slice(0, 2).toUpperCase();
 }
 
-function getSearchErrorMessage(error) {
-  const source = [
-    error?.message,
-    error?.details,
-    error?.hint,
-    error?.code,
-  ]
-    .filter(Boolean)
-    .join(" ");
+async function readApiResponse(response) {
+  let result;
 
-  if (source.includes("AUTH_REQUIRED")) {
-    return "Для поиска необходимо войти в аккаунт.";
-  }
-
-  if (source.includes("ACCOUNT_BLOCKED")) {
-    return "Поиск недоступен для заблокированного аккаунта.";
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error(
+      "Сервер вернул некорректный ответ.",
+    );
   }
 
   if (
-    source.includes("find_profile_by_account_id") &&
-    source.toLowerCase().includes("function")
+    !response.ok ||
+    result?.ok !== true
   ) {
-    return "Поиск ещё не подключён к базе данных. Выполните SQL файл из архива.";
+    throw new Error(
+      result?.message ||
+        "Не удалось выполнить поиск.",
+    );
   }
 
-  return error?.message || "Не удалось выполнить поиск.";
+  return result;
 }
 
 export default function UserSearch() {
@@ -99,26 +94,42 @@ export default function UserSearch() {
 
     setLoading(true);
 
-    const normalized = normalizeAccountId(query);
+    try {
+      const normalized =
+        normalizeAccountId(query);
 
-    const { data, error } = await supabase.rpc(
-      "find_profile_by_account_id",
-      {
-        p_account_id: normalized,
-      },
-    );
+      const response = await fetch(
+        "/api/auth/session",
+        {
+          method: "POST",
+          credentials: "include",
 
-    if (error) {
-      setErrorMessage(getSearchErrorMessage(error));
+          headers: {
+            Accept: "application/json",
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            action: "find-user",
+            accountId: normalized,
+          }),
+        },
+      );
+
+      const data =
+        await readApiResponse(response);
+
+      setResult(data.profile ?? null);
+      setHasSearched(true);
+    } catch (error) {
+      setErrorMessage(
+        error?.message ||
+          "Не удалось выполнить поиск.",
+      );
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const foundProfile = Array.isArray(data) ? data[0] ?? null : data ?? null;
-
-    setResult(foundProfile);
-    setHasSearched(true);
-    setLoading(false);
   }
 
   function handleInput(event) {

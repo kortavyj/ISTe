@@ -199,6 +199,43 @@ function readProfileInput(request) {
   };
 }
 
+
+function readSearchInput(request) {
+  const body = readJsonBody(request);
+
+  if (!body) {
+    return {
+      ok: false,
+      status: 400,
+      error: "INVALID_JSON",
+      message:
+        "Не удалось прочитать параметры поиска.",
+    };
+  }
+
+  const digits = String(
+    body.accountId ?? "",
+  )
+    .replace(/\D/g, "")
+    .replace(/^0+(?=\d)/, "")
+    .slice(0, 18);
+
+  if (!digits || digits === "0") {
+    return {
+      ok: false,
+      status: 400,
+      error: "INVALID_ACCOUNT_ID",
+      message:
+        "Введите корректный ID пользователя.",
+    };
+  }
+
+  return {
+    ok: true,
+    accountId: digits,
+  };
+}
+
 async function getAuthenticatedSession(
   request,
   response,
@@ -546,6 +583,166 @@ async function handleProfileUpdate(
   }
 }
 
+
+async function handleUserSearch(
+  request,
+  response,
+) {
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 4 * 1024,
+  });
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const input =
+    readSearchInput(request);
+
+  if (!input.ok) {
+    return response
+      .status(input.status)
+      .json({
+        ok: false,
+        error: input.error,
+        message: input.message,
+      });
+  }
+
+  try {
+    const auth =
+      await getAuthenticatedSession(
+        request,
+        response,
+      );
+
+    if (!auth.ok) {
+      return response
+        .status(auth.status)
+        .json({
+          ok: false,
+          error: auth.error,
+          message: auth.message,
+        });
+    }
+
+    const access =
+      await loadAccountAccess(
+        auth.supabase,
+        auth.user.id,
+      );
+
+    if (access.isBlocked) {
+      return response.status(403).json({
+        ok: false,
+        error: "ACCOUNT_BLOCKED",
+        message:
+          "Поиск недоступен для заблокированного аккаунта.",
+      });
+    }
+
+    const {
+      data,
+      error,
+    } = await auth.supabase.rpc(
+      "find_profile_by_account_id",
+      {
+        p_account_id:
+          input.accountId,
+      },
+    );
+
+    if (error) {
+      const source = [
+        error.message,
+        error.details,
+        error.hint,
+        error.code,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      if (
+        /find_profile_by_account_id/i.test(
+          source,
+        ) &&
+        /function|schema cache|could not find/i.test(
+          source,
+        )
+      ) {
+        return response.status(503).json({
+          ok: false,
+          error: "SEARCH_FUNCTION_MISSING",
+          message:
+            "Функция поиска не подключена к базе данных.",
+        });
+      }
+
+      if (/AUTH_REQUIRED/i.test(source)) {
+        return response.status(401).json({
+          ok: false,
+          error: "AUTH_REQUIRED",
+          message:
+            "Нужно повторно войти в аккаунт.",
+        });
+      }
+
+      if (/ACCOUNT_BLOCKED/i.test(source)) {
+        return response.status(403).json({
+          ok: false,
+          error: "ACCOUNT_BLOCKED",
+          message:
+            "Поиск недоступен для заблокированного аккаунта.",
+        });
+      }
+
+      console.error(
+        "User search error:",
+        error,
+      );
+
+      return response.status(502).json({
+        ok: false,
+        error: "USER_SEARCH_FAILED",
+        message:
+          "Не удалось выполнить поиск пользователя.",
+      });
+    }
+
+    const profile = Array.isArray(data)
+      ? data[0] ?? null
+      : data ?? null;
+
+    return response.status(200).json({
+      ok: true,
+      profile,
+    });
+  } catch (error) {
+    console.error(
+      "Unexpected user search error:",
+      error?.cause || error,
+    );
+
+    return response
+      .status(error?.status || 500)
+      .json({
+        ok: false,
+        error:
+          error?.code ||
+          "INTERNAL_SERVER_ERROR",
+        message:
+          error?.message ||
+          "Произошла серверная ошибка.",
+      });
+  }
+}
+
 export default async function handler(
   request,
   response,
@@ -567,6 +764,15 @@ export default async function handler(
   }
 
   if (method === "POST") {
+    const body = readJsonBody(request);
+
+    if (body?.action === "find-user") {
+      return handleUserSearch(
+        request,
+        response,
+      );
+    }
+
     return handleProfileUpdate(
       request,
       response,
