@@ -1,0 +1,133 @@
+export const translations = {
+  uk: {
+    languages: {
+      uk: "Українська",
+      ru: "Російська",
+      en: "English",
+      selectorLabel: "Оберіть мову",
+    },
+    navigation: {
+      ariaLabel: "Основна навігація",
+      home: "Головна",
+      team: "Команда",
+      news: "Новини",
+      partners: "Партнери",
+    },
+    auth: {
+      loading: "Завантаження акаунта",
+      signIn: "Увійти",
+    },
+    account: {
+      openMenu: "Відкрити меню особистого кабінету",
+      title: "Особистий кабінет",
+      memberFallback: "Учасник ISTe",
+      profileTitle: "Особистий кабінет",
+      profileDescription: "Профіль і налаштування",
+      findUserTitle: "Знайти користувача",
+      findUserDescription: "Пошук за точним ID акаунта",
+      manageNewsTitle: "Керування новинами",
+      manageNewsDescription: "Чернетки та публікації",
+      manageUsersTitle: "Керування користувачами",
+      manageUsersDescription: "Ролі, блокування та повний журнал",
+      logoutTitle: "Вийти",
+      logoutDescription: "Завершити поточну сесію",
+    },
+    roles: {
+      user: "Користувач",
+      editor: "Редактор",
+      admin: "Адміністратор",
+      owner: "Власник",
+    },
+    common: {
+      siteHomeAria: "ISTe, головна",
+    },
+  },
+
+  ru: {
+    languages: {
+      uk: "Украинский",
+      ru: "Русский",
+      en: "English",
+      selectorLabel: "Выберите язык",
+    },
+    navigation: {
+      ariaLabel: "Основная навигация",
+      home: "Главная",
+      team: "Команда",
+      news: "Новости",
+      partners: "Партнёры",
+    },
+    auth: {
+      loading: "Загрузка аккаунта",
+      signIn: "Войти",
+    },
+    account: {
+      openMenu: "Открыть меню личного кабинета",
+      title: "Личный кабинет",
+      memberFallback: "Участник ISTe",
+      profileTitle: "Личный кабинет",
+      profileDescription: "Профиль и настройки",
+      findUserTitle: "Найти пользователя",
+      findUserDescription: "Поиск по точному ID аккаунта",
+      manageNewsTitle: "Управление новостями",
+      manageNewsDescription: "Черновики и публикации",
+      manageUsersTitle: "Управление пользователями",
+      manageUsersDescription: "Роли, блокировки и полный журнал",
+      logoutTitle: "Выйти",
+      logoutDescription: "Завершить текущую сессию",
+    },
+    roles: {
+      user: "Пользователь",
+      editor: "Редактор",
+      admin: "Администратор",
+      owner: "Владелец",
+    },
+    common: {
+      siteHomeAria: "ISTe, главная",
+    },
+  },
+
+  en: {
+    languages: {
+      uk: "Ukrainian",
+      ru: "Russian",
+      en: "English",
+      selectorLabel: "Choose language",
+    },
+    navigation: {
+      ariaLabel: "Main navigation",
+      home: "Home",
+      team: "Team",
+      news: "News",
+      partners: "Partners",
+    },
+    auth: {
+      loading: "Loading account",
+      signIn: "Sign in",
+    },
+    account: {
+      openMenu: "Open account menu",
+      title: "Account",
+      memberFallback: "ISTe member",
+      profileTitle: "Account",
+      profileDescription: "Profile and settings",
+      findUserTitle: "Find a user",
+      findUserDescription: "Search by exact account ID",
+      manageNewsTitle: "Manage news",
+      manageNewsDescription: "Drafts and publications",
+      manageUsersTitle: "Manage users",
+      manageUsersDescription: "Roles, blocks and full audit log",
+      logoutTitle: "Sign out",
+      logoutDescription: "End the current session",
+    },
+    roles: {
+      user: "User",
+      editor: "Editor",
+      admin: "Administrator",
+      owner: "Owner",
+    },
+    common: {
+      siteHomeAria: "ISTe, home",
+    },
+  },
+};

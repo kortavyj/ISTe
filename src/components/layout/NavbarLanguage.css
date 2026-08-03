@@ -1,0 +1,36 @@
+.navbar-auth {
+  gap: 10px;
+}
+
+@media (max-width: 620px) {
+  .navbar-container {
+    gap: 8px;
+    padding: 0 8px;
+  }
+
+  .navbar-auth {
+    gap: 6px;
+  }
+
+  .navbar-login-button {
+    min-width: 76px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .navbar-links {
+    gap: 13px;
+  }
+
+  .navbar-link {
+    font-size: 0.76rem;
+  }
+
+  .navbar-login-button {
+    min-width: 68px;
+    padding: 0 8px;
+    font-size: 0.68rem;
+  }
+}

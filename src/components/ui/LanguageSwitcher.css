@@ -1,0 +1,77 @@
+.language-switcher {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr);
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.language-switcher-button {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.language-switcher-button:hover,
+.language-switcher-button:focus-visible {
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.language-switcher-button-active {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 52, 52, 0.98),
+    rgba(194, 3, 3, 0.98)
+  );
+  box-shadow:
+    0 5px 14px rgba(255, 37, 37, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+@media (max-width: 620px) {
+  .language-switcher {
+    padding: 2px;
+    border-radius: 9px;
+  }
+
+  .language-switcher-button {
+    width: 27px;
+    height: 29px;
+    border-radius: 7px;
+    font-size: 0.62rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .language-switcher-button {
+    width: 24px;
+    font-size: 0.58rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .language-switcher-button {
+    transition: none;
+  }
+}

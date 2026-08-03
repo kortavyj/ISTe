@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./App.jsx";
 import { AuthProvider } from "./auth/AuthContext.jsx";
+import { LanguageProvider } from "./i18n/LanguageContext.jsx";
 import "./index.css";
 
 const legacyHashPath = window.location.hash.startsWith("#/")
@@ -18,9 +19,11 @@ if (legacyHashPath) {
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   </StrictMode>,
 );
