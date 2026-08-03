@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { getAuthErrorMessage } from "../auth/authErrors.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { supabase } from "../lib/supabase.js";
 import { formatAccountId } from "../utils/accountId.js";
 
 import "./Auth.css";
@@ -15,6 +14,30 @@ const roleNames = {
   admin: "Администратор",
   owner: "Владелец",
 };
+
+async function readApiResponse(response) {
+  let result;
+
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error(
+      "Сервер вернул некорректный ответ.",
+    );
+  }
+
+  if (
+    !response.ok ||
+    result?.ok !== true
+  ) {
+    throw new Error(
+      result?.message ||
+        "Не удалось выполнить запрос.",
+    );
+  }
+
+  return result;
+}
 
 function formatDate(value) {
   if (!value) {
@@ -111,26 +134,38 @@ export default function Account() {
       return;
     }
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        username,
-        display_name: displayName,
-        bio: form.bio.trim() || null,
-      })
-      .eq("id", user.id);
-
-    if (error) {
-      setErrorMessage(getAuthErrorMessage(error));
-      setSaving(false);
-      return;
-    }
-
     try {
+      const response = await fetch(
+        "/api/auth/session",
+        {
+          method: "POST",
+          credentials: "include",
+
+          headers: {
+            Accept: "application/json",
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            username,
+            displayName,
+            bio: form.bio.trim(),
+          }),
+        },
+      );
+
+      await readApiResponse(response);
       await refreshAccount();
-      setSuccessMessage("Профиль сохранён.");
+
+      setSuccessMessage(
+        "Профиль сохранён.",
+      );
     } catch (error) {
-      setErrorMessage(getAuthErrorMessage(error));
+      setErrorMessage(
+        error?.message ||
+          getAuthErrorMessage(error),
+      );
     } finally {
       setSaving(false);
     }
