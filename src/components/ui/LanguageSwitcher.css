@@ -1,77 +1,217 @@
-.language-switcher {
-  display: inline-grid;
-  grid-template-columns: repeat(3, 1fr);
+.language-select {
+  position: relative;
   flex: 0 0 auto;
-  padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.035);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-.language-switcher-button {
+.language-select-trigger {
   display: grid;
-  width: 31px;
-  height: 31px;
+  width: 72px;
+  height: 44px;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px 4px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  cursor: pointer;
+  background:
+    linear-gradient(180deg, rgba(18, 18, 20, 0.98), rgba(7, 7, 8, 0.98));
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font: inherit;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.language-select-trigger:hover,
+.language-select-trigger:focus-visible,
+.language-select-trigger-open {
+  border-color: rgba(255, 68, 68, 0.48);
+  background:
+    linear-gradient(180deg, rgba(25, 13, 14, 0.98), rgba(8, 7, 8, 0.98));
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.36),
+    0 0 16px rgba(255, 37, 37, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.language-select-trigger:focus-visible {
+  outline: 2px solid rgba(255, 77, 77, 0.52);
+  outline-offset: 2px;
+}
+
+.language-select-code {
+  display: grid;
+  width: 34px;
+  height: 34px;
   place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 91, 91, 0.46);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, #ff3838 0%, #c90505 100%);
+  box-shadow:
+    0 5px 14px rgba(255, 37, 37, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.055em;
+}
+
+.language-select-chevron {
+  width: 18px;
+  color: rgba(255, 255, 255, 0.48);
+  transition:
+    color 180ms ease,
+    transform 220ms ease;
+}
+
+.language-select-trigger:hover .language-select-chevron,
+.language-select-trigger:focus-visible .language-select-chevron,
+.language-select-trigger-open .language-select-chevron {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.language-select-trigger-open .language-select-chevron {
+  transform: rotate(180deg);
+}
+
+.language-select-menu {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  width: 176px;
+  gap: 3px;
+  padding: 6px;
+  border: 1px solid rgba(255, 48, 48, 0.2);
+  border-radius: 14px;
+  visibility: hidden;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(255, 37, 37, 0.1), transparent 38%),
+    rgba(7, 7, 8, 0.985);
+  box-shadow:
+    0 20px 46px rgba(0, 0, 0, 0.58),
+    0 0 24px rgba(255, 37, 37, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  transition:
+    opacity 170ms ease,
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 170ms ease;
+}
+
+.language-select-menu-open {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.language-select-option {
+  display: grid;
+  width: 100%;
+  min-height: 42px;
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 8px 4px 5px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   cursor: pointer;
   background: transparent;
-  color: rgba(255, 255, 255, 0.48);
+  color: rgba(255, 255, 255, 0.72);
   font: inherit;
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
+  text-align: left;
   transition:
-    background 180ms ease,
-    box-shadow 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
 }
 
-.language-switcher-button:hover,
-.language-switcher-button:focus-visible {
+.language-select-option:hover,
+.language-select-option:focus-visible {
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.045);
   color: #fff;
-  transform: translateY(-1px);
+  outline: none;
 }
 
-.language-switcher-button-active {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 52, 52, 0.98),
-    rgba(194, 3, 3, 0.98)
-  );
-  box-shadow:
-    0 5px 14px rgba(255, 37, 37, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+.language-select-option-active {
+  border-color: rgba(255, 54, 54, 0.18);
+  background: rgba(255, 37, 37, 0.07);
   color: #fff;
+}
+
+.language-select-option-code {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.61rem;
+  font-weight: 900;
+  letter-spacing: 0.045em;
+}
+
+.language-select-option-active .language-select-option-code {
+  border-color: rgba(255, 85, 85, 0.42);
+  background:
+    linear-gradient(180deg, #ff3838 0%, #c90505 100%);
+  box-shadow: 0 4px 12px rgba(255, 37, 37, 0.18);
+  color: #fff;
+}
+
+.language-select-option-name {
+  overflow: hidden;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.language-select-option-mark {
+  color: #ff5b5b;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-align: center;
 }
 
 @media (max-width: 620px) {
-  .language-switcher {
-    padding: 2px;
+  .language-select-trigger {
+    width: 66px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .language-select-code {
+    width: 30px;
+    height: 30px;
     border-radius: 9px;
+    font-size: 0.59rem;
   }
 
-  .language-switcher-button {
-    width: 27px;
-    height: 29px;
-    border-radius: 7px;
-    font-size: 0.62rem;
-  }
-}
-
-@media (max-width: 430px) {
-  .language-switcher-button {
-    width: 24px;
-    font-size: 0.58rem;
+  .language-select-menu {
+    right: -4px;
+    width: 166px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .language-switcher-button {
+  .language-select-trigger,
+  .language-select-chevron,
+  .language-select-menu,
+  .language-select-option {
     transition: none;
   }
 }
