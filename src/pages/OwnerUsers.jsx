@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../auth/AuthContext.jsx";
-import { supabase } from "../lib/supabase.js";
 
 import "./Auth.css";
 import "./OwnerUsers.css";
@@ -29,14 +28,94 @@ const ACTION_NAMES = Object.freeze({
 const ERROR_MESSAGES = Object.freeze({
   AUTH_REQUIRED: "Нужно повторно войти в аккаунт.",
   OWNER_REQUIRED: "Эта операция доступна только владельцу.",
+  ACCOUNT_BLOCKED: "Этот аккаунт заблокирован.",
+  ACCOUNT_CHECK_FAILED: "Не удалось проверить права аккаунта.",
   TARGET_REQUIRED: "Пользователь не выбран.",
   CANNOT_CHANGE_OWN_ROLE: "Нельзя изменить собственную роль.",
   CANNOT_CHANGE_OWNER: "Нельзя изменить роль владельца.",
   INVALID_ROLE: "Выбрана недопустимая роль.",
+  INVALID_BLOCK_STATE: "Некорректное состояние блокировки.",
+  INVALID_REASON: "Причина блокировки слишком длинная.",
   USER_ROLE_NOT_FOUND: "Роль пользователя не найдена.",
   CANNOT_BLOCK_SELF: "Нельзя заблокировать собственный аккаунт.",
   CANNOT_BLOCK_OWNER: "Нельзя заблокировать владельца.",
+  OWNER_OPERATION_FAILED: "Не удалось выполнить операцию.",
+  INTERNAL_SERVER_ERROR: "Произошла серверная ошибка.",
+  INVALID_SERVER_RESPONSE: "Сервер вернул некорректный ответ.",
 });
+
+function createApiError(result, fallbackMessage) {
+  const error = new Error(
+    result?.message || fallbackMessage,
+  );
+
+  error.code =
+    result?.error || "REQUEST_FAILED";
+
+  error.details =
+    result?.details || "";
+
+  return error;
+}
+
+async function apiRequest(
+  url,
+  {
+    method = "GET",
+    body,
+  } = {},
+) {
+  const hasBody = body !== undefined;
+
+  const response = await fetch(url, {
+    method,
+    credentials: "include",
+    cache: "no-store",
+
+    headers: {
+      Accept: "application/json",
+      ...(hasBody
+        ? {
+            "Content-Type":
+              "application/json",
+          }
+        : {}),
+    },
+
+    ...(hasBody
+      ? {
+          body: JSON.stringify(body),
+        }
+      : {}),
+  });
+
+  let result;
+
+  try {
+    result = await response.json();
+  } catch {
+    throw createApiError(
+      {
+        error: "INVALID_SERVER_RESPONSE",
+        message:
+          "Сервер вернул некорректный ответ.",
+      },
+      "Сервер вернул некорректный ответ.",
+    );
+  }
+
+  if (
+    !response.ok ||
+    result?.ok !== true
+  ) {
+    throw createApiError(
+      result,
+      "Не удалось выполнить запрос.",
+    );
+  }
+
+  return result;
+}
 
 function getErrorMessage(error) {
   const source = [
@@ -48,13 +127,16 @@ function getErrorMessage(error) {
     .filter(Boolean)
     .join(" ");
 
-  const knownCode = Object.keys(ERROR_MESSAGES).find((code) =>
+  const knownCode = Object.keys(
+    ERROR_MESSAGES,
+  ).find((code) =>
     source.includes(code),
   );
 
   return knownCode
     ? ERROR_MESSAGES[knownCode]
-    : error?.message || "Не удалось выполнить операцию.";
+    : error?.message ||
+        "Не удалось выполнить операцию.";
 }
 
 function formatDate(value, withTime = false) {
@@ -63,21 +145,26 @@ function formatDate(value, withTime = false) {
   }
 
   const date = new Date(value);
+
   if (Number.isNaN(date.getTime())) {
     return "Нет данных";
   }
 
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    ...(withTime
-      ? {
-          hour: "2-digit",
-          minute: "2-digit",
-        }
-      : {}),
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "ru-RU",
+    {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+
+      ...(withTime
+        ? {
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        : {}),
+    },
+  ).format(date);
 }
 
 function getInitials(user) {
@@ -87,97 +174,193 @@ function getInitials(user) {
     user?.email ||
     "ISTe";
 
-  return source.trim().slice(0, 2).toUpperCase();
+  return source
+    .trim()
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function getUserTitle(user) {
-  return user?.display_name || user?.username || "Пользователь ISTe";
+  return (
+    user?.display_name ||
+    user?.username ||
+    "Пользователь ISTe"
+  );
 }
 
-function getAuditPerson(email, username) {
-  return username || email || "Неизвестный пользователь";
+function getAuditPerson(
+  email,
+  username,
+) {
+  return (
+    username ||
+    email ||
+    "Неизвестный пользователь"
+  );
 }
 
 export default function OwnerUsers() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser } =
+    useAuth();
 
-  const [activeTab, setActiveTab] = useState("users");
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
-  const [users, setUsers] = useState([]);
-  const [auditLog, setAuditLog] = useState([]);
-  const [roleDrafts, setRoleDrafts] = useState({});
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [loadingAudit, setLoadingAudit] = useState(false);
-  const [actionUserId, setActionUserId] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [dialog, setDialog] = useState(null);
-  const [blockReason, setBlockReason] = useState("");
+  const [activeTab, setActiveTab] =
+    useState("users");
 
-  const loadUsers = useCallback(async (query = "") => {
-    setLoadingUsers(true);
-    setErrorMessage("");
+  const [
+    searchInput,
+    setSearchInput,
+  ] = useState("");
 
-    const { data, error } = await supabase.rpc("owner_list_users", {
-      p_search: query,
-      p_limit: 100,
-      p_offset: 0,
-    });
+  const [search, setSearch] =
+    useState("");
 
-    if (error) {
-      setUsers([]);
-      setErrorMessage(getErrorMessage(error));
-      setLoadingUsers(false);
-      return;
-    }
+  const [users, setUsers] =
+    useState([]);
 
-    const nextUsers = Array.isArray(data) ? data : [];
-    setUsers(nextUsers);
-    setRoleDrafts(
-      Object.fromEntries(
-        nextUsers.map((item) => [item.user_id, item.role]),
-      ),
-    );
-    setLoadingUsers(false);
-  }, []);
+  const [auditLog, setAuditLog] =
+    useState([]);
 
-  const loadAudit = useCallback(async () => {
-    setLoadingAudit(true);
-    setErrorMessage("");
+  const [
+    roleDrafts,
+    setRoleDrafts,
+  ] = useState({});
 
-    const { data, error } = await supabase.rpc("owner_list_audit_log", {
-      p_limit: 100,
-      p_offset: 0,
-    });
+  const [
+    loadingUsers,
+    setLoadingUsers,
+  ] = useState(true);
 
-    if (error) {
-      setAuditLog([]);
-      setErrorMessage(getErrorMessage(error));
-      setLoadingAudit(false);
-      return;
-    }
+  const [
+    loadingAudit,
+    setLoadingAudit,
+  ] = useState(false);
 
-    setAuditLog(Array.isArray(data) ? data : []);
-    setLoadingAudit(false);
-  }, []);
+  const [
+    actionUserId,
+    setActionUserId,
+  ] = useState("");
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState("");
+
+  const [
+    successMessage,
+    setSuccessMessage,
+  ] = useState("");
+
+  const [dialog, setDialog] =
+    useState(null);
+
+  const [
+    blockReason,
+    setBlockReason,
+  ] = useState("");
+
+  const loadUsers = useCallback(
+    async (query = "") => {
+      setLoadingUsers(true);
+      setErrorMessage("");
+
+      try {
+        const result =
+          await apiRequest(
+            `/api/owner/users?search=${encodeURIComponent(
+              query,
+            )}`,
+          );
+
+        const nextUsers =
+          Array.isArray(result.users)
+            ? result.users
+            : [];
+
+        setUsers(nextUsers);
+
+        setRoleDrafts(
+          Object.fromEntries(
+            nextUsers.map((item) => [
+              item.user_id,
+              item.role,
+            ]),
+          ),
+        );
+      } catch (error) {
+        setUsers([]);
+        setRoleDrafts({});
+        setErrorMessage(
+          getErrorMessage(error),
+        );
+      } finally {
+        setLoadingUsers(false);
+      }
+    },
+    [],
+  );
+
+  const loadAudit = useCallback(
+    async () => {
+      setLoadingAudit(true);
+      setErrorMessage("");
+
+      try {
+        const result =
+          await apiRequest(
+            "/api/owner/audit",
+          );
+
+        setAuditLog(
+          Array.isArray(result.audit)
+            ? result.audit
+            : [],
+        );
+      } catch (error) {
+        setAuditLog([]);
+        setErrorMessage(
+          getErrorMessage(error),
+        );
+      } finally {
+        setLoadingAudit(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     void loadUsers("");
   }, [loadUsers]);
 
   useEffect(() => {
-    if (activeTab === "audit" && auditLog.length === 0) {
+    if (
+      activeTab === "audit" &&
+      auditLog.length === 0
+    ) {
       void loadAudit();
     }
-  }, [activeTab, auditLog.length, loadAudit]);
+  }, [
+    activeTab,
+    auditLog.length,
+    loadAudit,
+  ]);
 
   const summary = useMemo(() => {
     return {
       total: users.length,
-      admins: users.filter((item) => item.role === "admin").length,
-      editors: users.filter((item) => item.role === "editor").length,
-      blocked: users.filter((item) => item.is_blocked).length,
+
+      admins: users.filter(
+        (item) =>
+          item.role === "admin",
+      ).length,
+
+      editors: users.filter(
+        (item) =>
+          item.role === "editor",
+      ).length,
+
+      blocked: users.filter(
+        (item) => item.is_blocked,
+      ).length,
     };
   }, [users]);
 
@@ -188,36 +371,56 @@ export default function OwnerUsers() {
 
   function handleSearch(event) {
     event.preventDefault();
-    const nextSearch = searchInput.trim();
+
+    const nextSearch =
+      searchInput.trim();
+
     clearMessages();
     setSearch(nextSearch);
+
     void loadUsers(nextSearch);
   }
 
   function resetSearch() {
     setSearchInput("");
     setSearch("");
+
     clearMessages();
     void loadUsers("");
   }
 
-  function changeRoleDraft(userId, role) {
+  function changeRoleDraft(
+    userId,
+    role,
+  ) {
     setRoleDrafts((current) => ({
       ...current,
       [userId]: role,
     }));
   }
 
-  function openRoleDialog(targetUser) {
-    const nextRole = roleDrafts[targetUser.user_id];
+  function openRoleDialog(
+    targetUser,
+  ) {
+    const nextRole =
+      roleDrafts[
+        targetUser.user_id
+      ];
 
-    if (!nextRole || nextRole === targetUser.role) {
-      setErrorMessage("Сначала выбери новую роль.");
+    if (
+      !nextRole ||
+      nextRole === targetUser.role
+    ) {
+      setErrorMessage(
+        "Сначала выбери новую роль.",
+      );
+
       setSuccessMessage("");
       return;
     }
 
     setBlockReason("");
+
     setDialog({
       type: "role",
       user: targetUser,
@@ -225,10 +428,16 @@ export default function OwnerUsers() {
     });
   }
 
-  function openBlockDialog(targetUser) {
+  function openBlockDialog(
+    targetUser,
+  ) {
     setBlockReason("");
+
     setDialog({
-      type: targetUser.is_blocked ? "unblock" : "block",
+      type: targetUser.is_blocked
+        ? "unblock"
+        : "block",
+
       user: targetUser,
     });
   }
@@ -248,54 +457,90 @@ export default function OwnerUsers() {
     }
 
     const targetUser = dialog.user;
-    setActionUserId(targetUser.user_id);
+
+    setActionUserId(
+      targetUser.user_id,
+    );
+
     clearMessages();
 
-    if (dialog.type === "role") {
-      const { error } = await supabase.rpc("owner_update_user_role", {
-        p_user_id: targetUser.user_id,
-        p_role: dialog.nextRole,
-      });
+    try {
+      if (dialog.type === "role") {
+        await apiRequest(
+          "/api/owner/update-role",
+          {
+            method: "POST",
 
-      if (error) {
-        setErrorMessage(getErrorMessage(error));
-        setActionUserId("");
-        return;
+            body: {
+              userId:
+                targetUser.user_id,
+
+              role:
+                dialog.nextRole,
+            },
+          },
+        );
+
+        setSuccessMessage(
+          `${getUserTitle(
+            targetUser,
+          )}: назначена роль «${
+            ROLE_NAMES[
+              dialog.nextRole
+            ]
+          }».`,
+        );
+      } else {
+        const nextBlocked =
+          dialog.type === "block";
+
+        await apiRequest(
+          "/api/owner/set-blocked",
+          {
+            method: "POST",
+
+            body: {
+              userId:
+                targetUser.user_id,
+
+              isBlocked:
+                nextBlocked,
+
+              reason:
+                nextBlocked
+                  ? blockReason.trim()
+                  : "",
+            },
+          },
+        );
+
+        setSuccessMessage(
+          nextBlocked
+            ? `${getUserTitle(
+                targetUser,
+              )}: аккаунт заблокирован.`
+            : `${getUserTitle(
+                targetUser,
+              )}: аккаунт разблокирован.`,
+        );
       }
 
-      setSuccessMessage(
-        `${getUserTitle(targetUser)}: назначена роль «${ROLE_NAMES[dialog.nextRole]}».`,
-      );
-    } else {
-      const nextBlocked = dialog.type === "block";
-      const { error } = await supabase.rpc("owner_set_user_blocked", {
-        p_user_id: targetUser.user_id,
-        p_is_blocked: nextBlocked,
-        p_reason: nextBlocked ? blockReason.trim() : "",
-      });
+      setDialog(null);
+      setBlockReason("");
 
-      if (error) {
-        setErrorMessage(getErrorMessage(error));
-        setActionUserId("");
-        return;
+      await loadUsers(search);
+
+      if (activeTab === "audit") {
+        await loadAudit();
+      } else {
+        setAuditLog([]);
       }
-
-      setSuccessMessage(
-        nextBlocked
-          ? `${getUserTitle(targetUser)}: аккаунт заблокирован.`
-          : `${getUserTitle(targetUser)}: аккаунт разблокирован.`,
+    } catch (error) {
+      setErrorMessage(
+        getErrorMessage(error),
       );
-    }
-
-    setDialog(null);
-    setBlockReason("");
-    setActionUserId("");
-    await loadUsers(search);
-
-    if (activeTab === "audit") {
-      await loadAudit();
-    } else {
-      setAuditLog([]);
+    } finally {
+      setActionUserId("");
     }
   }
 
@@ -308,80 +553,155 @@ export default function OwnerUsers() {
     <section className="auth-page owner-page">
       <div className="auth-shell owner-shell">
         <header className="auth-heading owner-heading">
-          <p className="auth-kicker">ISTe control center</p>
-          <h1>Управление пользователями</h1>
+          <p className="auth-kicker">
+            ISTe control center
+          </p>
+
+          <h1>
+            Управление пользователями
+          </h1>
+
           <p>
-            Назначение администраторов и редакторов, блокировка аккаунтов
-            и журнал действий владельца.
+            Назначение администраторов и
+            редакторов, блокировка
+            аккаунтов и журнал действий
+            владельца.
           </p>
         </header>
 
-        <div className="owner-tabs" role="tablist" aria-label="Разделы панели владельца">
+        <div
+          className="owner-tabs"
+          role="tablist"
+          aria-label="Разделы панели владельца"
+        >
           <button
-            className={activeTab === "users" ? "owner-tab owner-tab-active" : "owner-tab"}
+            className={
+              activeTab === "users"
+                ? "owner-tab owner-tab-active"
+                : "owner-tab"
+            }
             type="button"
             role="tab"
-            aria-selected={activeTab === "users"}
-            onClick={() => switchTab("users")}
+            aria-selected={
+              activeTab === "users"
+            }
+            onClick={() =>
+              switchTab("users")
+            }
           >
             Пользователи
           </button>
+
           <button
-            className={activeTab === "audit" ? "owner-tab owner-tab-active" : "owner-tab"}
+            className={
+              activeTab === "audit"
+                ? "owner-tab owner-tab-active"
+                : "owner-tab"
+            }
             type="button"
             role="tab"
-            aria-selected={activeTab === "audit"}
-            onClick={() => switchTab("audit")}
+            aria-selected={
+              activeTab === "audit"
+            }
+            onClick={() =>
+              switchTab("audit")
+            }
           >
             Журнал действий
           </button>
         </div>
 
-        {(errorMessage || successMessage) && (
+        {(
+          errorMessage ||
+          successMessage
+        ) && (
           <div
             className={`auth-message ${
-              errorMessage ? "auth-message-error" : "auth-message-success"
+              errorMessage
+                ? "auth-message-error"
+                : "auth-message-success"
             } owner-message`}
             role="status"
           >
-            {errorMessage || successMessage}
+            {errorMessage ||
+              successMessage}
           </div>
         )}
 
         {activeTab === "users" ? (
           <>
-            <div className="owner-summary" aria-label="Сводка по пользователям">
+            <div
+              className="owner-summary"
+              aria-label="Сводка по пользователям"
+            >
               <div>
-                <strong>{summary.total}</strong>
+                <strong>
+                  {summary.total}
+                </strong>
+
                 <span>Найдено</span>
               </div>
+
               <div>
-                <strong>{summary.admins}</strong>
-                <span>Администраторов</span>
+                <strong>
+                  {summary.admins}
+                </strong>
+
+                <span>
+                  Администраторов
+                </span>
               </div>
+
               <div>
-                <strong>{summary.editors}</strong>
-                <span>Редакторов</span>
+                <strong>
+                  {summary.editors}
+                </strong>
+
+                <span>
+                  Редакторов
+                </span>
               </div>
+
               <div>
-                <strong>{summary.blocked}</strong>
-                <span>Заблокировано</span>
+                <strong>
+                  {summary.blocked}
+                </strong>
+
+                <span>
+                  Заблокировано
+                </span>
               </div>
             </div>
 
-            <form className="owner-search" onSubmit={handleSearch}>
+            <form
+              className="owner-search"
+              onSubmit={handleSearch}
+            >
               <label className="owner-search-field">
-                <span className="owner-search-icon" aria-hidden="true">⌕</span>
+                <span
+                  className="owner-search-icon"
+                  aria-hidden="true"
+                >
+                  ⌕
+                </span>
+
                 <input
                   type="search"
                   value={searchInput}
-                  onChange={(event) => setSearchInput(event.target.value)}
+                  onChange={(event) =>
+                    setSearchInput(
+                      event.target.value,
+                    )
+                  }
                   placeholder="Поиск по нику, имени или почте"
                   aria-label="Поиск пользователей"
                 />
               </label>
 
-              <button className="owner-button owner-button-primary" type="submit">
+              <button
+                className="owner-button owner-button-primary"
+                type="submit"
+              >
                 Найти
               </button>
 
@@ -398,42 +718,87 @@ export default function OwnerUsers() {
 
             {loadingUsers ? (
               <div className="auth-card auth-card-status owner-loading-card">
-                <span className="auth-loader" aria-hidden="true" />
-                <p>Загружаем пользователей...</p>
+                <span
+                  className="auth-loader"
+                  aria-hidden="true"
+                />
+
+                <p>
+                  Загружаем
+                  пользователей...
+                </p>
               </div>
             ) : null}
 
-            {!loadingUsers && users.length === 0 ? (
+            {!loadingUsers &&
+            users.length === 0 ? (
               <div className="auth-card owner-empty">
-                <h2>Пользователи не найдены</h2>
-                <p>Измени запрос или сбрось поиск.</p>
+                <h2>
+                  Пользователи не
+                  найдены
+                </h2>
+
+                <p>
+                  Измени запрос или
+                  сбрось поиск.
+                </p>
               </div>
             ) : null}
 
-            {!loadingUsers && users.length > 0 ? (
+            {!loadingUsers &&
+            users.length > 0 ? (
               <div className="owner-user-list">
                 {users.map((item) => {
-                  const isSelf = item.user_id === currentUser?.id;
-                  const isOwner = item.role === "owner";
-                  const controlsDisabled = isSelf || isOwner;
-                  const busy = actionUserId === item.user_id;
+                  const isSelf =
+                    item.user_id ===
+                    currentUser?.id;
+
+                  const isOwner =
+                    item.role ===
+                    "owner";
+
+                  const controlsDisabled =
+                    isSelf || isOwner;
+
+                  const busy =
+                    actionUserId ===
+                    item.user_id;
 
                   return (
                     <article
                       className={`auth-card owner-user-card${
-                        item.is_blocked ? " owner-user-card-blocked" : ""
+                        item.is_blocked
+                          ? " owner-user-card-blocked"
+                          : ""
                       }`}
-                      key={item.user_id}
+                      key={
+                        item.user_id
+                      }
                     >
                       <div className="owner-user-main">
-                        <div className="owner-user-avatar" aria-hidden="true">
-                          {getInitials(item)}
+                        <div
+                          className="owner-user-avatar"
+                          aria-hidden="true"
+                        >
+                          {getInitials(
+                            item,
+                          )}
                         </div>
 
                         <div className="owner-user-identity">
                           <div className="owner-user-title-row">
-                            <h2>{getUserTitle(item)}</h2>
-                            {isSelf ? <span className="owner-chip">Вы</span> : null}
+                            <h2>
+                              {getUserTitle(
+                                item,
+                              )}
+                            </h2>
+
+                            {isSelf ? (
+                              <span className="owner-chip">
+                                Вы
+                              </span>
+                            ) : null}
+
                             {item.is_blocked ? (
                               <span className="owner-chip owner-chip-danger">
                                 Заблокирован
@@ -442,24 +807,50 @@ export default function OwnerUsers() {
                           </div>
 
                           <p>
-                            @{item.username || "без_ника"}
-                            <span aria-hidden="true">•</span>
+                            @
+                            {item.username ||
+                              "без_ника"}
+
+                            <span aria-hidden="true">
+                              •
+                            </span>
+
                             {item.email}
                           </p>
 
                           <div className="owner-user-meta">
-                            <span className={`owner-role owner-role-${item.role}`}>
-                              {ROLE_NAMES[item.role] || item.role}
+                            <span
+                              className={`owner-role owner-role-${item.role}`}
+                            >
+                              {ROLE_NAMES[
+                                item.role
+                              ] ||
+                                item.role}
                             </span>
-                            <span>Регистрация: {formatDate(item.created_at)}</span>
+
                             <span>
-                              Последний вход: {formatDate(item.last_sign_in_at, true)}
+                              Регистрация:{" "}
+                              {formatDate(
+                                item.created_at,
+                              )}
+                            </span>
+
+                            <span>
+                              Последний вход:{" "}
+                              {formatDate(
+                                item.last_sign_in_at,
+                                true,
+                              )}
                             </span>
                           </div>
 
-                          {item.is_blocked && item.blocked_reason ? (
+                          {item.is_blocked &&
+                          item.blocked_reason ? (
                             <p className="owner-block-reason">
-                              Причина: {item.blocked_reason}
+                              Причина:{" "}
+                              {
+                                item.blocked_reason
+                              }
                             </p>
                           ) : null}
                         </div>
@@ -467,22 +858,55 @@ export default function OwnerUsers() {
 
                       <div className="owner-user-controls">
                         <label>
-                          <span>Роль</span>
+                          <span>
+                            Роль
+                          </span>
+
                           <select
-                            value={roleDrafts[item.user_id] || item.role}
-                            onChange={(event) =>
-                              changeRoleDraft(item.user_id, event.target.value)
+                            value={
+                              roleDrafts[
+                                item
+                                  .user_id
+                              ] ||
+                              item.role
                             }
-                            disabled={controlsDisabled || busy}
+                            onChange={(
+                              event,
+                            ) =>
+                              changeRoleDraft(
+                                item.user_id,
+                                event.target
+                                  .value,
+                              )
+                            }
+                            disabled={
+                              controlsDisabled ||
+                              busy
+                            }
                           >
                             {isOwner ? (
-                              <option value="owner">Владелец</option>
+                              <option value="owner">
+                                Владелец
+                              </option>
                             ) : (
-                              ROLE_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))
+                              ROLE_OPTIONS.map(
+                                (
+                                  option,
+                                ) => (
+                                  <option
+                                    key={
+                                      option.value
+                                    }
+                                    value={
+                                      option.value
+                                    }
+                                  >
+                                    {
+                                      option.label
+                                    }
+                                  </option>
+                                ),
+                              )
                             )}
                           </select>
                         </label>
@@ -493,11 +917,20 @@ export default function OwnerUsers() {
                           disabled={
                             controlsDisabled ||
                             busy ||
-                            roleDrafts[item.user_id] === item.role
+                            roleDrafts[
+                              item.user_id
+                            ] ===
+                              item.role
                           }
-                          onClick={() => openRoleDialog(item)}
+                          onClick={() =>
+                            openRoleDialog(
+                              item,
+                            )
+                          }
                         >
-                          {busy ? "Сохраняем..." : "Сохранить роль"}
+                          {busy
+                            ? "Сохраняем..."
+                            : "Сохранить роль"}
                         </button>
 
                         <button
@@ -507,10 +940,19 @@ export default function OwnerUsers() {
                               : "owner-button-danger"
                           }`}
                           type="button"
-                          disabled={controlsDisabled || busy}
-                          onClick={() => openBlockDialog(item)}
+                          disabled={
+                            controlsDisabled ||
+                            busy
+                          }
+                          onClick={() =>
+                            openBlockDialog(
+                              item,
+                            )
+                          }
                         >
-                          {item.is_blocked ? "Разблокировать" : "Заблокировать"}
+                          {item.is_blocked
+                            ? "Разблокировать"
+                            : "Заблокировать"}
                         </button>
 
                         {controlsDisabled ? (
@@ -531,56 +973,133 @@ export default function OwnerUsers() {
           <div className="owner-audit-section">
             <div className="owner-audit-toolbar">
               <div>
-                <h2>Журнал действий</h2>
-                <p>Последние 100 административных операций.</p>
+                <h2>
+                  Журнал действий
+                </h2>
+
+                <p>
+                  Последние 100
+                  административных
+                  операций.
+                </p>
               </div>
+
               <button
                 className="owner-button owner-button-secondary"
                 type="button"
-                onClick={() => void loadAudit()}
-                disabled={loadingAudit}
+                onClick={() =>
+                  void loadAudit()
+                }
+                disabled={
+                  loadingAudit
+                }
               >
-                {loadingAudit ? "Обновляем..." : "Обновить"}
+                {loadingAudit
+                  ? "Обновляем..."
+                  : "Обновить"}
               </button>
             </div>
 
             {loadingAudit ? (
               <div className="auth-card auth-card-status owner-loading-card">
-                <span className="auth-loader" aria-hidden="true" />
-                <p>Загружаем журнал...</p>
+                <span
+                  className="auth-loader"
+                  aria-hidden="true"
+                />
+
+                <p>
+                  Загружаем журнал...
+                </p>
               </div>
             ) : null}
 
-            {!loadingAudit && auditLog.length === 0 ? (
+            {!loadingAudit &&
+            auditLog.length === 0 ? (
               <div className="auth-card owner-empty">
-                <h2>Журнал пока пуст</h2>
-                <p>Здесь появятся изменения ролей и блокировки аккаунтов.</p>
+                <h2>
+                  Журнал пока пуст
+                </h2>
+
+                <p>
+                  Здесь появятся
+                  изменения ролей и
+                  блокировки аккаунтов.
+                </p>
               </div>
             ) : null}
 
-            {!loadingAudit && auditLog.length > 0 ? (
+            {!loadingAudit &&
+            auditLog.length > 0 ? (
               <div className="owner-audit-list">
-                {auditLog.map((item) => (
-                  <article className="auth-card owner-audit-card" key={item.id}>
-                    <div className="owner-audit-icon" aria-hidden="true">◆</div>
-                    <div>
-                      <div className="owner-audit-title">
-                        <strong>{ACTION_NAMES[item.action] || item.action}</strong>
-                        <time dateTime={item.created_at}>
-                          {formatDate(item.created_at, true)}
-                        </time>
+                {auditLog.map(
+                  (item) => (
+                    <article
+                      className="auth-card owner-audit-card"
+                      key={item.id}
+                    >
+                      <div
+                        className="owner-audit-icon"
+                        aria-hidden="true"
+                      >
+                        ◆
                       </div>
-                      <p>
-                        <b>{getAuditPerson(item.actor_email, item.actor_username)}</b>
-                        <span> изменил аккаунт </span>
-                        <b>{getAuditPerson(item.target_email, item.target_username)}</b>
-                      </p>
-                      {item.details && Object.keys(item.details).length > 0 ? (
-                        <code>{JSON.stringify(item.details)}</code>
-                      ) : null}
-                    </div>
-                  </article>
-                ))}
+
+                      <div>
+                        <div className="owner-audit-title">
+                          <strong>
+                            {ACTION_NAMES[
+                              item.action
+                            ] ||
+                              item.action}
+                          </strong>
+
+                          <time
+                            dateTime={
+                              item.created_at
+                            }
+                          >
+                            {formatDate(
+                              item.created_at,
+                              true,
+                            )}
+                          </time>
+                        </div>
+
+                        <p>
+                          <b>
+                            {getAuditPerson(
+                              item.actor_email,
+                              item.actor_username,
+                            )}
+                          </b>
+
+                          <span>
+                            {" "}
+                            изменил аккаунт{" "}
+                          </span>
+
+                          <b>
+                            {getAuditPerson(
+                              item.target_email,
+                              item.target_username,
+                            )}
+                          </b>
+                        </p>
+
+                        {item.details &&
+                        Object.keys(
+                          item.details,
+                        ).length > 0 ? (
+                          <code>
+                            {JSON.stringify(
+                              item.details,
+                            )}
+                          </code>
+                        ) : null}
+                      </div>
+                    </article>
+                  ),
+                )}
               </div>
             ) : null}
           </div>
@@ -588,45 +1107,82 @@ export default function OwnerUsers() {
       </div>
 
       {dialog ? (
-        <div className="owner-dialog-backdrop" role="presentation" onMouseDown={closeDialog}>
+        <div
+          className="owner-dialog-backdrop"
+          role="presentation"
+          onMouseDown={closeDialog}
+        >
           <div
             className="owner-dialog"
             role="dialog"
             aria-modal="true"
             aria-labelledby="owner-dialog-title"
-            onMouseDown={(event) => event.stopPropagation()}
+            onMouseDown={(event) =>
+              event.stopPropagation()
+            }
           >
-            <p className="auth-kicker">Подтверждение</p>
+            <p className="auth-kicker">
+              Подтверждение
+            </p>
+
             <h2 id="owner-dialog-title">
               {dialog.type === "role"
                 ? "Изменить роль?"
-                : dialog.type === "block"
+                : dialog.type ===
+                    "block"
                   ? "Заблокировать аккаунт?"
                   : "Разблокировать аккаунт?"}
             </h2>
 
             <p>
-              Пользователь: <strong>{getUserTitle(dialog.user)}</strong>
+              Пользователь:{" "}
+              <strong>
+                {getUserTitle(
+                  dialog.user,
+                )}
+              </strong>
             </p>
 
-            {dialog.type === "role" ? (
+            {dialog.type ===
+            "role" ? (
               <p>
                 Новая роль:{" "}
-                <strong>{ROLE_NAMES[dialog.nextRole]}</strong>
+
+                <strong>
+                  {
+                    ROLE_NAMES[
+                      dialog.nextRole
+                    ]
+                  }
+                </strong>
               </p>
             ) : null}
 
-            {dialog.type === "block" ? (
+            {dialog.type ===
+            "block" ? (
               <label className="owner-dialog-reason">
-                <span>Причина блокировки</span>
+                <span>
+                  Причина блокировки
+                </span>
+
                 <textarea
                   value={blockReason}
-                  onChange={(event) => setBlockReason(event.target.value)}
+                  onChange={(event) =>
+                    setBlockReason(
+                      event.target.value,
+                    )
+                  }
                   maxLength={500}
                   placeholder="Например: нарушение правил сообщества"
-                  disabled={Boolean(actionUserId)}
+                  disabled={Boolean(
+                    actionUserId,
+                  )}
                 />
-                <small>{blockReason.length}/500</small>
+
+                <small>
+                  {blockReason.length}
+                  /500
+                </small>
               </label>
             ) : null}
 
@@ -635,21 +1191,31 @@ export default function OwnerUsers() {
                 className="owner-button owner-button-secondary"
                 type="button"
                 onClick={closeDialog}
-                disabled={Boolean(actionUserId)}
+                disabled={Boolean(
+                  actionUserId,
+                )}
               >
                 Отмена
               </button>
+
               <button
                 className={`owner-button ${
-                  dialog.type === "block"
+                  dialog.type ===
+                  "block"
                     ? "owner-button-danger"
                     : "owner-button-primary"
                 }`}
                 type="button"
-                onClick={() => void confirmDialog()}
-                disabled={Boolean(actionUserId)}
+                onClick={() =>
+                  void confirmDialog()
+                }
+                disabled={Boolean(
+                  actionUserId,
+                )}
               >
-                {actionUserId ? "Выполняем..." : "Подтвердить"}
+                {actionUserId
+                  ? "Выполняем..."
+                  : "Подтвердить"}
               </button>
             </div>
           </div>
