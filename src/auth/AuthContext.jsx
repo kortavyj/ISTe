@@ -10,6 +10,9 @@ import {
 
 const AuthContext = createContext(null);
 
+const ACCOUNT_STATUS_CHECK_INTERVAL_MS =
+  15_000;
+
 async function readApiResponse(response) {
   let result;
 
@@ -161,6 +164,80 @@ export function AuthProvider({ children }) {
       requestNumberRef.current += 1;
     };
   }, [loadSession]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return undefined;
+    }
+
+    let refreshInProgress = false;
+
+    async function checkAccountStatus() {
+      if (
+        refreshInProgress ||
+        document.visibilityState === "hidden"
+      ) {
+        return;
+      }
+
+      refreshInProgress = true;
+
+      try {
+        await loadSession({
+          showLoading: false,
+        });
+      } catch {
+        // Ошибка уже сохранена в AuthContext.
+      } finally {
+        refreshInProgress = false;
+      }
+    }
+
+    function handleFocus() {
+      void checkAccountStatus();
+    }
+
+    function handleVisibilityChange() {
+      if (
+        document.visibilityState ===
+        "visible"
+      ) {
+        void checkAccountStatus();
+      }
+    }
+
+    const intervalId =
+      window.setInterval(
+        () => {
+          void checkAccountStatus();
+        },
+        ACCOUNT_STATUS_CHECK_INTERVAL_MS,
+      );
+
+    window.addEventListener(
+      "focus",
+      handleFocus,
+    );
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
+    );
+
+    return () => {
+      window.clearInterval(intervalId);
+
+      window.removeEventListener(
+        "focus",
+        handleFocus,
+      );
+
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange,
+      );
+    };
+  }, [user?.id, loadSession]);
 
   const refreshAccount = useCallback(
     async () =>
