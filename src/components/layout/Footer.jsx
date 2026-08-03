@@ -1,34 +1,69 @@
 import { Link } from "react-router-dom";
 
 import logo from "../../assets/logos/iste-logo.png";
+import { useLanguage } from "../../i18n/LanguageContext.jsx";
 
 import "./Footer.css";
 
 const footerGroups = [
   {
-    title: "Навигация",
+    titleKey: "footer.navigation",
     links: [
-      { label: "Главная", to: "/" },
-      { label: "Команда", to: "/team" },
-      { label: "Матчи", to: "/matches" },
-      { label: "Новости", to: "/news" },
+      {
+        labelKey: "footer.home",
+        to: "/",
+      },
+      {
+        labelKey: "footer.team",
+        to: "/team",
+      },
+      {
+        labelKey: "footer.matches",
+        to: "/matches",
+      },
+      {
+        labelKey: "footer.news",
+        to: "/news",
+      },
     ],
   },
   {
-    title: "Клуб",
+    titleKey: "footer.club",
     links: [
-      { label: "История ISTe", to: "/history" },
-      { label: "Партнёры", to: "/partners" },
-      { label: "Магазин", to: "/shop" },
-      { label: "Контакты", to: "/contacts" },
+      {
+        labelKey: "footer.history",
+        to: "/history",
+      },
+      {
+        labelKey: "footer.partners",
+        to: "/partners",
+      },
+      {
+        labelKey: "footer.shop",
+        to: "/shop",
+      },
+      {
+        labelKey: "footer.contacts",
+        to: "/contacts",
+      },
     ],
   },
   {
-    title: "Документы",
+    titleKey: "footer.documents",
     links: [
-      { label: "Политика конфиденциальности", to: "/privacy" },
-      { label: "Условия использования", to: "/terms" },
-      { label: "Скачать логотип", href: logo, download: "ISTe-logo.png" },
+      {
+        labelKey: "footer.privacy",
+        to: "/privacy",
+      },
+      {
+        labelKey: "footer.terms",
+        to: "/terms",
+      },
+      {
+        labelKey: "footer.downloadLogo",
+        href: logo,
+        download: "ISTe-logo.png",
+      },
     ],
   },
 ];
@@ -86,9 +121,26 @@ function SocialIcon({ name }) {
   if (name === "steam") {
     return (
       <svg {...commonProps}>
-        <circle cx="16.8" cy="7.2" r="3.8" stroke="currentColor" strokeWidth="2" />
-        <circle cx="16.8" cy="7.2" r="1.5" fill="currentColor" />
-        <circle cx="7.2" cy="16.5" r="3" stroke="currentColor" strokeWidth="2" />
+        <circle
+          cx="16.8"
+          cy="7.2"
+          r="3.8"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <circle
+          cx="16.8"
+          cy="7.2"
+          r="1.5"
+          fill="currentColor"
+        />
+        <circle
+          cx="7.2"
+          cy="16.5"
+          r="3"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
         <path
           d="m9.7 14.8 4.3-4.6M4 14.8l-2.2-1"
           stroke="currentColor"
@@ -124,17 +176,33 @@ function SocialIcon({ name }) {
         d="M7.2 8.1A11.4 11.4 0 0 1 12 7c1.7 0 3.3.4 4.8 1.1a12.2 12.2 0 0 1 2.2 6.2 11.3 11.3 0 0 1-4.6 2.3l-.7-1c.7-.2 1.4-.5 2.1-.9a9.1 9.1 0 0 1-7.6 0c.7.4 1.4.7 2.1.9l-.7 1A11.3 11.3 0 0 1 5 14.3c.2-2.3.9-4.4 2.2-6.2Z"
         fill="currentColor"
       />
-      <circle cx="9.3" cy="12.1" r="1.2" fill="#080808" />
-      <circle cx="14.7" cy="12.1" r="1.2" fill="#080808" />
+      <circle
+        cx="9.3"
+        cy="12.1"
+        r="1.2"
+        fill="#080808"
+      />
+      <circle
+        cx="14.7"
+        cy="12.1"
+        r="1.2"
+        fill="#080808"
+      />
     </svg>
   );
 }
 
-function FooterLink({ item }) {
+function FooterLink({
+  item,
+  label,
+}) {
   if (item.to) {
     return (
-      <Link className="footer-link" to={item.to}>
-        {item.label}
+      <Link
+        className="footer-link"
+        to={item.to}
+      >
+        {label}
       </Link>
     );
   }
@@ -144,88 +212,159 @@ function FooterLink({ item }) {
       className="footer-link"
       href={item.href}
       download={item.download}
-      target={item.external ? "_blank" : undefined}
-      rel={item.external ? "noopener noreferrer" : undefined}
+      target={
+        item.external
+          ? "_blank"
+          : undefined
+      }
+      rel={
+        item.external
+          ? "noopener noreferrer"
+          : undefined
+      }
     >
-      {item.label}
+      {label}
     </a>
   );
 }
 
 function scrollToPageTop() {
-  const reduceMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
+  const reduceMotion =
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
   window.scrollTo({
     top: 0,
     left: 0,
-    behavior: reduceMotion ? "auto" : "smooth",
+    behavior: reduceMotion
+      ? "auto"
+      : "smooth",
   });
 }
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
+
+  const currentYear =
+    new Date().getFullYear();
 
   return (
     <footer className="site-footer">
       <div className="footer-shell">
         <div className="footer-primary">
           <div className="footer-brand-column">
-            <Link className="footer-brand" to="/" aria-label="ISTe, главная страница">
+            <Link
+              className="footer-brand"
+              to="/"
+              aria-label={t(
+                "footer.homeAria",
+              )}
+            >
               <img src={logo} alt="" />
               <span>ISTe</span>
             </Link>
 
             <p className="footer-description">
-              Официальный сайт киберспортивной команды ISTe. Состав, матчи,
-              новости и история клуба в одном месте.
+              {t(
+                "footer.description",
+              )}
             </p>
 
-            <nav className="footer-socials" aria-label="Социальные сети ISTe">
-              {socialLinks.map((social) => (
-                <a
-                  className="footer-social"
-                  href={social.href}
-                  key={social.label}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={social.label}
-                  title={social.label}
-                >
-                  <SocialIcon name={social.icon} />
-                </a>
-              ))}
+            <nav
+              className="footer-socials"
+              aria-label={t(
+                "footer.socialsAria",
+              )}
+            >
+              {socialLinks.map(
+                (social) => (
+                  <a
+                    className="footer-social"
+                    href={social.href}
+                    key={social.label}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                    title={social.label}
+                  >
+                    <SocialIcon
+                      name={social.icon}
+                    />
+                  </a>
+                ),
+              )}
             </nav>
           </div>
 
           <div className="footer-navigation">
-            {footerGroups.map((group) => (
-              <nav
-                className="footer-group"
-                aria-label={group.title}
-                key={group.title}
-              >
-                <h2>{group.title}</h2>
-                <div className="footer-group-links">
-                  {group.links.map((item) => (
-                    <FooterLink item={item} key={item.label} />
-                  ))}
-                </div>
-              </nav>
-            ))}
+            {footerGroups.map(
+              (group) => {
+                const groupTitle =
+                  t(group.titleKey);
+
+                return (
+                  <nav
+                    className="footer-group"
+                    aria-label={groupTitle}
+                    key={group.titleKey}
+                  >
+                    <h2>
+                      {groupTitle}
+                    </h2>
+
+                    <div className="footer-group-links">
+                      {group.links.map(
+                        (item) => (
+                          <FooterLink
+                            item={item}
+                            label={t(
+                              item.labelKey,
+                            )}
+                            key={
+                              item.labelKey
+                            }
+                          />
+                        ),
+                      )}
+                    </div>
+                  </nav>
+                );
+              },
+            )}
           </div>
 
           <aside className="footer-contact-card">
-            <span className="footer-contact-label">Сотрудничество</span>
-            <h2>Есть предложение для ISTe?</h2>
+            <span className="footer-contact-label">
+              {t(
+                "footer.cooperation",
+              )}
+            </span>
+
+            <h2>
+              {t(
+                "footer.proposalTitle",
+              )}
+            </h2>
+
             <p>
-              Партнёрство, участие в турнире, медиапроект или деловое
-              предложение можно отправить через официальные каналы команды.
+              {t(
+                "footer.proposalText",
+              )}
             </p>
-            <Link className="footer-contact-button" to="/contacts">
-              Связаться с командой
-              <svg viewBox="0 0 20 20" aria-hidden="true">
+
+            <Link
+              className="footer-contact-button"
+              to="/contacts"
+            >
+              {t(
+                "footer.contactTeam",
+              )}
+
+              <svg
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
                 <path d="M4 10h11M11 6l4 4-4 4" />
               </svg>
             </Link>
@@ -236,29 +375,62 @@ export default function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom-inner">
           <div className="footer-copyright">
-            <strong>© {currentYear} ISTe Esports</strong>
-            <span>Все права защищены.</span>
+            <strong>
+              © {currentYear} ISTe Esports
+            </strong>
+
+            <span>
+              {t("footer.rights")}
+            </span>
           </div>
 
           <div className="footer-audience">
-            <span className="footer-age">18+</span>
-            <span>Материалы сайта предназначены для совершеннолетней аудитории.</span>
+            <span className="footer-age">
+              18+
+            </span>
+
+            <span>
+              {t("footer.audience")}
+            </span>
           </div>
 
-          <nav className="footer-legal-links" aria-label="Юридические документы">
-            <Link to="/privacy">Конфиденциальность</Link>
-            <Link to="/terms">Условия</Link>
-            <Link to="/contacts">Контакты</Link>
+          <nav
+            className="footer-legal-links"
+            aria-label={t(
+              "footer.legalAria",
+            )}
+          >
+            <Link to="/privacy">
+              {t(
+                "footer.privacyShort",
+              )}
+            </Link>
+
+            <Link to="/terms">
+              {t(
+                "footer.termsShort",
+              )}
+            </Link>
+
+            <Link to="/contacts">
+              {t("footer.contacts")}
+            </Link>
           </nav>
 
           <button
             className="footer-top-button"
             type="button"
             onClick={scrollToPageTop}
-            aria-label="Вернуться в начало страницы"
+            aria-label={t(
+              "footer.backToTopAria",
+            )}
           >
-            Наверх
-            <svg viewBox="0 0 20 20" aria-hidden="true">
+            {t("footer.backToTop")}
+
+            <svg
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
               <path d="M10 15V4M6 8l4-4 4 4" />
             </svg>
           </button>
