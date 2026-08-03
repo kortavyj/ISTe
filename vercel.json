@@ -2,7 +2,23 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/owner/users",
+      "destination": "/api/owner?action=users"
+    },
+    {
+      "source": "/api/owner/audit",
+      "destination": "/api/owner?action=audit"
+    },
+    {
+      "source": "/api/owner/update-role",
+      "destination": "/api/owner?action=update-role"
+    },
+    {
+      "source": "/api/owner/set-blocked",
+      "destination": "/api/owner?action=set-blocked"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
