@@ -521,3 +521,45 @@
     width: min(430px, 88vw) !important;
   }
 }
+/* Поднимаем верхний блок страницы команды */
+
+@media (min-width: 981px) {
+  .team-page {
+    padding-top: calc(var(--navbar-height) + 18px) !important;
+  }
+
+  .team-page__header {
+    margin-top: clamp(-300px, -28vh, -220px) !important;
+    margin-bottom: 44px !important;
+  }
+
+  .team-page__glow {
+    top: calc(var(--navbar-height) - 72px) !important;
+    width: min(500px, 68vw) !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 980px) {
+  .team-page {
+    padding-top: calc(var(--navbar-height) + 20px) !important;
+  }
+
+  .team-page__header {
+    margin-top: -110px !important;
+    margin-bottom: 46px !important;
+  }
+
+  .team-page__glow {
+    top: calc(var(--navbar-height) - 30px) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .team-page {
+    padding-top: calc(var(--navbar-height) + 14px) !important;
+  }
+
+  .team-page__header {
+    margin: 0 auto 36px !important;
+  }
+}
