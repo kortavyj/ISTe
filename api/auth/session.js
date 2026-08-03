@@ -12,7 +12,10 @@ const PROFILE_COLUMNS =
 const LEGACY_PROFILE_COLUMNS =
   "id, username, display_name, avatar_url, bio, created_at, updated_at";
 
-async function loadProfile(supabase, userId) {
+async function loadProfile(
+  supabase,
+  userId,
+) {
   const profileQuery = await supabase
     .from("profiles")
     .select(PROFILE_COLUMNS)
@@ -57,6 +60,53 @@ async function loadProfile(supabase, userId) {
     : null;
 }
 
+async function establishSession(
+  supabase,
+  accessToken,
+  refreshToken,
+) {
+  if (accessToken && refreshToken) {
+    const sessionResult =
+      await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+    if (
+      !sessionResult.error &&
+      sessionResult.data?.session &&
+      sessionResult.data?.user
+    ) {
+      return sessionResult;
+    }
+  }
+
+  if (refreshToken) {
+    return supabase.auth.refreshSession({
+      refresh_token: refreshToken,
+    });
+  }
+
+  return {
+    data: null,
+    error: new Error("AUTH_REQUIRED"),
+  };
+}
+
+function sendGuestSession(response) {
+  clearAuthCookies(response);
+
+  return response.status(200).json({
+    ok: true,
+    authenticated: false,
+    user: null,
+    profile: null,
+    role: "user",
+    isBlocked: false,
+    blockedReason: "",
+  });
+}
+
 export default async function handler(
   request,
   response,
@@ -92,18 +142,8 @@ export default async function handler(
     refreshToken,
   } = readAuthCookies(request);
 
-  if (!accessToken || !refreshToken) {
-    clearAuthCookies(response);
-
-    return response.status(200).json({
-      ok: true,
-      authenticated: false,
-      user: null,
-      profile: null,
-      role: "user",
-      isBlocked: false,
-      blockedReason: "",
-    });
+  if (!refreshToken) {
+    return sendGuestSession(response);
   }
 
   try {
@@ -113,27 +153,18 @@ export default async function handler(
     const {
       data: sessionData,
       error: sessionError,
-    } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+    } = await establishSession(
+      supabase,
+      accessToken,
+      refreshToken,
+    );
 
     if (
       sessionError ||
       !sessionData?.session ||
       !sessionData?.user
     ) {
-      clearAuthCookies(response);
-
-      return response.status(200).json({
-        ok: true,
-        authenticated: false,
-        user: null,
-        profile: null,
-        role: "user",
-        isBlocked: false,
-        blockedReason: "",
-      });
+      return sendGuestSession(response);
     }
 
     setAuthCookies(
@@ -169,6 +200,7 @@ export default async function handler(
     }
 
     const role = access?.role || "user";
+
     const isBlocked =
       access?.is_blocked === true;
 
