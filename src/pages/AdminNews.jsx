@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useAuth } from "../auth/AuthContext.jsx";
 import { supabase } from "../lib/supabase.js";
@@ -12,7 +18,9 @@ const STATUS_NAMES = {
 };
 
 const IMAGE_BUCKET = "news-images";
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE =
+  5 * 1024 * 1024;
+
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -72,7 +80,11 @@ function slugify(value) {
     .trim()
     .toLowerCase()
     .split("")
-    .map((symbol) => transliteration[symbol] ?? symbol)
+    .map(
+      (symbol) =>
+        transliteration[symbol] ??
+        symbol,
+    )
     .join("")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
@@ -85,128 +97,208 @@ function formatDate(value) {
   }
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
+
+  if (
+    Number.isNaN(date.getTime())
+  ) {
     return "Не указано";
   }
 
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "ru-RU",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  ).format(date);
 }
 
-function getImageExtension(file) {
-  const typeExtensions = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-    "image/gif": "gif",
-  };
+function createApiError(
+  result,
+  fallback,
+) {
+  const error = new Error(
+    result?.message || fallback,
+  );
 
-  if (typeExtensions[file?.type]) {
-    return typeExtensions[file.type];
-  }
+  error.code =
+    result?.error ||
+    "REQUEST_FAILED";
 
-  const extension = String(file?.name ?? "")
-    .split(".")
-    .pop()
-    ?.toLowerCase();
-
-  return extension || "jpg";
+  return error;
 }
 
-function createImagePath(userId, file) {
-  const uniquePart =
-    window.crypto?.randomUUID?.() ??
-    `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+async function apiRequest(body) {
+  const response = await fetch(
+    "/api/auth/session",
+    {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify(body),
+    },
+  );
 
-  return `${userId}/${uniquePart}.${getImageExtension(file)}`;
-}
-
-function getStoragePathFromPublicUrl(value) {
-  if (!value) {
-    return null;
-  }
-
-  const marker = `/storage/v1/object/public/${IMAGE_BUCKET}/`;
-  const markerIndex = value.indexOf(marker);
-
-  if (markerIndex === -1) {
-    return null;
-  }
+  let result;
 
   try {
-    return decodeURIComponent(value.slice(markerIndex + marker.length));
+    result = await response.json();
   } catch {
-    return value.slice(markerIndex + marker.length);
+    throw new Error(
+      "Сервер вернул некорректный ответ.",
+    );
   }
+
+  if (
+    !response.ok ||
+    result?.ok !== true
+  ) {
+    throw createApiError(
+      result,
+      "Не удалось выполнить запрос.",
+    );
+  }
+
+  return result;
 }
 
 function getErrorMessage(error) {
-  const message = String(error?.message ?? "");
+  const code =
+    String(error?.code || "");
 
-  if (message.includes("news_posts_slug_key")) {
-    return "Новость с таким адресом уже существует. Измени поле URL адрес.";
-  }
+  const known = {
+    AUTH_REQUIRED:
+      "Нужно повторно войти в аккаунт.",
+    ACCOUNT_BLOCKED:
+      "Аккаунт заблокирован.",
+    STAFF_REQUIRED:
+      "У аккаунта нет доступа к управлению новостями.",
+    ADMIN_REQUIRED:
+      "Удалять новости может только администратор или владелец.",
+    NEWS_SLUG_TAKEN:
+      "Новость с таким адресом уже существует. Измени поле URL адрес.",
+    NEWS_EDIT_FORBIDDEN:
+      "Редактор может изменять только собственные черновики.",
+    NEWS_PERMISSION_DENIED:
+      "У текущего аккаунта недостаточно прав для этого действия.",
+    NEWS_UPLOAD_URL_FAILED:
+      "Не удалось подготовить загрузку изображения.",
+  };
 
-  if (message.includes("row-level security")) {
-    return "У текущего аккаунта недостаточно прав для этого действия.";
-  }
-
-  if (message.includes("news_posts_title_length")) {
-    return "Название должно содержать от 5 до 160 символов.";
-  }
-
-  if (message.includes("news_posts_content_not_empty")) {
-    return "Полный текст должен содержать минимум 20 символов.";
-  }
-
-  return message || "Не удалось выполнить действие.";
+  return (
+    known[code] ||
+    error?.message ||
+    "Не удалось выполнить действие."
+  );
 }
 
 export default function AdminNews() {
   const { user, role } = useAuth();
-  const canManageAll = role === "admin" || role === "owner";
 
-  const [posts, setPosts] = useState([]);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [editingId, setEditingId] = useState(null);
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
+  const canManageAll =
+    role === "admin" ||
+    role === "owner";
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [posts, setPosts] =
+    useState([]);
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [form, setForm] =
+    useState(EMPTY_FORM);
 
-  const [coverFile, setCoverFile] = useState(null);
-  const [coverPreview, setCoverPreview] = useState("");
-  const [originalCoverUrl, setOriginalCoverUrl] = useState("");
-  const coverPreviewObjectUrlRef = useRef("");
+  const [
+    editingId,
+    setEditingId,
+  ] = useState(null);
 
-  const releaseCoverPreview = useCallback(() => {
-    if (coverPreviewObjectUrlRef.current) {
-      URL.revokeObjectURL(coverPreviewObjectUrlRef.current);
-      coverPreviewObjectUrlRef.current = "";
-    }
-  }, []);
+  const [
+    slugTouched,
+    setSlugTouched,
+  ] = useState(false);
 
-  const resetCoverState = useCallback(
-    (url = "") => {
-      releaseCoverPreview();
-      setCoverFile(null);
-      setCoverPreview(url);
-      setOriginalCoverUrl(url);
-    },
-    [releaseCoverPreview],
-  );
+  const [
+    editorOpen,
+    setEditorOpen,
+  ] = useState(false);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [
+    statusFilter,
+    setStatusFilter,
+  ] = useState("all");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [
+    deletingId,
+    setDeletingId,
+  ] = useState(null);
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState("");
+
+  const [
+    successMessage,
+    setSuccessMessage,
+  ] = useState("");
+
+  const [
+    coverFile,
+    setCoverFile,
+  ] = useState(null);
+
+  const [
+    coverPreview,
+    setCoverPreview,
+  ] = useState("");
+
+  const [
+    originalCoverUrl,
+    setOriginalCoverUrl,
+  ] = useState("");
+
+  const coverPreviewObjectUrlRef =
+    useRef("");
+
+  const releaseCoverPreview =
+    useCallback(() => {
+      if (
+        coverPreviewObjectUrlRef.current
+      ) {
+        URL.revokeObjectURL(
+          coverPreviewObjectUrlRef.current,
+        );
+
+        coverPreviewObjectUrlRef.current =
+          "";
+      }
+    }, []);
+
+  const resetCoverState =
+    useCallback(
+      (url = "") => {
+        releaseCoverPreview();
+        setCoverFile(null);
+        setCoverPreview(url);
+        setOriginalCoverUrl(url);
+      },
+      [releaseCoverPreview],
+    );
 
   useEffect(
     () => () => {
@@ -215,53 +307,98 @@ export default function AdminNews() {
     [releaseCoverPreview],
   );
 
-  const loadPosts = useCallback(async () => {
-    setLoading(true);
-    setErrorMessage("");
+  const loadPosts = useCallback(
+    async () => {
+      setLoading(true);
+      setErrorMessage("");
 
-    const { data, error } = await supabase
-      .from("news_posts")
-      .select(
-        "id, title, slug, excerpt, content, cover_url, category, status, is_featured, author_id, updated_by, published_at, created_at, updated_at",
-      )
-      .order("updated_at", { ascending: false });
+      try {
+        const result =
+          await apiRequest({
+            action: "news-list",
+          });
 
-    if (error) {
-      setPosts([]);
-      setErrorMessage(getErrorMessage(error));
-    } else {
-      setPosts(Array.isArray(data) ? data : []);
-    }
-
-    setLoading(false);
-  }, []);
+        setPosts(
+          Array.isArray(result.posts)
+            ? result.posts
+            : [],
+        );
+      } catch (error) {
+        setPosts([]);
+        setErrorMessage(
+          getErrorMessage(error),
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     void loadPosts();
   }, [loadPosts]);
 
-  const filteredPosts = useMemo(() => {
-    const query = search.trim().toLowerCase();
+  const filteredPosts = useMemo(
+    () => {
+      const query =
+        search
+          .trim()
+          .toLowerCase();
 
-    return posts.filter((post) => {
-      const matchesStatus =
-        statusFilter === "all" || post.status === statusFilter;
-      const matchesSearch =
-        !query ||
-        [post.title, post.excerpt, post.category, post.slug]
-          .filter(Boolean)
-          .some((value) => String(value).toLowerCase().includes(query));
+      return posts.filter(
+        (post) => {
+          const matchesStatus =
+            statusFilter === "all" ||
+            post.status ===
+              statusFilter;
 
-      return matchesStatus && matchesSearch;
-    });
-  }, [posts, search, statusFilter]);
+          const matchesSearch =
+            !query ||
+            [
+              post.title,
+              post.excerpt,
+              post.category,
+              post.slug,
+            ]
+              .filter(Boolean)
+              .some((value) =>
+                String(value)
+                  .toLowerCase()
+                  .includes(query),
+              );
+
+          return (
+            matchesStatus &&
+            matchesSearch
+          );
+        },
+      );
+    },
+    [
+      posts,
+      search,
+      statusFilter,
+    ],
+  );
 
   const summary = useMemo(
     () => ({
       all: posts.length,
-      draft: posts.filter((post) => post.status === "draft").length,
-      published: posts.filter((post) => post.status === "published").length,
-      archived: posts.filter((post) => post.status === "archived").length,
+      draft: posts.filter(
+        (post) =>
+          post.status === "draft",
+      ).length,
+      published: posts.filter(
+        (post) =>
+          post.status ===
+          "published",
+      ).length,
+      archived: posts.filter(
+        (post) =>
+          post.status ===
+          "archived",
+      ).length,
     }),
     [posts],
   );
@@ -278,7 +415,10 @@ export default function AdminNews() {
     );
   }
 
-  function updateForm(field, value) {
+  function updateForm(
+    field,
+    value,
+  ) {
     setForm((current) => ({
       ...current,
       [field]: value,
@@ -286,22 +426,32 @@ export default function AdminNews() {
   }
 
   function handleTitleChange(event) {
-    const title = event.target.value;
+    const title =
+      event.target.value;
 
     setForm((current) => ({
       ...current,
       title,
-      slug: slugTouched ? current.slug : slugify(title),
+      slug: slugTouched
+        ? current.slug
+        : slugify(title),
     }));
   }
 
   function handleSlugChange(event) {
     setSlugTouched(true);
-    updateForm("slug", slugify(event.target.value));
+
+    updateForm(
+      "slug",
+      slugify(event.target.value),
+    );
   }
 
-  function handleCoverUrlChange(event) {
-    const value = event.target.value;
+  function handleCoverUrlChange(
+    event,
+  ) {
+    const value =
+      event.target.value;
 
     releaseCoverPreview();
     setCoverFile(null);
@@ -309,8 +459,13 @@ export default function AdminNews() {
     updateForm("coverUrl", value);
   }
 
-  function handleCoverFileChange(event) {
-    const file = event.target.files?.[0] ?? null;
+  function handleCoverFileChange(
+    event,
+  ) {
+    const file =
+      event.target.files?.[0] ??
+      null;
+
     event.target.value = "";
 
     if (!file) {
@@ -320,19 +475,35 @@ export default function AdminNews() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-      setErrorMessage("Выбери изображение JPEG, PNG, WEBP или GIF.");
+    if (
+      !ALLOWED_IMAGE_TYPES.has(
+        file.type,
+      )
+    ) {
+      setErrorMessage(
+        "Выбери изображение JPEG, PNG, WEBP или GIF.",
+      );
       return;
     }
 
-    if (file.size > MAX_IMAGE_SIZE) {
-      setErrorMessage("Размер изображения не должен превышать 5 МБ.");
+    if (
+      file.size >
+      MAX_IMAGE_SIZE
+    ) {
+      setErrorMessage(
+        "Размер изображения не должен превышать 5 МБ.",
+      );
       return;
     }
 
     releaseCoverPreview();
-    const objectUrl = URL.createObjectURL(file);
-    coverPreviewObjectUrlRef.current = objectUrl;
+
+    const objectUrl =
+      URL.createObjectURL(file);
+
+    coverPreviewObjectUrlRef.current =
+      objectUrl;
+
     setCoverFile(file);
     setCoverPreview(objectUrl);
   }
@@ -344,49 +515,69 @@ export default function AdminNews() {
     updateForm("coverUrl", "");
   }
 
-  async function removeStoredImageByUrl(url) {
-    const path = getStoragePathFromPublicUrl(url);
-
+  async function removeTemporaryUpload(
+    path,
+  ) {
     if (!path) {
       return;
     }
 
-    await supabase.storage.from(IMAGE_BUCKET).remove([path]);
+    try {
+      await apiRequest({
+        action:
+          "news-remove-upload",
+        path,
+      });
+    } catch {
+      // Сервер запишет ошибку в журнал.
+    }
   }
 
-  async function uploadCoverImage(file) {
+  async function uploadCoverImage(
+    file,
+  ) {
     if (!file) {
       return {
-        url: form.coverUrl.trim() || null,
+        url:
+          form.coverUrl.trim() ||
+          null,
         path: null,
       };
     }
 
-    const path = createImagePath(user.id, file);
-    const { error: uploadError } = await supabase.storage
-      .from(IMAGE_BUCKET)
-      .upload(path, file, {
-        cacheControl: "3600",
-        contentType: file.type,
-        upsert: false,
+    const signed =
+      await apiRequest({
+        action:
+          "news-create-upload",
+        fileType: file.type,
+        fileSize: file.size,
       });
 
+    const {
+      error: uploadError,
+    } = await supabase.storage
+      .from(IMAGE_BUCKET)
+      .uploadToSignedUrl(
+        signed.path,
+        signed.token,
+        file,
+        {
+          cacheControl: "3600",
+          contentType: file.type,
+        },
+      );
+
     if (uploadError) {
+      await removeTemporaryUpload(
+        signed.path,
+      );
+
       throw uploadError;
     }
 
-    const { data } = supabase.storage
-      .from(IMAGE_BUCKET)
-      .getPublicUrl(path);
-
-    if (!data?.publicUrl) {
-      await supabase.storage.from(IMAGE_BUCKET).remove([path]);
-      throw new Error("Не удалось получить ссылку на загруженную обложку.");
-    }
-
     return {
-      url: data.publicUrl,
-      path,
+      url: signed.publicUrl,
+      path: signed.path,
     };
   }
 
@@ -398,32 +589,56 @@ export default function AdminNews() {
     setErrorMessage("");
     setSuccessMessage("");
     setEditorOpen(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function openEdit(post) {
     if (!canEditPost(post)) {
-      setErrorMessage("У тебя нет прав на редактирование этой новости.");
+      setErrorMessage(
+        "У тебя нет прав на редактирование этой новости.",
+      );
       return;
     }
 
     setEditingId(post.id);
+
     setForm({
       title: post.title ?? "",
       slug: post.slug ?? "",
-      excerpt: post.excerpt ?? "",
-      content: post.content ?? "",
-      coverUrl: post.cover_url ?? "",
-      category: post.category ?? "Команда",
-      status: post.status ?? "draft",
-      isFeatured: Boolean(post.is_featured),
+      excerpt:
+        post.excerpt ?? "",
+      content:
+        post.content ?? "",
+      coverUrl:
+        post.cover_url ?? "",
+      category:
+        post.category ??
+        "Команда",
+      status:
+        post.status ?? "draft",
+      isFeatured:
+        Boolean(
+          post.is_featured,
+        ),
     });
-    resetCoverState(post.cover_url ?? "");
+
+    resetCoverState(
+      post.cover_url ?? "",
+    );
+
     setSlugTouched(true);
     setErrorMessage("");
     setSuccessMessage("");
     setEditorOpen(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function closeEditor() {
@@ -440,42 +655,69 @@ export default function AdminNews() {
 
   async function handleSave(event) {
     event.preventDefault();
+
     setSaving(true);
     setErrorMessage("");
     setSuccessMessage("");
 
-    const title = form.title.trim();
-    const slug = slugify(form.slug || form.title);
-    const content = form.content.trim();
-    const category = form.category.trim();
-    const excerpt = form.excerpt.trim();
+    const title =
+      form.title.trim();
 
-    if (title.length < 5 || title.length > 160) {
-      setErrorMessage("Название должно содержать от 5 до 160 символов.");
+    const slug = slugify(
+      form.slug || form.title,
+    );
+
+    const content =
+      form.content.trim();
+
+    const category =
+      form.category.trim();
+
+    const excerpt =
+      form.excerpt.trim();
+
+    if (
+      title.length < 5 ||
+      title.length > 160
+    ) {
+      setErrorMessage(
+        "Название должно содержать от 5 до 160 символов.",
+      );
       setSaving(false);
       return;
     }
 
     if (slug.length < 3) {
-      setErrorMessage("URL адрес новости должен содержать минимум 3 символа.");
+      setErrorMessage(
+        "URL адрес новости должен содержать минимум 3 символа.",
+      );
       setSaving(false);
       return;
     }
 
     if (content.length < 20) {
-      setErrorMessage("Полный текст должен содержать минимум 20 символов.");
+      setErrorMessage(
+        "Полный текст должен содержать минимум 20 символов.",
+      );
       setSaving(false);
       return;
     }
 
-    if (category.length < 2 || category.length > 60) {
-      setErrorMessage("Категория должна содержать от 2 до 60 символов.");
+    if (
+      category.length < 2 ||
+      category.length > 60
+    ) {
+      setErrorMessage(
+        "Категория должна содержать от 2 до 60 символов.",
+      );
       setSaving(false);
       return;
     }
 
     if (excerpt.length > 320) {
-      setErrorMessage("Краткое описание не должно превышать 320 символов.");
+      setErrorMessage(
+        "Краткое описание не должно превышать 320 символов.",
+      );
       setSaving(false);
       return;
     }
@@ -483,70 +725,72 @@ export default function AdminNews() {
     let uploadedPath = null;
 
     try {
-      const uploadedCover = await uploadCoverImage(coverFile);
-      uploadedPath = uploadedCover.path;
+      const uploadedCover =
+        await uploadCoverImage(
+          coverFile,
+        );
 
-      const payload = {
+      uploadedPath =
+        uploadedCover.path;
+
+      await apiRequest({
+        action: "news-save",
+        postId: editingId,
         title,
         slug,
         excerpt,
         content,
         category,
-        cover_url: uploadedCover.url,
-        status: canManageAll ? form.status : "draft",
-        is_featured: canManageAll ? form.isFeatured : false,
-      };
-
-      const request = editingId
-        ? supabase
-            .from("news_posts")
-            .update(payload)
-            .eq("id", editingId)
-        : supabase
-            .from("news_posts")
-            .insert(payload);
-
-      const { error } = await request;
-
-      if (error) {
-        if (uploadedPath) {
-          await supabase.storage.from(IMAGE_BUCKET).remove([uploadedPath]);
-        }
-
-        throw error;
-      }
-
-      if (
-        originalCoverUrl &&
-        originalCoverUrl !== uploadedCover.url
-      ) {
-        await removeStoredImageByUrl(originalCoverUrl);
-      }
+        coverUrl:
+          uploadedCover.url || "",
+        originalCoverUrl,
+        status: canManageAll
+          ? form.status
+          : "draft",
+        isFeatured: canManageAll
+          ? form.isFeatured
+          : false,
+      });
 
       setSuccessMessage(
-        editingId ? "Новость успешно обновлена." : "Новость успешно создана.",
+        editingId
+          ? "Новость успешно обновлена."
+          : "Новость успешно создана.",
       );
+
       setEditorOpen(false);
       setEditingId(null);
       setForm(EMPTY_FORM);
       resetCoverState();
       setSlugTouched(false);
+
       await loadPosts();
     } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      if (uploadedPath) {
+        await removeTemporaryUpload(
+          uploadedPath,
+        );
+      }
+
+      setErrorMessage(
+        getErrorMessage(error),
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDelete(post) {
+  async function handleDelete(
+    post,
+  ) {
     if (!canManageAll) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Удалить новость «${post.title}» без возможности восстановления?`,
-    );
+    const confirmed =
+      window.confirm(
+        `Удалить новость «${post.title}» без возможности восстановления?`,
+      );
 
     if (!confirmed) {
       return;
@@ -556,20 +800,24 @@ export default function AdminNews() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    const { error } = await supabase
-      .from("news_posts")
-      .delete()
-      .eq("id", post.id);
+    try {
+      await apiRequest({
+        action: "news-delete",
+        postId: post.id,
+      });
 
-    if (error) {
-      setErrorMessage(getErrorMessage(error));
-    } else {
-      await removeStoredImageByUrl(post.cover_url);
-      setSuccessMessage("Новость удалена.");
+      setSuccessMessage(
+        "Новость удалена.",
+      );
+
       await loadPosts();
+    } catch (error) {
+      setErrorMessage(
+        getErrorMessage(error),
+      );
+    } finally {
+      setDeletingId(null);
     }
-
-    setDeletingId(null);
   }
 
   return (
@@ -577,10 +825,19 @@ export default function AdminNews() {
       <div className="admin-news-shell">
         <header className="admin-news-header">
           <div>
-            <p className="page-eyebrow">ISTE CONTENT CENTER</p>
-            <h1>Управление новостями</h1>
+            <p className="page-eyebrow">
+              ISTE CONTENT CENTER
+            </p>
+
+            <h1>
+              Управление новостями
+            </h1>
+
             <p>
-              Создание, редактирование и публикация материалов команды.
+              Создание,
+              редактирование и
+              публикация материалов
+              команды.
             </p>
           </div>
 
@@ -596,37 +853,81 @@ export default function AdminNews() {
         <div className="admin-news-summary">
           <button
             type="button"
-            className={statusFilter === "all" ? "is-active" : ""}
-            onClick={() => setStatusFilter("all")}
+            className={
+              statusFilter === "all"
+                ? "is-active"
+                : ""
+            }
+            onClick={() =>
+              setStatusFilter("all")
+            }
           >
-            <strong>{summary.all}</strong>
-            <span>Все материалы</span>
+            <strong>
+              {summary.all}
+            </strong>
+            <span>
+              Все материалы
+            </span>
           </button>
 
           <button
             type="button"
-            className={statusFilter === "draft" ? "is-active" : ""}
-            onClick={() => setStatusFilter("draft")}
+            className={
+              statusFilter === "draft"
+                ? "is-active"
+                : ""
+            }
+            onClick={() =>
+              setStatusFilter(
+                "draft",
+              )
+            }
           >
-            <strong>{summary.draft}</strong>
+            <strong>
+              {summary.draft}
+            </strong>
             <span>Черновики</span>
           </button>
 
           <button
             type="button"
-            className={statusFilter === "published" ? "is-active" : ""}
-            onClick={() => setStatusFilter("published")}
+            className={
+              statusFilter ===
+              "published"
+                ? "is-active"
+                : ""
+            }
+            onClick={() =>
+              setStatusFilter(
+                "published",
+              )
+            }
           >
-            <strong>{summary.published}</strong>
-            <span>Опубликовано</span>
+            <strong>
+              {summary.published}
+            </strong>
+            <span>
+              Опубликовано
+            </span>
           </button>
 
           <button
             type="button"
-            className={statusFilter === "archived" ? "is-active" : ""}
-            onClick={() => setStatusFilter("archived")}
+            className={
+              statusFilter ===
+              "archived"
+                ? "is-active"
+                : ""
+            }
+            onClick={() =>
+              setStatusFilter(
+                "archived",
+              )
+            }
           >
-            <strong>{summary.archived}</strong>
+            <strong>
+              {summary.archived}
+            </strong>
             <span>В архиве</span>
           </button>
         </div>
@@ -648,9 +949,16 @@ export default function AdminNews() {
             <div className="admin-news-editor-head">
               <div>
                 <p className="page-eyebrow">
-                  {editingId ? "EDIT MATERIAL" : "NEW MATERIAL"}
+                  {editingId
+                    ? "EDIT MATERIAL"
+                    : "NEW MATERIAL"}
                 </p>
-                <h2>{editingId ? "Редактирование новости" : "Новая новость"}</h2>
+
+                <h2>
+                  {editingId
+                    ? "Редактирование новости"
+                    : "Новая новость"}
+                </h2>
               </div>
 
               <button
@@ -663,13 +971,19 @@ export default function AdminNews() {
               </button>
             </div>
 
-            <form className="admin-news-form" onSubmit={handleSave}>
+            <form
+              className="admin-news-form"
+              onSubmit={handleSave}
+            >
               <label className="admin-news-field admin-news-field-wide">
                 <span>Название</span>
+
                 <input
                   type="text"
                   value={form.title}
-                  onChange={handleTitleChange}
+                  onChange={
+                    handleTitleChange
+                  }
                   minLength={5}
                   maxLength={160}
                   required
@@ -679,25 +993,36 @@ export default function AdminNews() {
 
               <label className="admin-news-field">
                 <span>URL адрес</span>
+
                 <input
                   type="text"
                   value={form.slug}
-                  onChange={handleSlugChange}
+                  onChange={
+                    handleSlugChange
+                  }
                   minLength={3}
                   maxLength={180}
                   required
                   disabled={saving}
                 />
-                <small>Только латинские буквы, цифры и дефисы.</small>
+
+                <small>
+                  Только латинские
+                  буквы, цифры и дефисы.
+                </small>
               </label>
 
               <label className="admin-news-field">
                 <span>Категория</span>
+
                 <input
                   type="text"
                   value={form.category}
                   onChange={(event) =>
-                    updateForm("category", event.target.value)
+                    updateForm(
+                      "category",
+                      event.target.value,
+                    )
                   }
                   minLength={2}
                   maxLength={60}
@@ -707,25 +1032,41 @@ export default function AdminNews() {
               </label>
 
               <label className="admin-news-field admin-news-field-wide">
-                <span>Краткое описание</span>
+                <span>
+                  Краткое описание
+                </span>
+
                 <textarea
                   value={form.excerpt}
                   onChange={(event) =>
-                    updateForm("excerpt", event.target.value)
+                    updateForm(
+                      "excerpt",
+                      event.target.value,
+                    )
                   }
                   maxLength={320}
                   rows={3}
                   disabled={saving}
                 />
-                <small>{form.excerpt.length} из 320 символов</small>
+
+                <small>
+                  {form.excerpt.length}
+                  {" "}из 320 символов
+                </small>
               </label>
 
               <label className="admin-news-field admin-news-field-wide">
-                <span>Полный текст</span>
+                <span>
+                  Полный текст
+                </span>
+
                 <textarea
                   value={form.content}
                   onChange={(event) =>
-                    updateForm("content", event.target.value)
+                    updateForm(
+                      "content",
+                      event.target.value,
+                    )
                   }
                   minLength={20}
                   rows={12}
@@ -735,12 +1076,17 @@ export default function AdminNews() {
               </label>
 
               <div className="admin-news-field admin-news-field-wide">
-                <span>Обложка новости</span>
+                <span>
+                  Обложка новости
+                </span>
 
                 <div className="admin-news-cover-editor">
                   <div className="admin-news-cover-preview">
                     {coverPreview ? (
-                      <img src={coverPreview} alt="Предпросмотр обложки" />
+                      <img
+                        src={coverPreview}
+                        alt="Предпросмотр обложки"
+                      />
                     ) : (
                       <span>ISTe</span>
                     )}
@@ -752,40 +1098,67 @@ export default function AdminNews() {
                         <input
                           type="file"
                           accept="image/jpeg,image/png,image/webp,image/gif"
-                          onChange={handleCoverFileChange}
+                          onChange={
+                            handleCoverFileChange
+                          }
                           disabled={saving}
                         />
-                        {coverFile ? "Выбрать другое" : "Выбрать изображение"}
+
+                        {coverFile
+                          ? "Выбрать другое"
+                          : "Выбрать изображение"}
                       </label>
 
                       <button
                         className="admin-news-secondary"
                         type="button"
                         onClick={removeCover}
-                        disabled={saving || !coverPreview}
+                        disabled={
+                          saving ||
+                          !coverPreview
+                        }
                       >
                         Удалить обложку
                       </button>
                     </div>
 
                     <p>
-                      JPEG, PNG, WEBP или GIF. Максимальный размер 5 МБ.
-                      Изображение загрузится в Supabase при сохранении новости.
+                      JPEG, PNG, WEBP или
+                      GIF. Максимальный
+                      размер 5 МБ.
                     </p>
 
                     {coverFile ? (
                       <div className="admin-news-selected-file">
-                        <strong>{coverFile.name}</strong>
-                        <span>{(coverFile.size / 1024 / 1024).toFixed(2)} МБ</span>
+                        <strong>
+                          {coverFile.name}
+                        </strong>
+
+                        <span>
+                          {(
+                            coverFile.size /
+                            1024 /
+                            1024
+                          ).toFixed(2)}
+                          {" "}МБ
+                        </span>
                       </div>
                     ) : null}
 
                     <label className="admin-news-field">
-                      <span>Или вставь прямую ссылку</span>
+                      <span>
+                        Или вставь прямую
+                        ссылку
+                      </span>
+
                       <input
                         type="url"
-                        value={form.coverUrl}
-                        onChange={handleCoverUrlChange}
+                        value={
+                          form.coverUrl
+                        }
+                        onChange={
+                          handleCoverUrlChange
+                        }
                         maxLength={1000}
                         placeholder="https://..."
                         disabled={saving}
@@ -799,38 +1172,67 @@ export default function AdminNews() {
                 <>
                   <label className="admin-news-field">
                     <span>Статус</span>
+
                     <select
                       value={form.status}
                       onChange={(event) =>
-                        updateForm("status", event.target.value)
+                        updateForm(
+                          "status",
+                          event.target.value,
+                        )
                       }
                       disabled={saving}
                     >
-                      <option value="draft">Черновик</option>
-                      <option value="published">Опубликовано</option>
-                      <option value="archived">В архиве</option>
+                      <option value="draft">
+                        Черновик
+                      </option>
+
+                      <option value="published">
+                        Опубликовано
+                      </option>
+
+                      <option value="archived">
+                        В архиве
+                      </option>
                     </select>
                   </label>
 
                   <label className="admin-news-checkbox">
                     <input
                       type="checkbox"
-                      checked={form.isFeatured}
+                      checked={
+                        form.isFeatured
+                      }
                       onChange={(event) =>
-                        updateForm("isFeatured", event.target.checked)
+                        updateForm(
+                          "isFeatured",
+                          event.target.checked,
+                        )
                       }
                       disabled={saving}
                     />
+
                     <span>
-                      <strong>Закрепить новость</strong>
-                      <small>Материал будет выделен на странице новостей.</small>
+                      <strong>
+                        Закрепить новость
+                      </strong>
+
+                      <small>
+                        Материал будет
+                        выделен на
+                        странице новостей.
+                      </small>
                     </span>
                   </label>
                 </>
               ) : (
                 <div className="admin-news-editor-note">
-                  Редактор может сохранить материал только как черновик.
-                  Публикацию выполняет администратор или владелец.
+                  Редактор может
+                  сохранить материал
+                  только как черновик.
+                  Публикацию выполняет
+                  администратор или
+                  владелец.
                 </div>
               )}
 
@@ -862,11 +1264,18 @@ export default function AdminNews() {
 
         <div className="admin-news-toolbar">
           <label>
-            <span className="sr-only">Поиск по новостям</span>
+            <span className="sr-only">
+              Поиск по новостям
+            </span>
+
             <input
               type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) =>
+                setSearch(
+                  event.target.value,
+                )
+              }
               placeholder="Поиск по названию, категории или адресу"
             />
           </label>
@@ -874,10 +1283,14 @@ export default function AdminNews() {
           <button
             className="admin-news-secondary"
             type="button"
-            onClick={() => void loadPosts()}
+            onClick={() =>
+              void loadPosts()
+            }
             disabled={loading}
           >
-            {loading ? "Обновляем..." : "Обновить"}
+            {loading
+              ? "Обновляем..."
+              : "Обновить"}
           </button>
         </div>
 
@@ -888,83 +1301,141 @@ export default function AdminNews() {
           </div>
         ) : null}
 
-        {!loading && filteredPosts.length === 0 ? (
+        {!loading &&
+        filteredPosts.length === 0 ? (
           <div className="admin-news-empty">
-            <h2>Материалов не найдено</h2>
+            <h2>
+              Материалов не найдено
+            </h2>
+
             <p>
-              Создай первую новость или измени параметры поиска.
+              Создай первую новость или
+              измени параметры поиска.
             </p>
           </div>
         ) : null}
 
-        {!loading && filteredPosts.length > 0 ? (
+        {!loading &&
+        filteredPosts.length > 0 ? (
           <div className="admin-news-list">
-            {filteredPosts.map((post) => {
-              const editable = canEditPost(post);
+            {filteredPosts.map(
+              (post) => {
+                const editable =
+                  canEditPost(post);
 
-              return (
-                <article className="admin-news-card" key={post.id}>
-                  <div className="admin-news-card-cover">
-                    {post.cover_url ? (
-                      <img src={post.cover_url} alt="" loading="lazy" />
-                    ) : (
-                      <span>ISTe</span>
-                    )}
-                  </div>
-
-                  <div className="admin-news-card-body">
-                    <div className="admin-news-card-meta">
-                      <span
-                        className={`admin-news-status admin-news-status-${post.status}`}
-                      >
-                        {STATUS_NAMES[post.status] ?? post.status}
-                      </span>
-                      <span>{post.category}</span>
-                      {post.is_featured ? <b>Закреплено</b> : null}
+                return (
+                  <article
+                    className="admin-news-card"
+                    key={post.id}
+                  >
+                    <div className="admin-news-card-cover">
+                      {post.cover_url ? (
+                        <img
+                          src={
+                            post.cover_url
+                          }
+                          alt=""
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span>ISTe</span>
+                      )}
                     </div>
 
-                    <h2>{post.title}</h2>
-                    <p>{post.excerpt || "Краткое описание не указано."}</p>
-
-                    <div className="admin-news-card-dates">
-                      <span>Изменено: {formatDate(post.updated_at)}</span>
-                      {post.published_at ? (
-                        <span>
-                          Опубликовано: {formatDate(post.published_at)}
+                    <div className="admin-news-card-body">
+                      <div className="admin-news-card-meta">
+                        <span
+                          className={`admin-news-status admin-news-status-${post.status}`}
+                        >
+                          {STATUS_NAMES[
+                            post.status
+                          ] ??
+                            post.status}
                         </span>
+
+                        <span>
+                          {post.category}
+                        </span>
+
+                        {post.is_featured ? (
+                          <b>
+                            Закреплено
+                          </b>
+                        ) : null}
+                      </div>
+
+                      <h2>
+                        {post.title}
+                      </h2>
+
+                      <p>
+                        {post.excerpt ||
+                          "Краткое описание не указано."}
+                      </p>
+
+                      <div className="admin-news-card-dates">
+                        <span>
+                          Изменено:{" "}
+                          {formatDate(
+                            post.updated_at,
+                          )}
+                        </span>
+
+                        {post.published_at ? (
+                          <span>
+                            Опубликовано:{" "}
+                            {formatDate(
+                              post.published_at,
+                            )}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="admin-news-card-actions">
+                      <button
+                        className="admin-news-secondary"
+                        type="button"
+                        onClick={() =>
+                          openEdit(post)
+                        }
+                        disabled={
+                          !editable
+                        }
+                        title={
+                          editable
+                            ? "Редактировать новость"
+                            : "Редактор может изменять только собственные черновики"
+                        }
+                      >
+                        Редактировать
+                      </button>
+
+                      {canManageAll ? (
+                        <button
+                          className="admin-news-danger"
+                          type="button"
+                          onClick={() =>
+                            void handleDelete(
+                              post,
+                            )
+                          }
+                          disabled={
+                            deletingId ===
+                            post.id
+                          }
+                        >
+                          {deletingId ===
+                          post.id
+                            ? "Удаляем..."
+                            : "Удалить"}
+                        </button>
                       ) : null}
                     </div>
-                  </div>
-
-                  <div className="admin-news-card-actions">
-                    <button
-                      className="admin-news-secondary"
-                      type="button"
-                      onClick={() => openEdit(post)}
-                      disabled={!editable}
-                      title={
-                        editable
-                          ? "Редактировать новость"
-                          : "Редактор может изменять только собственные черновики"
-                      }
-                    >
-                      Редактировать
-                    </button>
-
-                    {canManageAll ? (
-                      <button
-                        className="admin-news-danger"
-                        type="button"
-                        onClick={() => void handleDelete(post)}
-                        disabled={deletingId === post.id}
-                      >
-                        {deletingId === post.id ? "Удаляем..." : "Удалить"}
-                      </button>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })}
+                  </article>
+                );
+              },
+            )}
           </div>
         ) : null}
       </div>
