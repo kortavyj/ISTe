@@ -1,0 +1,41 @@
+В файле scripts/update-faceit-stats.mjs полностью замени старую функцию buildRoster на этот блок:
+
+async function buildRoster(team) {
+  if (!Array.isArray(team.members)) {
+    return [];
+  }
+
+  const members = await Promise.all(
+    team.members.map((member) => enrichRosterMember(member, team.leader)),
+  );
+
+  const sortedMembers = members.sort((left, right) => {
+    if (left.captain !== right.captain) {
+      return Number(right.captain) - Number(left.captain);
+    }
+
+    return (right.elo ?? 0) - (left.elo ?? 0);
+  });
+
+  const roleOrder = { IGL: 0, AWP: 1, ENTRY: 2, RIFLER: 3, SUPPORT: 4 };
+  const roundMetric = (value, digits) => {
+    if (!Number.isFinite(value)) {
+      return null;
+    }
+
+    const multiplier = 10 ** digits;
+    return Math.round(value * multiplier) / multiplier;
+  };
+
+  return inferPlayerRoles(sortedMembers)
+    .sort((left, right) => {
+      const leftOrder = roleOrder[left.role] ?? 99;
+      const rightOrder = roleOrder[right.role] ?? 99;
+      return leftOrder - rightOrder || (right.elo ?? 0) - (left.elo ?? 0);
+    })
+    .map(({ metrics, ...publicPlayer }) => ({
+      ...publicPlayer,
+      winRate: roundMetric(metrics.winRate, 1),
+      kd: roundMetric(metrics.kd, 2),
+    }));
+}

@@ -6,12 +6,21 @@ import awpPortrait from "../assets/players/awp-main.png";
 import perinamaraPortrait from "../assets/players/perinamara.png";
 
 import "./Team.css";
+import "./TeamStats.css";
 
 const EXCLUDED_PLAYER = "kortavyj";
-const FEATURED_PLAYER = "infuriat3";
+
+const PROFILE_ORDER = Object.freeze([
+  "infuriat3",
+  "tokyok1ng",
+  "silryd",
+  "lor9n",
+  "perinamara",
+]);
 
 const CUSTOM_PROFILES = Object.freeze([
   {
+    sourceNickname: "infuriat3",
     nickname: null,
     roleLabel: "IGL",
     title: "Игровое мышление",
@@ -34,6 +43,7 @@ const CUSTOM_PROFILES = Object.freeze([
     ],
   },
   {
+    sourceNickname: "tokyok1ng",
     nickname: "Ishidori",
     roleLabel: "Lurker",
     title: "Контроль карты и давление",
@@ -51,6 +61,7 @@ const CUSTOM_PROFILES = Object.freeze([
     ],
   },
   {
+    sourceNickname: "silryd",
     nickname: "silryd",
     roleLabel: "Rifler",
     title: "Универсальный саппорт",
@@ -73,6 +84,7 @@ const CUSTOM_PROFILES = Object.freeze([
     ],
   },
   {
+    sourceNickname: "lor9n",
     nickname: "Lor9n",
     roleLabel: "AWP",
     title: "Контроль пространства и давление",
@@ -95,6 +107,7 @@ const CUSTOM_PROFILES = Object.freeze([
     ],
   },
   {
+    sourceNickname: "perinamara",
     nickname: "Perinamara",
     roleLabel: "Entry Fragger",
     title: "Открытие раундов и темп",
@@ -112,6 +125,10 @@ const CUSTOM_PROFILES = Object.freeze([
     ],
   },
 ]);
+
+const PROFILE_BY_NICKNAME = new Map(
+  CUSTOM_PROFILES.map((profile) => [profile.sourceNickname, profile]),
+);
 
 const ROLE_PROFILES = Object.freeze({
   IGL: {
@@ -167,6 +184,19 @@ function countryToFlag(countryCode) {
     .split("")
     .map((character) => String.fromCodePoint(127397 + character.charCodeAt(0)))
     .join("");
+}
+
+function formatInteger(value) {
+  return Number.isFinite(value) ? Math.round(value).toLocaleString("ru-RU") : "—";
+}
+
+function formatDecimal(value, digits) {
+  return Number.isFinite(value)
+    ? value.toLocaleString("ru-RU", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      })
+    : "—";
 }
 
 function SocialIcon({ type }) {
@@ -320,7 +350,10 @@ function PlayerSocials({ socials, faceitUrl }) {
 }
 
 function PlayerPortrait({ player, profile, displayName }) {
-  const initial = displayName?.charAt(0)?.toUpperCase() || player.nickname?.charAt(0)?.toUpperCase() || "?";
+  const initial =
+    displayName?.charAt(0)?.toUpperCase() ||
+    player.nickname?.charAt(0)?.toUpperCase() ||
+    "?";
   const portrait = profile.portrait || player.avatar;
   const isCutout = profile.portraitMode === "cutout";
 
@@ -346,16 +379,29 @@ function PlayerPortrait({ player, profile, displayName }) {
 }
 
 function PlayerProfile({ player, index }) {
-  const customProfile = CUSTOM_PROFILES[index] || null;
+  const normalizedNickname = normalizeNickname(player.nickname);
+  const customProfile = PROFILE_BY_NICKNAME.get(normalizedNickname) || null;
   const fallbackRole = String(player.role || "RIFLER").toUpperCase();
   const fallbackProfile = ROLE_PROFILES[fallbackRole] || DEFAULT_PROFILE;
   const profile = customProfile || fallbackProfile;
   const displayName = customProfile?.nickname || player.nickname;
   const roleLabel = customProfile?.roleLabel || fallbackRole;
   const flag = countryToFlag(player.country);
-  const level = Number.isFinite(player.level) ? player.level : "?";
+  const level = Number.isFinite(player.level) ? player.level : "—";
+  const elo = formatInteger(player.elo);
+  const winRate = Number.isFinite(player.winRate)
+    ? `${formatDecimal(player.winRate, 1)}%`
+    : "—";
+  const kd = formatDecimal(player.kd, 2);
   const faceitUrl = player.faceitUrl || "https://www.faceit.com/ru";
   const isCutout = profile.portraitMode === "cutout";
+
+  const personalStats = [
+    { label: "LEVEL", value: level },
+    { label: "ELO", value: elo },
+    { label: "WINRATE", value: winRate },
+    { label: "K/D", value: kd },
+  ];
 
   return (
     <article className={`team-profile${isCutout ? " team-profile--cutout" : ""}`}>
@@ -376,8 +422,20 @@ function PlayerProfile({ player, index }) {
 
           <div className="team-profile__meta">
             {flag ? <span title={player.country}>{flag}</span> : null}
-            <span>FACEIT LVL {level}</span>
+            <span>FACEIT</span>
           </div>
+        </div>
+
+        <div
+          className="team-profile__personal-stats"
+          aria-label={`Личная статистика FACEIT игрока ${displayName}`}
+        >
+          {personalStats.map((stat) => (
+            <div className="team-profile__personal-stat" key={stat.label}>
+              <span>{stat.label}</span>
+              <strong>{stat.value}</strong>
+            </div>
+          ))}
         </div>
 
         <p className="team-profile__title">{profile.title}</p>
@@ -418,12 +476,12 @@ export default function Team() {
   const players = Array.isArray(stats.roster)
     ? stats.roster
         .filter((player) => normalizeNickname(player.nickname) !== EXCLUDED_PLAYER)
+        .filter((player) => PROFILE_BY_NICKNAME.has(normalizeNickname(player.nickname)))
         .sort((left, right) => {
-          const leftFeatured = normalizeNickname(left.nickname) === FEATURED_PLAYER;
-          const rightFeatured = normalizeNickname(right.nickname) === FEATURED_PLAYER;
-          return Number(rightFeatured) - Number(leftFeatured);
+          const leftIndex = PROFILE_ORDER.indexOf(normalizeNickname(left.nickname));
+          const rightIndex = PROFILE_ORDER.indexOf(normalizeNickname(right.nickname));
+          return leftIndex - rightIndex;
         })
-        .slice(0, CUSTOM_PROFILES.length)
     : [];
 
   return (
@@ -448,7 +506,11 @@ export default function Team() {
       {!loading && players.length > 0 ? (
         <div className="team-profiles">
           {players.map((player, index) => (
-            <PlayerProfile player={player} index={index} key={player.playerId || `${index}-${player.nickname || "player"}`} />
+            <PlayerProfile
+              player={player}
+              index={index}
+              key={player.playerId || `${index}-${player.nickname || "player"}`}
+            />
           ))}
         </div>
       ) : null}
@@ -460,7 +522,9 @@ export default function Team() {
               ? "Не удалось получить состав из FACEIT. Проверь GitHub Actions и секрет FACEIT_API_KEY."
               : "Состав ещё не синхронизирован. Запусти обновление FACEIT в GitHub Actions."}
           </p>
-          <button type="button" onClick={reload}>Повторить загрузку</button>
+          <button type="button" onClick={reload}>
+            Повторить загрузку
+          </button>
         </div>
       ) : null}
     </section>

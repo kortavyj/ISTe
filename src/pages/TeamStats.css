@@ -1,0 +1,59 @@
+.team-profile__personal-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.team-profile__personal-stat {
+  min-width: 0;
+  padding: 14px 15px 13px;
+  border: 1px solid rgba(255, 42, 42, 0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(255, 31, 31, 0.09), rgba(255, 255, 255, 0.018)),
+    rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.team-profile__personal-stat span {
+  display: block;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-profile__personal-stat strong {
+  display: block;
+  margin-top: 7px;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: clamp(1rem, 2vw, 1.38rem);
+  font-weight: 950;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-profile__personal-stat:nth-child(3) strong,
+.team-profile__personal-stat:nth-child(4) strong {
+  color: #ff3030;
+  text-shadow: 0 0 18px rgba(255, 0, 0, 0.22);
+}
+
+@media (max-width: 720px) {
+  .team-profile__personal-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 390px) {
+  .team-profile__personal-stat {
+    padding-inline: 12px;
+  }
+}
