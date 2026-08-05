@@ -5,7 +5,7 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 7,
+  "tournaments": 10,
   "matches": 15,
   "wins": 11,
   "winRate": 73,
@@ -494,6 +494,30 @@
       }
     },
     {
+      "matchId": "1-ef45bd7d-b5c0-41c5-b828-1d4a431a8d0a",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-ef45bd7d-b5c0-41c5-b828-1d4a431a8d0a",
+      "tournamentId": "f4b1771b-a5de-4613-935e-734c80689bea",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-07-31T18:08:05.000Z",
+      "startedAt": "2026-07-31T18:08:05.000Z",
+      "finishedAt": "2026-07-31T18:08:05.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 0
+      },
+      "opponent": {
+        "name": "Insurgency",
+        "avatar": "https://distribution.faceit-cdn.net/images/04d4e1bf-edea-4775-864a-f6023e710259.jpg",
+        "score": 1
+      }
+    },
+    {
       "matchId": "1-93651d1d-b42d-416a-a1bd-26fee29b572e",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-93651d1d-b42d-416a-a1bd-26fee29b572e",
       "tournamentId": "5a28e7c8-0e00-4961-9bbc-cecab9519f9e",
@@ -636,16 +660,112 @@
         "avatar": null,
         "score": 0
       }
+    },
+    {
+      "matchId": "1-875c80d6-2949-4f5d-b034-7b134d6642f6",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-875c80d6-2949-4f5d-b034-7b134d6642f6",
+      "tournamentId": "42f9a06a-ee49-4d8c-aa6d-1cb728d039e2",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-07-27T18:37:52.000Z",
+      "startedAt": "2026-07-27T18:37:52.000Z",
+      "finishedAt": "2026-07-27T19:13:54.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 8
+      },
+      "opponent": {
+        "name": "-dpN",
+        "avatar": "https://distribution.faceit-cdn.net/images/b510975e-c812-40b8-8f01-ea6b3294693e.jpg",
+        "score": 13
+      }
+    },
+    {
+      "matchId": "1-ef995db9-aad8-4e69-aba9-4c1e62311d2e",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-ef995db9-aad8-4e69-aba9-4c1e62311d2e",
+      "tournamentId": "42f9a06a-ee49-4d8c-aa6d-1cb728d039e2",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-07-27T17:59:03.000Z",
+      "startedAt": "2026-07-27T17:59:03.000Z",
+      "finishedAt": "2026-07-27T17:59:03.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
+    {
+      "matchId": "1-9ff6dd55-882e-4099-9b00-18c61efcb60b",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-9ff6dd55-882e-4099-9b00-18c61efcb60b",
+      "tournamentId": "da003c14-11b2-48f1-85b1-aeb0325b9585",
+      "competitionName": "JamSkins | 2x2 Wingman (WIN SKINS) with Suns1de",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-07-19T13:11:54.000Z",
+      "startedAt": "2026-07-19T13:11:54.000Z",
+      "finishedAt": "2026-07-19T13:20:48.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 3
+      },
+      "opponent": {
+        "name": "Pink Floyd",
+        "avatar": "https://distribution.faceit-cdn.net/images/a6e3d704-6a9d-428b-9709-822da6b8e84d.jpeg",
+        "score": 9
+      }
+    },
+    {
+      "matchId": "1-11846dcc-815d-4b7d-92aa-0370c2da432f",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-11846dcc-815d-4b7d-92aa-0370c2da432f",
+      "tournamentId": "da003c14-11b2-48f1-85b1-aeb0325b9585",
+      "competitionName": "JamSkins | 2x2 Wingman (WIN SKINS) with Suns1de",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-07-19T13:01:08.000Z",
+      "startedAt": "2026-07-19T13:01:08.000Z",
+      "finishedAt": "2026-07-19T13:09:09.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 9
+      },
+      "opponent": {
+        "name": "Seinajoen Pisu",
+        "avatar": "https://distribution.faceit-cdn.net/images/b3ab5441-a9b0-4df4-90c4-49ba5c06d842.jpg",
+        "score": 2
+      }
     }
   ],
-  "teamMatchCount": 22,
+  "teamMatchCount": 27,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
-    "fullSync": true,
+    "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 1,
-    "historyMatchesFound": 22,
+    "historyPlayersScanned": 6,
+    "historyMatchesFound": 27,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -653,5 +773,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-05T10:03:26.143Z"
+  "updatedAt": "2026-08-05T11:45:48.593Z"
 }
