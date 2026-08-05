@@ -695,7 +695,15 @@ async function buildRoster(team) {
       const rightOrder = roleOrder[right.role] ?? 99;
       return leftOrder - rightOrder || (right.elo ?? 0) - (left.elo ?? 0);
     })
-    .map(({ metrics, ...publicPlayer }) => publicPlayer);
+    .map(({ metrics, ...publicPlayer }) => ({
+      ...publicPlayer,
+      winRate: Number.isFinite(metrics?.winRate)
+        ? Math.round(metrics.winRate * 10) / 10
+        : null,
+      kd: Number.isFinite(metrics?.kd)
+        ? Math.round(metrics.kd * 100) / 100
+        : null,
+    }));
 }
 
 function comparablePayload(payload) {
