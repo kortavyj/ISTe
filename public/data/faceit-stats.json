@@ -41,6 +41,22 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
+      "kd": 1.2
+    },
+    {
+      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
+      "nickname": "infuriat3",
+      "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
+      "level": 10,
+      "elo": 2686,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 55,
       "kd": 1.21
     },
     {
@@ -52,28 +68,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
       "elo": 2713,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.07
-    },
-    {
-      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
-      "nickname": "infuriat3",
-      "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
-      "level": 10,
-      "elo": 2686,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 55,
-      "kd": 1.21
+      "winRate": 51,
+      "kd": 1.07
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -1037,5 +1037,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-07T23:09:11.859Z"
+  "updatedAt": "2026-08-07T23:45:47.955Z"
 }
