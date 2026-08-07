@@ -31,9 +31,9 @@ const publicPages = {
       "Официальные партнёры ISTe Esports и информация для брендов, организаторов турниров и медиапроектов.",
   },
   "/history": {
-    title: "История ISTe Esports | Развитие киберспортивной команды",
+    title: "Евгений Kortavyj | Основатель ISTe, стример и музыкант",
     description:
-      "История создания и развития ISTe Esports, ценности команды, ключевые этапы и планы киберспортивного клуба.",
+      "Евгений, известный как Kortavyj, — основатель и владелец ISTe Esports, стример и музыкант. История создания ISTe и развития проекта.",
   },
   "/contacts": {
     title: "Контакты ISTe Esports | Связаться с командой",
@@ -56,6 +56,48 @@ const noIndexPaths = new Set([
   "/admin/news",
   "/owner/users",
 ]);
+
+const PROFILE_JSON_LD_ID = "iste-founder-profile-jsonld";
+
+const founderProfileSchema = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "@id": "https://istesport.com/history#profilepage",
+  url: "https://istesport.com/history",
+  name: "Евгений Kortavyj — основатель ISTe",
+  description:
+    "Официальная страница Евгения, известного под ником Kortavyj, основателя и владельца ISTe Esports, стримера и музыканта.",
+  inLanguage: "ru",
+  isPartOf: {
+    "@id": "https://istesport.com/#website",
+  },
+  publisher: {
+    "@id": "https://istesport.com/#organization",
+  },
+  mainEntity: {
+    "@type": "Person",
+    "@id": "https://istesport.com/history#person",
+    name: "Евгений",
+    alternateName: "Kortavyj",
+    url: "https://istesport.com/history",
+    jobTitle: "Founder & Owner of ISTe",
+    description:
+      "Основатель и владелец ISTe Esports, стример и музыкант.",
+    sameAs: [
+      "https://www.twitch.tv/kortavyj",
+      "https://www.youtube.com/@Hell_Hound_Game",
+    ],
+    worksFor: {
+      "@id": "https://istesport.com/#organization",
+    },
+    affiliation: {
+      "@id": "https://istesport.com/#organization",
+    },
+    mainEntityOfPage: {
+      "@id": "https://istesport.com/history#profilepage",
+    },
+  },
+};
 
 function ensureMeta(selector, attributes) {
   let element = document.head.querySelector(selector);
@@ -90,6 +132,25 @@ function normalizePath(pathname) {
   }
 
   return pathname.replace(/\/+$/, "");
+}
+
+function syncProfileJsonLd(path) {
+  const existing = document.getElementById(PROFILE_JSON_LD_ID);
+
+  if (path !== "/history") {
+    existing?.remove();
+    return;
+  }
+
+  const script = existing || document.createElement("script");
+
+  script.id = PROFILE_JSON_LD_ID;
+  script.type = "application/ld+json";
+  script.textContent = JSON.stringify(founderProfileSchema);
+
+  if (!existing) {
+    document.head.appendChild(script);
+  }
 }
 
 export default function SeoManager() {
@@ -145,6 +206,10 @@ export default function SeoManager() {
       property: "og:image",
       content: DEFAULT_IMAGE,
     });
+    ensureMeta('meta[property="og:type"]', {
+      property: "og:type",
+      content: path === "/history" ? "profile" : "website",
+    });
     ensureMeta('meta[name="twitter:title"]', {
       name: "twitter:title",
       content: title,
@@ -159,6 +224,8 @@ export default function SeoManager() {
     });
 
     ensureCanonical().setAttribute("href", canonicalUrl);
+
+    syncProfileJsonLd(path);
   }, [location.pathname]);
 
   return null;
