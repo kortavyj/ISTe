@@ -1,0 +1,24 @@
+﻿$ErrorActionPreference = "Stop"
+
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$source = Join-Path $projectRoot "src\assets\history\evgeniy_kortavyj.webp"
+$publicDir = Join-Path $projectRoot "public"
+$destination = Join-Path $publicDir "evgeniy-kortavyj.webp"
+
+if (-not (Test-Path $source)) {
+    throw "Не найден исходный файл: $source"
+}
+
+if (-not (Test-Path $publicDir)) {
+    New-Item -ItemType Directory -Path $publicDir | Out-Null
+}
+
+Copy-Item $source $destination -Force
+
+Write-Host ""
+Write-Host "Готово."
+Write-Host "Фото скопировано в:"
+Write-Host $destination
+Write-Host ""
+Write-Host "После деплоя URL будет:"
+Write-Host "https://istesport.com/evgeniy-kortavyj.webp"

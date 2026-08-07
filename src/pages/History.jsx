@@ -1,6 +1,6 @@
-import founderPhoto from "../assets/history/evgeniy_kortavyj.webp";
-
 import "./History.css";
+
+const founderPhoto = "/evgeniy-kortavyj.webp";
 
 const founderFacts = [
   { value: "21", label: "год" },
@@ -57,8 +57,10 @@ export default function History() {
           <div className="history-founder-photo__frame">
             <img
               src={founderPhoto}
-              alt="Евгений, создатель и основатель ISTe"
+              alt="Евгений Kortavyj, основатель и владелец ISTe Esports"
               loading="eager"
+              width="800"
+              height="800"
             />
           </div>
 

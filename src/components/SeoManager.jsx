@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 
 const SITE_URL = "https://istesport.com";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+const FOUNDER_IMAGE = `${SITE_URL}/evgeniy-kortavyj.webp`;
 
 const publicPages = {
   "/": {
@@ -68,6 +69,13 @@ const founderProfileSchema = {
   description:
     "Официальная страница Евгения, известного под ником Kortavyj, основателя и владельца ISTe Esports, стримера и музыканта.",
   inLanguage: "ru",
+  primaryImageOfPage: {
+    "@type": "ImageObject",
+    "@id": "https://istesport.com/history#primaryimage",
+    url: FOUNDER_IMAGE,
+    contentUrl: FOUNDER_IMAGE,
+    caption: "Евгений Kortavyj, основатель и владелец ISTe Esports",
+  },
   isPartOf: {
     "@id": "https://istesport.com/#website",
   },
@@ -80,6 +88,9 @@ const founderProfileSchema = {
     name: "Евгений",
     alternateName: "Kortavyj",
     url: "https://istesport.com/history",
+    image: {
+      "@id": "https://istesport.com/history#primaryimage",
+    },
     jobTitle: "Founder & Owner of ISTe",
     description:
       "Основатель и владелец ISTe Esports, стример и музыкант.",
@@ -173,6 +184,10 @@ export default function SeoManager() {
     const robots = isIndexable
       ? "index, follow, max-image-preview:large"
       : "noindex, nofollow, noarchive";
+    const shareImage =
+      path === "/history"
+        ? FOUNDER_IMAGE
+        : DEFAULT_IMAGE;
 
     document.title = title;
     document.documentElement.lang = "ru";
@@ -204,12 +219,23 @@ export default function SeoManager() {
     });
     ensureMeta('meta[property="og:image"]', {
       property: "og:image",
-      content: DEFAULT_IMAGE,
+      content: shareImage,
+    });
+    ensureMeta('meta[property="og:image:alt"]', {
+      property: "og:image:alt",
+      content:
+        path === "/history"
+          ? "Евгений Kortavyj, основатель ISTe Esports"
+          : "ISTe Esports",
     });
     ensureMeta('meta[property="og:type"]', {
       property: "og:type",
-      content: path === "/history" ? "profile" : "website",
+      content:
+        path === "/history"
+          ? "profile"
+          : "website",
     });
+
     ensureMeta('meta[name="twitter:title"]', {
       name: "twitter:title",
       content: title,
@@ -220,7 +246,7 @@ export default function SeoManager() {
     });
     ensureMeta('meta[name="twitter:image"]', {
       name: "twitter:image",
-      content: DEFAULT_IMAGE,
+      content: shareImage,
     });
 
     ensureCanonical().setAttribute("href", canonicalUrl);
