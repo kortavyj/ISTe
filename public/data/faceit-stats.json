@@ -5,7 +5,7 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 12,
+  "tournaments": 13,
   "matches": 20,
   "wins": 16,
   "winRate": 80,
@@ -44,20 +44,20 @@
       "kd": 1.21
     },
     {
-      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
-      "nickname": "infuriat3",
-      "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
-      "country": "bt",
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
+      "country": "ni",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2636,
+      "elo": 2529,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 55,
-      "kd": 1.21
+      "winRate": 58,
+      "kd": 1.2
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -92,23 +92,47 @@
       "kd": 1.16
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
-      "country": "ni",
+      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
+      "nickname": "infuriat3",
+      "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
+      "country": "bt",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2529,
+      "elo": 2636,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 58,
-      "kd": 1.2
+      "winRate": 55,
+      "kd": 1.21
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-b20be101-f84c-4bcb-afbc-57a766a6f94b",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-b20be101-f84c-4bcb-afbc-57a766a6f94b",
+      "tournamentId": "c4b952c3-c83a-4807-8e30-0945572f27c2",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-07T17:59:03.000Z",
+      "startedAt": "2026-08-07T17:59:03.000Z",
+      "finishedAt": "2026-08-07T17:59:03.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
     {
       "matchId": "1-2f122342-cac0-4830-b312-67fce0a1acf2",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-2f122342-cac0-4830-b312-67fce0a1acf2",
@@ -902,14 +926,14 @@
       }
     }
   ],
-  "teamMatchCount": 33,
+  "teamMatchCount": 34,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 31,
+    "historyMatchesFound": 32,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -917,5 +941,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-07T16:23:11.811Z"
+  "updatedAt": "2026-08-07T18:01:33.766Z"
 }
