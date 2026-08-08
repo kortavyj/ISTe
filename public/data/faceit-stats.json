@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 15,
-  "matches": 22,
+  "matches": 23,
   "wins": 18,
-  "winRate": 82,
+  "winRate": 78,
   "players": 6,
   "roster": [
     {
@@ -41,23 +41,23 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
-      "kd": 1.22
+      "kd": 1.21
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
+      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
+      "nickname": "infuriat3",
+      "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2579,
+      "elo": 2686,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 58,
-      "kd": 1.21
+      "winRate": 55,
+      "kd": 1.2
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -92,23 +92,47 @@
       "kd": 1.21
     },
     {
-      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
-      "nickname": "infuriat3",
-      "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2686,
+      "elo": 2579,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 55,
+      "winRate": 58,
       "kd": 1.21
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-9051a860-eff5-45d4-87fe-70849170e72a",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-9051a860-eff5-45d4-87fe-70849170e72a",
+      "tournamentId": "052c33e7-0a8e-40b1-a516-cc58b05c5a43",
+      "competitionName": "Premium Amateur Series - Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-08-08T13:40:29.000Z",
+      "startedAt": "2026-08-08T13:40:29.000Z",
+      "finishedAt": "2026-08-08T14:26:37.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 10
+      },
+      "opponent": {
+        "name": "piwoteam",
+        "avatar": "https://distribution.faceit-cdn.net/images/04bcf865-6b94-46a0-b7d1-2ee34d026ad7.jpg",
+        "score": 13
+      }
+    },
     {
       "matchId": "1-364c5967-391c-4f15-aa88-b057192a2a43",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-364c5967-391c-4f15-aa88-b057192a2a43",
@@ -1046,14 +1070,14 @@
       }
     }
   ],
-  "teamMatchCount": 39,
+  "teamMatchCount": 40,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 37,
+    "historyMatchesFound": 38,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1061,5 +1085,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-08T13:31:28.747Z"
+  "updatedAt": "2026-08-08T14:46:16.339Z"
 }
