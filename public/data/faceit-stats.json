@@ -35,13 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2573,
+      "elo": 2603,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
-      "kd": 1.38
+      "kd": 1.39
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -51,7 +51,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2552,
+      "elo": 2527,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -99,7 +99,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2659,
+      "elo": 2634,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -1085,5 +1085,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-08T21:14:28.223Z"
+  "updatedAt": "2026-08-08T21:46:50.920Z"
 }
