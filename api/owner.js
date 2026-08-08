@@ -8,6 +8,7 @@ import {
   readJsonBody,
   readQueryString,
 } from "./lib/requestBody.js";
+import shopHandler from "../server/shopHandler.js";
 
 const ALLOWED_ROLES = new Set([
   "user",
@@ -34,6 +35,19 @@ function sendGuardError(
   });
 }
 
+function sendError(
+  response,
+  status,
+  error,
+  message,
+) {
+  return response.status(status).json({
+    ok: false,
+    error,
+    message,
+  });
+}
+
 async function getOwner(
   request,
   response,
@@ -44,11 +58,12 @@ async function getOwner(
   );
 
   if (!owner.ok) {
-    response.status(owner.status).json({
-      ok: false,
-      error: owner.error,
-      message: owner.message,
-    });
+    sendError(
+      response,
+      owner.status,
+      owner.error,
+      owner.message,
+    );
 
     return null;
   }
@@ -111,13 +126,12 @@ async function handleUsers(
         "Не удалось загрузить пользователей.",
       );
 
-      return response
-        .status(mapped.status)
-        .json({
-          ok: false,
-          error: mapped.error,
-          message: mapped.message,
-        });
+      return sendError(
+        response,
+        mapped.status,
+        mapped.error,
+        mapped.message,
+      );
     }
 
     return response.status(200).json({
@@ -132,12 +146,12 @@ async function handleUsers(
       error,
     );
 
-    return response.status(500).json({
-      ok: false,
-      error: "INTERNAL_SERVER_ERROR",
-      message:
-        "Не удалось загрузить пользователей.",
-    });
+    return sendError(
+      response,
+      500,
+      "INTERNAL_SERVER_ERROR",
+      "Не удалось загрузить пользователей.",
+    );
   }
 }
 
@@ -190,13 +204,12 @@ async function handleAudit(
         "Не удалось загрузить журнал действий.",
       );
 
-      return response
-        .status(mapped.status)
-        .json({
-          ok: false,
-          error: mapped.error,
-          message: mapped.message,
-        });
+      return sendError(
+        response,
+        mapped.status,
+        mapped.error,
+        mapped.message,
+      );
     }
 
     return response.status(200).json({
@@ -211,12 +224,12 @@ async function handleAudit(
       error,
     );
 
-    return response.status(500).json({
-      ok: false,
-      error: "INTERNAL_SERVER_ERROR",
-      message:
-        "Не удалось загрузить журнал действий.",
-    });
+    return sendError(
+      response,
+      500,
+      "INTERNAL_SERVER_ERROR",
+      "Не удалось загрузить журнал действий.",
+    );
   }
 }
 
@@ -241,12 +254,12 @@ async function handleUpdateRole(
   const body = readJsonBody(request);
 
   if (!body) {
-    return response.status(400).json({
-      ok: false,
-      error: "INVALID_JSON",
-      message:
-        "Некорректный формат запроса.",
-    });
+    return sendError(
+      response,
+      400,
+      "INVALID_JSON",
+      "Некорректный формат запроса.",
+    );
   }
 
   const userId =
@@ -260,21 +273,21 @@ async function handleUpdateRole(
       : "";
 
   if (!isUuid(userId)) {
-    return response.status(400).json({
-      ok: false,
-      error: "TARGET_REQUIRED",
-      message:
-        "Пользователь не выбран.",
-    });
+    return sendError(
+      response,
+      400,
+      "TARGET_REQUIRED",
+      "Пользователь не выбран.",
+    );
   }
 
   if (!ALLOWED_ROLES.has(role)) {
-    return response.status(400).json({
-      ok: false,
-      error: "INVALID_ROLE",
-      message:
-        "Выбрана недопустимая роль.",
-    });
+    return sendError(
+      response,
+      400,
+      "INVALID_ROLE",
+      "Выбрана недопустимая роль.",
+    );
   }
 
   const owner = await getOwner(
@@ -309,13 +322,12 @@ async function handleUpdateRole(
         "Не удалось изменить роль пользователя.",
       );
 
-      return response
-        .status(mapped.status)
-        .json({
-          ok: false,
-          error: mapped.error,
-          message: mapped.message,
-        });
+      return sendError(
+        response,
+        mapped.status,
+        mapped.error,
+        mapped.message,
+      );
     }
 
     return response.status(200).json({
@@ -328,12 +340,12 @@ async function handleUpdateRole(
       error,
     );
 
-    return response.status(500).json({
-      ok: false,
-      error: "INTERNAL_SERVER_ERROR",
-      message:
-        "Не удалось изменить роль пользователя.",
-    });
+    return sendError(
+      response,
+      500,
+      "INTERNAL_SERVER_ERROR",
+      "Не удалось изменить роль пользователя.",
+    );
   }
 }
 
@@ -358,12 +370,12 @@ async function handleSetBlocked(
   const body = readJsonBody(request);
 
   if (!body) {
-    return response.status(400).json({
-      ok: false,
-      error: "INVALID_JSON",
-      message:
-        "Некорректный формат запроса.",
-    });
+    return sendError(
+      response,
+      400,
+      "INVALID_JSON",
+      "Некорректный формат запроса.",
+    );
   }
 
   const userId =
@@ -379,30 +391,30 @@ async function handleSetBlocked(
       : "";
 
   if (!isUuid(userId)) {
-    return response.status(400).json({
-      ok: false,
-      error: "TARGET_REQUIRED",
-      message:
-        "Пользователь не выбран.",
-    });
+    return sendError(
+      response,
+      400,
+      "TARGET_REQUIRED",
+      "Пользователь не выбран.",
+    );
   }
 
   if (typeof isBlocked !== "boolean") {
-    return response.status(400).json({
-      ok: false,
-      error: "INVALID_BLOCK_STATE",
-      message:
-        "Некорректное состояние блокировки.",
-    });
+    return sendError(
+      response,
+      400,
+      "INVALID_BLOCK_STATE",
+      "Некорректное состояние блокировки.",
+    );
   }
 
   if (reason.length > 500) {
-    return response.status(400).json({
-      ok: false,
-      error: "INVALID_REASON",
-      message:
-        "Причина блокировки слишком длинная.",
-    });
+    return sendError(
+      response,
+      400,
+      "INVALID_REASON",
+      "Причина блокировки слишком длинная.",
+    );
   }
 
   const owner = await getOwner(
@@ -442,13 +454,12 @@ async function handleSetBlocked(
           : "Не удалось разблокировать пользователя.",
       );
 
-      return response
-        .status(mapped.status)
-        .json({
-          ok: false,
-          error: mapped.error,
-          message: mapped.message,
-        });
+      return sendError(
+        response,
+        mapped.status,
+        mapped.error,
+        mapped.message,
+      );
     }
 
     return response.status(200).json({
@@ -461,12 +472,12 @@ async function handleSetBlocked(
       error,
     );
 
-    return response.status(500).json({
-      ok: false,
-      error: "INTERNAL_SERVER_ERROR",
-      message:
-        "Не удалось изменить блокировку пользователя.",
-    });
+    return sendError(
+      response,
+      500,
+      "INTERNAL_SERVER_ERROR",
+      "Не удалось изменить блокировку пользователя.",
+    );
   }
 }
 
@@ -474,6 +485,23 @@ export default async function handler(
   request,
   response,
 ) {
+  const rawModule =
+    Array.isArray(request.query?.module)
+      ? request.query.module[0]
+      : request.query?.module;
+
+  const moduleName =
+    typeof rawModule === "string"
+      ? rawModule.trim().toLowerCase()
+      : "";
+
+  if (moduleName === "shop") {
+    return shopHandler(
+      request,
+      response,
+    );
+  }
+
   const rawAction =
     Array.isArray(request.query?.action)
       ? request.query.action[0]
@@ -512,10 +540,10 @@ export default async function handler(
     );
   }
 
-  return response.status(404).json({
-    ok: false,
-    error: "OWNER_ROUTE_NOT_FOUND",
-    message:
-      "Маршрут панели владельца не найден.",
-  });
+  return sendError(
+    response,
+    404,
+    "OWNER_ROUTE_NOT_FOUND",
+    "Маршрут панели владельца не найден.",
+  );
 }
