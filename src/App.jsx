@@ -21,6 +21,7 @@ import Login from "./pages/Login.jsx";
 import Matches from "./pages/Matches.jsx";
 import News from "./pages/News.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import OwnerShop from "./pages/OwnerShop.jsx";
 import OwnerUsers from "./pages/OwnerUsers.jsx";
 import Partners from "./pages/Partners.jsx";
 import Register from "./pages/Register.jsx";
@@ -273,6 +274,15 @@ export default function App() {
             element={
               <OwnerRoute>
                 <OwnerUsers />
+              </OwnerRoute>
+            }
+          />
+
+          <Route
+            path="/owner/shop"
+            element={
+              <OwnerRoute>
+                <OwnerShop />
               </OwnerRoute>
             }
           />
