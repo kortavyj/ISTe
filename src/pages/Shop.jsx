@@ -13,128 +13,119 @@ import "./Shop.css";
 
 const copy = {
   uk: {
-    heroKicker: "ISTe Wear",
-    heroTitle: "Одяг із характером команди.",
-    heroText:
-      "DROP 001 // CORE. Перший одяг ISTe створюється не як сувенірний мерч, а як окрема частина бренду.",
-    viewDrop: "ДИВИТИСЯ DROP 001",
-    preorderNoPayment: "Попереднє замовлення без оплати",
-    protectedApi: "Заявки проходять через захищений API",
-    firstDrop: "Перший дроп ISTe Wear",
-    collection: "COLLECTION",
-    priceSoon: "Ціна скоро",
-    choose: "ХОЧУ ПЕРЕДЗАМОВЛЕННЯ",
-    soldout: "НЕДОСТУПНО",
-    loading: "Завантажуємо DROP 001...",
-    errorTitle: "Не вдалося завантажити колекцію",
-    errorText: "Спробуй оновити дані магазину.",
+    drop: "DROP 001 // CORE",
+    collection: "ISTe Wear",
+    loading: "Завантажуємо колекцію...",
+    error: "Не вдалося завантажити колекцію.",
     retry: "ПОВТОРИТИ",
     empty: "Колекція ще не відкрита.",
+    size: "Розмір",
+    priceSoon: "Ціна скоро",
+    preorder: "ПЕРЕДЗАМОВИТИ",
+    soldout: "НЕДОСТУПНО",
+    owner: "КЕРУВАННЯ МАГАЗИНОМ",
     modalTitle: "Передзамовлення",
-    modalSubtitle: "Оплата зараз не потрібна. Ми збережемо заявку та зв'яжемося перед запуском виробництва.",
+    modalText:
+      "Оплата зараз не потрібна. Ми збережемо заявку та зв'яжемося перед запуском виробництва.",
     name: "Ім'я",
     email: "Email",
-    size: "Розмір",
     quantity: "Кількість",
-    consent: "Я погоджуюся на обробку контактних даних для цієї заявки.",
+    consent:
+      "Я погоджуюся на обробку контактних даних для цієї заявки.",
     privacy: "Політика конфіденційності",
-    submit: "НАДІСЛАТИ ЗАЯВКУ",
+    send: "НАДІСЛАТИ ЗАЯВКУ",
     sending: "НАДСИЛАЄМО...",
     success: "Заявку прийнято",
     reference: "Номер заявки",
-    successText: "Ми не списували гроші. Це лише заявка на перший дроп ISTe Wear.",
+    successText:
+      "Гроші не списувалися. Це заявка на перший дроп ISTe Wear.",
     close: "ЗАКРИТИ",
-    admin: "Керування магазином",
-    editorialTitle: "Не футболка з логотипом. Повноцінний напрям ISTe.",
-    editorialText:
-      "Ми запускаємо колекцію через попередній попит: спочатку заявки, потім зразки, перевірка тканини та посадки, і тільки після цього виробництво.",
   },
   ru: {
-    heroKicker: "ISTe Wear",
-    heroTitle: "Одежда с характером команды.",
-    heroText:
-      "DROP 001 // CORE. Первая одежда ISTe создаётся не как сувенирный мерч, а как отдельная часть бренда.",
-    viewDrop: "СМОТРЕТЬ DROP 001",
-    preorderNoPayment: "Предзаказ без оплаты",
-    protectedApi: "Заявки проходят через защищённый API",
-    firstDrop: "Первый дроп ISTe Wear",
-    collection: "COLLECTION",
-    priceSoon: "Цена скоро",
-    choose: "ХОЧУ ПРЕДЗАКАЗ",
-    soldout: "НЕДОСТУПНО",
-    loading: "Загружаем DROP 001...",
-    errorTitle: "Не удалось загрузить коллекцию",
-    errorText: "Попробуй обновить данные магазина.",
+    drop: "DROP 001 // CORE",
+    collection: "ISTe Wear",
+    loading: "Загружаем коллекцию...",
+    error: "Не удалось загрузить коллекцию.",
     retry: "ПОВТОРИТЬ",
     empty: "Коллекция ещё не открыта.",
+    size: "Размер",
+    priceSoon: "Цена скоро",
+    preorder: "ПРЕДЗАКАЗ",
+    soldout: "НЕДОСТУПНО",
+    owner: "УПРАВЛЕНИЕ МАГАЗИНОМ",
     modalTitle: "Предзаказ",
-    modalSubtitle: "Оплата сейчас не требуется. Мы сохраним заявку и свяжемся перед запуском производства.",
+    modalText:
+      "Оплата сейчас не требуется. Мы сохраним заявку и свяжемся перед запуском производства.",
     name: "Имя",
     email: "Email",
-    size: "Размер",
     quantity: "Количество",
-    consent: "Я согласен на обработку контактных данных для этой заявки.",
+    consent:
+      "Я согласен на обработку контактных данных для этой заявки.",
     privacy: "Политика конфиденциальности",
-    submit: "ОТПРАВИТЬ ЗАЯВКУ",
+    send: "ОТПРАВИТЬ ЗАЯВКУ",
     sending: "ОТПРАВЛЯЕМ...",
     success: "Заявка принята",
     reference: "Номер заявки",
-    successText: "Мы не списывали деньги. Это только заявка на первый дроп ISTe Wear.",
+    successText:
+      "Деньги не списывались. Это заявка на первый дроп ISTe Wear.",
     close: "ЗАКРЫТЬ",
-    admin: "Управление магазином",
-    editorialTitle: "Не футболка с логотипом. Полноценное направление ISTe.",
-    editorialText:
-      "Мы запускаем коллекцию через предварительный спрос: сначала заявки, потом образцы, проверка ткани и посадки, и только после этого производство.",
   },
   en: {
-    heroKicker: "ISTe Wear",
-    heroTitle: "Clothing with the team's character.",
-    heroText:
-      "DROP 001 // CORE. The first ISTe clothing line is designed as a real brand extension, not souvenir merch.",
-    viewDrop: "VIEW DROP 001",
-    preorderNoPayment: "Preorder request with no payment",
-    protectedApi: "Requests go through a protected API",
-    firstDrop: "First ISTe Wear drop",
-    collection: "COLLECTION",
-    priceSoon: "Price coming soon",
-    choose: "REQUEST PREORDER",
-    soldout: "UNAVAILABLE",
-    loading: "Loading DROP 001...",
-    errorTitle: "Could not load the collection",
-    errorText: "Try refreshing the store data.",
+    drop: "DROP 001 // CORE",
+    collection: "ISTe Wear",
+    loading: "Loading collection...",
+    error: "Could not load the collection.",
     retry: "RETRY",
     empty: "The collection is not open yet.",
-    modalTitle: "Preorder request",
-    modalSubtitle: "No payment is required now. We will save the request and contact you before production starts.",
+    size: "Size",
+    priceSoon: "Price coming soon",
+    preorder: "PREORDER",
+    soldout: "UNAVAILABLE",
+    owner: "MANAGE STORE",
+    modalTitle: "Preorder",
+    modalText:
+      "No payment is required now. We will save the request and contact you before production starts.",
     name: "Name",
     email: "Email",
-    size: "Size",
     quantity: "Quantity",
-    consent: "I agree to the processing of my contact details for this request.",
+    consent:
+      "I agree to the processing of my contact details for this request.",
     privacy: "Privacy policy",
-    submit: "SEND REQUEST",
+    send: "SEND REQUEST",
     sending: "SENDING...",
     success: "Request accepted",
     reference: "Request number",
-    successText: "No money was charged. This is only a request for the first ISTe Wear drop.",
+    successText:
+      "No money was charged. This is a request for the first ISTe Wear drop.",
     close: "CLOSE",
-    admin: "Manage store",
-    editorialTitle: "Not a logo tee. A real ISTe direction.",
-    editorialText:
-      "The collection starts with demand first: requests, samples, fabric and fit checks, then production.",
   },
 };
+
+const localProductImages = {
+  "iste-core-tee": "/shop/iste-core-tee.png",
+  "iste-core-hoodie": "/shop/iste-core-hoodie.png",
+  "iste-pro-jersey": "/shop/iste-pro-jersey.png",
+};
+
+function resolveProductImage(product) {
+  return (
+    product.imageUrl ||
+    localProductImages[product.slug] ||
+    ""
+  );
+}
 
 function formatPrice(value, language) {
   if (!Number.isFinite(value)) {
     return null;
   }
 
-  const locale = language === "uk"
-    ? "uk-UA"
-    : language === "en"
-      ? "en-US"
-      : "ru-RU";
+  const locale =
+    language === "uk"
+      ? "uk-UA"
+      : language === "en"
+        ? "en-US"
+        : "ru-RU";
 
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -143,69 +134,67 @@ function formatPrice(value, language) {
   }).format(value);
 }
 
-function ProductVisual({ product, index }) {
-  if (product.imageUrl) {
-    return (
-      <img
-        className="wear-product-photo"
-        src={product.imageUrl}
-        alt={product.name}
-        loading={index === 0 ? "eager" : "lazy"}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`wear-product-art wear-product-art--${product.visualVariant || "tee"}`}
-      role="img"
-      aria-label={product.name}
-    >
-      <span className="wear-product-art__halo" />
-      <span className="wear-product-art__garment">
-        <span className="wear-product-art__mark">ISTe</span>
-        <span className="wear-product-art__line" />
-      </span>
-      <span className="wear-product-art__index">
-        {String(index + 1).padStart(2, "0")}
-      </span>
-    </div>
-  );
-}
-
-function PreorderModal({ product, language, labels, onClose }) {
+function PreorderModal({
+  product,
+  initialSize,
+  language,
+  labels,
+  onClose,
+}) {
   const firstInputRef = useRef(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [size, setSize] = useState(product.sizes?.[0] || "");
-  const [quantity, setQuantity] = useState(1);
-  const [consent, setConsent] = useState(false);
-  const [website, setWebsite] = useState("");
-  const [startedAt] = useState(() => Date.now());
-  const [submitting, setSubmitting] = useState(false);
+  const [size, setSize] = useState(
+    initialSize ||
+      product.sizes?.[0] ||
+      "",
+  );
+  const [quantity, setQuantity] =
+    useState(1);
+  const [consent, setConsent] =
+    useState(false);
+  const [website, setWebsite] =
+    useState("");
+  const [startedAt] = useState(() =>
+    Date.now(),
+  );
+  const [submitting, setSubmitting] =
+    useState(false);
   const [error, setError] = useState("");
-  const [reference, setReference] = useState("");
+  const [reference, setReference] =
+    useState("");
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const previousOverflow =
+      document.body.style.overflow;
 
-    const focusTimer = window.setTimeout(() => {
-      firstInputRef.current?.focus();
-    }, 60);
+    document.body.style.overflow =
+      "hidden";
 
-    function handleKeyDown(event) {
+    const focusTimer =
+      window.setTimeout(() => {
+        firstInputRef.current?.focus();
+      }, 60);
+
+    function onKeyDown(event) {
       if (event.key === "Escape") {
         onClose();
       }
     }
 
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener(
+      "keydown",
+      onKeyDown,
+    );
 
     return () => {
       window.clearTimeout(focusTimer);
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow =
+        previousOverflow;
+      document.removeEventListener(
+        "keydown",
+        onKeyDown,
+      );
     };
   }, [onClose]);
 
@@ -220,44 +209,59 @@ function PreorderModal({ product, language, labels, onClose }) {
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/shop?action=preorder", {
-        method: "POST",
-        credentials: "include",
-        cache: "no-store",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "/api/shop?action=preorder",
+        {
+          method: "POST",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            productId: product.id,
+            name,
+            email,
+            size,
+            quantity,
+            consent,
+            locale: language,
+            website,
+            startedAt,
+          }),
         },
-        body: JSON.stringify({
-          productId: product.id,
-          name,
-          email,
-          size,
-          quantity,
-          consent,
-          locale: language,
-          website,
-          startedAt,
-        }),
-      });
+      );
 
       let result;
 
       try {
         result = await response.json();
       } catch {
-        throw new Error("Сервер вернул некорректный ответ.");
+        throw new Error(
+          "Сервер вернул некорректный ответ.",
+        );
       }
 
-      if (!response.ok || result?.ok !== true) {
-        throw new Error(result?.message || "Не удалось отправить заявку.");
+      if (
+        !response.ok ||
+        result?.ok !== true
+      ) {
+        throw new Error(
+          result?.message ||
+            "Не удалось отправить заявку.",
+        );
       }
 
-      setReference(result.reference || "ISTE-WEAR");
+      setReference(
+        result.reference ||
+          "ISTE-WEAR",
+      );
     } catch (submitError) {
       setError(
         submitError?.message ||
-          "Не удалось отправить заявку. Попробуйте позже.",
+          "Не удалось отправить заявку.",
       );
     } finally {
       setSubmitting(false);
@@ -265,13 +269,18 @@ function PreorderModal({ product, language, labels, onClose }) {
   }
 
   return (
-    <div className="wear-modal-backdrop" onMouseDown={onClose}>
+    <div
+      className="wear-modal-backdrop"
+      onMouseDown={onClose}
+    >
       <section
         className="wear-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="wear-modal-title"
-        onMouseDown={(event) => event.stopPropagation()}
+        onMouseDown={(event) =>
+          event.stopPropagation()
+        }
       >
         <button
           className="wear-modal__close"
@@ -279,44 +288,60 @@ function PreorderModal({ product, language, labels, onClose }) {
           aria-label={labels.close}
           onClick={onClose}
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m6 6 12 12M18 6 6 18" />
-          </svg>
+          ×
         </button>
 
         <div className="wear-modal__head">
           <p>{product.collection}</p>
-          <h2 id="wear-modal-title">{labels.modalTitle}</h2>
+          <h2 id="wear-modal-title">
+            {labels.modalTitle}
+          </h2>
           <strong>{product.name}</strong>
-          <span>{labels.modalSubtitle}</span>
+          <span>{labels.modalText}</span>
         </div>
 
         {reference ? (
-          <div className="wear-success" role="status">
-            <span className="wear-success__icon">✓</span>
+          <div
+            className="wear-success"
+            role="status"
+          >
+            <span className="wear-success__icon">
+              ✓
+            </span>
             <h3>{labels.success}</h3>
             <p>{labels.successText}</p>
             <div className="wear-success__reference">
-              <small>{labels.reference}</small>
+              <small>
+                {labels.reference}
+              </small>
               <strong>{reference}</strong>
             </div>
-            <button type="button" onClick={onClose}>
+            <button
+              type="button"
+              onClick={onClose}
+            >
               {labels.close}
             </button>
           </div>
         ) : (
-          <form className="wear-form" onSubmit={handleSubmit}>
+          <form
+            className="wear-form"
+            onSubmit={handleSubmit}
+          >
             <label>
               <span>{labels.name}</span>
               <input
                 ref={firstInputRef}
                 type="text"
-                name="name"
                 autoComplete="name"
                 minLength={2}
                 maxLength={60}
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(event) =>
+                  setName(
+                    event.target.value,
+                  )
+                }
                 required
               />
             </label>
@@ -325,84 +350,129 @@ function PreorderModal({ product, language, labels, onClose }) {
               <span>{labels.email}</span>
               <input
                 type="email"
-                name="email"
                 autoComplete="email"
                 maxLength={254}
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) =>
+                  setEmail(
+                    event.target.value,
+                  )
+                }
                 required
               />
             </label>
 
-            <div className="wear-form__row">
-              <fieldset className="wear-size-picker">
-                <legend>{labels.size}</legend>
-                <div>
-                  {(product.sizes || []).map((item) => (
+            <fieldset className="wear-modal-sizes">
+              <legend>
+                {labels.size}
+              </legend>
+              <div>
+                {(product.sizes || []).map(
+                  (item) => (
                     <button
                       key={item}
                       type="button"
-                      className={size === item ? "is-active" : ""}
-                      onClick={() => setSize(item)}
-                      aria-pressed={size === item}
+                      className={
+                        size === item
+                          ? "is-active"
+                          : ""
+                      }
+                      onClick={() =>
+                        setSize(item)
+                      }
                     >
                       {item}
                     </button>
-                  ))}
-                </div>
-              </fieldset>
+                  ),
+                )}
+              </div>
+            </fieldset>
 
-              <label className="wear-quantity">
-                <span>{labels.quantity}</span>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((current) => Math.max(1, current - 1))}
-                    aria-label="Minus"
-                  >
-                    −
-                  </button>
-                  <strong>{quantity}</strong>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((current) => Math.min(3, current + 1))}
-                    aria-label="Plus"
-                  >
-                    +
-                  </button>
-                </div>
-              </label>
-            </div>
+            <label className="wear-quantity">
+              <span>
+                {labels.quantity}
+              </span>
+              <div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQuantity(
+                      (value) =>
+                        Math.max(
+                          1,
+                          value - 1,
+                        ),
+                    )
+                  }
+                >
+                  −
+                </button>
+                <strong>
+                  {quantity}
+                </strong>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQuantity(
+                      (value) =>
+                        Math.min(
+                          3,
+                          value + 1,
+                        ),
+                    )
+                  }
+                >
+                  +
+                </button>
+              </div>
+            </label>
 
             <label className="wear-consent">
               <input
                 type="checkbox"
                 checked={consent}
-                onChange={(event) => setConsent(event.target.checked)}
+                onChange={(event) =>
+                  setConsent(
+                    event.target.checked,
+                  )
+                }
                 required
               />
               <span>
                 {labels.consent}{" "}
-                <Link to="/privacy" target="_blank" rel="noreferrer">
+                <Link
+                  to="/privacy"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   {labels.privacy}
                 </Link>
               </span>
             </label>
 
-            <label className="wear-honeypot" aria-hidden="true">
+            <label
+              className="wear-honeypot"
+              aria-hidden="true"
+            >
               Website
               <input
                 type="text"
-                name="website"
                 tabIndex={-1}
                 autoComplete="off"
                 value={website}
-                onChange={(event) => setWebsite(event.target.value)}
+                onChange={(event) =>
+                  setWebsite(
+                    event.target.value,
+                  )
+                }
               />
             </label>
 
             {error ? (
-              <div className="wear-form__error" role="alert">
+              <div
+                className="wear-form__error"
+                role="alert"
+              >
                 {error}
               </div>
             ) : null}
@@ -410,9 +480,15 @@ function PreorderModal({ product, language, labels, onClose }) {
             <button
               className="wear-form__submit"
               type="submit"
-              disabled={submitting || !size || !consent}
+              disabled={
+                submitting ||
+                !size ||
+                !consent
+              }
             >
-              {submitting ? labels.sending : labels.submit}
+              {submitting
+                ? labels.sending
+                : labels.send}
             </button>
           </form>
         )}
@@ -424,42 +500,77 @@ function PreorderModal({ product, language, labels, onClose }) {
 export default function Shop() {
   const { language } = useLanguage();
   const { role } = useAuth();
-  const labels = copy[language] || copy.ru;
+  const labels =
+    copy[language] || copy.ru;
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] =
+    useState([]);
+  const [selectedSizes, setSelectedSizes] =
+    useState({});
+  const [selectedProduct, setSelectedProduct] =
+    useState(null);
+  const [loading, setLoading] =
+    useState(true);
   const [error, setError] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const productsRef = useRef(null);
 
   async function loadProducts() {
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("/api/shop?action=products", {
-        method: "GET",
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json",
+      const response = await fetch(
+        "/api/shop?action=products",
+        {
+          method: "GET",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+          },
         },
+      );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        result?.ok !== true
+      ) {
+        throw new Error(
+          result?.message ||
+            labels.error,
+        );
+      }
+
+      const nextProducts =
+        Array.isArray(result.products)
+          ? result.products
+          : [];
+
+      setProducts(nextProducts);
+
+      setSelectedSizes((current) => {
+        const next = { ...current };
+
+        nextProducts.forEach(
+          (product) => {
+            if (
+              !next[product.id] &&
+              product.sizes?.length
+            ) {
+              next[product.id] =
+                product.sizes[0];
+            }
+          },
+        );
+
+        return next;
       });
-
-      let result;
-
-      try {
-        result = await response.json();
-      } catch {
-        throw new Error(labels.errorText);
-      }
-
-      if (!response.ok || result?.ok !== true) {
-        throw new Error(result?.message || labels.errorText);
-      }
-
-      setProducts(Array.isArray(result.products) ? result.products : []);
     } catch (loadError) {
-      setError(loadError?.message || labels.errorText);
+      setError(
+        loadError?.message ||
+          labels.error,
+      );
     } finally {
       setLoading(false);
     }
@@ -467,150 +578,220 @@ export default function Shop() {
 
   useEffect(() => {
     void loadProducts();
-    // Text labels changing do not require a second network request.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const firstCollection = useMemo(
-    () => products[0]?.collection || "DROP 001 // CORE",
-    [products],
-  );
+  const orderedProducts =
+    useMemo(() => {
+      const rank = {
+        "iste-core-tee": 1,
+        "iste-core-hoodie": 2,
+        "iste-pro-jersey": 3,
+      };
 
-  function scrollToProducts() {
-    productsRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
+      return [...products].sort(
+        (a, b) =>
+          (rank[a.slug] ?? 99) -
+          (rank[b.slug] ?? 99),
+      );
+    }, [products]);
 
   return (
     <section className="wear-page">
-      <div className="wear-noise" aria-hidden="true" />
-      <div className="wear-hero-glow" aria-hidden="true" />
+      <div
+        className="wear-page__glow"
+        aria-hidden="true"
+      />
 
-      <header className="wear-hero">
-        <div className="wear-hero__copy">
-          <div className="wear-hero__brand">ISTe<span>WEAR</span></div>
-          <p className="wear-hero__kicker">{labels.heroKicker}</p>
-          <h1>{labels.heroTitle}</h1>
-          <p className="wear-hero__text">{labels.heroText}</p>
-
-          <div className="wear-hero__actions">
-            <button type="button" onClick={scrollToProducts}>
-              {labels.viewDrop}
-            </button>
-
-            {role === "owner" ? (
-              <Link to="/owner/shop" className="wear-owner-link">
-                {labels.admin}
-              </Link>
-            ) : null}
-          </div>
+      <header className="wear-catalog-head">
+        <div>
+          <span>
+            {labels.collection}
+          </span>
+          <strong>
+            {labels.drop}
+          </strong>
         </div>
 
-        <div className="wear-hero__visual" aria-hidden="true">
-          <div className="wear-orbit wear-orbit--one" />
-          <div className="wear-orbit wear-orbit--two" />
-          <div className="wear-hero__core">
-            <span>ISTe</span>
-            <small>DROP 001</small>
-          </div>
-          <div className="wear-hero__serial">CORE / 001 / 2026</div>
-        </div>
+        {role === "owner" ? (
+          <Link
+            className="wear-owner-link"
+            to="/owner/shop"
+          >
+            {labels.owner}
+          </Link>
+        ) : null}
       </header>
 
-      <div className="wear-trust-strip" aria-label="ISTe Wear">
-        <span>{labels.preorderNoPayment}</span>
-        <span>{labels.protectedApi}</span>
-        <span>{labels.firstDrop}</span>
-      </div>
-
-      <section className="wear-editorial">
-        <p>{firstCollection}</p>
-        <h2>{labels.editorialTitle}</h2>
-        <span>{labels.editorialText}</span>
-      </section>
-
-      <section className="wear-products" ref={productsRef}>
-        <div className="wear-products__head">
-          <span>{labels.collection}</span>
-          <h2>{firstCollection}</h2>
+      {loading ? (
+        <div className="wear-state">
+          <span className="wear-loader" />
+          <p>{labels.loading}</p>
         </div>
-
-        {loading ? (
-          <div className="wear-state">
-            <span className="wear-loader" aria-hidden="true" />
-            <p>{labels.loading}</p>
-          </div>
-        ) : error ? (
-          <div className="wear-state wear-state--error">
-            <h3>{labels.errorTitle}</h3>
-            <p>{error}</p>
-            <button type="button" onClick={() => void loadProducts()}>
-              {labels.retry}
-            </button>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="wear-state">
-            <p>{labels.empty}</p>
-          </div>
-        ) : (
-          <div className="wear-product-list">
-            {products.map((product, index) => {
-              const price = formatPrice(product.priceUah, language);
-              const unavailable = product.status === "soldout";
+      ) : error ? (
+        <div className="wear-state wear-state--error">
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() =>
+              void loadProducts()
+            }
+          >
+            {labels.retry}
+          </button>
+        </div>
+      ) : orderedProducts.length ===
+        0 ? (
+        <div className="wear-state">
+          <p>{labels.empty}</p>
+        </div>
+      ) : (
+        <div className="wear-catalog-grid">
+          {orderedProducts.map(
+            (product) => {
+              const image =
+                resolveProductImage(
+                  product,
+                );
+              const size =
+                selectedSizes[
+                  product.id
+                ] ||
+                product.sizes?.[0] ||
+                "";
+              const price =
+                formatPrice(
+                  product.priceUah,
+                  language,
+                );
+              const unavailable =
+                product.status ===
+                "soldout";
 
               return (
                 <article
-                  className={`wear-product${index % 2 === 1 ? " wear-product--reverse" : ""}`}
+                  className="wear-card"
                   key={product.id}
                 >
-                  <div className="wear-product__visual">
-                    <ProductVisual product={product} index={index} />
+                  <div className="wear-card__visual">
+                    <div className="wear-card__halo" />
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={product.name}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="wear-card__fallback">
+                        ISTe
+                      </div>
+                    )}
                   </div>
 
-                  <div className="wear-product__copy">
-                    <p>{product.collection}</p>
-                    <h3>{product.name}</h3>
-                    <strong>{price || labels.priceSoon}</strong>
-                    <span>{product.shortDescription}</span>
-                    <p className="wear-product__description">
-                      {product.description}
-                    </p>
+                  <div className="wear-card__body">
+                    <div className="wear-card__topline">
+                      <p>
+                        {product.collection}
+                      </p>
+                      <span>
+                        {price ||
+                          labels.priceSoon}
+                      </span>
+                    </div>
 
-                    <div className="wear-product__sizes" aria-label={labels.size}>
-                      {(product.sizes || []).map((item) => (
-                        <span key={item}>{item}</span>
-                      ))}
+                    <h2>
+                      {product.name}
+                    </h2>
+
+                    <div className="wear-card__sizes">
+                      <span>
+                        {labels.size}
+                      </span>
+                      <div>
+                        {(product.sizes ||
+                          []).map(
+                          (item) => (
+                            <button
+                              key={item}
+                              type="button"
+                              className={
+                                size ===
+                                item
+                                  ? "is-active"
+                                  : ""
+                              }
+                              disabled={
+                                unavailable
+                              }
+                              onClick={() =>
+                                setSelectedSizes(
+                                  (
+                                    current,
+                                  ) => ({
+                                    ...current,
+                                    [
+                                      product.id
+                                    ]:
+                                      item,
+                                  }),
+                                )
+                              }
+                            >
+                              {item}
+                            </button>
+                          ),
+                        )}
+                      </div>
                     </div>
 
                     <button
+                      className="wear-card__preorder"
                       type="button"
-                      disabled={unavailable}
-                      onClick={() => setSelectedProduct(product)}
+                      disabled={
+                        unavailable ||
+                        !size
+                      }
+                      onClick={() =>
+                        setSelectedProduct(
+                          {
+                            product,
+                            size,
+                          },
+                        )
+                      }
                     >
-                      {unavailable ? labels.soldout : labels.choose}
+                      {unavailable
+                        ? labels.soldout
+                        : labels.preorder}
                     </button>
                   </div>
                 </article>
               );
-            })}
-          </div>
-        )}
-      </section>
+            },
+          )}
+        </div>
+      )}
 
-      <footer className="wear-footer-note">
-        <span>ISTe Wear</span>
-        <strong>ONE TEAM. ONE GOAL.</strong>
-        <small>DROP 001 // CORE</small>
+      <footer className="wear-signature">
+        <span>ISTe WEAR</span>
+        <strong>
+          ONE TEAM. ONE GOAL.
+        </strong>
       </footer>
 
       {selectedProduct ? (
         <PreorderModal
-          product={selectedProduct}
+          product={
+            selectedProduct.product
+          }
+          initialSize={
+            selectedProduct.size
+          }
           language={language}
           labels={labels}
-          onClose={() => setSelectedProduct(null)}
+          onClose={() =>
+            setSelectedProduct(null)
+          }
         />
       ) : null}
     </section>
