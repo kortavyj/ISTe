@@ -44,19 +44,19 @@
       "kd": 1.48
     },
     {
-      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
-      "nickname": "infuriat3",
-      "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
+      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
+      "nickname": "tokyok1ng",
+      "avatar": "https://distribution.faceit-cdn.net/images/fb468a6a-fe2c-4028-a22e-0eb27c2e92a4.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
+      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
       "level": 10,
-      "elo": 2612,
+      "elo": 2316,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 55,
+      "winRate": 51,
       "kd": 1.25
     },
     {
@@ -76,19 +76,19 @@
       "kd": 1.11
     },
     {
-      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
-      "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/fb468a6a-fe2c-4028-a22e-0eb27c2e92a4.jpg",
+      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
+      "nickname": "infuriat3",
+      "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
+      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2316,
+      "elo": 2612,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
+      "winRate": 55,
       "kd": 1.25
     },
     {
@@ -1229,5 +1229,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-10T15:32:02.244Z"
+  "updatedAt": "2026-08-10T17:23:14.868Z"
 }
