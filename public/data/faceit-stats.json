@@ -5,10 +5,10 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 18,
-  "matches": 28,
-  "wins": 23,
-  "winRate": 82,
+  "tournaments": 19,
+  "matches": 29,
+  "wins": 24,
+  "winRate": 83,
   "players": 6,
   "roster": [
     {
@@ -57,7 +57,7 @@
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 58,
-      "kd": 1.29
+      "kd": 1.28
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -73,12 +73,12 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.12
+      "kd": 1.13
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
       "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/985432c8-6559-4347-ac32-f95936a7c53d.jpg",
+      "avatar": "https://distribution.faceit-cdn.net/images/f19287d4-d027-4f48-a46a-4dad9425f4f4.jpg",
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
@@ -88,8 +88,8 @@
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.27
+      "winRate": 52,
+      "kd": 1.28
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -109,6 +109,54 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-fc8b0a3c-113f-4298-a938-641121a3d58a",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-fc8b0a3c-113f-4298-a938-641121a3d58a",
+      "tournamentId": "59b2cf4c-148e-4371-8f21-19ed703be9a1",
+      "competitionName": "Late Night Mirage",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-08-10T20:08:09.000Z",
+      "startedAt": "2026-08-10T20:08:09.000Z",
+      "finishedAt": "2026-08-10T20:08:09.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 0
+      },
+      "opponent": {
+        "name": "Gnomy_Bes_Ruk",
+        "avatar": "https://distribution.faceit-cdn.net/images/dc67f288-aec4-4255-b522-12155e91fa3c.jpg",
+        "score": 1
+      }
+    },
+    {
+      "matchId": "1-250db984-5227-42a1-8454-6be69bf5295f",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-250db984-5227-42a1-8454-6be69bf5295f",
+      "tournamentId": "a1ccdfda-2370-4bcf-92c7-1e5129dd48fa",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-10T19:42:26.000Z",
+      "startedAt": "2026-08-10T19:42:26.000Z",
+      "finishedAt": "2026-08-10T20:18:35.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "poppers",
+        "avatar": "https://assets.faceit-cdn.net/avatars/a928af87-2c2a-4668-8907-2ae84f863c42_1550581201548.jpg",
+        "score": 10
+      }
+    },
     {
       "matchId": "1-801074d2-c8d7-43b7-8aa6-e0856e4bdd07",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-801074d2-c8d7-43b7-8aa6-e0856e4bdd07",
@@ -1286,14 +1334,14 @@
       }
     }
   ],
-  "teamMatchCount": 49,
+  "teamMatchCount": 51,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 47,
+    "historyMatchesFound": 49,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1301,5 +1349,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-10T20:00:52.010Z"
+  "updatedAt": "2026-08-10T20:51:06.375Z"
 }
