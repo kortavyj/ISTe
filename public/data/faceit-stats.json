@@ -51,7 +51,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2580,
+      "elo": 2605,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -99,7 +99,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2691,
+      "elo": 2716,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -1349,5 +1349,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-11T00:58:26.461Z"
+  "updatedAt": "2026-08-11T03:03:51.813Z"
 }
