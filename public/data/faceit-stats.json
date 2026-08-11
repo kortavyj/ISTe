@@ -44,22 +44,6 @@
       "kd": 1.54
     },
     {
-      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
-      "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/b2f88ad6-8a37-4928-b6e9-ecd4ae8186ff.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
-      "level": 10,
-      "elo": 2315,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 1.29
-    },
-    {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
       "nickname": "infuriat3",
       "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
@@ -68,9 +52,9 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2715,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 56,
       "kd": 1.25
@@ -90,6 +74,22 @@
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
       "kd": 1.12
+    },
+    {
+      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
+      "nickname": "tokyok1ng",
+      "avatar": "https://distribution.faceit-cdn.net/images/b2f88ad6-8a37-4928-b6e9-ecd4ae8186ff.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
+      "level": 10,
+      "elo": 2315,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 52,
+      "kd": 1.29
     },
     {
       "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-e0d7c20d-9c44-4c63-9ae4-506983554a4c",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-e0d7c20d-9c44-4c63-9ae4-506983554a4c",
+      "tournamentId": "00f9e870-05ad-462f-8b8b-b33d0579b63d",
+      "competitionName": "Late Night Nuke",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-08-11T20:50:41.000Z",
+      "startedAt": "2026-08-11T20:50:41.000Z",
+      "finishedAt": "2026-08-11T20:50:41.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 0
+      },
+      "opponent": {
+        "name": "smokedog",
+        "avatar": "https://distribution.faceit-cdn.net/images/248f6ab3-bf8d-4674-bde7-8aa0ba1feb5d.jpg",
+        "score": 1
+      }
+    },
     {
       "matchId": "1-f1d15a34-aa49-4ab7-806e-9ebf390379bb",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-f1d15a34-aa49-4ab7-806e-9ebf390379bb",
@@ -1398,14 +1422,14 @@
       }
     }
   ],
-  "teamMatchCount": 53,
+  "teamMatchCount": 54,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 51,
+    "historyMatchesFound": 52,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1413,5 +1437,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-11T20:06:47.041Z"
+  "updatedAt": "2026-08-11T20:58:54.463Z"
 }
