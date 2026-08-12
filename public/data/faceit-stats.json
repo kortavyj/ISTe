@@ -50,8 +50,8 @@
       "country": "it",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
-      "level": 9,
-      "elo": 1988,
+      "level": 10,
+      "elo": 2019,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -1437,5 +1437,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-12T03:51:10.777Z"
+  "updatedAt": "2026-08-12T06:47:37.448Z"
 }
