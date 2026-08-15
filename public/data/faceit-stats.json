@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 25,
-  "matches": 36,
-  "wins": 30,
-  "winRate": 83,
+  "matches": 37,
+  "wins": 31,
+  "winRate": 84,
   "players": 7,
   "roster": [
     {
@@ -41,7 +41,7 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
-      "kd": 1.55
+      "kd": 1.57
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -57,7 +57,7 @@
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 56,
-      "kd": 1.33
+      "kd": 1.34
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -73,7 +73,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.22
+      "kd": 1.21
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-e1143edc-c775-42fa-858f-1969796f0387",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-e1143edc-c775-42fa-858f-1969796f0387",
+      "tournamentId": "a9aea972-b66d-4edd-a5ac-69774e0dff6c",
+      "competitionName": "Late Night Ancient",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-15T20:39:37.000Z",
+      "startedAt": "2026-08-15T20:39:37.000Z",
+      "finishedAt": "2026-08-15T21:10:36.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "enTrix Esports",
+        "avatar": "https://distribution.faceit-cdn.net/images/8a37b630-7891-4103-8d08-24e83d72cb6d.jpeg",
+        "score": 6
+      }
+    },
     {
       "matchId": "1-cee51b96-234f-401c-9ff0-4ae0a6cd3675",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-cee51b96-234f-401c-9ff0-4ae0a6cd3675",
@@ -1638,14 +1662,14 @@
       }
     }
   ],
-  "teamMatchCount": 63,
+  "teamMatchCount": 64,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 61,
+    "historyMatchesFound": 62,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1653,5 +1677,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-15T21:09:11.675Z"
+  "updatedAt": "2026-08-15T21:32:41.983Z"
 }
