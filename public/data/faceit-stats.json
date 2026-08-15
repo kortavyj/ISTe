@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 24,
-  "matches": 34,
+  "matches": 35,
   "wins": 29,
-  "winRate": 85,
+  "winRate": 83,
   "players": 7,
   "roster": [
     {
@@ -41,7 +41,7 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
-      "kd": 1.57
+      "kd": 1.56
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -105,7 +105,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.18
+      "kd": 1.17
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -121,10 +121,34 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 56,
-      "kd": 1.33
+      "kd": 1.32
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-211360af-e092-4285-871c-8effe7dade2b",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-211360af-e092-4285-871c-8effe7dade2b",
+      "tournamentId": "87e285c1-643c-422d-9499-3a15207a7615",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-08-15T18:09:05.000Z",
+      "startedAt": "2026-08-15T18:09:05.000Z",
+      "finishedAt": "2026-08-15T18:58:03.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 11
+      },
+      "opponent": {
+        "name": "KANNGU AQUA",
+        "avatar": "https://distribution.faceit-cdn.net/images/d65d4390-958b-49c4-a9e2-9e316bbfab81.jpeg",
+        "score": 13
+      }
+    },
     {
       "matchId": "1-c7c33c5e-73ce-46c0-b536-abbb00e1c88b",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-c7c33c5e-73ce-46c0-b536-abbb00e1c88b",
@@ -1566,14 +1590,14 @@
       }
     }
   ],
-  "teamMatchCount": 60,
+  "teamMatchCount": 61,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 58,
+    "historyMatchesFound": 59,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1581,5 +1605,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-15T18:32:27.689Z"
+  "updatedAt": "2026-08-15T18:58:06.725Z"
 }
