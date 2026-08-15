@@ -44,20 +44,20 @@
       "kd": 1.57
     },
     {
-      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
-      "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/b2f88ad6-8a37-4928-b6e9-ecd4ae8186ff.jpg",
-      "country": "ua",
+      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
+      "nickname": "-c1louse",
+      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
+      "country": "it",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
+      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
-      "elo": 2336,
+      "elo": 2027,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 1.32
+      "winRate": 50,
+      "kd": 1.19
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -92,20 +92,20 @@
       "kd": 1.16
     },
     {
-      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
-      "nickname": "-c1louse",
-      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
-      "country": "it",
+      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
+      "nickname": "tokyok1ng",
+      "avatar": "https://distribution.faceit-cdn.net/images/b2f88ad6-8a37-4928-b6e9-ecd4ae8186ff.jpg",
+      "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
+      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
       "level": 10,
-      "elo": 2027,
+      "elo": 2336,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.19
+      "winRate": 52,
+      "kd": 1.32
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -1557,5 +1557,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-15T07:37:10.724Z"
+  "updatedAt": "2026-08-15T07:56:12.944Z"
 }
