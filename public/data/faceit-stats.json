@@ -120,7 +120,7 @@
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": null,
+      "winRate": 60,
       "kd": 1.35
     }
   ],
@@ -1797,5 +1797,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-16T20:49:11.697Z"
+  "updatedAt": "2026-08-16T21:01:51.844Z"
 }
