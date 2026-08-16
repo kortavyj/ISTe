@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 26,
-  "matches": 38,
-  "wins": 32,
-  "winRate": 84,
+  "matches": 39,
+  "wins": 33,
+  "winRate": 85,
   "players": 7,
   "roster": [
     {
@@ -41,23 +41,7 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
-      "kd": 1.63
-    },
-    {
-      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
-      "nickname": "-c1louse",
-      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
-      "country": "it",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
-      "level": 10,
-      "elo": 2014,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.16
+      "kd": 1.64
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -68,12 +52,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2888,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 56,
-      "kd": 1.34
+      "kd": 1.35
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -105,7 +89,23 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.32
+      "kd": 1.33
+    },
+    {
+      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
+      "nickname": "-c1louse",
+      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
+      "country": "it",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
+      "level": 10,
+      "elo": 2014,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.14
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-470517ac-4164-49a1-9e76-507ab9508413",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-470517ac-4164-49a1-9e76-507ab9508413",
+      "tournamentId": "f7e4ce98-2962-4285-8454-8cd5baa326e2",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-16T18:32:49.000Z",
+      "startedAt": "2026-08-16T18:32:49.000Z",
+      "finishedAt": "2026-08-16T18:58:07.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Artel",
+        "avatar": "https://distribution.faceit-cdn.net/images/4bfaee32-8297-4656-83aa-e2651c60fc6b.jpg",
+        "score": 5
+      }
+    },
     {
       "matchId": "1-8aa554e2-0126-491a-8e37-1feebd1b054c",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-8aa554e2-0126-491a-8e37-1feebd1b054c",
@@ -1710,14 +1734,14 @@
       }
     }
   ],
-  "teamMatchCount": 66,
+  "teamMatchCount": 67,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 64,
+    "historyMatchesFound": 65,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1725,5 +1749,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-16T18:34:27.767Z"
+  "updatedAt": "2026-08-16T18:58:25.870Z"
 }
