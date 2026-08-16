@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 26,
-  "matches": 39,
-  "wins": 33,
+  "matches": 40,
+  "wins": 34,
   "winRate": 85,
   "players": 7,
   "roster": [
@@ -28,6 +28,38 @@
       "kd": 0.97
     },
     {
+      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
+      "nickname": "Lor9n",
+      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
+      "level": 10,
+      "elo": 2572,
+      "role": "AWP",
+      "reason": "Лучшие снайперские показатели в доступной статистике",
+      "confidence": 82,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 53,
+      "kd": 1.66
+    },
+    {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2805,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 60,
+      "kd": 1.35
+    },
+    {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
       "nickname": "infuriat3",
       "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
@@ -36,9 +68,9 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2888,
-      "role": "AWP",
-      "reason": "Лучшие снайперские показатели в доступной статистике",
-      "confidence": 82,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 56,
       "kd": 1.35
@@ -52,28 +84,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
       "elo": 2390,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.21
-    },
-    {
-      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
-      "nickname": "Lor9n",
-      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
-      "level": 10,
-      "elo": 2572,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 53,
-      "kd": 1.64
+      "winRate": 51,
+      "kd": 1.22
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -89,7 +105,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.33
+      "kd": 1.35
     },
     {
       "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
@@ -100,31 +116,39 @@
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
       "elo": 2014,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.14
-    },
-    {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
-      "level": 10,
-      "elo": 2805,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
-      "kd": 1.35
+      "winRate": 50,
+      "kd": 1.14
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-a4add286-f6d1-4f03-ad2a-6d74ae76cfb1",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-a4add286-f6d1-4f03-ad2a-6d74ae76cfb1",
+      "tournamentId": "f7e4ce98-2962-4285-8454-8cd5baa326e2",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-16T19:41:04.000Z",
+      "startedAt": "2026-08-16T19:41:04.000Z",
+      "finishedAt": "2026-08-16T20:04:07.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "V3ntom FrankfurterStyle",
+        "avatar": "https://distribution.faceit-cdn.net/images/d6874654-7ded-4f82-a09e-f1a90e6fb120.jpg",
+        "score": 2
+      }
+    },
     {
       "matchId": "1-470517ac-4164-49a1-9e76-507ab9508413",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-470517ac-4164-49a1-9e76-507ab9508413",
@@ -1734,14 +1758,14 @@
       }
     }
   ],
-  "teamMatchCount": 67,
+  "teamMatchCount": 68,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 65,
+    "historyMatchesFound": 66,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1749,5 +1773,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-16T20:00:57.841Z"
+  "updatedAt": "2026-08-16T20:29:34.857Z"
 }
