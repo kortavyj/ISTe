@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 26,
-  "matches": 40,
-  "wins": 34,
+  "matches": 41,
+  "wins": 35,
   "winRate": 85,
   "players": 7,
   "roster": [
@@ -41,23 +41,7 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
-      "kd": 1.66
-    },
-    {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
-      "level": 10,
-      "elo": 2805,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
-      "kd": 1.35
+      "kd": 1.65
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -68,12 +52,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2888,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 56,
-      "kd": 1.35
+      "kd": 1.33
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -116,15 +100,55 @@
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
       "elo": 2014,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.14
+    },
+    {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/5c38298f-93fe-404e-8603-8e9b9ae16c4b.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2805,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.14
+      "winRate": null,
+      "kd": 1.35
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-08f44e4d-53f4-4786-983f-1ea85e1c0d50",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-08f44e4d-53f4-4786-983f-1ea85e1c0d50",
+      "tournamentId": "f7e4ce98-2962-4285-8454-8cd5baa326e2",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-16T20:07:56.000Z",
+      "startedAt": "2026-08-16T20:07:56.000Z",
+      "finishedAt": "2026-08-16T20:43:47.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Aquila",
+        "avatar": "https://distribution.faceit-cdn.net/images/b331b8c3-8313-4f98-bd46-24c39ebf2356.jpeg",
+        "score": 10
+      }
+    },
     {
       "matchId": "1-a4add286-f6d1-4f03-ad2a-6d74ae76cfb1",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-a4add286-f6d1-4f03-ad2a-6d74ae76cfb1",
@@ -1758,14 +1782,14 @@
       }
     }
   ],
-  "teamMatchCount": 68,
+  "teamMatchCount": 69,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 66,
+    "historyMatchesFound": 67,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1773,5 +1797,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-16T20:29:34.857Z"
+  "updatedAt": "2026-08-16T20:49:11.697Z"
 }
