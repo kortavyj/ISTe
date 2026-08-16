@@ -51,13 +51,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2828,
+      "elo": 2805,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 60,
-      "kd": 1.37
+      "kd": 1.36
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -67,13 +67,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2911,
+      "elo": 2888,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 56,
-      "kd": 1.33
+      "kd": 1.32
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -1797,5 +1797,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-16T22:37:49.239Z"
+  "updatedAt": "2026-08-16T22:54:28.237Z"
 }
