@@ -50,14 +50,14 @@
       "country": "it",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
-      "level": 10,
-      "elo": 2014,
+      "level": 9,
+      "elo": 1993,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.14
+      "kd": 1.13
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -1797,5 +1797,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-17T09:24:22.294Z"
+  "updatedAt": "2026-08-17T10:02:45.729Z"
 }
