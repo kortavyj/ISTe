@@ -28,22 +28,6 @@
       "kd": 0.97
     },
     {
-      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
-      "nickname": "Lor9n",
-      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
-      "level": 10,
-      "elo": 2572,
-      "role": "AWP",
-      "reason": "Лучшие снайперские показатели в доступной статистике",
-      "confidence": 82,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 53,
-      "kd": 1.65
-    },
-    {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
       "nickname": "infuriat3",
       "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
@@ -52,12 +36,28 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2913,
+      "role": "AWP",
+      "reason": "Лучшие снайперские показатели в доступной статистике",
+      "confidence": 82,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 56,
+      "kd": 1.32
+    },
+    {
+      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
+      "nickname": "Lor9n",
+      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
+      "level": 10,
+      "elo": 2572,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 56,
-      "kd": 1.32
+      "winRate": 53,
+      "kd": 1.65
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -1797,5 +1797,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-17T01:24:25.852Z"
+  "updatedAt": "2026-08-17T04:20:03.242Z"
 }
