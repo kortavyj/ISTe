@@ -51,13 +51,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2901,
+      "elo": 2876,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 60,
-      "kd": 1.32
+      "kd": 1.31
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -67,7 +67,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2984,
+      "elo": 2959,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -99,13 +99,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
       "level": 10,
-      "elo": 2340,
+      "elo": 2315,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.38
+      "kd": 1.37
     },
     {
       "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
@@ -115,13 +115,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 9,
-      "elo": 1826,
+      "elo": 1859,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.02
+      "kd": 1.03
     }
   ],
   "teamMatches": [
@@ -1965,5 +1965,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-18T21:41:00.572Z"
+  "updatedAt": "2026-08-18T21:56:35.942Z"
 }
