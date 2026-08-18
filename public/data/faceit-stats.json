@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 28,
-  "matches": 44,
-  "wins": 37,
+  "matches": 45,
+  "wins": 38,
   "winRate": 84,
   "players": 7,
   "roster": [
@@ -41,7 +41,7 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
-      "kd": 1.66
+      "kd": 1.67
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -73,7 +73,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.24
+      "kd": 1.26
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -99,13 +99,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 9,
-      "elo": 1848,
+      "elo": 1826,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.03
+      "kd": 1.02
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -121,10 +121,34 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 60,
-      "kd": 1.31
+      "kd": 1.32
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-cb87d36f-e295-46f4-b18d-6ce6d16fc7cb",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-cb87d36f-e295-46f4-b18d-6ce6d16fc7cb",
+      "tournamentId": "5e20f4f6-8ded-4607-a93e-2fd71ef6aba5",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-18T18:38:52.000Z",
+      "startedAt": "2026-08-18T18:38:52.000Z",
+      "finishedAt": "2026-08-18T19:02:16.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Apfel des Todes",
+        "avatar": "https://distribution.faceit-cdn.net/images/473a5b74-989f-476a-bf6e-32c757edc504.jpg",
+        "score": 2
+      }
+    },
     {
       "matchId": "1-340e7fb7-f39e-46b5-b73a-17322221892f",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-340e7fb7-f39e-46b5-b73a-17322221892f",
@@ -1878,14 +1902,14 @@
       }
     }
   ],
-  "teamMatchCount": 73,
+  "teamMatchCount": 74,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 71,
+    "historyMatchesFound": 72,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1893,5 +1917,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-18T18:35:24.383Z"
+  "updatedAt": "2026-08-18T19:08:59.259Z"
 }
