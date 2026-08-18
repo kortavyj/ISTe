@@ -44,22 +44,6 @@
       "kd": 1.66
     },
     {
-      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
-      "nickname": "-c1louse",
-      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
-      "country": "it",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
-      "level": 9,
-      "elo": 1814,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.02
-    },
-    {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
       "nickname": "infuriat3",
       "avatar": "https://distribution.faceit-cdn.net/images/94de72dc-7dbd-4143-a89d-5c2c599a5f18.jpg",
@@ -67,13 +51,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2939,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "elo": 2964,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 56,
-      "kd": 1.32
+      "kd": 1.3
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -108,6 +92,22 @@
       "kd": 1.37
     },
     {
+      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
+      "nickname": "-c1louse",
+      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
+      "country": "it",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
+      "level": 9,
+      "elo": 1814,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.02
+    },
+    {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
       "nickname": "Perinamara",
       "avatar": "https://distribution.faceit-cdn.net/images/d48251b6-74ca-4baa-90b4-f419e5f07284.jpg",
@@ -115,7 +115,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2856,
+      "elo": 2881,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -1869,5 +1869,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-18T17:02:23.499Z"
+  "updatedAt": "2026-08-18T17:35:20.297Z"
 }
