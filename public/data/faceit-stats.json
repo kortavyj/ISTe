@@ -1957,7 +1957,7 @@
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 71,
+    "historyMatchesFound": 74,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1965,5 +1965,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-19T15:54:21.488Z"
+  "updatedAt": "2026-08-19T16:17:46.510Z"
 }
