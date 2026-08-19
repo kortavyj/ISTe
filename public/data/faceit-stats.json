@@ -78,7 +78,7 @@
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
       "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/66e0cef2-e7e9-4e35-b88b-3076492b8ff4.jpg",
+      "avatar": "https://distribution.faceit-cdn.net/images/c5f2f4ec-f58f-4835-9238-600506acbce6.jpg",
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
@@ -1965,5 +1965,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-19T14:19:22.485Z"
+  "updatedAt": "2026-08-19T14:56:20.350Z"
 }
