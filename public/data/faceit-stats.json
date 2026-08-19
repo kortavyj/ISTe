@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 29,
-  "matches": 48,
+  "matches": 49,
   "wins": 41,
-  "winRate": 85,
+  "winRate": 84,
   "players": 7,
   "roster": [
     {
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-ceb034d3-c95f-4b95-8cc7-9a4026d09b14",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-ceb034d3-c95f-4b95-8cc7-9a4026d09b14",
+      "tournamentId": "77ebda43-b103-46a9-a7e7-b90936c00b2c",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-08-19T18:37:24.000Z",
+      "startedAt": "2026-08-19T18:37:24.000Z",
+      "finishedAt": "2026-08-19T19:12:15.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 10
+      },
+      "opponent": {
+        "name": "G_E_T Clan",
+        "avatar": "https://distribution.faceit-cdn.net/images/146214f2-efc2-4f42-a25d-ef31f4d42177.jpeg",
+        "score": 13
+      }
+    },
     {
       "matchId": "1-9c311e5c-b0e3-481f-8be9-5928ff8bfe1e",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-9c311e5c-b0e3-481f-8be9-5928ff8bfe1e",
@@ -1974,14 +1998,14 @@
       }
     }
   ],
-  "teamMatchCount": 77,
+  "teamMatchCount": 78,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 75,
+    "historyMatchesFound": 76,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -1989,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-19T19:03:05.479Z"
+  "updatedAt": "2026-08-19T19:33:14.830Z"
 }
