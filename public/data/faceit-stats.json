@@ -83,13 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
       "level": 10,
-      "elo": 2282,
+      "elo": 2312,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.37
+      "kd": 1.38
     },
     {
       "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
@@ -2013,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-21T20:44:20.451Z"
+  "updatedAt": "2026-08-21T21:01:16.439Z"
 }
