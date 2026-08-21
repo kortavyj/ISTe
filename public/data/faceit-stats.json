@@ -44,6 +44,22 @@
       "kd": 1.68
     },
     {
+      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
+      "nickname": "-c1louse",
+      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
+      "country": "by",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
+      "level": 9,
+      "elo": 1918,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.07
+    },
+    {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
       "nickname": "infuriat3",
       "avatar": "https://distribution.faceit-cdn.net/images/dea90567-b53e-42ff-9ccf-3be34e1013e8.jpg",
@@ -52,9 +68,9 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 3001,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 57,
       "kd": 1.25
@@ -90,22 +106,6 @@
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
       "kd": 1.37
-    },
-    {
-      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
-      "nickname": "-c1louse",
-      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
-      "country": "by",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
-      "level": 9,
-      "elo": 1918,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.07
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -2013,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-21T05:18:23.329Z"
+  "updatedAt": "2026-08-21T06:20:06.271Z"
 }
