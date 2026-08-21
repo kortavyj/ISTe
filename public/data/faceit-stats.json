@@ -51,12 +51,12 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 2977,
+      "elo": 2998,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 56,
+      "winRate": 57,
       "kd": 1.25
     },
     {
@@ -83,7 +83,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
       "level": 10,
-      "elo": 2261,
+      "elo": 2282,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -99,7 +99,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 9,
-      "elo": 1945,
+      "elo": 1921,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -2013,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-21T18:14:29.065Z"
+  "updatedAt": "2026-08-21T18:56:44.079Z"
 }
