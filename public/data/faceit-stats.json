@@ -99,7 +99,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 9,
-      "elo": 1926,
+      "elo": 1901,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -2013,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-22T18:14:27.836Z"
+  "updatedAt": "2026-08-22T19:11:10.110Z"
 }
