@@ -93,11 +93,11 @@
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
-      "nickname": "JaeyBxrd",
+      "nickname": "tokyok1ng",
       "avatar": "https://distribution.faceit-cdn.net/images/b28df27f-11fe-406c-a2be-eabfe90a4eb9.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/JaeyBxrd",
+      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
       "level": 10,
       "elo": 2359,
       "role": "RIFLER",
@@ -2013,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-23T13:07:12.528Z"
+  "updatedAt": "2026-08-23T14:24:48.265Z"
 }
