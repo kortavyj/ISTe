@@ -35,29 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2722,
+      "elo": 2751,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
       "kd": 1.63
-    },
-    {
-      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
-      "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/b28df27f-11fe-406c-a2be-eabfe90a4eb9.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
-      "level": 10,
-      "elo": 2389,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 1.38
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -68,9 +52,9 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 3013,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 57,
       "kd": 1.28
@@ -83,13 +67,29 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2690,
+      "elo": 2719,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
       "kd": 1.37
+    },
+    {
+      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
+      "nickname": "tokyok1ng",
+      "avatar": "https://distribution.faceit-cdn.net/images/b28df27f-11fe-406c-a2be-eabfe90a4eb9.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
+      "level": 10,
+      "elo": 2359,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 52,
+      "kd": 1.38
     },
     {
       "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
@@ -2013,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-23T17:36:13.316Z"
+  "updatedAt": "2026-08-23T17:52:51.146Z"
 }
