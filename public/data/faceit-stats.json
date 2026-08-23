@@ -73,7 +73,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.36
+      "kd": 1.38
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -99,7 +99,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 9,
-      "elo": 1927,
+      "elo": 1904,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -2013,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-23T16:01:37.532Z"
+  "updatedAt": "2026-08-23T16:34:44.723Z"
 }
