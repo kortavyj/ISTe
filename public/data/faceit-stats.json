@@ -67,7 +67,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2719,
+      "elo": 2689,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -2013,5 +2013,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-24T14:21:11.257Z"
+  "updatedAt": "2026-08-24T15:05:10.880Z"
 }
