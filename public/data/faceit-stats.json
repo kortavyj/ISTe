@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 31,
-  "matches": 52,
-  "wins": 44,
+  "matches": 53,
+  "wins": 45,
   "winRate": 85,
   "players": 7,
   "roster": [
@@ -41,7 +41,7 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.64
+      "kd": 1.65
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -56,8 +56,8 @@
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 56,
-      "kd": 1.28
+      "winRate": 57,
+      "kd": 1.29
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -99,7 +99,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 9,
-      "elo": 1948,
+      "elo": 1923,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-8093cfcf-9108-442a-b4eb-1a448f3026ce",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-8093cfcf-9108-442a-b4eb-1a448f3026ce",
+      "tournamentId": "e7277eee-9303-45c5-aa21-aa5699f7956e",
+      "competitionName": "Late Night Mirage",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-24T20:45:01.000Z",
+      "startedAt": "2026-08-24T20:45:01.000Z",
+      "finishedAt": "2026-08-24T21:06:33.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Svinopasy",
+        "avatar": "https://distribution.faceit-cdn.net/images/9237f7f5-739d-49fb-8c70-56683a6564dc.jpg",
+        "score": 2
+      }
+    },
     {
       "matchId": "1-cc3b0c7d-d299-4c2b-b70c-e1fa48ead468",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-cc3b0c7d-d299-4c2b-b70c-e1fa48ead468",
@@ -2118,7 +2142,7 @@
       }
     }
   ],
-  "teamMatchCount": 83,
+  "teamMatchCount": 84,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
@@ -2133,5 +2157,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-24T20:47:09.534Z"
+  "updatedAt": "2026-08-24T21:13:17.531Z"
 }
