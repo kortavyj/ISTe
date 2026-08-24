@@ -5,7 +5,7 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 30,
+  "tournaments": 31,
   "matches": 51,
   "wins": 43,
   "winRate": 84,
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-42924a15-0bee-40be-9673-b09b94c901ff",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-42924a15-0bee-40be-9673-b09b94c901ff",
+      "tournamentId": "e7277eee-9303-45c5-aa21-aa5699f7956e",
+      "competitionName": "Late Night Mirage",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-24T20:05:58.000Z",
+      "startedAt": "2026-08-24T20:05:58.000Z",
+      "finishedAt": "2026-08-24T20:05:58.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "team_backstage9",
+        "avatar": "https://distribution.faceit-cdn.net/images/e62327e4-ae60-4cf4-b166-c295d2f0b6fa.jpg",
+        "score": 0
+      }
+    },
     {
       "matchId": "1-b9e402f3-52c2-4904-8c44-7410fb8b7ff0",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-b9e402f3-52c2-4904-8c44-7410fb8b7ff0",
@@ -2070,7 +2094,7 @@
       }
     }
   ],
-  "teamMatchCount": 81,
+  "teamMatchCount": 82,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
@@ -2085,5 +2109,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-24T19:48:37.444Z"
+  "updatedAt": "2026-08-24T20:11:31.652Z"
 }
