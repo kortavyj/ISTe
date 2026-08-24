@@ -5,7 +5,7 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 29,
+  "tournaments": 30,
   "matches": 49,
   "wins": 41,
   "winRate": 84,
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-2c39a26a-983a-4f7d-8ef1-86893c0fec6f",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-2c39a26a-983a-4f7d-8ef1-86893c0fec6f",
+      "tournamentId": "32a139b1-2408-4409-bcdb-2f1061964279",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-24T17:59:01.000Z",
+      "startedAt": "2026-08-24T17:59:01.000Z",
+      "finishedAt": "2026-08-24T17:59:01.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
     {
       "matchId": "1-ceb034d3-c95f-4b95-8cc7-9a4026d09b14",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-ceb034d3-c95f-4b95-8cc7-9a4026d09b14",
@@ -1998,7 +2022,7 @@
       }
     }
   ],
-  "teamMatchCount": 78,
+  "teamMatchCount": 79,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
@@ -2013,5 +2037,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-24T17:31:43.583Z"
+  "updatedAt": "2026-08-24T18:00:35.939Z"
 }
