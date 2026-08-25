@@ -5,6 +5,59 @@ import "./Roster.css";
 
 const EXCLUDED_PLAYER = "kortavyj";
 
+const MAIN_ROSTER_ORDER = Object.freeze([
+  "perinamara",
+  "infuriat3",
+  "lor9n",
+  "silryd",
+  "tokyok1ng",
+]);
+
+const ROLE_OVERRIDES = Object.freeze({
+  infuriat3: "AWP",
+  infuriat: "AWP",
+  lor9n: "AWP",
+  perinamara: "ENTRY",
+  silryd: "RIFLER",
+  tokyok1ng: "RIFLER",
+  "-c1louse": "SUPPORT",
+  c1louse: "SUPPORT",
+});
+
+const CAPTAIN_NICKNAME = "lor9n";
+
+function normalizeNickname(nickname) {
+  return String(nickname || "")
+    .trim()
+    .toLowerCase();
+}
+
+function isSubstitute(player) {
+  const nickname = normalizeNickname(
+    player?.nickname,
+  );
+
+  return (
+    nickname === "-c1louse" ||
+    nickname === "c1louse"
+  );
+}
+
+function getRosterOrder(player) {
+  const nickname = normalizeNickname(
+    player?.nickname,
+  );
+
+  const index =
+    MAIN_ROSTER_ORDER.indexOf(
+      nickname,
+    );
+
+  return index === -1
+    ? 999
+    : index;
+}
+
 function countryToFlag(countryCode) {
   if (
     !countryCode ||
@@ -23,6 +76,28 @@ function countryToFlag(countryCode) {
       ),
     )
     .join("");
+}
+
+function CrownIcon() {
+  return (
+    <svg
+      className="player-crown"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        d="M3 7.5 7.2 11 12 5l4.8 6L21 7.5l-1.6 9.2H4.6L3 7.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M5 19h14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }
 
 function PlayerAvatar({ player }) {
@@ -54,8 +129,12 @@ function PlayerAvatar({ player }) {
   );
 }
 
-function PlayerCard({ player }) {
-  const { t } = useLanguage();
+function PlayerCard({
+  player,
+  substitute = false,
+}) {
+  const { t, language } =
+    useLanguage();
 
   const faceitUrl =
     player.faceitUrl ||
@@ -71,8 +150,18 @@ function PlayerCard({ player }) {
       ? player.level
       : "?";
 
+  const nickname =
+    normalizeNickname(
+      player.nickname,
+    );
+
+  const isCaptain =
+    nickname === CAPTAIN_NICKNAME;
+
   const roleLabel =
-    player.role || "RIFLER";
+    ROLE_OVERRIDES[nickname] ||
+    player.role ||
+    "RIFLER";
 
   const roleDescription =
     player.reason ||
@@ -80,9 +169,26 @@ function PlayerCard({ player }) {
       "home.roster.roleFallback",
     );
 
+  const captainTitle =
+    language === "uk"
+      ? "Капітан команди"
+      : language === "en"
+        ? "Team captain"
+        : "Капитан команды";
+
   return (
     <a
-      className="player-card"
+      className={[
+        "player-card",
+        isCaptain
+          ? "player-card--captain"
+          : "",
+        substitute
+          ? "player-card--substitute"
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       href={faceitUrl}
       target="_blank"
       rel="noreferrer"
@@ -101,6 +207,16 @@ function PlayerCard({ player }) {
         ↗
       </span>
 
+      {isCaptain ? (
+        <span
+          className="player-card__captain-mark"
+          title={captainTitle}
+          aria-label={captainTitle}
+        >
+          <CrownIcon />
+        </span>
+      ) : null}
+
       <PlayerAvatar
         player={player}
       />
@@ -109,6 +225,16 @@ function PlayerCard({ player }) {
         <h3>
           {player.nickname}
         </h3>
+
+        {isCaptain ? (
+          <span
+            className="player-card__inline-crown"
+            title={captainTitle}
+            aria-label={captainTitle}
+          >
+            <CrownIcon />
+          </span>
+        ) : null}
 
         {flag ? (
           <span
@@ -131,20 +257,18 @@ function PlayerCard({ player }) {
         <span className="player-level">
           FACEIT LVL {level}
         </span>
-
-        {player.captain ? (
-          <span className="player-captain">
-            {t(
-              "home.roster.captain",
-            )}
-          </span>
-        ) : null}
       </div>
 
       <span className="player-role-note">
-        {t(
-          "home.roster.roleNote",
-        )}
+        {substitute
+          ? language === "uk"
+            ? "ГРАВЕЦЬ ЗАМІНИ"
+            : language === "en"
+              ? "SUBSTITUTE PLAYER"
+              : "ИГРОК ЗАМЕНЫ"
+          : t(
+              "home.roster.roleNote",
+            )}
       </span>
     </a>
   );
@@ -182,7 +306,8 @@ function RosterSkeleton() {
 }
 
 export default function Roster() {
-  const { t } = useLanguage();
+  const { t, language } =
+    useLanguage();
 
   const {
     stats,
@@ -195,14 +320,34 @@ export default function Roster() {
     Array.isArray(stats.roster)
       ? stats.roster.filter(
           (player) =>
-            String(
-              player.nickname || "",
-            )
-              .trim()
-              .toLowerCase() !==
+            normalizeNickname(
+              player.nickname,
+            ) !==
             EXCLUDED_PLAYER,
         )
       : [];
+
+  const mainRoster = roster
+    .filter(
+      (player) =>
+        !isSubstitute(player),
+    )
+    .sort(
+      (left, right) =>
+        getRosterOrder(left) -
+        getRosterOrder(right),
+    );
+
+  const substitutes = roster.filter(
+    isSubstitute,
+  );
+
+  const substituteTitle =
+    language === "uk"
+      ? "ЗАМІНА"
+      : language === "en"
+        ? "SUBSTITUTE"
+        : "ЗАМЕНА";
 
   return (
     <section
@@ -220,14 +365,14 @@ export default function Roster() {
       </header>
 
       {loading &&
-      roster.length === 0 ? (
+      mainRoster.length === 0 ? (
         <RosterSkeleton />
       ) : null}
 
       {!loading &&
-      roster.length > 0 ? (
+      mainRoster.length > 0 ? (
         <div className="roster-grid">
-          {roster.map(
+          {mainRoster.map(
             (player) => (
               <PlayerCard
                 player={player}
@@ -238,6 +383,34 @@ export default function Roster() {
               />
             ),
           )}
+        </div>
+      ) : null}
+
+      {!loading &&
+      substitutes.length > 0 ? (
+        <div className="roster-substitutes">
+          <div className="roster-substitutes__title">
+            <span />
+            <strong>
+              {substituteTitle}
+            </strong>
+            <span />
+          </div>
+
+          <div className="roster-substitutes__grid">
+            {substitutes.map(
+              (player) => (
+                <PlayerCard
+                  player={player}
+                  substitute
+                  key={
+                    player.playerId ||
+                    player.nickname
+                  }
+                />
+              ),
+            )}
+          </div>
         </div>
       ) : null}
 
