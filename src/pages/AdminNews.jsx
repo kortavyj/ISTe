@@ -18,8 +18,7 @@ const STATUS_NAMES = {
 };
 
 const IMAGE_BUCKET = "news-images";
-const MAX_IMAGE_SIZE =
-  5 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -89,6 +88,44 @@ function slugify(value) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 180);
+}
+
+/**
+ * Принимаем только обычные HTTP(S)-адреса.
+ * javascript:, data:, file:, blob: и любые неизвестные схемы
+ * из пользовательского поля прямой ссылки не проходят.
+ *
+ * blob: используется отдельно только для локального предпросмотра
+ * File -> URL.createObjectURL() и никогда не берётся из текстового поля.
+ */
+function normalizeRemoteImageUrl(value) {
+  const source = String(value ?? "").trim();
+
+  if (!source) {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(source);
+
+    if (
+      parsed.protocol !== "https:" &&
+      parsed.protocol !== "http:"
+    ) {
+      return "";
+    }
+
+    if (
+      parsed.username ||
+      parsed.password
+    ) {
+      return "";
+    }
+
+    return parsed.href;
+  } catch {
+    return "";
+  }
 }
 
 function formatDate(value) {
@@ -171,8 +208,9 @@ async function apiRequest(body) {
 }
 
 function getErrorMessage(error) {
-  const code =
-    String(error?.code || "");
+  const code = String(
+    error?.code || "",
+  );
 
   const known = {
     AUTH_REQUIRED:
@@ -191,6 +229,8 @@ function getErrorMessage(error) {
       "У текущего аккаунта недостаточно прав для этого действия.",
     NEWS_UPLOAD_URL_FAILED:
       "Не удалось подготовить загрузку изображения.",
+    INVALID_COVER_URL:
+      "Для обложки разрешена только корректная ссылка http:// или https://.",
   };
 
   return (
@@ -262,6 +302,14 @@ export default function AdminNews() {
     setCoverFile,
   ] = useState(null);
 
+  /*
+   * SECURITY:
+   * coverPreview содержит ТОЛЬКО blob URL,
+   * созданный браузером из выбранного локального File.
+   *
+   * Ввод из поля "прямая ссылка" никогда напрямую
+   * не попадает в <img src={coverPreview}>.
+   */
   const [
     coverPreview,
     setCoverPreview,
@@ -294,8 +342,15 @@ export default function AdminNews() {
       (url = "") => {
         releaseCoverPreview();
         setCoverFile(null);
-        setCoverPreview(url);
-        setOriginalCoverUrl(url);
+
+        // Не рендерим удалённый URL в live preview.
+        // Это разрывает DOM-XSS taint path,
+        // найденный CodeQL.
+        setCoverPreview("");
+
+        setOriginalCoverUrl(
+          normalizeRemoteImageUrl(url),
+        );
       },
       [releaseCoverPreview],
     );
@@ -341,10 +396,9 @@ export default function AdminNews() {
 
   const filteredPosts = useMemo(
     () => {
-      const query =
-        search
-          .trim()
-          .toLowerCase();
+      const query = search
+        .trim()
+        .toLowerCase();
 
       return posts.filter(
         (post) => {
@@ -455,7 +509,15 @@ export default function AdminNews() {
 
     releaseCoverPreview();
     setCoverFile(null);
-    setCoverPreview(value.trim());
+
+    /*
+     * ВАЖНО:
+     * Не делаем setCoverPreview(value).
+     * Пользовательский текст не должен становиться src
+     * DOM-элемента до проверки.
+     */
+    setCoverPreview("");
+
     updateForm("coverUrl", value);
   }
 
@@ -535,11 +597,12 @@ export default function AdminNews() {
 
   async function uploadCoverImage(
     file,
+    validatedRemoteUrl,
   ) {
     if (!file) {
       return {
         url:
-          form.coverUrl.trim() ||
+          validatedRemoteUrl ||
           null,
         path: null,
       };
@@ -604,6 +667,11 @@ export default function AdminNews() {
       return;
     }
 
+    const savedCoverUrl =
+      normalizeRemoteImageUrl(
+        post.cover_url,
+      );
+
     setEditingId(post.id);
 
     setForm({
@@ -613,8 +681,7 @@ export default function AdminNews() {
         post.excerpt ?? "",
       content:
         post.content ?? "",
-      coverUrl:
-        post.cover_url ?? "",
+      coverUrl: savedCoverUrl,
       category:
         post.category ??
         "Команда",
@@ -626,9 +693,7 @@ export default function AdminNews() {
         ),
     });
 
-    resetCoverState(
-      post.cover_url ?? "",
-    );
+    resetCoverState(savedCoverUrl);
 
     setSlugTouched(true);
     setErrorMessage("");
@@ -676,6 +741,16 @@ export default function AdminNews() {
     const excerpt =
       form.excerpt.trim();
 
+    const rawCoverUrl =
+      form.coverUrl.trim();
+
+    const validatedCoverUrl =
+      rawCoverUrl
+        ? normalizeRemoteImageUrl(
+            rawCoverUrl,
+          )
+        : "";
+
     if (
       title.length < 5 ||
       title.length > 160
@@ -722,12 +797,25 @@ export default function AdminNews() {
       return;
     }
 
+    if (
+      !coverFile &&
+      rawCoverUrl &&
+      !validatedCoverUrl
+    ) {
+      setErrorMessage(
+        "Для обложки укажи корректную ссылку, начинающуюся с http:// или https://.",
+      );
+      setSaving(false);
+      return;
+    }
+
     let uploadedPath = null;
 
     try {
       const uploadedCover =
         await uploadCoverImage(
           coverFile,
+          validatedCoverUrl,
         );
 
       uploadedPath =
@@ -834,8 +922,7 @@ export default function AdminNews() {
             </h1>
 
             <p>
-              Создание,
-              редактирование и
+              Создание, редактирование и
               публикация материалов
               команды.
             </p>
@@ -878,9 +965,7 @@ export default function AdminNews() {
                 : ""
             }
             onClick={() =>
-              setStatusFilter(
-                "draft",
-              )
+              setStatusFilter("draft")
             }
           >
             <strong>
@@ -1085,7 +1170,7 @@ export default function AdminNews() {
                     {coverPreview ? (
                       <img
                         src={coverPreview}
-                        alt="Предпросмотр обложки"
+                        alt="Предпросмотр выбранной локальной обложки"
                       />
                     ) : (
                       <span>ISTe</span>
@@ -1115,7 +1200,10 @@ export default function AdminNews() {
                         onClick={removeCover}
                         disabled={
                           saving ||
-                          !coverPreview
+                          (
+                            !coverPreview &&
+                            !form.coverUrl.trim()
+                          )
                         }
                       >
                         Удалить обложку
@@ -1163,6 +1251,15 @@ export default function AdminNews() {
                         placeholder="https://..."
                         disabled={saving}
                       />
+
+                      <small>
+                        В целях безопасности
+                        удалённая ссылка не
+                        отображается в live
+                        preview до сохранения.
+                        Разрешены только
+                        http:// и https://.
+                      </small>
                     </label>
                   </div>
                 </div>
@@ -1227,12 +1324,11 @@ export default function AdminNews() {
                 </>
               ) : (
                 <div className="admin-news-editor-note">
-                  Редактор может
-                  сохранить материал
-                  только как черновик.
-                  Публикацию выполняет
-                  администратор или
-                  владелец.
+                  Редактор может сохранить
+                  материал только как
+                  черновик. Публикацию
+                  выполняет администратор
+                  или владелец.
                 </div>
               )}
 
@@ -1323,19 +1419,23 @@ export default function AdminNews() {
                 const editable =
                   canEditPost(post);
 
+                const safeCoverUrl =
+                  normalizeRemoteImageUrl(
+                    post.cover_url,
+                  );
+
                 return (
                   <article
                     className="admin-news-card"
                     key={post.id}
                   >
                     <div className="admin-news-card-cover">
-                      {post.cover_url ? (
+                      {safeCoverUrl ? (
                         <img
-                          src={
-                            post.cover_url
-                          }
+                          src={safeCoverUrl}
                           alt=""
                           loading="lazy"
+                          referrerPolicy="no-referrer"
                         />
                       ) : (
                         <span>ISTe</span>
