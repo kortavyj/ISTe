@@ -19,7 +19,7 @@
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
       "level": 5,
-      "elo": 1171,
+      "elo": 1144,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
@@ -2181,5 +2181,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-25T22:17:51.478Z"
+  "updatedAt": "2026-08-25T22:48:13.348Z"
 }
