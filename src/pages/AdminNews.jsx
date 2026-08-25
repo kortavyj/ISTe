@@ -304,11 +304,9 @@ export default function AdminNews() {
 
   /*
    * SECURITY:
-   * coverPreview содержит ТОЛЬКО blob URL,
-   * созданный браузером из выбранного локального File.
-   *
-   * Ввод из поля "прямая ссылка" никогда напрямую
-   * не попадает в <img src={coverPreview}>.
+   * coverPreview больше не используется как DOM image source.
+   * Пользовательский ввод и локальный File не подставляются
+   * напрямую в <img src> внутри редактора.
    */
   const [
     coverPreview,
@@ -1167,11 +1165,13 @@ export default function AdminNews() {
 
                 <div className="admin-news-cover-editor">
                   <div className="admin-news-cover-preview">
-                    {coverPreview ? (
-                      <img
-                        src={coverPreview}
-                        alt="Предпросмотр выбранной локальной обложки"
-                      />
+                    {coverFile ? (
+                      <span
+                        title={coverFile.name}
+                        aria-label="Изображение выбрано"
+                      >
+                        IMAGE READY
+                      </span>
                     ) : (
                       <span>ISTe</span>
                     )}
@@ -1201,7 +1201,7 @@ export default function AdminNews() {
                         disabled={
                           saving ||
                           (
-                            !coverPreview &&
+                            !coverFile &&
                             !form.coverUrl.trim()
                           )
                         }
