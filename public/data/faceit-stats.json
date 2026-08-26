@@ -5,9 +5,9 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 31,
-  "matches": 54,
-  "wins": 46,
+  "tournaments": 32,
+  "matches": 55,
+  "wins": 47,
   "winRate": 85,
   "players": 7,
   "roster": [
@@ -41,23 +41,7 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.65
-    },
-    {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
-      "level": 10,
-      "elo": 2874,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
-      "kd": 1.28
+      "kd": 1.66
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -68,12 +52,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2956,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 57,
-      "kd": 1.28
+      "kd": 1.29
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -89,7 +73,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.47
+      "kd": 1.48
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -105,7 +89,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.42
+      "kd": 1.44
     },
     {
       "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
@@ -116,15 +100,79 @@
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
       "elo": 2027,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.14
+    },
+    {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2899,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.14
+      "winRate": 60,
+      "kd": 1.31
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-fb7ae702-d760-4d96-9d7b-5c663c930e72",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-fb7ae702-d760-4d96-9d7b-5c663c930e72",
+      "tournamentId": "ae2b14bb-051a-4310-bb3e-e748b9158594",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-26T18:15:55.000Z",
+      "startedAt": "2026-08-26T18:15:55.000Z",
+      "finishedAt": "2026-08-26T18:39:29.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "MAYRA",
+        "avatar": "https://distribution.faceit-cdn.net/images/007d3793-905b-4e48-81a6-d5b4e220403c.jpg",
+        "score": 1
+      }
+    },
+    {
+      "matchId": "1-3eb6a2a7-e306-4fb3-9136-6474ea7b2049",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-3eb6a2a7-e306-4fb3-9136-6474ea7b2049",
+      "tournamentId": "ae2b14bb-051a-4310-bb3e-e748b9158594",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-26T17:59:02.000Z",
+      "startedAt": "2026-08-26T17:59:02.000Z",
+      "finishedAt": "2026-08-26T17:59:02.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
     {
       "matchId": "1-c733d5f5-ab11-4786-b218-fb63bded720f",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-c733d5f5-ab11-4786-b218-fb63bded720f",
@@ -2166,14 +2214,14 @@
       }
     }
   ],
-  "teamMatchCount": 85,
+  "teamMatchCount": 87,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 71,
+    "historyMatchesFound": 72,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -2181,5 +2229,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-26T16:55:33.211Z"
+  "updatedAt": "2026-08-26T18:51:45.542Z"
 }
