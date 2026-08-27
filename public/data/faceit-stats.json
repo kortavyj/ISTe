@@ -44,22 +44,6 @@
       "kd": 1.66
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
-      "level": 10,
-      "elo": 2874,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
-      "kd": 1.3
-    },
-    {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
       "nickname": "infuriat3",
       "avatar": "https://distribution.faceit-cdn.net/images/b3ac55c8-7755-4a81-a437-89cf379d20e5.jpg",
@@ -68,9 +52,9 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2931,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 57,
       "kd": 1.3
@@ -115,13 +99,29 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
-      "elo": 2020,
+      "elo": 2034,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.11
+    },
+    {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2874,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.12
+      "winRate": 60,
+      "kd": 1.3
     }
   ],
   "teamMatches": [
@@ -2277,5 +2277,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-27T00:51:11.702Z"
+  "updatedAt": "2026-08-27T10:39:08.343Z"
 }
