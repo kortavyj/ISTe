@@ -28,22 +28,6 @@
       "kd": 1.06
     },
     {
-      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
-      "nickname": "Lor9n",
-      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
-      "level": 10,
-      "elo": 2649,
-      "role": "AWP",
-      "reason": "Лучшие снайперские показатели в доступной статистике",
-      "confidence": 82,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 54,
-      "kd": 1.63
-    },
-    {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
       "nickname": "infuriat3",
       "avatar": "https://distribution.faceit-cdn.net/images/b3ac55c8-7755-4a81-a437-89cf379d20e5.jpg",
@@ -52,12 +36,44 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2979,
+      "role": "AWP",
+      "reason": "Лучшие снайперские показатели в доступной статистике",
+      "confidence": 82,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 57,
+      "kd": 1.28
+    },
+    {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2925,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 57,
-      "kd": 1.28
+      "winRate": 60,
+      "kd": 1.27
+    },
+    {
+      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
+      "nickname": "Lor9n",
+      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
+      "level": 10,
+      "elo": 2649,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 54,
+      "kd": 1.63
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -100,28 +116,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
       "elo": 2034,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.12
-    },
-    {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
-      "level": 10,
-      "elo": 2925,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
-      "kd": 1.27
+      "winRate": 50,
+      "kd": 1.12
     }
   ],
   "teamMatches": [
@@ -2445,5 +2445,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-29T17:09:18.396Z"
+  "updatedAt": "2026-08-29T19:42:48.129Z"
 }
