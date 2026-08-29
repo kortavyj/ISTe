@@ -5,10 +5,10 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 32,
-  "matches": 57,
-  "wins": 49,
-  "winRate": 86,
+  "tournaments": 33,
+  "matches": 60,
+  "wins": 51,
+  "winRate": 85,
   "players": 7,
   "roster": [
     {
@@ -28,22 +28,6 @@
       "kd": 1.06
     },
     {
-      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
-      "nickname": "Lor9n",
-      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
-      "level": 10,
-      "elo": 2649,
-      "role": "AWP",
-      "reason": "Лучшие снайперские показатели в доступной статистике",
-      "confidence": 82,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 54,
-      "kd": 1.66
-    },
-    {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
       "nickname": "infuriat3",
       "avatar": "https://distribution.faceit-cdn.net/images/b3ac55c8-7755-4a81-a437-89cf379d20e5.jpg",
@@ -52,12 +36,44 @@
       "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
       "elo": 2979,
+      "role": "AWP",
+      "reason": "Лучшие снайперские показатели в доступной статистике",
+      "confidence": 82,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 57,
+      "kd": 1.3
+    },
+    {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2925,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 57,
-      "kd": 1.3
+      "winRate": 60,
+      "kd": 1.29
+    },
+    {
+      "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
+      "nickname": "Lor9n",
+      "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
+      "level": 10,
+      "elo": 2649,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 54,
+      "kd": 1.64
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -73,7 +89,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.42
+      "kd": 1.38
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -89,7 +105,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.39
+      "kd": 1.38
     },
     {
       "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
@@ -100,31 +116,111 @@
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
       "elo": 2034,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.12
-    },
-    {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
-      "level": 10,
-      "elo": 2925,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
-      "kd": 1.3
+      "winRate": 50,
+      "kd": 1.12
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-880a11b1-6f33-4820-94a9-a71971696843",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-880a11b1-6f33-4820-94a9-a71971696843",
+      "tournamentId": "54310116-5710-4255-bdfb-c92bf5f2264a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 1",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-29T11:53:45.000Z",
+      "startedAt": "2026-08-29T11:53:45.000Z",
+      "finishedAt": "2026-08-29T12:53:56.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 16
+      },
+      "opponent": {
+        "name": "CUCU MEDIA",
+        "avatar": "https://distribution.faceit-cdn.net/images/9f1d7b27-1e26-46b9-90c1-fd03eddf4e07.jpg",
+        "score": 14
+      }
+    },
+    {
+      "matchId": "1-7fb7b2ca-6722-4cdb-91ba-9c75afcab39a",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-7fb7b2ca-6722-4cdb-91ba-9c75afcab39a",
+      "tournamentId": "54310116-5710-4255-bdfb-c92bf5f2264a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 1",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-08-29T11:02:55.000Z",
+      "startedAt": "2026-08-29T11:02:55.000Z",
+      "finishedAt": "2026-08-29T11:44:38.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 11
+      },
+      "opponent": {
+        "name": "TheChampionForce",
+        "avatar": "https://distribution.faceit-cdn.net/images/afa7d3d7-39f4-45d2-a87a-35c2cac9fdb0.jpg",
+        "score": 13
+      }
+    },
+    {
+      "matchId": "1-17253a83-b8bb-405e-bb4f-91b23a732d65",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-17253a83-b8bb-405e-bb4f-91b23a732d65",
+      "tournamentId": "54310116-5710-4255-bdfb-c92bf5f2264a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 1",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-29T10:05:34.000Z",
+      "startedAt": "2026-08-29T10:05:34.000Z",
+      "finishedAt": "2026-08-29T10:58:55.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Nitrexa",
+        "avatar": "https://distribution.faceit-cdn.net/images/339f7b94-565d-4e58-ba2e-0c03266b5939.jpg",
+        "score": 9
+      }
+    },
+    {
+      "matchId": "1-87705054-a97b-4956-afff-3b3af8115543",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-87705054-a97b-4956-afff-3b3af8115543",
+      "tournamentId": "54310116-5710-4255-bdfb-c92bf5f2264a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 1",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-08-29T09:59:04.000Z",
+      "startedAt": "2026-08-29T09:59:04.000Z",
+      "finishedAt": "2026-08-29T09:59:04.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
     {
       "matchId": "1-eb893bcc-083c-4d32-a6bf-51c1060b9cc8",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-eb893bcc-083c-4d32-a6bf-51c1060b9cc8",
@@ -2262,14 +2358,14 @@
       }
     }
   ],
-  "teamMatchCount": 89,
+  "teamMatchCount": 93,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 68,
+    "historyMatchesFound": 70,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -2277,5 +2373,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-08-29T07:25:33.932Z"
+  "updatedAt": "2026-08-29T13:15:11.686Z"
 }
