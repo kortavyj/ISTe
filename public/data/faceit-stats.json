@@ -35,13 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2649,
+      "elo": 2619,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.63
+      "kd": 1.62
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -67,13 +67,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2362,
+      "elo": 2332,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.37
+      "kd": 1.38
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -99,13 +99,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
-      "elo": 2045,
+      "elo": 2090,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.2
+      "winRate": 51,
+      "kd": 1.19
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -2493,5 +2493,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-01T12:06:06.222Z"
+  "updatedAt": "2026-09-01T16:32:56.218Z"
 }
