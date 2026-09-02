@@ -3,10 +3,14 @@ import {
   clearAuthCookies,
   setAuthCookies,
 } from "../lib/authCookies.js";
+import {
+  enforceLoginRateLimit,
+  recordAuthSecurityEvent,
+  resetAuthRateLimitBucket,
+} from "../lib/authSecurity.js";
 import { getSupabaseServerClient } from "../lib/supabaseServer.js";
 
-const emailPattern =
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function readBody(request) {
   if (
@@ -29,19 +33,12 @@ function readBody(request) {
 }
 
 function cleanText(value) {
-  return typeof value === "string"
-    ? value.trim()
-    : "";
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function mapLoginError(error) {
-  const message = String(
-    error?.message || "",
-  ).toLowerCase();
-
-  const code = String(
-    error?.code || "",
-  ).toLowerCase();
+  const message = String(error?.message || "").toLowerCase();
+  const code = String(error?.code || "").toLowerCase();
 
   if (
     message.includes("email not confirmed") ||
@@ -50,35 +47,29 @@ function mapLoginError(error) {
     return {
       status: 403,
       error: "EMAIL_NOT_CONFIRMED",
-      message:
-        "Сначала подтвердите электронную почту.",
+      message: "Сначала подтвердите электронную почту.",
     };
   }
 
-  if (
-    message.includes("rate limit") ||
-    code.includes("rate_limit")
-  ) {
+  if (message.includes("rate limit") || code.includes("rate_limit")) {
     return {
       status: 429,
       error: "TOO_MANY_ATTEMPTS",
-      message:
-        "Слишком много попыток входа. Подождите несколько минут.",
+      message: "Слишком много попыток входа. Подождите несколько минут.",
     };
   }
 
   return {
     status: 401,
     error: "INVALID_CREDENTIALS",
-    message:
-      "Неверная электронная почта или пароль.",
+    message: "Неверная электронная почта или пароль.",
   };
 }
 
-export default async function handler(
-  request,
-  response,
-) {
+export default async function handler(request, response) {
+  response.setHeader("Cache-Control", "no-store, private");
+  response.setHeader("X-Content-Type-Options", "nosniff");
+
   const guard = guardRequest(request, {
     methods: ["POST"],
     requireJson: true,
@@ -87,13 +78,7 @@ export default async function handler(
   });
 
   if (!guard.ok) {
-    if (guard.allow) {
-      response.setHeader(
-        "Allow",
-        guard.allow,
-      );
-    }
-
+    if (guard.allow) response.setHeader("Allow", guard.allow);
     return response.status(guard.status).json({
       ok: false,
       error: guard.error,
@@ -102,40 +87,26 @@ export default async function handler(
   }
 
   const body = readBody(request);
-
   if (!body) {
     return response.status(400).json({
       ok: false,
       error: "INVALID_JSON",
-      message:
-        "Некорректный формат запроса.",
+      message: "Некорректный формат запроса.",
     });
   }
 
-  const email =
-    cleanText(body.email).toLowerCase();
+  const email = cleanText(body.email).toLowerCase();
+  const password = typeof body.password === "string" ? body.password : "";
 
-  const password =
-    typeof body.password === "string"
-      ? body.password
-      : "";
-
-  if (
-    !emailPattern.test(email) ||
-    email.length > 254
-  ) {
+  if (!emailPattern.test(email) || email.length > 254) {
     return response.status(400).json({
       ok: false,
       error: "INVALID_EMAIL",
-      message:
-        "Введите корректную электронную почту.",
+      message: "Введите корректную электронную почту.",
     });
   }
 
-  if (
-    password.length < 1 ||
-    password.length > 128
-  ) {
+  if (password.length < 1 || password.length > 128) {
     return response.status(400).json({
       ok: false,
       error: "INVALID_PASSWORD",
@@ -143,129 +114,142 @@ export default async function handler(
     });
   }
 
-  try {
-    const supabase =
-      getSupabaseServerClient();
+  let security;
 
-    const {
-      data,
-      error,
-    } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+  try {
+    security = await enforceLoginRateLimit(request, email);
+  } catch (error) {
+    console.error("Login security error:", error);
+    clearAuthCookies(response);
+    return response.status(503).json({
+      ok: false,
+      error: error?.code || "AUTH_SECURITY_UNAVAILABLE",
+      message:
+        "Система защиты входа временно недоступна. Повторите попытку позже.",
+    });
+  }
+
+  if (!security.allowed) {
+    clearAuthCookies(response);
+    const retryAfter = Math.max(1, Math.ceil(security.retryAfterSeconds));
+    response.setHeader("Retry-After", String(retryAfter));
+
+    await recordAuthSecurityEvent({
+      eventType: "login_rate_limited",
+      identityHash: security.identityHash,
+      clientHash: security.clientHash,
+      metadata: { retryAfterSeconds: retryAfter },
+    });
+
+    return response.status(429).json({
+      ok: false,
+      error: "TOO_MANY_ATTEMPTS",
+      message: "Слишком много попыток входа. Подождите и повторите позже.",
+    });
+  }
+
+  try {
+    const supabase = getSupabaseServerClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (error) {
-      console.error(
-        "Supabase login error:",
-        {
-          name: error?.name || "",
-          message: error?.message || "",
-          code: error?.code || "",
-          status: error?.status || null,
-        },
-      );
-
       clearAuthCookies(response);
+      const mapped = mapLoginError(error);
 
-      const mapped =
-        mapLoginError(error);
+      await recordAuthSecurityEvent({
+        eventType: "login_failure",
+        identityHash: security.identityHash,
+        clientHash: security.clientHash,
+        metadata: { reason: mapped.error },
+      });
 
-      return response
-        .status(mapped.status)
-        .json({
-          ok: false,
-          error: mapped.error,
-          message: mapped.message,
-        });
+      return response.status(mapped.status).json({
+        ok: false,
+        error: mapped.error,
+        message: mapped.message,
+      });
     }
 
     if (!data?.user || !data?.session) {
       clearAuthCookies(response);
-
       return response.status(500).json({
         ok: false,
         error: "SESSION_NOT_CREATED",
-        message:
-          "Не удалось создать сессию входа.",
+        message: "Не удалось создать сессию входа.",
       });
     }
 
-    const {
-      data: access,
-      error: accessError,
-    } = await supabase
+    const { data: access, error: accessError } = await supabase
       .from("user_roles")
-      .select(
-        "role, is_blocked, blocked_reason",
-      )
+      .select("role, is_blocked, blocked_reason")
       .eq("user_id", data.user.id)
       .maybeSingle();
 
     if (accessError) {
       clearAuthCookies(response);
-
-      console.error(
-        "Account access error:",
-        accessError,
-      );
-
+      console.error("Account access error:", accessError);
       return response.status(502).json({
         ok: false,
         error: "ACCOUNT_CHECK_FAILED",
-        message:
-          "Не удалось проверить состояние аккаунта.",
+        message: "Не удалось проверить состояние аккаунта.",
       });
     }
 
     if (access?.is_blocked === true) {
       clearAuthCookies(response);
 
+      await recordAuthSecurityEvent({
+        eventType: "login_blocked_account",
+        userId: data.user.id,
+        identityHash: security.identityHash,
+        clientHash: security.clientHash,
+      });
+
       return response.status(403).json({
         ok: false,
         error: "ACCOUNT_BLOCKED",
         message:
-          access.blocked_reason?.trim() ||
-          "Этот аккаунт заблокирован.",
+          access.blocked_reason?.trim() || "Этот аккаунт заблокирован.",
       });
     }
 
-    setAuthCookies(
-      response,
-      data.session,
-    );
+    setAuthCookies(response, data.session);
+    await resetAuthRateLimitBucket(security.pairBucket);
+
+    await recordAuthSecurityEvent({
+      eventType: "login_success",
+      userId: data.user.id,
+      identityHash: security.identityHash,
+      clientHash: security.clientHash,
+      metadata: { role: access?.role || "user" },
+    });
 
     return response.status(200).json({
       ok: true,
-
       user: {
         id: data.user.id,
         email: data.user.email,
       },
-
       role: access?.role || "user",
     });
   } catch (error) {
     clearAuthCookies(response);
+    console.error("Unexpected login error:", error);
 
-    console.error(
-      "Unexpected login error:",
-      {
-        name: error?.name || "",
-        message: error?.message || "",
-        code: error?.code || "",
-        cause:
-          error?.cause?.message || "",
-        stack: error?.stack || "",
-      },
-    );
+    await recordAuthSecurityEvent({
+      eventType: "login_failure",
+      identityHash: security?.identityHash || "",
+      clientHash: security?.clientHash || "",
+      metadata: { reason: "INTERNAL_SERVER_ERROR" },
+    });
 
     return response.status(500).json({
       ok: false,
       error: "INTERNAL_SERVER_ERROR",
-      message:
-        "Произошла серверная ошибка. Повторите попытку позже.",
+      message: "Произошла серверная ошибка. Повторите попытку позже.",
     });
   }
 }

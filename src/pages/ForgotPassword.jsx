@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { getAuthErrorMessage } from "../auth/authErrors.js";
-import { getAuthRedirectUrl } from "../lib/siteUrl.js";
-import { supabase } from "../lib/supabase.js";
-
 import "./Auth.css";
+
+async function readApiResponse(response) {
+  try {
+    return await response.json();
+  } catch {
+    return {
+      ok: false,
+      message: "Сервер вернул некорректный ответ.",
+    };
+  }
+}
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -18,21 +25,36 @@ export default function ForgotPassword() {
     setSubmitting(true);
     setErrorMessage("");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email.trim(),
-      {
-        redirectTo: getAuthRedirectUrl("/reset-password"),
-      },
-    );
+    try {
+      const response = await fetch("/api/auth/recover", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+        }),
+      });
 
-    if (error) {
-      setErrorMessage(getAuthErrorMessage(error));
+      const result = await readApiResponse(response);
+
+      if (!response.ok || result?.ok !== true) {
+        setErrorMessage(
+          result?.message || "Не удалось отправить запрос восстановления.",
+        );
+        return;
+      }
+
+      setSent(true);
+    } catch {
+      setErrorMessage(
+        "Не удалось связаться с сервером. Повторите попытку позже.",
+      );
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    setSent(true);
-    setSubmitting(false);
   }
 
   return (
@@ -41,9 +63,7 @@ export default function ForgotPassword() {
         <header className="auth-heading">
           <p className="auth-kicker">ISTe account</p>
           <h1>Восстановление</h1>
-          <p>
-            Укажите электронную почту, связанную с аккаунтом.
-          </p>
+          <p>Укажите электронную почту, связанную с аккаунтом.</p>
         </header>
 
         <div className="auth-card auth-card-form">
@@ -60,11 +80,11 @@ export default function ForgotPassword() {
             </div>
           ) : (
             <form className="auth-form" onSubmit={handleSubmit}>
-              {errorMessage && (
-                <div className="auth-message auth-message-error">
+              {errorMessage ? (
+                <div className="auth-message auth-message-error" role="alert">
                   {errorMessage}
                 </div>
-              )}
+              ) : null}
 
               <label className="auth-field">
                 <span>Электронная почта</span>
@@ -72,6 +92,9 @@ export default function ForgotPassword() {
                   className="auth-input"
                   type="email"
                   autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  inputMode="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
