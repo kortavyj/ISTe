@@ -2,7 +2,7 @@ import { guardRequest } from "../lib/requestGuard.js";
 import {
   enforceRecoveryRateLimit,
   recordAuthSecurityEvent,
-} from "../lib/authSecurity.js";
+} from "../../server/lib/authSecurity.js";
 import { getSupabaseServerClient } from "../lib/supabaseServer.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
