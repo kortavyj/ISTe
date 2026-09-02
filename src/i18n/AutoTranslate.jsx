@@ -10,6 +10,10 @@ import {
   AUTO_TRANSLATIONS,
 } from "./autoTranslations.js";
 
+import {
+  translations,
+} from "./translations.js";
+
 const SUPPORTED_LANGUAGES = [
   "uk",
   "ru",
@@ -29,6 +33,12 @@ const SKIP_SELECTOR = [
   "pre",
   "textarea",
   "[data-no-auto-translate]",
+
+  /*
+   * Пользовательский/редакционный контент не переводим
+   * механически, чтобы не искажать публикации и профили.
+   * Интерфейс вокруг него переводится.
+   */
   ".news-featured-content h2",
   ".news-featured-content > p",
   ".news-card-body h2",
@@ -43,60 +53,52 @@ const SKIP_SELECTOR = [
 ].join(",");
 
 const exactLookup = new Map();
+const templateRules = [];
 
-for (const item of AUTO_TRANSLATIONS) {
-  for (const language of SUPPORTED_LANGUAGES) {
-    const value = normalizeText(
-      item[language],
-    );
+const ENGLISH_MONTH_INDEX =
+  new Map([
+    ["january", 0],
+    ["february", 1],
+    ["march", 2],
+    ["april", 3],
+    ["may", 4],
+    ["june", 5],
+    ["july", 6],
+    ["august", 7],
+    ["september", 8],
+    ["october", 9],
+    ["november", 10],
+    ["december", 11],
+  ]);
 
-    if (value) {
-      exactLookup.set(value, item);
-    }
-  }
-}
+const MONTH_INDEX =
+  new Map([
+    ["января", 0],
+    ["февраля", 1],
+    ["марта", 2],
+    ["апреля", 3],
+    ["мая", 4],
+    ["июня", 5],
+    ["июля", 6],
+    ["августа", 7],
+    ["сентября", 8],
+    ["октября", 9],
+    ["ноября", 10],
+    ["декабря", 11],
 
-const ENGLISH_MONTH_INDEX = new Map([
-  ["january", 0],
-  ["february", 1],
-  ["march", 2],
-  ["april", 3],
-  ["may", 4],
-  ["june", 5],
-  ["july", 6],
-  ["august", 7],
-  ["september", 8],
-  ["october", 9],
-  ["november", 10],
-  ["december", 11],
-]);
-
-const MONTH_INDEX = new Map([
-  ["января", 0],
-  ["февраля", 1],
-  ["марта", 2],
-  ["апреля", 3],
-  ["мая", 4],
-  ["июня", 5],
-  ["июля", 6],
-  ["августа", 7],
-  ["сентября", 8],
-  ["октября", 9],
-  ["ноября", 10],
-  ["декабря", 11],
-  ["січня", 0],
-  ["лютого", 1],
-  ["березня", 2],
-  ["квітня", 3],
-  ["травня", 4],
-  ["червня", 5],
-  ["липня", 6],
-  ["серпня", 7],
-  ["вересня", 8],
-  ["жовтня", 9],
-  ["листопада", 10],
-  ["грудня", 11],
-]);
+    ["січня", 0],
+    ["лютого", 1],
+    ["березня", 2],
+    ["квітня", 3],
+    ["травня", 4],
+    ["червня", 5],
+    ["липня", 6],
+    ["серпня", 7],
+    ["вересня", 8],
+    ["жовтня", 9],
+    ["листопада", 10],
+    ["грудня", 11],
+  ]);
 
 const LOCALES = {
   uk: "uk-UA",
@@ -110,123 +112,633 @@ function normalizeText(value) {
     .trim();
 }
 
+function escapeRegExp(value) {
+  return value.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&",
+  );
+}
+
+function getNestedValue(
+  source,
+  path,
+) {
+  return path
+    .split(".")
+    .reduce(
+      (
+        current,
+        part,
+      ) =>
+        current &&
+        Object.prototype
+          .hasOwnProperty
+          .call(
+            current,
+            part,
+          )
+          ? current[part]
+          : undefined,
+      source,
+    );
+}
+
+function collectLeafPaths(
+  source,
+  prefix,
+  output,
+) {
+  if (
+    typeof source ===
+    "string"
+  ) {
+    if (prefix) {
+      output.add(prefix);
+    }
+
+    return;
+  }
+
+  if (
+    !source ||
+    typeof source !==
+      "object"
+  ) {
+    return;
+  }
+
+  for (
+    const [
+      key,
+      value,
+    ]
+    of Object.entries(
+      source,
+    )
+  ) {
+    const nextPath =
+      prefix
+        ? `${prefix}.${key}`
+        : key;
+
+    collectLeafPaths(
+      value,
+      nextPath,
+      output,
+    );
+  }
+}
+
+function compileTemplateRule(
+  sourceTemplate,
+  item,
+) {
+  const normalized =
+    normalizeText(
+      sourceTemplate,
+    );
+
+  const matches = [
+    ...normalized.matchAll(
+      /\{\{(\w+)\}\}/g,
+    ),
+  ];
+
+  if (!matches.length) {
+    return;
+  }
+
+  const names = [];
+  let cursor = 0;
+  let pattern = "";
+
+  for (const match of matches) {
+    pattern +=
+      escapeRegExp(
+        normalized.slice(
+          cursor,
+          match.index,
+        ),
+      );
+
+    pattern += "(.+?)";
+    names.push(match[1]);
+
+    cursor =
+      match.index +
+      match[0].length;
+  }
+
+  pattern +=
+    escapeRegExp(
+      normalized.slice(
+        cursor,
+      ),
+    );
+
+  templateRules.push({
+    regex:
+      new RegExp(
+        `^${pattern}$`,
+        "u",
+      ),
+    names,
+    item,
+  });
+}
+
+function registerTranslationItem(
+  item,
+) {
+  if (
+    !item ||
+    typeof item !==
+      "object"
+  ) {
+    return;
+  }
+
+  const normalizedItem = {};
+
+  for (
+    const language
+    of SUPPORTED_LANGUAGES
+  ) {
+    const value =
+      typeof item[
+        language
+      ] === "string"
+        ? item[language]
+        : "";
+
+    if (!value) {
+      continue;
+    }
+
+    normalizedItem[
+      language
+    ] = value;
+  }
+
+  const availableValues =
+    Object.values(
+      normalizedItem,
+    );
+
+  if (
+    availableValues.length <
+    2
+  ) {
+    return;
+  }
+
+  for (
+    const language
+    of SUPPORTED_LANGUAGES
+  ) {
+    const value =
+      normalizedItem[
+        language
+      ];
+
+    if (!value) {
+      continue;
+    }
+
+    const normalized =
+      normalizeText(value);
+
+    if (normalized) {
+      exactLookup.set(
+        normalized,
+        normalizedItem,
+      );
+
+      compileTemplateRule(
+        value,
+        normalizedItem,
+      );
+    }
+  }
+}
+
+/*
+ * 1. Большой словарь старых hardcoded-строк.
+ */
+for (
+  const item
+  of AUTO_TRANSLATIONS
+) {
+  registerTranslationItem(
+    item,
+  );
+}
+
+/*
+ * 2. Добавляем ВЕСЬ основной translations.js.
+ *
+ * Раньше AutoTranslate видел только AUTO_TRANSLATIONS.
+ * Поэтому часть строк, которые уже существовали в translations.js,
+ * оставалась на русском при переключении.
+ */
+const translationPaths =
+  new Set();
+
+for (
+  const language
+  of SUPPORTED_LANGUAGES
+) {
+  collectLeafPaths(
+    translations[
+      language
+    ],
+    "",
+    translationPaths,
+  );
+}
+
+for (
+  const path
+  of translationPaths
+) {
+  const item = {};
+
+  for (
+    const language
+    of SUPPORTED_LANGUAGES
+  ) {
+    const value =
+      getNestedValue(
+        translations[
+          language
+        ],
+        path,
+      );
+
+    if (
+      typeof value ===
+      "string"
+    ) {
+      item[language] =
+        value;
+    }
+  }
+
+  registerTranslationItem(
+    item,
+  );
+}
+
+templateRules.sort(
+  (a, b) =>
+    b.regex.source.length -
+    a.regex.source.length,
+);
+
 function keepOuterWhitespace(
   source,
   translated,
 ) {
   const leading =
-    source.match(/^\s*/)?.[0] ?? "";
+    source.match(
+      /^\s*/,
+    )?.[0] ?? "";
 
   const trailing =
-    source.match(/\s*$/)?.[0] ?? "";
+    source.match(
+      /\s*$/,
+    )?.[0] ?? "";
 
   return `${leading}${translated}${trailing}`;
+}
+
+function interpolateTemplate(
+  template,
+  variables,
+) {
+  if (
+    typeof template !==
+    "string"
+  ) {
+    return null;
+  }
+
+  return template.replace(
+    /\{\{(\w+)\}\}/g,
+    (
+      match,
+      name,
+    ) =>
+      Object.prototype
+        .hasOwnProperty
+        .call(
+          variables,
+          name,
+        )
+        ? variables[name]
+        : match,
+  );
+}
+
+function translateTemplate(
+  normalized,
+  language,
+) {
+  for (
+    const rule
+    of templateRules
+  ) {
+    const match =
+      normalized.match(
+        rule.regex,
+      );
+
+    if (!match) {
+      continue;
+    }
+
+    const target =
+      rule.item[
+        language
+      ];
+
+    if (!target) {
+      continue;
+    }
+
+    const variables = {};
+
+    rule.names.forEach(
+      (
+        name,
+        index,
+      ) => {
+        variables[name] =
+          match[
+            index + 1
+          ];
+      },
+    );
+
+    return interpolateTemplate(
+      target,
+      variables,
+    );
+  }
+
+  return null;
 }
 
 function translateKnownDate(
   normalized,
   language,
 ) {
-  const englishMatch = normalized.match(
-    /^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})(?:\s+at\s+(\d{1,2}):(\d{2})\s*(AM|PM))?$/i,
-  );
-
-  if (englishMatch) {
-    const month = ENGLISH_MONTH_INDEX.get(
-      englishMatch[1].toLowerCase(),
+  const englishMatch =
+    normalized.match(
+      /^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})(?:\s+at\s+(\d{1,2}):(\d{2})\s*(AM|PM))?$/i,
     );
 
+  if (englishMatch) {
+    const month =
+      ENGLISH_MONTH_INDEX.get(
+        englishMatch[
+          1
+        ].toLowerCase(),
+      );
+
     let hour = Number(
-      englishMatch[4] || 0,
+      englishMatch[4] ||
+        0,
     );
 
     const period =
-      englishMatch[6]?.toUpperCase();
+      englishMatch[
+        6
+      ]?.toUpperCase();
 
-    if (period === "PM" && hour < 12) {
+    if (
+      period === "PM" &&
+      hour < 12
+    ) {
       hour += 12;
     }
 
-    if (period === "AM" && hour === 12) {
+    if (
+      period === "AM" &&
+      hour === 12
+    ) {
       hour = 0;
     }
 
-    const date = new Date(
-      Number(englishMatch[3]),
-      month,
-      Number(englishMatch[2]),
-      hour,
-      Number(englishMatch[5] || 0),
-    );
+    const date =
+      new Date(
+        Number(
+          englishMatch[3],
+        ),
+        month,
+        Number(
+          englishMatch[2],
+        ),
+        hour,
+        Number(
+          englishMatch[5] ||
+            0,
+        ),
+      );
 
-    return new Intl.DateTimeFormat(
-      LOCALES[language] || LOCALES.uk,
-      {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
+    return new Intl
+      .DateTimeFormat(
+        LOCALES[
+          language
+        ] ||
+          LOCALES.uk,
+        {
+          day:
+            "2-digit",
+          month: "long",
+          year:
+            "numeric",
 
-        ...(englishMatch[4]
-          ? {
-              hour: "2-digit",
-              minute: "2-digit",
-            }
-          : {}),
-      },
-    ).format(date);
+          ...(englishMatch[
+            4
+          ]
+            ? {
+                hour:
+                  "2-digit",
+                minute:
+                  "2-digit",
+              }
+            : {}),
+        },
+      )
+      .format(date);
   }
 
-  const match = normalized.match(
-    /^(\d{1,2})\s+([а-яіїєґ]+)\s+(\d{4})(?:\s+(?:г\.|р\.))?(?:,?\s+(?:в|о)\s+(\d{1,2}):(\d{2}))?$/iu,
-  );
+  const match =
+    normalized.match(
+      /^(\d{1,2})\s+([а-яіїєґ]+)\s+(\d{4})(?:\s+(?:г\.|р\.))?(?:,?\s+(?:в|о)\s+(\d{1,2}):(\d{2}))?$/iu,
+    );
 
   if (!match) {
     return null;
   }
 
-  const month = MONTH_INDEX.get(
-    match[2].toLowerCase(),
-  );
+  const month =
+    MONTH_INDEX.get(
+      match[2]
+        .toLowerCase(),
+    );
 
-  if (month === undefined) {
+  if (
+    month === undefined
+  ) {
     return null;
   }
 
-  const date = new Date(
-    Number(match[3]),
-    month,
-    Number(match[1]),
-    Number(match[4] || 0),
-    Number(match[5] || 0),
-  );
+  const date =
+    new Date(
+      Number(match[3]),
+      month,
+      Number(match[1]),
+      Number(
+        match[4] || 0,
+      ),
+      Number(
+        match[5] || 0,
+      ),
+    );
 
-  const options = {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
+  return new Intl
+    .DateTimeFormat(
+      LOCALES[
+        language
+      ] ||
+        LOCALES.uk,
+      {
+        day:
+          "2-digit",
+        month: "long",
+        year:
+          "numeric",
 
-    ...(match[4]
-      ? {
-          hour: "2-digit",
-          minute: "2-digit",
-        }
-      : {}),
-  };
+        ...(match[4]
+          ? {
+              hour:
+                "2-digit",
+              minute:
+                "2-digit",
+            }
+          : {}),
+      },
+    )
+    .format(date);
+}
 
-  return new Intl.DateTimeFormat(
-    LOCALES[language] || LOCALES.uk,
-    options,
-  ).format(date);
+function translateCompositeText(
+  normalized,
+  language,
+) {
+  /*
+   * "Роль: owner"
+   * "Статус: active"
+   */
+  const labelMatch =
+    normalized.match(
+      /^(.+?)(:\s*)(.+)$/u,
+    );
+
+  if (labelMatch) {
+    const labelItem =
+      exactLookup.get(
+        normalizeText(
+          labelMatch[1],
+        ),
+      );
+
+    const translatedLabel =
+      labelItem?.[
+        language
+      ];
+
+    if (
+      translatedLabel
+    ) {
+      return `${translatedLabel}${labelMatch[2]}${labelMatch[3]}`;
+    }
+  }
+
+  /*
+   * "Матчи (12)"
+   */
+  const countMatch =
+    normalized.match(
+      /^(.+?)(\s*\(\d+\))$/u,
+    );
+
+  if (countMatch) {
+    const baseItem =
+      exactLookup.get(
+        normalizeText(
+          countMatch[1],
+        ),
+      );
+
+    const translatedBase =
+      baseItem?.[
+        language
+      ];
+
+    if (
+      translatedBase
+    ) {
+      return `${translatedBase}${countMatch[2]}`;
+    }
+  }
+
+  /*
+   * "Показать ещё 10"
+   */
+  const trailingNumberMatch =
+    normalized.match(
+      /^(.+?)(\s+\d+)$/u,
+    );
+
+  if (
+    trailingNumberMatch
+  ) {
+    const baseItem =
+      exactLookup.get(
+        normalizeText(
+          trailingNumberMatch[
+            1
+          ],
+        ),
+      );
+
+    const translatedBase =
+      baseItem?.[
+        language
+      ];
+
+    if (
+      translatedBase
+    ) {
+      return `${translatedBase}${trailingNumberMatch[2]}`;
+    }
+  }
+
+  return null;
 }
 
 function translateDynamicText(
   normalized,
   language,
 ) {
-  const date = translateKnownDate(
-    normalized,
-    language,
-  );
+  const date =
+    translateKnownDate(
+      normalized,
+      language,
+    );
 
   if (date) {
     return date;
@@ -237,12 +749,18 @@ function translateDynamicText(
       /^(\d+)\s+из\s+320\s+символов$/i,
     );
 
-  if (excerptCounter) {
-    if (language === "uk") {
+  if (
+    excerptCounter
+  ) {
+    if (
+      language === "uk"
+    ) {
       return `${excerptCounter[1]} із 320 символів`;
     }
 
-    if (language === "en") {
+    if (
+      language === "en"
+    ) {
       return `${excerptCounter[1]} of 320 characters`;
     }
   }
@@ -276,15 +794,27 @@ function translateText(
     return source;
   }
 
-  const item =
-    exactLookup.get(normalized);
+  const exactItem =
+    exactLookup.get(
+      normalized,
+    );
 
-  const translated = item
-    ? item[language]
-    : translateDynamicText(
-        normalized,
-        language,
-      );
+  const translated =
+    exactItem?.[
+      language
+    ] ||
+    translateTemplate(
+      normalized,
+      language,
+    ) ||
+    translateCompositeText(
+      normalized,
+      language,
+    ) ||
+    translateDynamicText(
+      normalized,
+      language,
+    );
 
   if (!translated) {
     return source;
@@ -296,9 +826,14 @@ function translateText(
   );
 }
 
-function shouldSkipElement(element) {
+function shouldSkipElement(
+  element,
+) {
   return Boolean(
-    element?.closest?.(SKIP_SELECTOR),
+    element
+      ?.closest?.(
+        SKIP_SELECTOR,
+      ),
   );
 }
 
@@ -306,22 +841,30 @@ function translateTextNode(
   node,
   language,
 ) {
-  const parent = node.parentElement;
+  const parent =
+    node.parentElement;
 
   if (
     !parent ||
-    shouldSkipElement(parent)
+    shouldSkipElement(
+      parent,
+    )
   ) {
     return;
   }
 
-  const nextValue = translateText(
-    node.nodeValue,
-    language,
-  );
+  const nextValue =
+    translateText(
+      node.nodeValue,
+      language,
+    );
 
-  if (nextValue !== node.nodeValue) {
-    node.nodeValue = nextValue;
+  if (
+    nextValue !==
+    node.nodeValue
+  ) {
+    node.nodeValue =
+      nextValue;
   }
 }
 
@@ -330,26 +873,44 @@ function translateElementAttributes(
   language,
 ) {
   if (
-    !(element instanceof Element) ||
-    shouldSkipElement(element)
+    !(
+      element instanceof
+      Element
+    ) ||
+    shouldSkipElement(
+      element,
+    )
   ) {
     return;
   }
 
-  for (const attributeName of ATTRIBUTE_NAMES) {
-    if (!element.hasAttribute(attributeName)) {
+  for (
+    const attributeName
+    of ATTRIBUTE_NAMES
+  ) {
+    if (
+      !element.hasAttribute(
+        attributeName,
+      )
+    ) {
       continue;
     }
 
     const currentValue =
-      element.getAttribute(attributeName);
+      element.getAttribute(
+        attributeName,
+      );
 
-    const nextValue = translateText(
-      currentValue,
-      language,
-    );
+    const nextValue =
+      translateText(
+        currentValue,
+        language,
+      );
 
-    if (nextValue !== currentValue) {
+    if (
+      nextValue !==
+      currentValue
+    ) {
       element.setAttribute(
         attributeName,
         nextValue,
@@ -366,12 +927,24 @@ function translateTree(
     return;
   }
 
-  if (root.nodeType === Node.TEXT_NODE) {
-    translateTextNode(root, language);
+  if (
+    root.nodeType ===
+    Node.TEXT_NODE
+  ) {
+    translateTextNode(
+      root,
+      language,
+    );
+
     return;
   }
 
-  if (!(root instanceof Element)) {
+  if (
+    !(
+      root instanceof
+      Element
+    )
+  ) {
     return;
   }
 
@@ -387,7 +960,8 @@ function translateTree(
         NodeFilter.SHOW_TEXT,
     );
 
-  let current = walker.nextNode();
+  let current =
+    walker.nextNode();
 
   while (current) {
     if (
@@ -405,16 +979,21 @@ function translateTree(
       );
     }
 
-    current = walker.nextNode();
+    current =
+      walker.nextNode();
   }
 }
 
 export default function AutoTranslate() {
-  const { language } = useLanguage();
+  const {
+    language,
+  } = useLanguage();
 
   useLayoutEffect(() => {
     const root =
-      document.getElementById("root");
+      document.getElementById(
+        "root",
+      );
 
     if (!root) {
       return undefined;
@@ -422,28 +1001,43 @@ export default function AutoTranslate() {
 
     let frameId = 0;
 
-    const applyTranslations = () => {
-      frameId = 0;
-      translateTree(root, language);
-    };
+    const applyTranslations =
+      () => {
+        frameId = 0;
 
-    const scheduleTranslation = () => {
-      if (frameId) {
-        return;
-      }
-
-      frameId =
-        window.requestAnimationFrame(
-          applyTranslations,
+        translateTree(
+          root,
+          language,
         );
-    };
+      };
 
-    translateTree(root, language);
+    const scheduleTranslation =
+      () => {
+        if (frameId) {
+          return;
+        }
+
+        frameId =
+          window.requestAnimationFrame(
+            applyTranslations,
+          );
+      };
+
+    /*
+     * Переводим сразу, до следующего визуального кадра.
+     */
+    translateTree(
+      root,
+      language,
+    );
 
     const observer =
       new MutationObserver(
         (mutations) => {
-          for (const mutation of mutations) {
+          for (
+            const mutation
+            of mutations
+          ) {
             if (
               mutation.type ===
               "characterData"
@@ -452,6 +1046,7 @@ export default function AutoTranslate() {
                 mutation.target,
                 language,
               );
+
               continue;
             }
 
@@ -463,10 +1058,15 @@ export default function AutoTranslate() {
                 mutation.target,
                 language,
               );
+
               continue;
             }
 
-            for (const node of mutation.addedNodes) {
+            for (
+              const node
+              of mutation
+                .addedNodes
+            ) {
               translateTree(
                 node,
                 language,
@@ -478,13 +1078,17 @@ export default function AutoTranslate() {
         },
       );
 
-    observer.observe(root, {
-      subtree: true,
-      childList: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: ATTRIBUTE_NAMES,
-    });
+    observer.observe(
+      root,
+      {
+        subtree: true,
+        childList: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter:
+          ATTRIBUTE_NAMES,
+      },
+    );
 
     scheduleTranslation();
 
@@ -492,9 +1096,10 @@ export default function AutoTranslate() {
       observer.disconnect();
 
       if (frameId) {
-        window.cancelAnimationFrame(
-          frameId,
-        );
+        window
+          .cancelAnimationFrame(
+            frameId,
+          );
       }
     };
   }, [language]);

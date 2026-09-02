@@ -6,38 +6,56 @@ import {
   useState,
 } from "react";
 
-import { useLanguage } from "../../i18n/LanguageContext.jsx";
+import {
+  useLanguage,
+} from "../../i18n/LanguageContext.jsx";
 
 import "./LanguageSwitcher.css";
 
-const OPTIONS = Object.freeze([
-  { code: "uk", shortLabel: "UA", flagClass: "ua" },
-  { code: "ru", shortLabel: "RU", flagClass: "ru" },
-  { code: "en", shortLabel: "EN", flagClass: "en" },
-]);
+const OPTIONS =
+  Object.freeze([
+    {
+      code: "uk",
+      shortLabel: "UA",
+      labelKey:
+        "languages.uk",
+    },
+    {
+      code: "ru",
+      shortLabel: "RU",
+      labelKey:
+        "languages.ru",
+    },
+    {
+      code: "en",
+      shortLabel: "EN",
+      labelKey:
+        "languages.en",
+    },
+  ]);
 
-function GlobeIcon() {
+function LanguageIcon() {
   return (
     <svg
-      className="language-select-globe-icon"
+      className="language-select-icon"
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
       <circle
         cx="12"
         cy="12"
-        r="8.5"
+        r="8.3"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.55"
+        strokeWidth="1.45"
       />
 
       <path
-        d="M3.8 12h16.4M12 3.5c2.1 2.35 3.15 5.18 3.15 8.5S14.1 18.15 12 20.5M12 3.5C9.9 5.85 8.85 8.68 8.85 12S9.9 18.15 12 20.5"
+        d="M3.9 12h16.2M12 3.7c2 2.25 3 5.02 3 8.3s-1 6.05-3 8.3M12 3.7c-2 2.25-3 5.02-3 8.3s1 6.05 3 8.3"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
-        strokeWidth="1.45"
+        strokeWidth="1.35"
       />
     </svg>
   );
@@ -45,7 +63,10 @@ function GlobeIcon() {
 
 function CheckIcon() {
   return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+    >
       <path
         d="m4.6 10.2 3.25 3.25 7.55-7.4"
         fill="none"
@@ -58,40 +79,58 @@ function CheckIcon() {
   );
 }
 
-function LanguageFlag({ flagClass }) {
-  return (
-    <span
-      className={`language-select-flag language-select-flag-${flagClass}`}
-      aria-hidden="true"
-    />
-  );
-}
-
 export default function LanguageSwitcher() {
-  const { language, setLanguage, t } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef(null);
-  const menuId = useId();
+  const {
+    language,
+    setLanguage,
+    t,
+  } = useLanguage();
 
-  const currentOption = useMemo(
-    () =>
-      OPTIONS.find((option) => option.code === language) ||
-      OPTIONS[0],
-    [language],
-  );
+  const [
+    open,
+    setOpen,
+  ] = useState(false);
+
+  const rootRef =
+    useRef(null);
+
+  const menuId =
+    useId();
+
+  const currentOption =
+    useMemo(
+      () =>
+        OPTIONS.find(
+          (option) =>
+            option.code ===
+            language,
+        ) ||
+        OPTIONS[0],
+      [language],
+    );
 
   useEffect(() => {
-    function handlePointerDown(event) {
+    function handlePointerDown(
+      event,
+    ) {
       if (
         rootRef.current &&
-        !rootRef.current.contains(event.target)
+        !rootRef.current
+          .contains(
+            event.target,
+          )
       ) {
         setOpen(false);
       }
     }
 
-    function handleKeyDown(event) {
-      if (event.key === "Escape") {
+    function handleKeyDown(
+      event,
+    ) {
+      if (
+        event.key ===
+        "Escape"
+      ) {
         setOpen(false);
       }
     }
@@ -100,6 +139,7 @@ export default function LanguageSwitcher() {
       "pointerdown",
       handlePointerDown,
     );
+
     document.addEventListener(
       "keydown",
       handleKeyDown,
@@ -110,6 +150,7 @@ export default function LanguageSwitcher() {
         "pointerdown",
         handlePointerDown,
       );
+
       document.removeEventListener(
         "keydown",
         handleKeyDown,
@@ -117,40 +158,51 @@ export default function LanguageSwitcher() {
     };
   }, []);
 
-  function selectLanguage(code) {
+  function selectLanguage(
+    code,
+  ) {
     setLanguage(code);
     setOpen(false);
   }
 
   return (
-    <div className="language-select" ref={rootRef}>
+    <div
+      className="language-select"
+      ref={rootRef}
+    >
       <button
         className={`language-select-trigger${
-          open ? " language-select-trigger-open" : ""
+          open
+            ? " language-select-trigger-open"
+            : ""
         }`}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label={t("languages.selectorLabel")}
-        title={t(`languages.${language}`)}
+        aria-label={t(
+          "languages.selectorLabel",
+        )}
+        title={t(
+          currentOption
+            .labelKey,
+        )}
         onClick={() =>
-          setOpen((current) => !current)
+          setOpen(
+            (current) =>
+              !current,
+          )
         }
       >
-        <span className="language-select-globe">
-          <GlobeIcon />
-
-          <span className="language-select-current-flag">
-            <LanguageFlag
-              flagClass={currentOption.flagClass}
-            />
-          </span>
+        <span className="language-select-symbol">
+          <LanguageIcon />
         </span>
 
-        <span className="language-select-current">
-          <strong>{currentOption.shortLabel}</strong>
-          <small>{t(`languages.${language}`)}</small>
+        <span className="language-select-code">
+          {
+            currentOption
+              .shortLabel
+          }
         </span>
 
         <svg
@@ -159,12 +211,12 @@ export default function LanguageSwitcher() {
           aria-hidden="true"
         >
           <path
-            d="m5.5 7.5 4.5 4.5 4.5-4.5"
+            d="m5.8 7.8 4.2 4.2 4.2-4.2"
             fill="none"
             stroke="currentColor"
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth="1.8"
+            strokeWidth="1.65"
           />
         </svg>
       </button>
@@ -172,32 +224,27 @@ export default function LanguageSwitcher() {
       <div
         id={menuId}
         className={`language-select-menu${
-          open ? " language-select-menu-open" : ""
+          open
+            ? " language-select-menu-open"
+            : ""
         }`}
         role="listbox"
-        aria-label={t("languages.selectorLabel")}
+        aria-label={t(
+          "languages.selectorLabel",
+        )}
         aria-hidden={!open}
       >
-        <div className="language-select-menu-head">
-          <span className="language-select-menu-icon">
-            <GlobeIcon />
-          </span>
-
-          <div>
-            <strong>{t("languages.selectorLabel")}</strong>
-            <small>ISTe GLOBAL</small>
-          </div>
-        </div>
-
-        <div className="language-select-menu-divider" />
-
         {OPTIONS.map(
-          ({ code, shortLabel, flagClass }) => {
-            const isActive = language === code;
+          (option) => {
+            const isActive =
+              language ===
+              option.code;
 
             return (
               <button
-                key={code}
+                key={
+                  option.code
+                }
                 className={`language-select-option${
                   isActive
                     ? " language-select-option-active"
@@ -205,30 +252,45 @@ export default function LanguageSwitcher() {
                 }`}
                 type="button"
                 role="option"
-                aria-selected={isActive}
-                tabIndex={open ? 0 : -1}
-                onClick={() => selectLanguage(code)}
+                aria-selected={
+                  isActive
+                }
+                tabIndex={
+                  open
+                    ? 0
+                    : -1
+                }
+                onClick={() =>
+                  selectLanguage(
+                    option.code,
+                  )
+                }
               >
-                <span className="language-select-option-flag">
-                  <LanguageFlag flagClass={flagClass} />
+                <span className="language-select-option-code">
+                  {
+                    option
+                      .shortLabel
+                  }
                 </span>
 
-                <span className="language-select-option-copy">
-                  <strong>
-                    {t(`languages.${code}`)}
-                  </strong>
-                  <small>{shortLabel}</small>
+                <span className="language-select-option-name">
+                  {t(
+                    option
+                      .labelKey,
+                  )}
                 </span>
 
                 <span
-                  className={`language-select-option-mark${
+                  className={`language-select-option-check${
                     isActive
-                      ? " language-select-option-mark-active"
+                      ? " language-select-option-check-active"
                       : ""
                   }`}
                   aria-hidden="true"
                 >
-                  {isActive ? <CheckIcon /> : null}
+                  {isActive ? (
+                    <CheckIcon />
+                  ) : null}
                 </span>
               </button>
             );
