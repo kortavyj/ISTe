@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
 
-import { getAuthErrorMessage } from "../auth/authErrors.js";
-import { useAuth } from "../auth/AuthContext.jsx";
-import { supabase } from "../lib/supabase.js";
+import {
+  getAuthErrorMessage,
+} from "../auth/authErrors.js";
+import {
+  useAuth,
+} from "../auth/AuthContext.jsx";
+import {
+  recoverySupabase,
+} from "../lib/supabaseRecovery.js";
 
 import "./Auth.css";
 
@@ -15,23 +24,53 @@ function clearRecoveryParameters() {
   );
 }
 
+async function clearRecoverySession() {
+  try {
+    await recoverySupabase.auth
+      .signOut({
+        scope: "local",
+      });
+  } catch {
+    // Recovery session may already be gone.
+  }
+
+  try {
+    window.sessionStorage
+      .removeItem(
+        "iste-recovery-auth",
+      );
+  } catch {
+    // Storage may be unavailable in a hardened browser mode.
+  }
+}
+
 export default function ResetPassword() {
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const navigate =
+    useNavigate();
 
-  const [linkStatus, setLinkStatus] =
-    useState("checking");
+  const {
+    signOut,
+  } = useAuth();
 
-  const [password, setPassword] =
-    useState("");
+  const [
+    linkStatus,
+    setLinkStatus,
+  ] = useState("checking");
+
+  const [
+    password,
+    setPassword,
+  ] = useState("");
 
   const [
     passwordRepeat,
     setPasswordRepeat,
   ] = useState("");
 
-  const [submitting, setSubmitting] =
-    useState(false);
+  const [
+    submitting,
+    setSubmitting,
+  ] = useState(false);
 
   const [
     errorMessage,
@@ -42,28 +81,45 @@ export default function ResetPassword() {
     let active = true;
     let retryTimer = null;
 
-    function acceptSession(session) {
-      if (!active || !session?.user) {
+    function acceptSession(
+      session,
+    ) {
+      if (
+        !active ||
+        !session?.user
+      ) {
         return false;
       }
 
       setLinkStatus("ready");
       clearRecoveryParameters();
+
       return true;
     }
 
     const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (
-          event === "PASSWORD_RECOVERY" ||
-          event === "SIGNED_IN"
-        ) {
-          acceptSession(session);
-        }
+      data: {
+        subscription,
       },
-    );
+    } =
+      recoverySupabase.auth
+        .onAuthStateChange(
+          (
+            event,
+            session,
+          ) => {
+            if (
+              event ===
+                "PASSWORD_RECOVERY" ||
+              event ===
+                "SIGNED_IN"
+            ) {
+              acceptSession(
+                session,
+              );
+            }
+          },
+        );
 
     async function verifyRecoveryLink() {
       try {
@@ -71,48 +127,68 @@ export default function ResetPassword() {
           data,
           error,
         } =
-          await supabase.auth.getSession();
+          await recoverySupabase
+            .auth
+            .getSession();
 
         if (error) {
           throw error;
         }
 
-        if (acceptSession(data.session)) {
+        if (
+          acceptSession(
+            data.session,
+          )
+        ) {
           return;
         }
 
-        retryTimer = window.setTimeout(
-          async () => {
-            try {
-              const {
-                data: retryData,
-                error: retryError,
-              } =
-                await supabase.auth.getSession();
+        retryTimer =
+          window.setTimeout(
+            async () => {
+              try {
+                const {
+                  data:
+                    retryData,
+                  error:
+                    retryError,
+                } =
+                  await recoverySupabase
+                    .auth
+                    .getSession();
 
-              if (retryError) {
-                throw retryError;
-              }
+                if (
+                  retryError
+                ) {
+                  throw retryError;
+                }
 
-              if (
-                !acceptSession(
-                  retryData.session,
-                ) &&
-                active
-              ) {
-                setLinkStatus("invalid");
+                if (
+                  !acceptSession(
+                    retryData
+                      .session,
+                  ) &&
+                  active
+                ) {
+                  setLinkStatus(
+                    "invalid",
+                  );
+                }
+              } catch {
+                if (active) {
+                  setLinkStatus(
+                    "invalid",
+                  );
+                }
               }
-            } catch {
-              if (active) {
-                setLinkStatus("invalid");
-              }
-            }
-          },
-          1200,
-        );
+            },
+            1200,
+          );
       } catch {
         if (active) {
-          setLinkStatus("invalid");
+          setLinkStatus(
+            "invalid",
+          );
         }
       }
     }
@@ -128,22 +204,30 @@ export default function ResetPassword() {
         );
       }
 
-      subscription.unsubscribe();
+      subscription
+        .unsubscribe();
     };
   }, []);
 
-  async function handleSubmit(event) {
+  async function handleSubmit(
+    event,
+  ) {
     event.preventDefault();
     setErrorMessage("");
 
-    if (password.length < 10) {
+    if (
+      password.length < 10
+    ) {
       setErrorMessage(
         "Пароль должен содержать минимум 10 символов.",
       );
       return;
     }
 
-    if (password !== passwordRepeat) {
+    if (
+      password !==
+      passwordRepeat
+    ) {
       setErrorMessage(
         "Введённые пароли не совпадают.",
       );
@@ -156,41 +240,52 @@ export default function ResetPassword() {
       const {
         error,
       } =
-        await supabase.auth.updateUser({
-          password,
-        });
+        await recoverySupabase
+          .auth
+          .updateUser({
+            password,
+          });
 
       if (error) {
         throw error;
       }
 
-      await supabase.auth.signOut({
-        scope: "local",
-      });
+      await clearRecoverySession();
 
+      /*
+       * Main ISTe cookies normally do not exist during password recovery,
+       * but if the user had another server session open, invalidate it too.
+       */
       try {
         await signOut();
       } catch {
-        // Backend cookies могут отсутствовать
-        // во время восстановления пароля.
+        // Backend cookies may be absent during recovery.
       }
 
-      navigate("/login", {
-        replace: true,
-        state: {
-          message:
-            "Пароль изменён. Теперь войдите с новым паролем.",
+      navigate(
+        "/login",
+        {
+          replace: true,
+          state: {
+            message:
+              "Пароль изменён. Теперь войдите с новым паролем.",
+          },
         },
-      });
+      );
     } catch (error) {
       setErrorMessage(
-        getAuthErrorMessage(error),
+        getAuthErrorMessage(
+          error,
+        ),
       );
       setSubmitting(false);
     }
   }
 
-  if (linkStatus === "checking") {
+  if (
+    linkStatus ===
+    "checking"
+  ) {
     return (
       <section className="auth-page">
         <div className="auth-card auth-card-status">
@@ -198,6 +293,7 @@ export default function ResetPassword() {
             className="auth-loader"
             aria-hidden="true"
           />
+
           <p>
             Проверяем ссылку
             восстановления...
@@ -207,30 +303,38 @@ export default function ResetPassword() {
     );
   }
 
-  if (linkStatus === "invalid") {
+  if (
+    linkStatus ===
+    "invalid"
+  ) {
     return (
       <section className="auth-page">
         <div className="auth-shell">
           <div className="auth-card blocked-card">
             <h1>
-              Ссылка недействительна
+              Ссылка
+              недействительна
             </h1>
 
             <p>
-              Ссылка могла истечь,
-              уже использоваться или
-              быть открыта в другом
-              браузере. Запросите новое
-              письмо и откройте его в том
-              же браузере, где выполнялся
-              запрос.
+              Ссылка могла
+              истечь, уже
+              использоваться или
+              быть открыта в
+              другом браузере.
+              Запросите новое
+              письмо и откройте
+              его в том же
+              браузере, где
+              выполнялся запрос.
             </p>
 
             <Link
               className="auth-button"
               to="/forgot-password"
             >
-              Запросить новую ссылку
+              Запросить новую
+              ссылку
             </Link>
           </div>
         </div>
@@ -246,69 +350,96 @@ export default function ResetPassword() {
             ISTe account
           </p>
 
-          <h1>Новый пароль</h1>
+          <h1>
+            Новый пароль
+          </h1>
 
           <p>
-            Создайте новый пароль для
-            аккаунта.
+            Создайте новый
+            пароль для аккаунта.
           </p>
         </header>
 
         <div className="auth-card auth-card-form">
           <form
             className="auth-form"
-            onSubmit={handleSubmit}
+            onSubmit={
+              handleSubmit
+            }
           >
             {errorMessage && (
               <div className="auth-message auth-message-error">
-                {errorMessage}
+                {
+                  errorMessage
+                }
               </div>
             )}
 
             <label className="auth-field">
-              <span>Новый пароль</span>
-
-              <input
-                className="auth-input"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(event) =>
-                  setPassword(
-                    event.target.value,
-                  )
-                }
-                minLength={10}
-                required
-                disabled={submitting}
-              />
-            </label>
-
-            <label className="auth-field">
               <span>
-                Повтор нового пароля
+                Новый пароль
               </span>
 
               <input
                 className="auth-input"
                 type="password"
                 autoComplete="new-password"
-                value={passwordRepeat}
-                onChange={(event) =>
-                  setPasswordRepeat(
-                    event.target.value,
+                value={password}
+                onChange={(
+                  event,
+                ) =>
+                  setPassword(
+                    event
+                      .target
+                      .value,
                   )
                 }
                 minLength={10}
+                maxLength={128}
                 required
-                disabled={submitting}
+                disabled={
+                  submitting
+                }
+              />
+            </label>
+
+            <label className="auth-field">
+              <span>
+                Повтор нового
+                пароля
+              </span>
+
+              <input
+                className="auth-input"
+                type="password"
+                autoComplete="new-password"
+                value={
+                  passwordRepeat
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setPasswordRepeat(
+                    event
+                      .target
+                      .value,
+                  )
+                }
+                minLength={10}
+                maxLength={128}
+                required
+                disabled={
+                  submitting
+                }
               />
             </label>
 
             <button
               className="auth-button"
               type="submit"
-              disabled={submitting}
+              disabled={
+                submitting
+              }
             >
               {submitting
                 ? "Сохраняем..."
