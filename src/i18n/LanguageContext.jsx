@@ -10,6 +10,8 @@ import {
 import { translations } from "./translations.js";
 
 const STORAGE_KEY = "iste_language";
+const STORAGE_VERSION_KEY = "iste_language_schema";
+const STORAGE_VERSION = "2026-09-ua-default-v1";
 const DEFAULT_LANGUAGE = "uk";
 
 export const SUPPORTED_LANGUAGES = Object.freeze([
@@ -24,12 +26,31 @@ function isSupportedLanguage(value) {
   return SUPPORTED_LANGUAGES.includes(value);
 }
 
-function readStoredLanguage() {
+function readInitialLanguage() {
   if (typeof window === "undefined") {
     return DEFAULT_LANGUAGE;
   }
 
   try {
+    const storedVersion =
+      window.localStorage.getItem(STORAGE_VERSION_KEY);
+
+    // Одноразово переводим всех посетителей на украинский
+    // после установки этой версии локализации.
+    if (storedVersion !== STORAGE_VERSION) {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        DEFAULT_LANGUAGE,
+      );
+
+      window.localStorage.setItem(
+        STORAGE_VERSION_KEY,
+        STORAGE_VERSION,
+      );
+
+      return DEFAULT_LANGUAGE;
+    }
+
     const storedLanguage =
       window.localStorage.getItem(STORAGE_KEY);
 
@@ -68,7 +89,7 @@ function interpolate(value, variables) {
 
 export function LanguageProvider({ children }) {
   const [language, setLanguageState] =
-    useState(readStoredLanguage);
+    useState(readInitialLanguage);
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -88,8 +109,13 @@ export function LanguageProvider({ children }) {
         STORAGE_KEY,
         nextLanguage,
       );
+
+      window.localStorage.setItem(
+        STORAGE_VERSION_KEY,
+        STORAGE_VERSION,
+      );
     } catch {
-      // Язык всё равно изменится для текущей страницы.
+      // Для текущей вкладки язык всё равно изменится.
     }
   }, []);
 
@@ -118,6 +144,7 @@ export function LanguageProvider({ children }) {
       language,
       setLanguage,
       t,
+      defaultLanguage: DEFAULT_LANGUAGE,
       supportedLanguages: SUPPORTED_LANGUAGES,
     }),
     [language, setLanguage, t],
