@@ -115,13 +115,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
-      "elo": 2067,
+      "elo": 2055,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.21
+      "kd": 1.22
     }
   ],
   "teamMatches": [
@@ -2589,5 +2589,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-02T23:19:52.616Z"
+  "updatedAt": "2026-09-03T01:11:19.790Z"
 }
