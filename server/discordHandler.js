@@ -21,14 +21,20 @@ function sendError(response, status, error, message) {
 
 function sendGuardError(response, guard) {
   if (guard.allow) response.setHeader("Allow", guard.allow);
-  return sendError(response, guard.status, guard.error, "Запрос отклонён сервером.");
+  return sendError(
+    response,
+    guard.status,
+    guard.error,
+    "Запрос отклонён сервером.",
+  );
 }
 
 function readConfig() {
   return {
     clientId: process.env.DISCORD_CLIENT_ID?.trim() || "",
     botToken: process.env.DISCORD_BOT_TOKEN?.trim() || "",
-    permissions: process.env.DISCORD_PERMISSIONS?.trim() || DEFAULT_PERMISSIONS,
+    permissions:
+      process.env.DISCORD_PERMISSIONS?.trim() || DEFAULT_PERMISSIONS,
   };
 }
 
@@ -38,18 +44,25 @@ function isSnowflake(value) {
 
 function makeInstallUrl(clientId, permissions, guildId = "") {
   if (!clientId) return "";
-  const params = new URLSearchParams({
-    client_id: clientId,
-    scope: "bot applications.commands",
-    permissions: permissions || DEFAULT_PERMISSIONS,
-  });
+
+  // Discord's current installation model needs an explicit installation
+  // context when applications.commands is requested. 0 = GUILD_INSTALL.
+  const params = new URLSearchParams();
+  params.set("client_id", clientId);
+  params.set("integration_type", "0");
+  params.set("permissions", permissions || DEFAULT_PERMISSIONS);
+
+  // Discord docs specify scopes separated by URL-encoded spaces.
+  // URLSearchParams serializes a literal space as "+", so scope is appended
+  // explicitly as %20 to avoid Discord's "Invalid Form Body" install error.
+  const scope = "applications.commands%20bot";
 
   if (isSnowflake(guildId)) {
     params.set("guild_id", guildId);
     params.set("disable_guild_select", "true");
   }
 
-  return `https://discord.com/oauth2/authorize?${params.toString()}`;
+  return `https://discord.com/oauth2/authorize?${params.toString()}&scope=${scope}`;
 }
 
 async function discordRequest(path, { method = "GET", body = null } = {}) {
@@ -80,7 +93,9 @@ async function discordRequest(path, { method = "GET", body = null } = {}) {
 
   if (!response.ok) {
     throw Object.assign(
-      new Error(result?.message || `Discord API returned ${response.status}.`),
+      new Error(
+        result?.message || `Discord API returned ${response.status}.`,
+      ),
       { status: response.status, details: result },
     );
   }
@@ -118,7 +133,9 @@ async function handleStatus(request, response) {
     const supabase = getSupabaseAdminClient();
     const { data, error } = await supabase
       .from("discord_guilds")
-      .select("guild_id, guild_name, active, member_count, locale, installed_at, last_seen_at, updated_at")
+      .select(
+        "guild_id, guild_name, active, member_count, locale, installed_at, last_seen_at, updated_at",
+      )
       .order("updated_at", { ascending: false })
       .limit(10);
 
@@ -169,7 +186,8 @@ async function handlePrepareInstall(request, response) {
   if (!guard.ok) return sendGuardError(response, guard);
 
   const body = readJsonBody(request);
-  const guildId = typeof body?.guildId === "string" ? body.guildId.trim() : "";
+  const guildId =
+    typeof body?.guildId === "string" ? body.guildId.trim() : "";
 
   if (!isSnowflake(guildId)) {
     return sendError(
@@ -214,7 +232,11 @@ async function handlePrepareInstall(request, response) {
     return response.status(200).json({
       ok: true,
       guildId,
-      installUrl: makeInstallUrl(config.clientId, config.permissions, guildId),
+      installUrl: makeInstallUrl(
+        config.clientId,
+        config.permissions,
+        guildId,
+      ),
     });
   } catch (error) {
     console.error("Discord prepare install error:", error);
@@ -238,7 +260,8 @@ async function handleVerify(request, response) {
   if (!guard.ok) return sendGuardError(response, guard);
 
   const body = readJsonBody(request);
-  const guildId = typeof body?.guildId === "string" ? body.guildId.trim() : "";
+  const guildId =
+    typeof body?.guildId === "string" ? body.guildId.trim() : "";
 
   if (!isSnowflake(guildId)) {
     return sendError(
@@ -283,7 +306,11 @@ async function handleVerify(request, response) {
       payload: { guild_name: payload.guild_name },
     });
 
-    return response.status(200).json({ ok: true, connected: true, guild: payload });
+    return response.status(200).json({
+      ok: true,
+      connected: true,
+      guild: payload,
+    });
   } catch (error) {
     console.error("Discord verify error:", error);
 
@@ -339,14 +366,19 @@ async function handleRegisterCommands(request, response) {
   }
 
   try {
-    const result = await discordRequest(`/applications/${clientId}/commands`, {
-      method: "PUT",
-      body: COMMANDS,
-    });
+    const result = await discordRequest(
+      `/applications/${clientId}/commands`,
+      {
+        method: "PUT",
+        body: COMMANDS,
+      },
+    );
 
     return response.status(200).json({
       ok: true,
-      commands: Array.isArray(result) ? result.map((item) => item.name) : [],
+      commands: Array.isArray(result)
+        ? result.map((item) => item.name)
+        : [],
     });
   } catch (error) {
     console.error("Discord register commands error:", error);
@@ -367,12 +399,25 @@ export default async function discordHandler(request, response) {
     : request.query?.action;
 
   const action =
-    typeof rawAction === "string" ? rawAction.trim().toLowerCase() : "status";
+    typeof rawAction === "string"
+      ? rawAction.trim().toLowerCase()
+      : "status";
 
-  if (action === "status") return handleStatus(request, response);
-  if (action === "prepare-install") return handlePrepareInstall(request, response);
-  if (action === "verify") return handleVerify(request, response);
-  if (action === "register-commands") return handleRegisterCommands(request, response);
+  if (action === "status") {
+    return handleStatus(request, response);
+  }
+
+  if (action === "prepare-install") {
+    return handlePrepareInstall(request, response);
+  }
+
+  if (action === "verify") {
+    return handleVerify(request, response);
+  }
+
+  if (action === "register-commands") {
+    return handleRegisterCommands(request, response);
+  }
 
   return sendError(
     response,
