@@ -9,6 +9,7 @@ import {
   readQueryString,
 } from "./lib/requestBody.js";
 import shopHandler from "../server/shopHandler.js";
+import discordHandler from "../server/discordHandler.js";
 
 const ALLOWED_ROLES = new Set([
   "user",
@@ -16,31 +17,19 @@ const ALLOWED_ROLES = new Set([
   "admin",
 ]);
 
-function sendGuardError(
-  response,
-  guard,
-) {
+function sendGuardError(response, guard) {
   if (guard.allow) {
-    response.setHeader(
-      "Allow",
-      guard.allow,
-    );
+    response.setHeader("Allow", guard.allow);
   }
 
   return response.status(guard.status).json({
     ok: false,
     error: guard.error,
-    message:
-      "Запрос отклонён сервером.",
+    message: "Запрос отклонён сервером.",
   });
 }
 
-function sendError(
-  response,
-  status,
-  error,
-  message,
-) {
+function sendError(response, status, error, message) {
   return response.status(status).json({
     ok: false,
     error,
@@ -48,14 +37,8 @@ function sendError(
   });
 }
 
-async function getOwner(
-  request,
-  response,
-) {
-  const owner = await requireOwner(
-    request,
-    response,
-  );
+async function getOwner(request, response) {
+  const owner = await requireOwner(request, response);
 
   if (!owner.ok) {
     sendError(
@@ -64,49 +47,28 @@ async function getOwner(
       owner.error,
       owner.message,
     );
-
     return null;
   }
 
   return owner;
 }
 
-async function handleUsers(
-  request,
-  response,
-) {
+async function handleUsers(request, response) {
   const guard = guardRequest(request, {
     methods: ["GET"],
     requireJson: false,
     requireOrigin: false,
   });
 
-  if (!guard.ok) {
-    return sendGuardError(
-      response,
-      guard,
-    );
-  }
+  if (!guard.ok) return sendGuardError(response, guard);
 
-  const owner = await getOwner(
-    request,
-    response,
-  );
+  const owner = await getOwner(request, response);
+  if (!owner) return;
 
-  if (!owner) {
-    return;
-  }
-
-  const search = readQueryString(
-    request.query?.search,
-    100,
-  );
+  const search = readQueryString(request.query?.search, 100);
 
   try {
-    const {
-      data,
-      error,
-    } = await owner.supabase.rpc(
+    const { data, error } = await owner.supabase.rpc(
       "owner_list_users",
       {
         p_search: search,
@@ -116,11 +78,6 @@ async function handleUsers(
     );
 
     if (error) {
-      console.error(
-        "Owner list users error:",
-        error,
-      );
-
       const mapped = mapOwnerRpcError(
         error,
         "Не удалось загрузить пользователей.",
@@ -136,16 +93,9 @@ async function handleUsers(
 
     return response.status(200).json({
       ok: true,
-      users: Array.isArray(data)
-        ? data
-        : [],
+      users: Array.isArray(data) ? data : [],
     });
-  } catch (error) {
-    console.error(
-      "Unexpected owner users error:",
-      error,
-    );
-
+  } catch {
     return sendError(
       response,
       500,
@@ -155,37 +105,20 @@ async function handleUsers(
   }
 }
 
-async function handleAudit(
-  request,
-  response,
-) {
+async function handleAudit(request, response) {
   const guard = guardRequest(request, {
     methods: ["GET"],
     requireJson: false,
     requireOrigin: false,
   });
 
-  if (!guard.ok) {
-    return sendGuardError(
-      response,
-      guard,
-    );
-  }
+  if (!guard.ok) return sendGuardError(response, guard);
 
-  const owner = await getOwner(
-    request,
-    response,
-  );
-
-  if (!owner) {
-    return;
-  }
+  const owner = await getOwner(request, response);
+  if (!owner) return;
 
   try {
-    const {
-      data,
-      error,
-    } = await owner.supabase.rpc(
+    const { data, error } = await owner.supabase.rpc(
       "owner_list_audit_log",
       {
         p_limit: 100,
@@ -194,11 +127,6 @@ async function handleAudit(
     );
 
     if (error) {
-      console.error(
-        "Owner audit log error:",
-        error,
-      );
-
       const mapped = mapOwnerRpcError(
         error,
         "Не удалось загрузить журнал действий.",
@@ -214,16 +142,9 @@ async function handleAudit(
 
     return response.status(200).json({
       ok: true,
-      audit: Array.isArray(data)
-        ? data
-        : [],
+      audit: Array.isArray(data) ? data : [],
     });
-  } catch (error) {
-    console.error(
-      "Unexpected owner audit error:",
-      error,
-    );
-
+  } catch {
     return sendError(
       response,
       500,
@@ -233,10 +154,7 @@ async function handleAudit(
   }
 }
 
-async function handleUpdateRole(
-  request,
-  response,
-) {
+async function handleUpdateRole(request, response) {
   const guard = guardRequest(request, {
     methods: ["POST"],
     requireJson: true,
@@ -244,15 +162,9 @@ async function handleUpdateRole(
     maxBodyBytes: 8 * 1024,
   });
 
-  if (!guard.ok) {
-    return sendGuardError(
-      response,
-      guard,
-    );
-  }
+  if (!guard.ok) return sendGuardError(response, guard);
 
   const body = readJsonBody(request);
-
   if (!body) {
     return sendError(
       response,
@@ -290,20 +202,11 @@ async function handleUpdateRole(
     );
   }
 
-  const owner = await getOwner(
-    request,
-    response,
-  );
-
-  if (!owner) {
-    return;
-  }
+  const owner = await getOwner(request, response);
+  if (!owner) return;
 
   try {
-    const {
-      data,
-      error,
-    } = await owner.supabase.rpc(
+    const { data, error } = await owner.supabase.rpc(
       "owner_update_user_role",
       {
         p_user_id: userId,
@@ -312,11 +215,6 @@ async function handleUpdateRole(
     );
 
     if (error) {
-      console.error(
-        "Owner update role error:",
-        error,
-      );
-
       const mapped = mapOwnerRpcError(
         error,
         "Не удалось изменить роль пользователя.",
@@ -334,12 +232,7 @@ async function handleUpdateRole(
       ok: true,
       result: data ?? null,
     });
-  } catch (error) {
-    console.error(
-      "Unexpected owner role error:",
-      error,
-    );
-
+  } catch {
     return sendError(
       response,
       500,
@@ -349,10 +242,7 @@ async function handleUpdateRole(
   }
 }
 
-async function handleSetBlocked(
-  request,
-  response,
-) {
+async function handleSetBlocked(request, response) {
   const guard = guardRequest(request, {
     methods: ["POST"],
     requireJson: true,
@@ -360,15 +250,9 @@ async function handleSetBlocked(
     maxBodyBytes: 8 * 1024,
   });
 
-  if (!guard.ok) {
-    return sendGuardError(
-      response,
-      guard,
-    );
-  }
+  if (!guard.ok) return sendGuardError(response, guard);
 
   const body = readJsonBody(request);
-
   if (!body) {
     return sendError(
       response,
@@ -417,36 +301,20 @@ async function handleSetBlocked(
     );
   }
 
-  const owner = await getOwner(
-    request,
-    response,
-  );
-
-  if (!owner) {
-    return;
-  }
+  const owner = await getOwner(request, response);
+  if (!owner) return;
 
   try {
-    const {
-      data,
-      error,
-    } = await owner.supabase.rpc(
+    const { data, error } = await owner.supabase.rpc(
       "owner_set_user_blocked",
       {
         p_user_id: userId,
         p_is_blocked: isBlocked,
-        p_reason: isBlocked
-          ? reason
-          : "",
+        p_reason: isBlocked ? reason : "",
       },
     );
 
     if (error) {
-      console.error(
-        "Owner set blocked error:",
-        error,
-      );
-
       const mapped = mapOwnerRpcError(
         error,
         isBlocked
@@ -466,12 +334,7 @@ async function handleSetBlocked(
       ok: true,
       result: data ?? null,
     });
-  } catch (error) {
-    console.error(
-      "Unexpected owner block error:",
-      error,
-    );
-
+  } catch {
     return sendError(
       response,
       500,
@@ -481,10 +344,7 @@ async function handleSetBlocked(
   }
 }
 
-export default async function handler(
-  request,
-  response,
-) {
+export default async function handler(request, response) {
   const rawModule =
     Array.isArray(request.query?.module)
       ? request.query.module[0]
@@ -496,10 +356,11 @@ export default async function handler(
       : "";
 
   if (moduleName === "shop") {
-    return shopHandler(
-      request,
-      response,
-    );
+    return shopHandler(request, response);
+  }
+
+  if (moduleName === "discord") {
+    return discordHandler(request, response);
   }
 
   const rawAction =
@@ -513,31 +374,19 @@ export default async function handler(
       : "";
 
   if (action === "users") {
-    return handleUsers(
-      request,
-      response,
-    );
+    return handleUsers(request, response);
   }
 
   if (action === "audit") {
-    return handleAudit(
-      request,
-      response,
-    );
+    return handleAudit(request, response);
   }
 
   if (action === "update-role") {
-    return handleUpdateRole(
-      request,
-      response,
-    );
+    return handleUpdateRole(request, response);
   }
 
   if (action === "set-blocked") {
-    return handleSetBlocked(
-      request,
-      response,
-    );
+    return handleSetBlocked(request, response);
   }
 
   return sendError(
