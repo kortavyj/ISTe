@@ -13,6 +13,7 @@ import Account from "./pages/Account.jsx";
 import AdminNews from "./pages/AdminNews.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
 import Contacts from "./pages/Contacts.jsx";
+import DiscordBot from "./pages/DiscordBot.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import History from "./pages/History.jsx";
 import Home from "./pages/Home.jsx";
@@ -110,6 +111,7 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/discord" element={<DiscordBot />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/login" element={<Login />} />

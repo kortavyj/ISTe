@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import "./OwnerDiscord.css";
 
+const DISCORD_CLIENT_ID = "1545183724218359848";
+const DISCORD_INSTALL_URL =
+  `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}`;
+
 async function apiRequest(action, { method = "GET", body = null, guildId = "" } = {}) {
   const params = new URLSearchParams({ module: "discord", action });
   if (guildId) params.set("guildId", guildId);
@@ -54,26 +58,17 @@ export default function OwnerDiscord() {
     void load("");
   }, []);
 
-  async function connectBot() {
-    if (!guildId || busy) return;
-
-    setBusy("connect");
+  function connectBot() {
     setError("");
-    setMessage("");
+    setMessage(
+      "Открылось официальное окно Discord. Выберите сервер, на который хотите добавить ISTe Bot.",
+    );
 
-    try {
-      const result = await apiRequest("prepare-install", {
-        method: "POST",
-        body: { guildId },
-      });
-
-      window.open(result.installUrl, "_blank", "noopener,noreferrer");
-      setMessage("Discord открыл окно установки. После добавления бота вернись сюда и нажми «Проверить».");
-    } catch (actionError) {
-      setError(actionError?.message || "Не удалось открыть установку.");
-    } finally {
-      setBusy("");
-    }
+    window.open(
+      DISCORD_INSTALL_URL,
+      "_blank",
+      "noopener,noreferrer",
+    );
   }
 
   async function verifyBot() {
@@ -109,7 +104,7 @@ export default function OwnerDiscord() {
         method: "POST",
         body: {},
       });
-      setMessage("Slash-команды зарегистрированы.");
+      setMessage("Slash-команды зарегистрированы глобально.");
     } catch (actionError) {
       setError(actionError?.message || "Не удалось зарегистрировать команды.");
     } finally {
@@ -130,8 +125,9 @@ export default function OwnerDiscord() {
           <div>
             <h1>ISTe Discord Bot</h1>
             <p>
-              Подключение Discord-сервера прямо из панели владельца ISTe.
-              В V1 бот получает slash-команды, данные состава, матчей, новостей и ссылку на сайт.
+              Панель владельца ISTe Bot. Публичная установка доступна каждому
+              через /discord, а здесь остаются проверка серверов и управление
+              глобальными slash-командами.
             </p>
           </div>
         </header>
@@ -142,14 +138,14 @@ export default function OwnerDiscord() {
         <div className="owner-discord-grid">
           <article className="owner-discord-card">
             <div className="owner-discord-card-head">
-              <h2>Подключение</h2>
+              <h2>Установка и проверка</h2>
               <span className={`owner-discord-status ${connected ? "is-online" : ""}`}>
                 <i />
                 {!configured
                   ? "Нужны Discord credentials"
                   : connected
-                    ? "Бот подключён"
-                    : "Ожидает подключения"}
+                    ? "Сервер проверен"
+                    : "Бот готов к установке"}
               </span>
             </div>
 
@@ -160,8 +156,25 @@ export default function OwnerDiscord() {
               </div>
             ) : null}
 
-            <label className="owner-discord-field">
-              <span>Discord Server ID</span>
+            <div className="owner-discord-actions">
+              <button
+                type="button"
+                className="owner-discord-primary"
+                onClick={connectBot}
+              >
+                Добавить ISTe Bot
+              </button>
+
+              <a
+                href="/discord"
+                className="owner-discord-secondary"
+              >
+                Публичная страница
+              </a>
+            </div>
+
+            <label className="owner-discord-field" style={{ marginTop: 22 }}>
+              <span>Discord Server ID — только для проверки владельцем</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -172,27 +185,19 @@ export default function OwnerDiscord() {
                 placeholder="123456789012345678"
               />
               <small>
-                Discord → Settings → Advanced → Developer Mode → ПКМ по серверу → Copy Server ID.
+                Установка больше не требует Server ID. Это поле нужно только,
+                если вы хотите проверить конкретный сервер через панель владельца.
               </small>
             </label>
 
             <div className="owner-discord-actions">
               <button
                 type="button"
-                className="owner-discord-primary"
-                onClick={connectBot}
-                disabled={!guildId || Boolean(busy) || !status?.configured?.clientId}
-              >
-                Подключить бота
-              </button>
-
-              <button
-                type="button"
                 className="owner-discord-secondary"
                 onClick={verifyBot}
                 disabled={!guildId || Boolean(busy) || !status?.configured?.botToken}
               >
-                Проверить
+                Проверить сервер
               </button>
             </div>
           </article>
@@ -212,7 +217,7 @@ export default function OwnerDiscord() {
               onClick={registerCommands}
               disabled={!configured || Boolean(busy)}
             >
-              Зарегистрировать команды
+              Зарегистрировать команды глобально
             </button>
 
             <div className="owner-discord-endpoint">
@@ -223,20 +228,19 @@ export default function OwnerDiscord() {
         </div>
 
         <aside className="owner-discord-setup">
-          <h2>Что нужно настроить один раз</h2>
+          <h2>Публичная установка</h2>
           <p>
-            В Discord Developer Portal создаётся приложение ISTe Bot.
-            Public Key добавляется в Supabase Edge Function secrets.
-            Client ID и Bot Token добавляются в Vercel Environment Variables.
-            Bot Token нельзя хранить в GitHub или клиентском коде.
+            Любой пользователь может открыть istesport.com/discord и добавить
+            ISTe Bot на сервер, где у него есть право управлять сервером.
+            Bot Token при этом никогда не попадает в браузер.
           </p>
           <a
-            href="https://discord.com/developers/applications"
+            href={DISCORD_INSTALL_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="owner-discord-secondary"
           >
-            Discord Developer Portal
+            Открыть прямую ссылку Discord
           </a>
         </aside>
       </div>
