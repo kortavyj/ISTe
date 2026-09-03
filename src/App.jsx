@@ -15,6 +15,7 @@ import BlockedAccount from "./pages/BlockedAccount.jsx";
 import Contacts from "./pages/Contacts.jsx";
 import DiscordBot from "./pages/DiscordBot.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
+import FounderDashboard from "./pages/FounderDashboard.jsx";
 import History from "./pages/History.jsx";
 import Home from "./pages/Home.jsx";
 import { Privacy, Terms } from "./pages/Legal.jsx";
@@ -46,6 +47,7 @@ export default function App() {
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration;
     window.history.scrollRestoration = "manual";
+
     return () => {
       window.history.scrollRestoration = previousScrollRestoration;
     };
@@ -58,7 +60,9 @@ export default function App() {
   }, [location.pathname, introIsActive]);
 
   const showRosterAsInitialView = useCallback(() => {
-    if (initialViewWasPositionedRef.current || location.pathname !== "/") return;
+    if (initialViewWasPositionedRef.current || location.pathname !== "/") {
+      return;
+    }
 
     const rosterSection = document.getElementById("roster");
     if (!rosterSection) return;
@@ -69,7 +73,9 @@ export default function App() {
       document.querySelector(".navbar")?.getBoundingClientRect().height ?? 0;
 
     const rosterTop =
-      window.scrollY + rosterSection.getBoundingClientRect().top - navbarHeight;
+      window.scrollY +
+      rosterSection.getBoundingClientRect().top -
+      navbarHeight;
 
     window.scrollTo({
       top: Math.max(0, rosterTop),
@@ -80,6 +86,7 @@ export default function App() {
 
   const closeIntro = useCallback(() => {
     setShowIntro(false);
+
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(showRosterAsInitialView);
     });
@@ -108,10 +115,10 @@ export default function App() {
           <Route path="/matches" element={<Matches />} />
           <Route path="/news" element={<News />} />
           <Route path="/partners" element={<Partners />} />
+          <Route path="/discord" element={<DiscordBot />} />
           <Route path="/history" element={<History />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/shop" element={<Shop />} />
-          <Route path="/discord" element={<DiscordBot />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/login" element={<Login />} />
@@ -144,6 +151,15 @@ export default function App() {
               <StaffRoute>
                 <AdminNews />
               </StaffRoute>
+            }
+          />
+
+          <Route
+            path="/founder"
+            element={
+              <OwnerRoute>
+                <FounderDashboard />
+              </OwnerRoute>
             }
           />
 

@@ -21,7 +21,53 @@ const navigation = [
   { to: "/team", labelKey: "navigation.team" },
   { to: "/news", labelKey: "navigation.news" },
   { to: "/partners", labelKey: "navigation.partners" },
+  { to: "/discord", label: "ISTe Bot" },
 ];
+
+const founderCopy = {
+  uk: {
+    trigger: "Засновник",
+    menuAria: "Меню засновника ISTe",
+    dashboard: "Панель засновника",
+    dashboardText: "Центр керування ISTe",
+    users: "Користувачі",
+    usersText: "Ролі, блокування та журнал",
+    news: "Новини",
+    newsText: "Чернетки та публікації",
+    shop: "ISTe Wear",
+    shopText: "Товари та передзамовлення",
+    discord: "Discord Bot",
+    discordText: "Сервери та slash-команди",
+  },
+  ru: {
+    trigger: "Основатель",
+    menuAria: "Меню основателя ISTe",
+    dashboard: "Панель основателя",
+    dashboardText: "Центр управления ISTe",
+    users: "Пользователи",
+    usersText: "Роли, блокировки и журнал",
+    news: "Новости",
+    newsText: "Черновики и публикации",
+    shop: "ISTe Wear",
+    shopText: "Товары и предзаказы",
+    discord: "Discord Bot",
+    discordText: "Серверы и slash-команды",
+  },
+  en: {
+    trigger: "Founder",
+    menuAria: "ISTe founder menu",
+    dashboard: "Founder dashboard",
+    dashboardText: "ISTe management center",
+    users: "Users",
+    usersText: "Roles, bans and audit log",
+    news: "News",
+    newsText: "Drafts and publications",
+    shop: "ISTe Wear",
+    shopText: "Products and pre-orders",
+    discord: "Discord Bot",
+    discordText: "Servers and slash commands",
+  },
+};
 
 const icons = {
   profile: (
@@ -152,9 +198,68 @@ function ProfileAction({
   );
 }
 
+function FounderMenu({ language, onNavigate }) {
+  const c = founderCopy[language] || founderCopy.uk;
+
+  return (
+    <div className="navbar-founder-dropdown" role="menu">
+      <div className="navbar-founder-head">
+        <span className="navbar-founder-crown" aria-hidden="true">
+          ♛
+        </span>
+        <div>
+          <strong>{c.dashboard}</strong>
+          <span>ISTe</span>
+        </div>
+      </div>
+
+      <NavLink to="/founder" className="navbar-founder-item" onClick={onNavigate}>
+        <strong>{c.dashboard}</strong>
+        <span>{c.dashboardText}</span>
+      </NavLink>
+
+      <NavLink
+        to="/owner/users"
+        className="navbar-founder-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.users}</strong>
+        <span>{c.usersText}</span>
+      </NavLink>
+
+      <NavLink
+        to="/admin/news"
+        className="navbar-founder-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.news}</strong>
+        <span>{c.newsText}</span>
+      </NavLink>
+
+      <NavLink
+        to="/owner/shop"
+        className="navbar-founder-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.shop}</strong>
+        <span>{c.shopText}</span>
+      </NavLink>
+
+      <NavLink
+        to="/owner/discord"
+        className="navbar-founder-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.discord}</strong>
+        <span>{c.discordText}</span>
+      </NavLink>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const {
     user,
     profile,
@@ -164,14 +269,22 @@ export default function Navbar() {
   } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [founderMenuOpen, setFounderMenuOpen] = useState(false);
+
   const accountMenuRef = useRef(null);
+  const founderMenuRef = useRef(null);
 
   const canManageNews = [
     "editor",
     "admin",
     "owner",
   ].includes(role);
+
   const canManageUsers = role === "owner";
+  const isFounder = role === "owner";
+
+  const founderText =
+    founderCopy[language] || founderCopy.uk;
 
   const initials = useMemo(
     () => getInitials(profile, user),
@@ -191,11 +304,19 @@ export default function Navbar() {
       ) {
         setMenuOpen(false);
       }
+
+      if (
+        founderMenuRef.current &&
+        !founderMenuRef.current.contains(event.target)
+      ) {
+        setFounderMenuOpen(false);
+      }
     }
 
     function handleKeyDown(event) {
       if (event.key === "Escape") {
         setMenuOpen(false);
+        setFounderMenuOpen(false);
       }
     }
 
@@ -210,16 +331,22 @@ export default function Navbar() {
 
   useEffect(() => {
     setMenuOpen(false);
+    setFounderMenuOpen(false);
   }, [user]);
 
   async function handleSignOut() {
     setMenuOpen(false);
+    setFounderMenuOpen(false);
     await signOut();
     navigate("/", { replace: true });
   }
 
-  function closeMenu() {
+  function closeAccountMenu() {
     setMenuOpen(false);
+  }
+
+  function closeFounderMenu() {
+    setFounderMenuOpen(false);
   }
 
   return (
@@ -237,7 +364,7 @@ export default function Navbar() {
           className="navbar-links"
           aria-label={t("navigation.ariaLabel")}
         >
-          {navigation.map(({ to, labelKey, end }) => (
+          {navigation.map(({ to, labelKey, label, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -248,12 +375,45 @@ export default function Navbar() {
                 }`
               }
             >
-              {t(labelKey)}
+              {label || t(labelKey)}
             </NavLink>
           ))}
         </nav>
 
         <div className="navbar-auth">
+          {isFounder ? (
+            <div
+              className="navbar-founder-menu"
+              ref={founderMenuRef}
+            >
+              <button
+                className={`navbar-founder-trigger${
+                  founderMenuOpen
+                    ? " navbar-founder-trigger-open"
+                    : ""
+                }`}
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={founderMenuOpen}
+                aria-label={founderText.menuAria}
+                onClick={() => {
+                  setFounderMenuOpen((current) => !current);
+                  setMenuOpen(false);
+                }}
+              >
+                <span aria-hidden="true">♛</span>
+                <strong>{founderText.trigger}</strong>
+              </button>
+
+              {founderMenuOpen ? (
+                <FounderMenu
+                  language={language}
+                  onNavigate={closeFounderMenu}
+                />
+              ) : null}
+            </div>
+          ) : null}
+
           <LanguageSwitcher />
 
           {loading ? (
@@ -291,9 +451,10 @@ export default function Navbar() {
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
                 aria-label={t("account.openMenu")}
-                onClick={() =>
-                  setMenuOpen((current) => !current)
-                }
+                onClick={() => {
+                  setMenuOpen((current) => !current);
+                  setFounderMenuOpen(false);
+                }}
               >
                 <span
                   className="navbar-account-avatar"
@@ -362,7 +523,7 @@ export default function Navbar() {
                   title={t("account.profileTitle")}
                   description={t("account.profileDescription")}
                   menuOpen={menuOpen}
-                  onClick={closeMenu}
+                  onClick={closeAccountMenu}
                 />
 
                 <ProfileAction
@@ -371,7 +532,7 @@ export default function Navbar() {
                   title={t("account.findUserTitle")}
                   description={t("account.findUserDescription")}
                   menuOpen={menuOpen}
-                  onClick={closeMenu}
+                  onClick={closeAccountMenu}
                 />
 
                 {canManageNews ? (
@@ -383,7 +544,7 @@ export default function Navbar() {
                       "account.manageNewsDescription",
                     )}
                     menuOpen={menuOpen}
-                    onClick={closeMenu}
+                    onClick={closeAccountMenu}
                   />
                 ) : null}
 
@@ -396,7 +557,7 @@ export default function Navbar() {
                       "account.manageUsersDescription",
                     )}
                     menuOpen={menuOpen}
-                    onClick={closeMenu}
+                    onClick={closeAccountMenu}
                   />
                 ) : null}
 
