@@ -42,24 +42,13 @@ function isSnowflake(value) {
   return /^[0-9]{17,20}$/.test(String(value || ""));
 }
 
-function makeInstallUrl(clientId, permissions, guildId = "") {
+function makeInstallUrl(clientId) {
   if (!clientId) return "";
 
-  // Use Discord's own default installation settings configured in the
-  // Developer Portal. When only client_id is supplied (plus optional
-  // guild_id / disable_guild_select), Discord applies the Guild Install
-  // scopes and permissions from the application's Installation page.
-  // This is more robust than overriding scope/integration_type in the URL.
-  const params = new URLSearchParams({
-    client_id: clientId,
-  });
-
-  if (isSnowflake(guildId)) {
-    params.set("guild_id", guildId);
-    params.set("disable_guild_select", "true");
-  }
-
-  return `https://discord.com/oauth2/authorize?${params.toString()}`;
+  // Use the exact Discord Provided Link model.
+  // Default Guild/User install scopes and bot permissions are configured
+  // in Discord Developer Portal -> Installation.
+  return `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}`;
 }
 
 async function discordRequest(path, { method = "GET", body = null } = {}) {
