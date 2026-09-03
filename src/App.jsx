@@ -279,15 +279,7 @@ export default function App() {
             }
           />
 
-          <Route
-            path="/owner/shop"
-            element={
-              <OwnerRoute>
-                <OwnerShop />
-              </OwnerRoute>
-            }
-          />
-<Route
+      <Route
   path="/owner/shop"
   element={
     <OwnerRoute>
@@ -309,15 +301,3 @@ export default function App() {
   path="*"
   element={<NotFound />}
 />
-          
-          <Route
-            path="*"
-            element={<NotFound />}
-          />
-        </Routes>
-      </main>
-
-      <Footer />
-    </div>
-  );
-}
