@@ -1,0 +1,199 @@
+.discord-bot-page {
+  min-height: 100vh;
+  padding: 128px 24px 80px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(227, 6, 19, 0.12), transparent 31%),
+    #070707;
+  color: #f7f7f7;
+}
+
+.discord-bot-shell {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.discord-bot-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+  align-items: center;
+  gap: 70px;
+  min-height: 470px;
+}
+
+.discord-bot-copy h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(3rem, 7vw, 6.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.discord-bot-copy > p {
+  max-width: 680px;
+  margin: 24px 0 0;
+  color: #9a9a9a;
+  font-size: 1.06rem;
+  line-height: 1.7;
+}
+
+.discord-bot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.discord-bot-primary,
+.discord-bot-secondary {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  padding: 0 20px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.discord-bot-primary {
+  background: #e30613;
+  color: #fff;
+  box-shadow: 0 12px 36px rgba(227, 6, 19, 0.22);
+}
+
+.discord-bot-primary:hover {
+  background: #f31624;
+}
+
+.discord-bot-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #111;
+  color: #ececec;
+}
+
+.discord-bot-note {
+  max-width: 620px !important;
+  margin-top: 16px !important;
+  color: #666 !important;
+  font-size: 0.82rem !important;
+}
+
+.discord-bot-mark {
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+}
+
+.discord-bot-mark-ring {
+  display: grid;
+  width: min(310px, 70vw);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(227, 6, 19, 0.55);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(227, 6, 19, 0.13), transparent 60%),
+    #090909;
+  box-shadow:
+    0 0 0 10px rgba(227, 6, 19, 0.03),
+    0 0 70px rgba(227, 6, 19, 0.13);
+}
+
+.discord-bot-mark-ring span {
+  color: #fff;
+  font-size: clamp(4rem, 9vw, 6.5rem);
+  font-weight: 950;
+  letter-spacing: -0.08em;
+}
+
+.discord-bot-mark strong {
+  color: #7f7f7f;
+  font-size: 0.76rem;
+  letter-spacing: 0.24em;
+}
+
+.discord-bot-command-section {
+  margin-top: 54px;
+  padding-top: 34px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.discord-bot-command-section h2 {
+  margin: 0 0 22px;
+  font-size: 1.15rem;
+}
+
+.discord-bot-command-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.discord-bot-command {
+  display: grid;
+  gap: 7px;
+  min-height: 102px;
+  align-content: center;
+  padding: 20px;
+  background: #0c0c0c;
+}
+
+.discord-bot-command code {
+  color: #ff3340;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.discord-bot-command span {
+  color: #858585;
+  font-size: 0.86rem;
+}
+
+.discord-bot-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 70px;
+}
+
+.discord-bot-info > div {
+  padding-top: 18px;
+  border-top: 2px solid #e30613;
+}
+
+.discord-bot-info strong {
+  font-size: 1rem;
+}
+
+.discord-bot-info p {
+  margin: 8px 0 0;
+  color: #777;
+  line-height: 1.6;
+}
+
+@media (max-width: 820px) {
+  .discord-bot-page {
+    padding: 108px 16px 60px;
+  }
+
+  .discord-bot-hero,
+  .discord-bot-command-list,
+  .discord-bot-info {
+    grid-template-columns: 1fr;
+  }
+
+  .discord-bot-hero {
+    gap: 48px;
+  }
+
+  .discord-bot-mark {
+    order: -1;
+  }
+
+  .discord-bot-mark-ring {
+    width: 190px;
+  }
+}
