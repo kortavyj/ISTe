@@ -45,24 +45,21 @@ function isSnowflake(value) {
 function makeInstallUrl(clientId, permissions, guildId = "") {
   if (!clientId) return "";
 
-  // Discord's current installation model needs an explicit installation
-  // context when applications.commands is requested. 0 = GUILD_INSTALL.
-  const params = new URLSearchParams();
-  params.set("client_id", clientId);
-  params.set("integration_type", "0");
-  params.set("permissions", permissions || DEFAULT_PERMISSIONS);
-
-  // Discord docs specify scopes separated by URL-encoded spaces.
-  // URLSearchParams serializes a literal space as "+", so scope is appended
-  // explicitly as %20 to avoid Discord's "Invalid Form Body" install error.
-  const scope = "applications.commands%20bot";
+  // Use Discord's own default installation settings configured in the
+  // Developer Portal. When only client_id is supplied (plus optional
+  // guild_id / disable_guild_select), Discord applies the Guild Install
+  // scopes and permissions from the application's Installation page.
+  // This is more robust than overriding scope/integration_type in the URL.
+  const params = new URLSearchParams({
+    client_id: clientId,
+  });
 
   if (isSnowflake(guildId)) {
     params.set("guild_id", guildId);
     params.set("disable_guild_select", "true");
   }
 
-  return `https://discord.com/oauth2/authorize?${params.toString()}&scope=${scope}`;
+  return `https://discord.com/oauth2/authorize?${params.toString()}`;
 }
 
 async function discordRequest(path, { method = "GET", body = null } = {}) {
