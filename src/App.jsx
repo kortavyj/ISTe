@@ -29,6 +29,7 @@ import ResetPassword from "./pages/ResetPassword.jsx";
 import Shop from "./pages/Shop.jsx";
 import Team from "./pages/Team.jsx";
 import UserSearch from "./pages/UserSearch.jsx";
+import OwnerDiscord from "./pages/OwnerDiscord.jsx";
 
 import "./App.css";
 import "./styles/Typography.css";
@@ -286,7 +287,29 @@ export default function App() {
               </OwnerRoute>
             }
           />
+<Route
+  path="/owner/shop"
+  element={
+    <OwnerRoute>
+      <OwnerShop />
+    </OwnerRoute>
+  }
+/>
 
+<Route
+  path="/owner/discord"
+  element={
+    <OwnerRoute>
+      <OwnerDiscord />
+    </OwnerRoute>
+  }
+/>
+
+<Route
+  path="*"
+  element={<NotFound />}
+/>
+          
           <Route
             path="*"
             element={<NotFound />}
