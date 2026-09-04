@@ -189,7 +189,6 @@ export const ISTE_COMMANDS = [
     ukName: "набір",
     ruDescription: "Настроить и опубликовать панель набора ISTe",
     ukDescription: "Налаштувати та опублікувати панель набору ISTe",
-    defaultMemberPermissions: MANAGE_GUILD,
     options: [
       channelOption({
         name: "review_channel",
@@ -218,7 +217,6 @@ export const ISTE_COMMANDS = [
     ukName: "заявки",
     ruDescription: "Показать активные заявки ISTe",
     ukDescription: "Показати активні заявки ISTe",
-    defaultMemberPermissions: MANAGE_GUILD,
   }),
 
   command({
