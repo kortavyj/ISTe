@@ -7,8 +7,10 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext.jsx";
+import MfaChallenge from "../auth/MfaChallenge.jsx";
 
 import "./Auth.css";
+
 
 async function readApiResponse(response) {
   try {
@@ -35,9 +37,13 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] =
-    useState("");
+  useState("");
 
-  const [submitting, setSubmitting] =
+const [mfaStep, setMfaStep] =
+  useState(null);
+
+const [submitting, setSubmitting] =
+
     useState(false);
 
   const [message, setMessage] = useState(
@@ -104,15 +110,29 @@ export default function Login() {
         return;
       }
 
-      await refreshSession();
+      if (
+  result.mfaRequired === true
+) {
+  setMfaStep({
+    setupRequired:
+      result.mfaSetupRequired ===
+      true,
+  });
 
-      const destination =
-        location.state?.from?.pathname ??
-        "/account";
+  setPassword("");
+  return;
+}
 
-      navigate(destination, {
-        replace: true,
-      });
+await refreshSession();
+
+const destination =
+  location.state?.from?.pathname ??
+  "/account";
+
+navigate(destination, {
+  replace: true,
+});
+
     } catch (error) {
       console.error(
         "Ошибка входа:",
@@ -127,8 +147,37 @@ export default function Login() {
     }
   }
 
+  if (mfaStep) {
   return (
-    <section className="auth-page">
+    <MfaChallenge
+      setupRequired={
+        mfaStep.setupRequired
+      }
+      onSuccess={async () => {
+        await refreshSession();
+
+        const destination =
+          location.state?.from
+            ?.pathname ??
+          "/account";
+
+        navigate(destination, {
+          replace: true,
+        });
+      }}
+      onCancel={() => {
+        setMfaStep(null);
+        setPassword("");
+        setErrorMessage("");
+        setMessage("");
+      }}
+    />
+  );
+}
+
+return (
+  <section className="auth-page">
+
       <div className="auth-shell">
         <header className="auth-heading">
           <p className="auth-kicker">

@@ -4,10 +4,19 @@ import { guardRequest } from "../lib/requestGuard.js";
 import {
   clearAuthCookies,
   readAuthCookies,
+  readPendingMfaCookies,
   setAuthCookies,
+  setPendingMfaCookies,
 } from "../lib/authCookies.js";
+
 import { readJsonBody } from "../lib/requestBody.js";
 import { getSupabaseServerClient } from "../lib/supabaseServer.js";
+import {
+  enforceMfaRateLimit,
+  recordAuthSecurityEvent,
+  resetAuthRateLimitBucket,
+} from "../../server/lib/authSecurity.js";
+
 
 const PROFILE_COLUMNS =
   "id, username, display_name, avatar_url, bio, account_number, created_at, updated_at";
@@ -29,7 +38,13 @@ const MANAGER_ROLES = new Set([
   "owner",
 ]);
 
+const MFA_REQUIRED_ROLES = new Set([
+  "admin",
+  "owner",
+]);
+
 const NEWS_STATUSES = new Set([
+
   "draft",
   "published",
   "archived",
@@ -243,7 +258,154 @@ async function establishSession(
   };
 }
 
+async function checkPrivilegedMfa(
+  supabase,
+  session,
+  role,
+) {
+  if (!MFA_REQUIRED_ROLES.has(role)) {
+    return { ok: true };
+  }
+
+  const {
+    data: assurance,
+    error: assuranceError,
+  } =
+    await supabase.auth.mfa
+      .getAuthenticatorAssuranceLevel(
+        session.access_token,
+      );
+
+  if (assuranceError) {
+    console.error(
+      "MFA assurance check error:",
+      assuranceError,
+    );
+
+    return {
+      ok: false,
+      status: 502,
+      error: "MFA_CHECK_FAILED",
+      message:
+        "Не удалось проверить двухфакторную аутентификацию.",
+    };
+  }
+
+  if (
+    assurance?.currentLevel !== "aal2"
+  ) {
+    return {
+      ok: false,
+      status: 403,
+      error: "MFA_REQUIRED",
+      message:
+        "Для этого аккаунта требуется подтверждение двухфакторной аутентификации.",
+    };
+  }
+
+  return { ok: true };
+}
+
+async function getPendingMfaAccount(
+  request,
+  response,
+) {
+  const {
+    accessToken,
+    refreshToken,
+  } = readPendingMfaCookies(request);
+
+  if (!refreshToken) {
+    clearAuthCookies(response);
+
+    return {
+      ok: false,
+      status: 401,
+      error: "MFA_SESSION_REQUIRED",
+      message:
+        "Сессия двухфакторной аутентификации истекла. Войдите снова.",
+    };
+  }
+
+  const supabase =
+    getSupabaseServerClient();
+
+  const {
+    data: sessionData,
+    error: sessionError,
+  } = await establishSession(
+    supabase,
+    accessToken,
+    refreshToken,
+  );
+
+  if (
+    sessionError ||
+    !sessionData?.session ||
+    !sessionData?.user
+  ) {
+    clearAuthCookies(response);
+
+    return {
+      ok: false,
+      status: 401,
+      error: "MFA_SESSION_REQUIRED",
+      message:
+        "Сессия двухфакторной аутентификации истекла. Войдите снова.",
+    };
+  }
+
+  setPendingMfaCookies(
+    response,
+    sessionData.session,
+  );
+
+  const access =
+    await loadAccountAccess(
+      supabase,
+      sessionData.user.id,
+    );
+
+  if (access.isBlocked) {
+    clearAuthCookies(response);
+
+    return {
+      ok: false,
+      status: 403,
+      error: "ACCOUNT_BLOCKED",
+      message:
+        access.blockedReason ||
+        "Аккаунт заблокирован.",
+    };
+  }
+
+  if (
+    !MFA_REQUIRED_ROLES.has(
+      access.role,
+    )
+  ) {
+    clearAuthCookies(response);
+
+    return {
+      ok: false,
+      status: 403,
+      error: "MFA_NOT_REQUIRED",
+      message:
+        "Для этого аккаунта обязательная двухфакторная аутентификация не требуется.",
+    };
+  }
+
+  return {
+    ok: true,
+    supabase,
+    session: sessionData.session,
+    user: sessionData.user,
+    access,
+  };
+}
+
 async function getAuthenticatedSession(
+
   request,
   response,
 ) {
@@ -376,10 +538,23 @@ async function requireAccount(
     };
   }
 
-  if (
-    staff &&
-    !STAFF_ROLES.has(access.role)
-  ) {
+  const mfa =
+  await checkPrivilegedMfa(
+    auth.supabase,
+    auth.session,
+    access.role,
+  );
+
+if (!mfa.ok) {
+  clearAuthCookies(response);
+  return mfa;
+}
+
+if (
+  staff &&
+  !STAFF_ROLES.has(access.role)
+) {
+
     return {
       ok: false,
       status: 403,
@@ -755,22 +930,50 @@ async function handleGetSession(
       );
 
     if (access.isBlocked) {
-      return response.status(200).json({
-        ok: true,
-        authenticated: true,
-        user: {
-          id: auth.user.id,
-          email: auth.user.email,
-        },
-        profile: null,
-        role: access.role,
-        isBlocked: true,
-        blockedReason:
-          access.blockedReason,
-      });
-    }
+  return response.status(200).json({
+    ok: true,
+    authenticated: true,
+    user: {
+      id: auth.user.id,
+      email: auth.user.email,
+    },
+    profile: null,
+    role: access.role,
+    isBlocked: true,
+    blockedReason:
+      access.blockedReason,
+  });
+}
 
-    const profile = await loadProfile(
+const mfa =
+  await checkPrivilegedMfa(
+    auth.supabase,
+    auth.session,
+    access.role,
+  );
+
+if (!mfa.ok) {
+  clearAuthCookies(response);
+
+  if (
+    mfa.error ===
+    "MFA_REQUIRED"
+  ) {
+    return sendGuestSession(
+      response,
+    );
+  }
+
+  return sendError(
+    response,
+    mfa.status,
+    mfa.error,
+    mfa.message,
+  );
+}
+
+const profile = await loadProfile(
+
       auth.supabase,
       auth.user.id,
     );
@@ -804,7 +1007,535 @@ async function handleGetSession(
   }
 }
 
+async function handleMfaEnroll(
+  request,
+  response,
+) {
+  try {
+    const account =
+      await getPendingMfaAccount(
+        request,
+        response,
+      );
+
+    if (!account.ok) {
+      return sendAccountError(
+        response,
+        account,
+      );
+    }
+
+    const {
+      data: assurance,
+      error: assuranceError,
+    } =
+      await account.supabase.auth.mfa
+        .getAuthenticatorAssuranceLevel(
+          account.session.access_token,
+        );
+
+    if (
+      assuranceError ||
+      !assurance
+    ) {
+      console.error(
+        "MFA enrollment assurance error:",
+        assuranceError,
+      );
+
+      return sendError(
+        response,
+        502,
+        "MFA_CHECK_FAILED",
+        "Не удалось проверить состояние двухфакторной аутентификации.",
+      );
+    }
+
+    if (
+      assurance.currentLevel === "aal2"
+    ) {
+      setAuthCookies(
+        response,
+        account.session,
+      );
+
+      return response.status(200).json({
+        ok: true,
+        authenticated: true,
+        enrollmentRequired: false,
+        role: account.access.role,
+      });
+    }
+
+    if (
+      assurance.nextLevel === "aal2"
+    ) {
+      return response.status(200).json({
+        ok: true,
+        authenticated: false,
+        enrollmentRequired: false,
+        role: account.access.role,
+      });
+    }
+
+    const {
+      data: factors,
+      error: factorsError,
+    } =
+      await account.supabase.auth.mfa
+        .listFactors();
+
+    if (factorsError) {
+      console.error(
+        "MFA factor list error:",
+        factorsError,
+      );
+
+      return sendError(
+        response,
+        502,
+        "MFA_FACTORS_FAILED",
+        "Не удалось проверить факторы двухфакторной аутентификации.",
+      );
+    }
+
+    const unverifiedTotpFactors =
+      Array.isArray(factors?.all)
+        ? factors.all.filter(
+            (factor) =>
+              factor?.factor_type ===
+                "totp" &&
+              factor?.status ===
+                "unverified",
+          )
+        : [];
+
+    for (
+      const factor of
+      unverifiedTotpFactors
+    ) {
+      const { error: removeError } =
+        await account.supabase.auth.mfa
+          .unenroll({
+            factorId: factor.id,
+          });
+
+      if (removeError) {
+        console.error(
+          "MFA stale factor remove error:",
+          removeError,
+        );
+
+        return sendError(
+          response,
+          502,
+          "MFA_CLEANUP_FAILED",
+          "Не удалось подготовить новую настройку двухфакторной аутентификации.",
+        );
+      }
+    }
+
+    const {
+      data: enrollment,
+      error: enrollmentError,
+    } =
+      await account.supabase.auth.mfa
+        .enroll({
+          factorType: "totp",
+          friendlyName:
+            "ISTe Authenticator",
+        });
+
+    if (
+      enrollmentError ||
+      !enrollment?.id ||
+      !enrollment?.totp?.qr_code ||
+      !enrollment?.totp?.secret
+    ) {
+      console.error(
+        "MFA enrollment error:",
+        enrollmentError ||
+          enrollment,
+      );
+
+      return sendError(
+        response,
+        502,
+        "MFA_ENROLLMENT_FAILED",
+        "Не удалось начать настройку двухфакторной аутентификации.",
+      );
+    }
+
+    await recordAuthSecurityEvent({
+      eventType:
+        "mfa_enrollment_started",
+      userId: account.user.id,
+      metadata: {
+        role: account.access.role,
+        factorType: "totp",
+      },
+    });
+
+    return response.status(200).json({
+      ok: true,
+      authenticated: false,
+      enrollmentRequired: true,
+      factorId: enrollment.id,
+      qrCode:
+        enrollment.totp.qr_code,
+      secret:
+        enrollment.totp.secret,
+      role: account.access.role,
+    });
+  } catch (error) {
+    console.error(
+      "Unexpected MFA enrollment error:",
+      error?.cause || error,
+    );
+
+    return sendError(
+      response,
+      error?.status || 500,
+      error?.code ||
+        "INTERNAL_SERVER_ERROR",
+      error?.message ||
+        "Не удалось настроить двухфакторную аутентификацию.",
+    );
+  }
+}
+
+async function handleMfaVerify(
+  request,
+  response,
+  body,
+) {
+  const code =
+    typeof body.code === "string"
+      ? body.code
+          .replace(/\D/g, "")
+          .slice(0, 10)
+      : "";
+
+  const requestedFactorId =
+    typeof body.factorId === "string"
+      ? body.factorId.trim()
+      : "";
+
+  if (
+    code.length < 6 ||
+    code.length > 10
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_MFA_CODE",
+      "Введите код из приложения аутентификатора.",
+    );
+  }
+
+  if (
+    requestedFactorId &&
+    !isUuid(requestedFactorId)
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_MFA_FACTOR",
+      "Некорректный фактор двухфакторной аутентификации.",
+    );
+  }
+
+  try {
+    const account =
+      await getPendingMfaAccount(
+        request,
+        response,
+      );
+
+    if (!account.ok) {
+      return sendAccountError(
+        response,
+        account,
+      );
+    }
+
+    let security;
+
+    try {
+      security =
+        await enforceMfaRateLimit(
+          request,
+          account.user.id,
+        );
+    } catch (error) {
+      console.error(
+        "MFA rate limit error:",
+        error,
+      );
+
+      clearAuthCookies(response);
+
+      return sendError(
+        response,
+        503,
+        error?.code ||
+          "AUTH_SECURITY_UNAVAILABLE",
+        "Система защиты двухфакторного входа временно недоступна.",
+      );
+    }
+
+    if (!security.allowed) {
+      const retryAfter = Math.max(
+        1,
+        Math.ceil(
+          security.retryAfterSeconds,
+        ),
+      );
+
+      response.setHeader(
+        "Retry-After",
+        String(retryAfter),
+      );
+
+      await recordAuthSecurityEvent({
+        eventType:
+          "mfa_rate_limited",
+        userId: account.user.id,
+        identityHash:
+          security.identityHash,
+        clientHash:
+          security.clientHash,
+        metadata: {
+          role: account.access.role,
+          retryAfterSeconds:
+            retryAfter,
+        },
+      });
+
+      return sendError(
+        response,
+        429,
+        "TOO_MANY_MFA_ATTEMPTS",
+        "Слишком много попыток ввода кода. Подождите и повторите позже.",
+      );
+    }
+
+    const {
+      data: factors,
+      error: factorsError,
+    } =
+      await account.supabase.auth.mfa
+        .listFactors();
+
+    if (factorsError) {
+      console.error(
+        "MFA factor list error:",
+        factorsError,
+      );
+
+      return sendError(
+        response,
+        502,
+        "MFA_FACTORS_FAILED",
+        "Не удалось проверить фактор двухфакторной аутентификации.",
+      );
+    }
+
+    const allFactors =
+      Array.isArray(factors?.all)
+        ? factors.all
+        : [];
+
+    const verifiedTotp =
+      Array.isArray(factors?.totp)
+        ? factors.totp
+        : [];
+
+    const factor =
+      requestedFactorId
+        ? allFactors.find(
+            (item) =>
+              item?.id ===
+                requestedFactorId &&
+              item?.factor_type ===
+                "totp",
+          )
+        : verifiedTotp[0];
+
+    if (!factor?.id) {
+      return sendError(
+        response,
+        400,
+        "MFA_FACTOR_NOT_FOUND",
+        "Фактор двухфакторной аутентификации не найден. Выполните вход заново.",
+      );
+    }
+
+    const {
+      data: verifiedSession,
+      error: verifyError,
+    } =
+      await account.supabase.auth.mfa
+        .challengeAndVerify({
+          factorId: factor.id,
+          code,
+        });
+
+    if (
+      verifyError ||
+      !verifiedSession?.access_token ||
+      !verifiedSession?.refresh_token
+    ) {
+      await recordAuthSecurityEvent({
+        eventType:
+          "mfa_verify_failure",
+        userId: account.user.id,
+        identityHash:
+          security.identityHash,
+        clientHash:
+          security.clientHash,
+        metadata: {
+          role: account.access.role,
+          reason:
+            String(
+              verifyError?.code ||
+                "INVALID_MFA_CODE",
+            ).slice(0, 64),
+        },
+      });
+
+      const source = [
+        verifyError?.message,
+        verifyError?.code,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (
+        source.includes("rate") &&
+        source.includes("limit")
+      ) {
+        return sendError(
+          response,
+          429,
+          "TOO_MANY_MFA_ATTEMPTS",
+          "Слишком много попыток ввода кода. Подождите и повторите позже.",
+        );
+      }
+
+      return sendError(
+        response,
+        401,
+        "INVALID_MFA_CODE",
+        "Код неверный или уже устарел. Введите новый код из приложения.",
+      );
+    }
+
+    const {
+      data: assurance,
+      error: assuranceError,
+    } =
+      await account.supabase.auth.mfa
+        .getAuthenticatorAssuranceLevel(
+          verifiedSession.access_token,
+        );
+
+    if (
+      assuranceError ||
+      assurance?.currentLevel !==
+        "aal2"
+    ) {
+      console.error(
+        "MFA post verify assurance error:",
+        assuranceError ||
+          assurance,
+      );
+
+      clearAuthCookies(response);
+
+      return sendError(
+        response,
+        403,
+        "MFA_NOT_CONFIRMED",
+        "Не удалось подтвердить второй фактор. Выполните вход заново.",
+      );
+    }
+
+    setAuthCookies(
+      response,
+      verifiedSession,
+    );
+
+    await resetAuthRateLimitBucket(
+      security.pairBucket,
+    );
+
+    await recordAuthSecurityEvent({
+      eventType: "mfa_verified",
+      userId: account.user.id,
+      identityHash:
+        security.identityHash,
+      clientHash:
+        security.clientHash,
+      metadata: {
+        role: account.access.role,
+        factorType: "totp",
+      },
+    });
+
+    await recordAuthSecurityEvent({
+      eventType: "login_success",
+      userId: account.user.id,
+      identityHash:
+        security.identityHash,
+      clientHash:
+        security.clientHash,
+      metadata: {
+        role: account.access.role,
+        mfa: true,
+      },
+    });
+
+    return response.status(200).json({
+      ok: true,
+      authenticated: true,
+      user: {
+        id: account.user.id,
+        email: account.user.email,
+      },
+      role: account.access.role,
+    });
+  } catch (error) {
+    console.error(
+      "Unexpected MFA verification error:",
+      error?.cause || error,
+    );
+
+    return sendError(
+      response,
+      error?.status || 500,
+      error?.code ||
+        "INTERNAL_SERVER_ERROR",
+      error?.message ||
+        "Не удалось подтвердить двухфакторную аутентификацию.",
+    );
+  }
+}
+
+async function handleMfaCancel(
+  response,
+) {
+  clearAuthCookies(response);
+
+  return response.status(200).json({
+    ok: true,
+    cancelled: true,
+  });
+}
+
 async function handleProfileUpdate(
+
   request,
   response,
   body,
@@ -1659,9 +2390,31 @@ export default async function handler(
   }
 
   const action =
-    normalizeAction(body.action);
+  normalizeAction(body.action);
 
-  if (action === "find-user") {
+if (action === "mfa-enroll") {
+  return handleMfaEnroll(
+    request,
+    response,
+  );
+}
+
+if (action === "mfa-verify") {
+  return handleMfaVerify(
+    request,
+    response,
+    body,
+  );
+}
+
+if (action === "mfa-cancel") {
+  return handleMfaCancel(
+    response,
+  );
+}
+
+if (action === "find-user") {
+
     return handleUserSearch(
       request,
       response,

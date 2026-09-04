@@ -9,8 +9,11 @@ const ERROR_MESSAGES = Object.freeze({
   AUTH_REQUIRED:
     "Нужно повторно войти в аккаунт.",
   OWNER_REQUIRED:
-    "Эта операция доступна только владельцу.",
-  ACCOUNT_BLOCKED:
+  "Эта операция доступна только владельцу.",
+MFA_REQUIRED:
+  "Для доступа владельца требуется подтверждение двухфакторной аутентификации.",
+ACCOUNT_BLOCKED:
+
     "Этот аккаунт заблокирован.",
   TARGET_REQUIRED:
     "Пользователь не выбран.",
@@ -55,7 +58,9 @@ export function mapOwnerRpcError(
       knownCode === "AUTH_REQUIRED"
         ? 401
         : knownCode === "OWNER_REQUIRED" ||
-            knownCode === "ACCOUNT_BLOCKED"
+      knownCode === "MFA_REQUIRED" ||
+      knownCode === "ACCOUNT_BLOCKED"
+
           ? 403
           : 400;
 
@@ -197,21 +202,63 @@ export async function requireOwner(
     }
 
     if (access?.role !== "owner") {
-      return {
-        ok: false,
-        status: 403,
-        error: "OWNER_REQUIRED",
-        message:
-          ERROR_MESSAGES.OWNER_REQUIRED,
-      };
-    }
+  return {
+    ok: false,
+    status: 403,
+    error: "OWNER_REQUIRED",
+    message:
+      ERROR_MESSAGES.OWNER_REQUIRED,
+  };
+}
 
-    return {
-      ok: true,
-      supabase,
-      user,
-      role: "owner",
-    };
+const {
+  data: assurance,
+  error: assuranceError,
+} =
+  await supabase.auth.mfa
+    .getAuthenticatorAssuranceLevel(
+      sessionData.session
+        .access_token,
+    );
+
+if (
+  assuranceError ||
+  assurance?.currentLevel !==
+    "aal2"
+) {
+  clearAuthCookies(response);
+
+  if (assuranceError) {
+    console.error(
+      "Owner MFA check error:",
+      assuranceError,
+    );
+  }
+
+  return {
+    ok: false,
+    status:
+      assuranceError
+        ? 502
+        : 403,
+    error:
+      assuranceError
+        ? "MFA_CHECK_FAILED"
+        : "MFA_REQUIRED",
+    message:
+      assuranceError
+        ? "Не удалось проверить двухфакторную аутентификацию."
+        : ERROR_MESSAGES.MFA_REQUIRED,
+  };
+}
+
+return {
+  ok: true,
+  supabase,
+  user,
+  role: "owner",
+};
+
   } catch (error) {
     console.error(
       "Unexpected owner authentication error:",

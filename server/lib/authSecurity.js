@@ -247,7 +247,55 @@ export async function enforceRecoveryRateLimit(
   };
 }
 
+export async function enforceMfaRateLimit(
+  request,
+  userId,
+) {
+  const context = getAuthSecurityContext(
+    request,
+    userId,
+  );
+
+  const pairHash = digest(
+    `mfa-pair:${context.clientHash}:${context.identityHash}`,
+  );
+
+  const pairBucket =
+    `auth:mfa:pair:${pairHash}`;
+
+  const clientBucket =
+    `auth:mfa:client:${context.clientHash}`;
+
+  const [pair, client] = await Promise.all([
+    consumeBucket(
+      pairBucket,
+      8,
+      10 * 60,
+      15 * 60,
+    ),
+    consumeBucket(
+      clientBucket,
+      30,
+      10 * 60,
+      30 * 60,
+    ),
+  ]);
+
+  return {
+    ...context,
+    pairBucket,
+    allowed:
+      pair.allowed &&
+      client.allowed,
+    retryAfterSeconds: Math.max(
+      pair.retryAfterSeconds,
+      client.retryAfterSeconds,
+    ),
+  };
+}
+
 export async function resetAuthRateLimitBucket(
+
   bucket,
 ) {
   if (!bucket) return false;

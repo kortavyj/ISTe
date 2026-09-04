@@ -420,3 +420,84 @@
     transition: none;
   }
 }
+
+.mfa-login-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.mfa-preparing {
+  display: grid;
+  place-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  color: rgba(255, 255, 255, 0.68);
+  text-align: center;
+}
+
+.mfa-preparing p,
+.mfa-setup-copy p,
+.mfa-secret p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.58);
+  line-height: 1.58;
+}
+
+.mfa-setup-copy {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.mfa-setup-copy h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+}
+
+.mfa-qr-wrap {
+  display: grid;
+  place-items: center;
+}
+
+.mfa-qr {
+  width: min(270px, 100%);
+  aspect-ratio: 1;
+  padding: 12px;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.mfa-secret {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.mfa-secret strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #fff;
+}
+
+.mfa-secret code {
+  padding: 12px;
+  border-radius: 10px;
+  background: #020202;
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.mfa-code-input {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+}

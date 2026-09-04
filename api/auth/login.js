@@ -2,7 +2,9 @@ import { guardRequest } from "../lib/requestGuard.js";
 import {
   clearAuthCookies,
   setAuthCookies,
+  setPendingMfaCookies,
 } from "../lib/authCookies.js";
+
 import {
   enforceLoginRateLimit,
   recordAuthSecurityEvent,
@@ -11,6 +13,12 @@ import {
 import { getSupabaseServerClient } from "../lib/supabaseServer.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const MFA_REQUIRED_ROLES = new Set([
+  "admin",
+  "owner",
+]);
+
 
 function readBody(request) {
   if (
@@ -216,25 +224,135 @@ export default async function handler(request, response) {
       });
     }
 
-    setAuthCookies(response, data.session);
-    await resetAuthRateLimitBucket(security.pairBucket);
+    const role =
+  access?.role || "user";
+
+if (MFA_REQUIRED_ROLES.has(role)) {
+  const {
+    data: assurance,
+    error: assuranceError,
+  } =
+    await supabase.auth.mfa
+      .getAuthenticatorAssuranceLevel(
+        data.session.access_token,
+      );
+
+  if (
+    assuranceError ||
+    !assurance
+  ) {
+    clearAuthCookies(response);
+
+    console.error(
+      "MFA assurance check error:",
+      assuranceError,
+    );
 
     await recordAuthSecurityEvent({
-      eventType: "login_success",
+      eventType:
+        "login_mfa_check_failed",
       userId: data.user.id,
-      identityHash: security.identityHash,
-      clientHash: security.clientHash,
-      metadata: { role: access?.role || "user" },
+      identityHash:
+        security.identityHash,
+      clientHash:
+        security.clientHash,
+      metadata: { role },
     });
 
-    return response.status(200).json({
-      ok: true,
-      user: {
-        id: data.user.id,
-        email: data.user.email,
+    return response
+      .status(502)
+      .json({
+        ok: false,
+        error:
+          "MFA_CHECK_FAILED",
+        message:
+          "Не удалось проверить двухфакторную аутентификацию.",
+      });
+  }
+
+  if (
+    assurance.currentLevel !==
+    "aal2"
+  ) {
+    const setupRequired =
+      assurance.nextLevel !==
+      "aal2";
+
+    setPendingMfaCookies(
+      response,
+      data.session,
+    );
+
+    await resetAuthRateLimitBucket(
+      security.pairBucket,
+    );
+
+    await recordAuthSecurityEvent({
+      eventType:
+        "login_mfa_required",
+      userId: data.user.id,
+      identityHash:
+        security.identityHash,
+      clientHash:
+        security.clientHash,
+      metadata: {
+        role,
+        setupRequired,
       },
-      role: access?.role || "user",
     });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        mfaRequired: true,
+        mfaSetupRequired:
+          setupRequired,
+        user: {
+          id: data.user.id,
+          email:
+            data.user.email,
+        },
+        role,
+      });
+  }
+}
+
+setAuthCookies(
+  response,
+  data.session,
+);
+
+await resetAuthRateLimitBucket(
+  security.pairBucket,
+);
+
+await recordAuthSecurityEvent({
+  eventType: "login_success",
+  userId: data.user.id,
+  identityHash:
+    security.identityHash,
+  clientHash:
+    security.clientHash,
+  metadata: {
+    role,
+    mfa:
+      MFA_REQUIRED_ROLES.has(
+        role,
+      ),
+  },
+});
+
+return response.status(200).json({
+  ok: true,
+  mfaRequired: false,
+  user: {
+    id: data.user.id,
+    email: data.user.email,
+  },
+  role,
+});
+
   } catch (error) {
     clearAuthCookies(response);
     console.error("Unexpected login error:", error);
