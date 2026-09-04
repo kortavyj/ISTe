@@ -194,7 +194,13 @@ function modalValues(i: any) {
 }
 
 async function discord(path: string, method = "GET", body?: unknown) {
-  if (!TOKEN) throw new Error("DISCORD_BOT_TOKEN missing");
+  if (!TOKEN) {
+    throw Object.assign(
+      new Error("DISCORD_BOT_TOKEN missing"),
+      { status: 0, code: "BOT_TOKEN_MISSING" },
+    );
+  }
+
   const r = await fetch(`${API}${path}`, {
     method,
     headers: {
@@ -204,8 +210,22 @@ async function discord(path: string, method = "GET", body?: unknown) {
     },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const data = r.status === 204 ? null : await r.json().catch(() => null);
-  if (!r.ok) throw new Error(data?.message || `Discord API ${r.status}`);
+
+  const data = r.status === 204
+    ? null
+    : await r.json().catch(() => null);
+
+  if (!r.ok) {
+    throw Object.assign(
+      new Error(data?.message || `Discord API ${r.status}`),
+      {
+        status: r.status,
+        code: data?.code || null,
+        details: data,
+      },
+    );
+  }
+
   return data;
 }
 
@@ -387,19 +407,79 @@ async function submit(i: any, category: string) {
   }
 
   try {
-    const m = await discord(`/channels/${s.recruitment_review_channel_id}/messages`, "POST", {
-      embeds: [reviewEmbed(data, answers)],
-      components: decisionButtons(data.id),
-      allowed_mentions: { parse: [] },
-    });
-    if (m?.id) {
-      await db.from("discord_recruitment_applications").update({
+    const m = await discord(
+      `/channels/${s.recruitment_review_channel_id}/messages`,
+      "POST",
+      {
+        embeds: [reviewEmbed(data, answers)],
+        components: decisionButtons(data.id),
+        allowed_mentions: { parse: [] },
+      },
+    );
+
+    if (!m?.id) {
+      throw Object.assign(
+        new Error("Discord did not return a review message id."),
+        { status: 502, code: "REVIEW_MESSAGE_ID_MISSING" },
+      );
+    }
+
+    const { error: messageUpdateError } = await db
+      .from("discord_recruitment_applications")
+      .update({
         review_message_id: String(m.id),
         updated_at: new Date().toISOString(),
-      }).eq("id", data.id);
+      })
+      .eq("id", data.id);
+
+    if (messageUpdateError) {
+      console.error(
+        "recruitment review message id update failed",
+        messageUpdateError,
+      );
     }
-  } catch (e) {
-    console.error("recruitment review message failed", e);
+  } catch (e: any) {
+    console.error("recruitment review message failed", {
+      status: e?.status || null,
+      code: e?.code || null,
+      message: e?.message || String(e),
+      review_channel_id: s.recruitment_review_channel_id,
+      application_id: data.id,
+    });
+
+    const { error: rollbackError } = await db
+      .from("discord_recruitment_applications")
+      .delete()
+      .eq("id", data.id);
+
+    if (rollbackError) {
+      console.error(
+        "recruitment failed application rollback failed",
+        rollbackError,
+      );
+    }
+
+    if (e?.code === "BOT_TOKEN_MISSING" || e?.status === 401) {
+      return eph(
+        "Не вдалося надіслати заявку: ISTe Bot не авторизований у Discord API. Звернися до адміністрації.",
+      );
+    }
+
+    if (e?.status === 403) {
+      return eph(
+        "Не вдалося надіслати заявку: ISTe Bot не має доступу до закритого каналу заявок. Адміністрації потрібно дозволити боту перегляд каналу, надсилання повідомлень та вбудовування посилань.",
+      );
+    }
+
+    if (e?.status === 404) {
+      return eph(
+        "Не вдалося надіслати заявку: канал для розгляду заявок більше недоступний. Адміністрації потрібно повторно виконати /набір.",
+      );
+    }
+
+    return eph(
+      "Не вдалося доставити заявку в канал розгляду. Спробуй ще раз пізніше або звернися до адміністрації ISTe.",
+    );
   }
 
   await audit(guild, "recruitment.submitted", {
