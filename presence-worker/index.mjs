@@ -121,15 +121,28 @@ function buildLiveActivity(match) {
   return clipActivity(parts.join(" | "));
 }
 
+function buildTournamentActivity(match) {
+  const competitionName = cleanText(
+    match?.competitionName,
+    "ISTe Match",
+  );
+
+  return clipActivity(`Турнир ${competitionName}`);
+}
+
 function buildPresence(payload) {
   const liveMatch = selectLiveMatch(payload);
 
   if (liveMatch) {
+    const tournamentActivity = buildTournamentActivity(liveMatch);
+    const matchActivity = buildLiveActivity(liveMatch);
+
     return {
-      key: `live:${buildLiveActivity(liveMatch)}`,
+      key: `live:${tournamentActivity}:${matchActivity}`,
       status: "online",
       activity: {
-        name: buildLiveActivity(liveMatch),
+        name: tournamentActivity,
+        state: matchActivity,
         type: ActivityType.Competing,
       },
       liveMatch,
