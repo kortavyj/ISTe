@@ -27,7 +27,9 @@ const copy = {
       "Встановлення більше не потребує Server ID. Це поле потрібне лише для перевірки конкретного сервера через панель власника.",
     verify: "Перевірити сервер",
     commands: "Slash-команди",
-    register: "Зареєструвати команди глобально",
+    register: "Команди синхронізуються автоматично",
+    syncNote:
+      "Глобальні slash-команди автоматично синхронізуються Railway під час запуску ISTe Bot.",
     endpoint: "Interactions Endpoint URL",
     publicInstall: "Публічне встановлення",
     publicInstallText:
@@ -56,7 +58,9 @@ const copy = {
       "Установка больше не требует Server ID. Это поле нужно только для проверки конкретного сервера через панель владельца.",
     verify: "Проверить сервер",
     commands: "Slash-команды",
-    register: "Зарегистрировать команды глобально",
+    register: "Команды синхронизируются автоматически",
+    syncNote:
+      "Глобальные slash-команды автоматически синхронизируются Railway при запуске ISTe Bot.",
     endpoint: "Interactions Endpoint URL",
     publicInstall: "Публичная установка",
     publicInstallText:
@@ -85,7 +89,9 @@ const copy = {
       "Installation no longer requires a Server ID. This field is only used to verify a specific server from the owner panel.",
     verify: "Verify server",
     commands: "Slash commands",
-    register: "Register commands globally",
+    register: "Commands sync automatically",
+    syncNote:
+      "Global slash commands are synchronized automatically by Railway when ISTe Bot starts.",
     endpoint: "Interactions Endpoint URL",
     publicInstall: "Public installation",
     publicInstallText:
@@ -231,30 +237,6 @@ export default function OwnerDiscord() {
     }
   }
 
-  async function registerCommands() {
-    if (busy) return;
-
-    setBusy("commands");
-    setError("");
-    setMessage("");
-
-    try {
-      await apiRequest(
-        "register-commands",
-        {
-          method: "POST",
-          body: {},
-        },
-      );
-
-      setMessage(c.registered);
-    } catch {
-      setError(c.registerFailed);
-    } finally {
-      setBusy("");
-    }
-  }
-
   const configured =
     status?.configured?.clientId &&
     status?.configured?.botToken;
@@ -383,17 +365,10 @@ export default function OwnerDiscord() {
               ))}
             </div>
 
-            <button
-              type="button"
-              className="owner-discord-secondary owner-discord-wide"
-              onClick={registerCommands}
-              disabled={
-                !configured ||
-                Boolean(busy)
-              }
-            >
-              {c.register}
-            </button>
+            <div className="owner-discord-endpoint">
+              <span>{c.register}</span>
+              <p>{c.syncNote}</p>
+            </div>
 
             <div className="owner-discord-endpoint">
               <span>{c.endpoint}</span>
