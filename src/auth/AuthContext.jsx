@@ -11,7 +11,10 @@ import {
 const AuthContext = createContext(null);
 
 const ACCOUNT_STATUS_CHECK_INTERVAL_MS =
-  15_000;
+  300_000;
+
+const ACCOUNT_STATUS_FOCUS_COOLDOWN_MS =
+  30_000;
 
 async function readApiResponse(response) {
   let result;
@@ -53,6 +56,9 @@ export function AuthProvider({ children }) {
     useState("");
 
   const requestNumberRef = useRef(0);
+
+  const lastAccountStatusCheckRef =
+    useRef(0);
 
   const resetAccount = useCallback(() => {
     setSession(null);
@@ -173,13 +179,18 @@ export function AuthProvider({ children }) {
     let refreshInProgress = false;
 
     async function checkAccountStatus() {
+      const now = Date.now();
+
       if (
         refreshInProgress ||
-        document.visibilityState === "hidden"
+        document.visibilityState === "hidden" ||
+        now - lastAccountStatusCheckRef.current <
+          ACCOUNT_STATUS_FOCUS_COOLDOWN_MS
       ) {
         return;
       }
 
+      lastAccountStatusCheckRef.current = now;
       refreshInProgress = true;
 
       try {
