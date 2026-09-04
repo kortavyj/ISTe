@@ -30,15 +30,18 @@ function normalizeHost(value) {
 }
 
 function getAllowedOrigins() {
-  const candidates = [
-    process.env.APP_ORIGIN,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : null,
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : null,
-  ];
+ const candidates = [
+  process.env.APP_ORIGIN,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : null,
+  process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : null,
+  process.env.VERCEL_BRANCH_URL
+    ? `https://${process.env.VERCEL_BRANCH_URL}`
+    : null,
+];
 
   return new Set(
     candidates
