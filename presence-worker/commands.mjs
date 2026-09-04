@@ -3,6 +3,7 @@ const DISCORD_API = "https://discord.com/api/v10";
 const GUILD_INSTALL = [0];
 const GUILD_CONTEXT = [0];
 
+const MANAGE_GUILD = "32";
 const MANAGE_MESSAGES = "8192";
 const MODERATE_MEMBERS = "1099511627776";
 
@@ -84,6 +85,40 @@ const booleanOption = ({
   required,
 });
 
+const channelOption = ({
+  name,
+  description,
+  ruName,
+  ukName,
+  ruDescription,
+  ukDescription,
+  required = false,
+}) => ({
+  type: 7,
+  name,
+  description,
+  name_localizations: locale(ruName, ukName),
+  description_localizations: descriptionLocale(ruDescription, ukDescription),
+  required,
+});
+
+const roleOption = ({
+  name,
+  description,
+  ruName,
+  ukName,
+  ruDescription,
+  ukDescription,
+  required = false,
+}) => ({
+  type: 8,
+  name,
+  description,
+  name_localizations: locale(ruName, ukName),
+  description_localizations: descriptionLocale(ruDescription, ukDescription),
+  required,
+});
+
 const userOption = ({
   name,
   description,
@@ -138,6 +173,54 @@ function command({
 }
 
 export const ISTE_COMMANDS = [
+  command({
+    name: "apply",
+    description: "Submit an application to join ISTe",
+    ruName: "заявка",
+    ukName: "заявка",
+    ruDescription: "Подать заявку в команду проекта ISTe",
+    ukDescription: "Подати заявку в команду проєкту ISTe",
+  }),
+
+  command({
+    name: "recruitment",
+    description: "Configure and publish the ISTe recruitment panel",
+    ruName: "набор",
+    ukName: "набір",
+    ruDescription: "Настроить и опубликовать панель набора ISTe",
+    ukDescription: "Налаштувати та опублікувати панель набору ISTe",
+    defaultMemberPermissions: MANAGE_GUILD,
+    options: [
+      channelOption({
+        name: "review_channel",
+        description: "Private channel where staff reviews applications",
+        ruName: "канал_заявок",
+        ukName: "канал_заявок",
+        ruDescription: "Закрытый канал для рассмотрения заявок",
+        ukDescription: "Закритий канал для розгляду заявок",
+        required: true,
+      }),
+      roleOption({
+        name: "member_role",
+        description: "Role granted after an application is accepted",
+        ruName: "роль",
+        ukName: "роль",
+        ruDescription: "Роль, которая выдаётся после принятия заявки",
+        ukDescription: "Роль, яка видається після прийняття заявки",
+      }),
+    ],
+  }),
+
+  command({
+    name: "applications",
+    description: "Show active ISTe recruitment applications",
+    ruName: "заявки",
+    ukName: "заявки",
+    ruDescription: "Показать активные заявки ISTe",
+    ukDescription: "Показати активні заявки ISTe",
+    defaultMemberPermissions: MANAGE_GUILD,
+  }),
+
   command({
     userInstall: true,
     name: "help",

@@ -1,5 +1,10 @@
 import nacl from "npm:tweetnacl@1.0.3";
 import { createClient } from "npm:@supabase/supabase-js@2.110.8";
+import {
+  handleRecruitmentCommand,
+  handleRecruitmentComponent,
+  handleRecruitmentModal,
+} from "./recruitment.ts";
 
 const encoder = new TextEncoder();
 const SITE_URL = (Deno.env.get("SITE_URL") || "https://istesport.com").replace(/\/+$/, "");
@@ -726,7 +731,7 @@ function botCommand(interaction: any, lang: Language) {
     ...baseEmbed(t.botTitle, t.botText, t.footer),
     fields: [
       { name: t.botVersion, value: BOT_VERSION, inline: true },
-      { name: t.botCommands, value: "15", inline: true },
+      { name: t.botCommands, value: "18", inline: true },
       { name: t.botLanguage, value: "UA • RU • EN", inline: true },
     ],
   };
@@ -930,6 +935,24 @@ async function handleCommand(interaction: any, startedAt: number) {
   const t = copy[lang];
   const command = String(interaction?.data?.name || "").toLowerCase();
 
+  const recruitmentResponse = await handleRecruitmentCommand(
+    interaction,
+    command,
+  );
+
+  if (recruitmentResponse) {
+    return recruitmentResponse;
+  }
+
+  const recruitmentResponse = await handleRecruitmentCommand(
+    interaction,
+    command,
+  );
+
+  if (recruitmentResponse) {
+    return recruitmentResponse;
+  }
+
   if (command === "ping") {
     const elapsed = Math.max(0, Date.now() - startedAt);
     return interactionMessage(
@@ -1007,6 +1030,26 @@ Deno.serve(async (request) => {
         interaction?.locale || interaction?.guild_locale,
       ) as Language;
       return json(ephemeralText(copy[lang].genericError));
+    }
+  }
+
+  if (interaction?.type === 3) {
+    try {
+      const response = await handleRecruitmentComponent(interaction);
+      if (response) return json(response);
+    } catch (error) {
+      console.error("discord component failed", error);
+      return json(ephemeralText("Не вдалося виконати дію."));
+    }
+  }
+
+  if (interaction?.type === 5) {
+    try {
+      const response = await handleRecruitmentModal(interaction);
+      if (response) return json(response);
+    } catch (error) {
+      console.error("discord modal failed", error);
+      return json(ephemeralText("Не вдалося надіслати заявку."));
     }
   }
 
