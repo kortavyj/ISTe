@@ -7,11 +7,13 @@ import {
   GatewayIntentBits,
 } from "discord.js";
 
+import { syncDiscordCommands } from "./commands.mjs";
+
 const DEFAULT_MATCH_DATA_URL =
   "https://istesport.com/data/faceit-stats.json";
 
 const DEFAULT_SITE_URL = "https://istesport.com";
-const DEFAULT_IDLE_ACTIVITY = "ISTe Esports • istesport.com";
+const DEFAULT_IDLE_ACTIVITY = "ISTe Esports | istesport.com";
 const DEFAULT_REFRESH_MS = 60_000;
 const MIN_REFRESH_MS = 30_000;
 const MAX_REFRESH_MS = 300_000;
@@ -116,7 +118,7 @@ function buildLiveActivity(match) {
 
   parts.push("LIVE");
 
-  return clipActivity(parts.join(" • "));
+  return clipActivity(parts.join(" | "));
 }
 
 function buildPresence(payload) {
@@ -275,6 +277,20 @@ client.once(Events.ClientReady, async (readyClient) => {
     refreshMs,
     matchDataUrl,
   });
+
+  try {
+    const result = await syncDiscordCommands(
+      token,
+      readyClient.user.id,
+    );
+
+    log("discord_commands_synced", result);
+  } catch (error) {
+    log("discord_commands_sync_failed", {
+      message:
+        error instanceof Error ? error.message : String(error),
+    });
+  }
 
   await refreshPresence();
   scheduleRefresh();
