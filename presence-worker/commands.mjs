@@ -113,6 +113,7 @@ function command({
   ukDescription,
   options = [],
   defaultMemberPermissions,
+  userInstall = false,
 }) {
   return {
     type: 1,
@@ -123,8 +124,12 @@ function command({
       ruDescription,
       ukDescription,
     ),
-    integration_types: GUILD_INSTALL,
-    contexts: GUILD_CONTEXT,
+    integration_types: userInstall
+      ? [0, 1]
+      : GUILD_INSTALL,
+    contexts: userInstall
+      ? [0, 1, 2]
+      : GUILD_CONTEXT,
     ...(options.length ? { options } : {}),
     ...(defaultMemberPermissions
       ? { default_member_permissions: defaultMemberPermissions }
@@ -134,6 +139,7 @@ function command({
 
 export const ISTE_COMMANDS = [
   command({
+    userInstall: true,
     name: "help",
     description: "Show ISTe Bot commands",
     ruName: "помощь",
@@ -143,6 +149,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "matches",
     description: "Show recent ISTe matches",
     ruName: "матчи",
@@ -152,6 +159,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "team",
     description: "Show the current ISTe roster",
     ruName: "состав",
@@ -161,6 +169,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "news",
     description: "Show the latest ISTe news",
     ruName: "новости",
@@ -170,6 +179,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "site",
     description: "Open the official ISTe website",
     ruName: "сайт",
@@ -179,6 +189,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "rules",
     description: "Show ISTe Discord rules",
     ruName: "правила",
@@ -188,6 +199,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "ping",
     description: "Check whether ISTe Bot is online",
     ruName: "пинг",
@@ -206,6 +218,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "user",
     description: "Show information about a Discord user",
     ruName: "пользователь",
@@ -225,6 +238,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "avatar",
     description: "Show a Discord user's avatar",
     ruName: "аватар",
@@ -244,6 +258,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "bot",
     description: "Show information about ISTe Bot",
     ruName: "бот",
@@ -253,6 +268,7 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
     name: "invite",
     description: "Get the official ISTe Bot install link",
     ruName: "пригласить",

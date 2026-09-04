@@ -468,7 +468,14 @@ async function writeAudit(
 }
 
 async function rememberGuild(interaction: any) {
-  if (!adminDb || !interaction?.guild_id) return;
+  const guildInstallOwner =
+    interaction?.authorizing_integration_owners?.["0"];
+
+  if (
+    !adminDb ||
+    !interaction?.guild_id ||
+    !guildInstallOwner
+  ) return;
 
   try {
     const guildName = String(interaction?.guild?.name || "").slice(0, 120);
