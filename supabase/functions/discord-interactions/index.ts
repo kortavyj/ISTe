@@ -944,15 +944,6 @@ async function handleCommand(interaction: any, startedAt: number) {
     return recruitmentResponse;
   }
 
-  const recruitmentResponse = await handleRecruitmentCommand(
-    interaction,
-    command,
-  );
-
-  if (recruitmentResponse) {
-    return recruitmentResponse;
-  }
-
   if (command === "ping") {
     const elapsed = Math.max(0, Date.now() - startedAt);
     return interactionMessage(
