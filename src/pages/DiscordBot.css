@@ -197,3 +197,33 @@
     width: 190px;
   }
 }
+
+.discord-bot-command-groups {
+  display: grid;
+  gap: 28px;
+}
+
+.discord-bot-command-group h3 {
+  margin: 0 0 10px;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.discord-bot-command-group .discord-bot-command-list {
+  border-radius: 10px;
+}
+
+@media (max-width: 980px) {
+  .discord-bot-command-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .discord-bot-command-list {
+    grid-template-columns: 1fr;
+  }
+}
