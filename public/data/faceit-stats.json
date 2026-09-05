@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 37,
-  "matches": 70,
+  "matches": 71,
   "wins": 58,
-  "winRate": 83,
+  "winRate": 82,
   "players": 7,
   "roster": [
     {
@@ -44,20 +44,20 @@
       "kd": 1.63
     },
     {
-      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
-      "nickname": "infuriat3",
-      "avatar": "https://distribution.faceit-cdn.net/images/b3ac55c8-7755-4a81-a437-89cf379d20e5.jpg",
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2927,
+      "elo": 3055,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 57,
-      "kd": 1.26
+      "winRate": 60,
+      "kd": 1.27
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -73,7 +73,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.39
+      "kd": 1.38
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -108,23 +108,47 @@
       "kd": 1.21
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
+      "nickname": "infuriat3",
+      "avatar": "https://distribution.faceit-cdn.net/images/b3ac55c8-7755-4a81-a437-89cf379d20e5.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
       "level": 10,
-      "elo": 3055,
+      "elo": 2927,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 61,
-      "kd": 1.27
+      "winRate": 57,
+      "kd": 1.26
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-97cf21e5-e55e-49ce-8ac1-48ddb9477f33",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-97cf21e5-e55e-49ce-8ac1-48ddb9477f33",
+      "tournamentId": "4c239f0a-abe0-4b30-bb69-0d62c874a094",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 2",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-09-05T12:38:27.000Z",
+      "startedAt": "2026-09-05T12:38:27.000Z",
+      "finishedAt": "2026-09-05T13:27:13.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 14
+      },
+      "opponent": {
+        "name": "MALICE",
+        "avatar": "https://distribution.faceit-cdn.net/images/65263415-273f-41df-ae76-8b66577425c5.jpg",
+        "score": 16
+      }
+    },
     {
       "matchId": "1-aac4990f-c252-4d96-8edc-9a6e077e4315",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-aac4990f-c252-4d96-8edc-9a6e077e4315",
@@ -2790,7 +2814,7 @@
       }
     }
   ],
-  "teamMatchCount": 111,
+  "teamMatchCount": 112,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
@@ -2805,5 +2829,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-05T12:37:23.000Z"
+  "updatedAt": "2026-09-05T15:30:37.856Z"
 }
