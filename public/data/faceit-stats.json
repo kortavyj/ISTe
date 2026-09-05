@@ -44,20 +44,20 @@
       "kd": 1.63
     },
     {
-      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
-      "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/cd2bbb8e-3078-4936-ae6c-6856f54d19ab.jpg",
-      "country": "ua",
+      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
+      "nickname": "-c1louse",
+      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
+      "country": "ge",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
+      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
       "level": 10,
-      "elo": 2368,
+      "elo": 2057,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 1.29
+      "winRate": 50,
+      "kd": 1.21
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -76,6 +76,22 @@
       "kd": 1.26
     },
     {
+      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
+      "nickname": "tokyok1ng",
+      "avatar": "https://distribution.faceit-cdn.net/images/cd2bbb8e-3078-4936-ae6c-6856f54d19ab.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
+      "level": 10,
+      "elo": 2418,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 52,
+      "kd": 1.27
+    },
+    {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
       "nickname": "silryd",
       "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
@@ -90,22 +106,6 @@
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
       "kd": 1.38
-    },
-    {
-      "playerId": "99fe46a3-cece-425c-a43c-54700c638a97",
-      "nickname": "-c1louse",
-      "avatar": "https://distribution.faceit-cdn.net/images/729de202-e7b0-491b-9221-8cdde0091926.jpg",
-      "country": "ge",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/-c1louse",
-      "level": 10,
-      "elo": 2067,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.21
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -2829,5 +2829,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-05T21:20:28.390Z"
+  "updatedAt": "2026-09-05T22:59:35.315Z"
 }
