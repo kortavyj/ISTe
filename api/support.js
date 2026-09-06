@@ -1,4 +1,5 @@
-import { createHmac } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 
 import {
   rankSupportFaq,
@@ -10,6 +11,33 @@ const DEFAULT_MODEL = "gpt-5.6-luna";
 const MAX_MESSAGE_LENGTH = 1200;
 const MAX_OUTPUT_TOKENS = 500;
 const REQUEST_TIMEOUT_MS = 18_000;
+const AI_RATE_LIMIT = 12;
+const AI_RATE_WINDOW_SECONDS = 60 * 60;
+
+let adminClient = null;
+
+function getSupabaseAdminClient() {
+  const supabaseUrl = process.env.SUPABASE_URL?.trim();
+  const secretKey =
+    process.env.SUPABASE_SECRET_KEY?.trim() ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+  if (!supabaseUrl || !secretKey) {
+    throw new Error("SUPPORT_RATE_LIMIT_DB_NOT_CONFIGURED");
+  }
+
+  if (!adminClient) {
+    adminClient = createClient(supabaseUrl, secretKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    });
+  }
+
+  return adminClient;
+}
 
 function send(response, status, body) {
   response.setHeader("Cache-Control", "no-store");
@@ -34,16 +62,46 @@ function getClientAddress(request) {
   return realIp ? realIp.trim().slice(0, 96) : "unknown";
 }
 
-function supportRequestId(request) {
+function supportRequestId() {
+  return randomUUID();
+}
+
+function createRateLimitKey(request) {
   const secret =
-    process.env.SUPPORT_HASH_SECRET?.trim() ||
-    process.env.SHOP_RATE_LIMIT_SECRET?.trim() ||
-    "iste-support-anonymous";
+    process.env.SUPPORT_RATE_LIMIT_SECRET?.trim() ||
+    process.env.SHOP_RATE_LIMIT_SECRET?.trim();
+
+  if (!secret || secret.length < 32) {
+    throw new Error("SUPPORT_RATE_LIMIT_SECRET_MISSING");
+  }
 
   return createHmac("sha256", secret)
-    .update(getClientAddress(request))
-    .digest("hex")
-    .slice(0, 16);
+    .update(`${getClientAddress(request)}|iste-ai-support`)
+    .digest("hex");
+}
+
+async function consumeAiRateLimit(request) {
+  const supabase = getSupabaseAdminClient();
+  const key = createRateLimitKey(request);
+
+  const { data, error } = await supabase.rpc(
+    "support_consume_ai_rate_limit",
+    {
+      p_key: key,
+      p_limit: AI_RATE_LIMIT,
+      p_window_seconds: AI_RATE_WINDOW_SECONDS,
+    },
+  );
+
+  if (error) {
+    console.error("ISTe Support rate limit RPC failed", {
+      code: error.code || null,
+      message: error.message || null,
+    });
+    throw new Error("SUPPORT_RATE_LIMIT_CHECK_FAILED");
+  }
+
+  return data === true;
 }
 
 function extractOutputText(payload) {
@@ -197,9 +255,53 @@ export default async function handler(request, response) {
       answer: item.answer,
       source: "faq",
       matchedFaqIds: [matches[0].faq.id],
-      requestId: supportRequestId(request),
+      requestId: supportRequestId(),
       needsHuman: false,
     });
+  }
+
+  if (process.env.OPENAI_API_KEY?.trim()) {
+    try {
+      const allowed = await consumeAiRateLimit(request);
+
+      if (!allowed) {
+        const rateLimited = {
+          uk:
+            "Ліміт AI-запитів тимчасово вичерпано. Перевір FAQ або звернися до технічної підтримки ISTe у Discord.",
+          ru:
+            "Лимит AI-запросов временно исчерпан. Проверь FAQ или обратись в техническую поддержку ISTe в Discord.",
+          en:
+            "The AI request limit has been reached temporarily. Check the FAQ or contact ISTe technical support on Discord.",
+        };
+
+        return send(response, 429, {
+          ok: false,
+          error: "SUPPORT_RATE_LIMITED",
+          message: rateLimited[locale],
+          requestId: supportRequestId(),
+        });
+      }
+    } catch (error) {
+      console.error("ISTe Support rate limit failed", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+
+      const unavailable = {
+        uk:
+          "AI-підтримка тимчасово недоступна. Скористайся FAQ або звернися до підтримки ISTe у Discord.",
+        ru:
+          "AI-поддержка временно недоступна. Используй FAQ или обратись в поддержку ISTe в Discord.",
+        en:
+          "AI support is temporarily unavailable. Use the FAQ or contact ISTe support on Discord.",
+      };
+
+      return send(response, 503, {
+        ok: false,
+        error: "SUPPORT_AI_TEMPORARILY_UNAVAILABLE",
+        message: unavailable[locale],
+        requestId: supportRequestId(),
+      });
+    }
   }
 
   const aiAnswer = await askOpenAI(
@@ -220,7 +322,7 @@ export default async function handler(request, response) {
       answer: aiAnswer,
       source: "ai",
       matchedFaqIds: matches.map(({ faq }) => faq.id),
-      requestId: supportRequestId(request),
+      requestId: supportRequestId(),
       needsHuman,
     });
   }
@@ -239,7 +341,7 @@ export default async function handler(request, response) {
     answer: fallback[locale],
     source: "fallback",
     matchedFaqIds: matches.map(({ faq }) => faq.id),
-    requestId: supportRequestId(request),
+    requestId: supportRequestId(),
     needsHuman: true,
   });
 }
