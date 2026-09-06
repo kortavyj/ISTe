@@ -22,7 +22,6 @@ const navigation = [
   { to: "/news", labelKey: "navigation.news" },
   { to: "/partners", labelKey: "navigation.partners" },
   { to: "/discord", label: "ISTe Bot" },
-  { to: "/support", label: "Support" },
 ];
 
 const founderCopy = {

@@ -9,6 +9,7 @@ import Footer from "./components/layout/Footer.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
 import SiteIntro from "./components/layout/SiteIntro.jsx";
 import SeoManager from "./components/SeoManager.jsx";
+import FloatingSupportButton from "./components/support/FloatingSupportButton.jsx";
 import Account from "./pages/Account.jsx";
 import AdminNews from "./pages/AdminNews.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
@@ -108,6 +109,8 @@ export default function App() {
       {introIsActive && <SiteIntro onFinish={closeIntro} />}
 
       <Navbar />
+
+      {!introIsActive ? <FloatingSupportButton /> : null}
 
       <main>
         <Routes>
