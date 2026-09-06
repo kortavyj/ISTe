@@ -30,6 +30,7 @@ import Partners from "./pages/Partners.jsx";
 import Register from "./pages/Register.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Shop from "./pages/Shop.jsx";
+import Support from "./pages/Support.jsx";
 import Team from "./pages/Team.jsx";
 import UserSearch from "./pages/UserSearch.jsx";
 
@@ -119,6 +120,7 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/support" element={<Support />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/login" element={<Login />} />
