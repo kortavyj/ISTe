@@ -17,33 +17,12 @@ const mediaItems = [
   },
   {
     titleKey:
-      "home.media.telegramTitle",
-    descriptionKey:
-      "home.media.telegramDescription",
-    type: "TELEGRAM",
-    href: "https://t.me/ISTesport",
-    image: isteLogo,
-    isBrandCard: true,
-  },
-  {
-    titleKey:
       "home.media.discordTitle",
     descriptionKey:
       "home.media.discordDescription",
     type: "DISCORD",
     href:
       "https://discord.gg/AzpCxEgxye",
-    image: isteLogo,
-    isBrandCard: true,
-  },
-  {
-    titleKey:
-      "home.media.steamTitle",
-    descriptionKey:
-      "home.media.steamDescription",
-    type: "STEAM",
-    href:
-      "https://steamcommunity.com/groups/IceSaberTeam",
     image: isteLogo,
     isBrandCard: true,
   },
