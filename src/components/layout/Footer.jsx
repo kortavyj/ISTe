@@ -172,7 +172,7 @@ export default function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom-inner">
           <strong className="footer-copyright-line">
-            © 2024-2026 ISTesport
+            © 2026 ISTesport
           </strong>
 
           <a
