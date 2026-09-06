@@ -68,130 +68,6 @@ const footerGroups = [
   },
 ];
 
-const socialLinks = [
-  {
-    label: "Telegram",
-    href: "https://t.me/ISTesport",
-    icon: "telegram",
-  },
-  {
-    label: "Steam",
-    href: "https://steamcommunity.com/groups/IceSaberTeam",
-    icon: "steam",
-  },
-  {
-    label: "Twitch",
-    href: "https://www.twitch.tv/kortavyj",
-    icon: "twitch",
-  },
-  {
-    label: "Discord",
-    href: "https://discord.gg/AzpCxEgxye",
-    icon: "discord",
-  },
-];
-
-function SocialIcon({ name }) {
-  const commonProps = {
-    className: "footer-social-icon",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    xmlns: "http://www.w3.org/2000/svg",
-    "aria-hidden": "true",
-  };
-
-  if (name === "telegram") {
-    return (
-      <svg {...commonProps}>
-        <path
-          d="M3.6 11.1 19.3 4.6c.8-.3 1.5.4 1.2 1.2l-4.6 13.3c-.3.9-1.4 1.1-2 .4l-3.3-3.6-1.9 1.8c-.4.4-1.1.2-1.2-.4l-.8-3.8-3-1c-.7-.2-.8-1.1-.1-1.4Z"
-          fill="currentColor"
-        />
-        <path
-          d="m7 13.2 9.8-6-7.7 7.5"
-          stroke="#080808"
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  if (name === "steam") {
-    return (
-      <svg {...commonProps}>
-        <circle
-          cx="16.8"
-          cy="7.2"
-          r="3.8"
-          stroke="currentColor"
-          strokeWidth="2"
-        />
-        <circle
-          cx="16.8"
-          cy="7.2"
-          r="1.5"
-          fill="currentColor"
-        />
-        <circle
-          cx="7.2"
-          cy="16.5"
-          r="3"
-          stroke="currentColor"
-          strokeWidth="2"
-        />
-        <path
-          d="m9.7 14.8 4.3-4.6M4 14.8l-2.2-1"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-
-  if (name === "twitch") {
-    return (
-      <svg {...commonProps}>
-        <path
-          d="M4 3.5h16v11L15.5 19H12l-3 2v-2H4V3.5Z"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M9 8v5M15 8v5"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-
-  return (
-    <svg {...commonProps}>
-      <path
-        d="M7.2 8.1A11.4 11.4 0 0 1 12 7c1.7 0 3.3.4 4.8 1.1a12.2 12.2 0 0 1 2.2 6.2 11.3 11.3 0 0 1-4.6 2.3l-.7-1c.7-.2 1.4-.5 2.1-.9a9.1 9.1 0 0 1-7.6 0c.7.4 1.4.7 2.1.9l-.7 1A11.3 11.3 0 0 1 5 14.3c.2-2.3.9-4.4 2.2-6.2Z"
-        fill="currentColor"
-      />
-      <circle
-        cx="9.3"
-        cy="12.1"
-        r="1.2"
-        fill="#080808"
-      />
-      <circle
-        cx="14.7"
-        cy="12.1"
-        r="1.2"
-        fill="#080808"
-      />
-    </svg>
-  );
-}
-
 function FooterLink({
   item,
   label,
@@ -228,26 +104,8 @@ function FooterLink({
   );
 }
 
-function scrollToPageTop() {
-  const reduceMotion =
-    window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-  window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: reduceMotion
-      ? "auto"
-      : "smooth",
-  });
-}
-
 export default function Footer() {
   const { t } = useLanguage();
-
-  const currentYear =
-    new Date().getFullYear();
 
   return (
     <footer className="site-footer">
@@ -270,31 +128,6 @@ export default function Footer() {
                 "footer.description",
               )}
             </p>
-
-            <nav
-              className="footer-socials"
-              aria-label={t(
-                "footer.socialsAria",
-              )}
-            >
-              {socialLinks.map(
-                (social) => (
-                  <a
-                    className="footer-social"
-                    href={social.href}
-                    key={social.label}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={social.label}
-                    title={social.label}
-                  >
-                    <SocialIcon
-                      name={social.icon}
-                    />
-                  </a>
-                ),
-              )}
-            </nav>
           </div>
 
           <div className="footer-navigation">
@@ -333,107 +166,21 @@ export default function Footer() {
               },
             )}
           </div>
-
-          <aside className="footer-contact-card">
-            <span className="footer-contact-label">
-              {t(
-                "footer.cooperation",
-              )}
-            </span>
-
-            <h2>
-              {t(
-                "footer.proposalTitle",
-              )}
-            </h2>
-
-            <p>
-              {t(
-                "footer.proposalText",
-              )}
-            </p>
-
-            <Link
-              className="footer-contact-button"
-              to="/contacts"
-            >
-              {t(
-                "footer.contactTeam",
-              )}
-
-              <svg
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path d="M4 10h11M11 6l4 4-4 4" />
-              </svg>
-            </Link>
-          </aside>
         </div>
       </div>
 
       <div className="footer-bottom">
         <div className="footer-bottom-inner">
-          <div className="footer-copyright">
-            <strong>
-              © {currentYear} ISTe Esports
-            </strong>
+          <strong className="footer-copyright-line">
+            © 2024-2026 ISTesport
+          </strong>
 
-            <span>
-              {t("footer.rights")}
-            </span>
-          </div>
-
-          <div className="footer-audience">
-            <span className="footer-age">
-              18+
-            </span>
-
-            <span>
-              {t("footer.audience")}
-            </span>
-          </div>
-
-          <nav
-            className="footer-legal-links"
-            aria-label={t(
-              "footer.legalAria",
-            )}
+          <a
+            className="footer-email"
+            href="mailto:istesport.official@gmail.com"
           >
-            <Link to="/privacy">
-              {t(
-                "footer.privacyShort",
-              )}
-            </Link>
-
-            <Link to="/terms">
-              {t(
-                "footer.termsShort",
-              )}
-            </Link>
-
-            <Link to="/contacts">
-              {t("footer.contacts")}
-            </Link>
-          </nav>
-
-          <button
-            className="footer-top-button"
-            type="button"
-            onClick={scrollToPageTop}
-            aria-label={t(
-              "footer.backToTopAria",
-            )}
-          >
-            {t("footer.backToTop")}
-
-            <svg
-              viewBox="0 0 20 20"
-              aria-hidden="true"
-            >
-              <path d="M10 15V4M6 8l4-4 4 4" />
-            </svg>
-          </button>
+            istesport.official@gmail.com
+          </a>
         </div>
       </div>
     </footer>
