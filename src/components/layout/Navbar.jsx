@@ -202,7 +202,7 @@ function FounderMenu({ language, onNavigate }) {
   const c = founderCopy[language] || founderCopy.uk;
 
   return (
-    <div className="navbar-founder-dropdown" role="menu">
+    <div className="navbar-founder-inline" aria-label={c.menuAria}>
       <div className="navbar-founder-head">
         <span className="navbar-founder-crown" aria-hidden="true">
           ♛
@@ -269,10 +269,7 @@ export default function Navbar() {
   } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [founderMenuOpen, setFounderMenuOpen] = useState(false);
-
   const accountMenuRef = useRef(null);
-  const founderMenuRef = useRef(null);
 
   const canManageNews = [
     "editor",
@@ -280,11 +277,7 @@ export default function Navbar() {
     "owner",
   ].includes(role);
 
-  const canManageUsers = role === "owner";
   const isFounder = role === "owner";
-
-  const founderText =
-    founderCopy[language] || founderCopy.uk;
 
   const initials = useMemo(
     () => getInitials(profile, user),
@@ -304,19 +297,11 @@ export default function Navbar() {
       ) {
         setMenuOpen(false);
       }
-
-      if (
-        founderMenuRef.current &&
-        !founderMenuRef.current.contains(event.target)
-      ) {
-        setFounderMenuOpen(false);
-      }
     }
 
     function handleKeyDown(event) {
       if (event.key === "Escape") {
         setMenuOpen(false);
-        setFounderMenuOpen(false);
       }
     }
 
@@ -331,22 +316,16 @@ export default function Navbar() {
 
   useEffect(() => {
     setMenuOpen(false);
-    setFounderMenuOpen(false);
   }, [user]);
 
   async function handleSignOut() {
     setMenuOpen(false);
-    setFounderMenuOpen(false);
     await signOut();
     navigate("/", { replace: true });
   }
 
   function closeAccountMenu() {
     setMenuOpen(false);
-  }
-
-  function closeFounderMenu() {
-    setFounderMenuOpen(false);
   }
 
   return (
@@ -381,39 +360,6 @@ export default function Navbar() {
         </nav>
 
         <div className="navbar-auth">
-          {isFounder ? (
-            <div
-              className="navbar-founder-menu"
-              ref={founderMenuRef}
-            >
-              <button
-                className={`navbar-founder-trigger${
-                  founderMenuOpen
-                    ? " navbar-founder-trigger-open"
-                    : ""
-                }`}
-                type="button"
-                aria-haspopup="menu"
-                aria-expanded={founderMenuOpen}
-                aria-label={founderText.menuAria}
-                onClick={() => {
-                  setFounderMenuOpen((current) => !current);
-                  setMenuOpen(false);
-                }}
-              >
-                <span aria-hidden="true">♛</span>
-                <strong>{founderText.trigger}</strong>
-              </button>
-
-              {founderMenuOpen ? (
-                <FounderMenu
-                  language={language}
-                  onNavigate={closeFounderMenu}
-                />
-              ) : null}
-            </div>
-          ) : null}
-
           <LanguageSwitcher />
 
           {loading ? (
@@ -453,7 +399,6 @@ export default function Navbar() {
                 aria-label={t("account.openMenu")}
                 onClick={() => {
                   setMenuOpen((current) => !current);
-                  setFounderMenuOpen(false);
                 }}
               >
                 <span
@@ -535,26 +480,23 @@ export default function Navbar() {
                   onClick={closeAccountMenu}
                 />
 
-                {canManageNews ? (
+                {isFounder ? (
+                  <>
+                    <div className="navbar-profile-divider" />
+                    <FounderMenu
+                      language={language}
+                      onNavigate={closeAccountMenu}
+                    />
+                  </>
+                ) : null}
+
+                {canManageNews && !isFounder ? (
                   <ProfileAction
                     to="/admin/news"
                     icon={icons.news}
                     title={t("account.manageNewsTitle")}
                     description={t(
                       "account.manageNewsDescription",
-                    )}
-                    menuOpen={menuOpen}
-                    onClick={closeAccountMenu}
-                  />
-                ) : null}
-
-                {canManageUsers ? (
-                  <ProfileAction
-                    to="/owner/users"
-                    icon={icons.users}
-                    title={t("account.manageUsersTitle")}
-                    description={t(
-                      "account.manageUsersDescription",
                     )}
                     menuOpen={menuOpen}
                     onClick={closeAccountMenu}
