@@ -15,7 +15,7 @@ const COPY = {
     searchPlaceholder: "Пошук по FAQ...",
     aiTitle: "ISTe AI Support",
     aiText:
-      "AI відповідає лише на основі перевіреної інформації про ISTe.",
+      "AI знає базу ISTe, пам’ятає контекст розмови та може відповідати на загальні питання.",
     inputPlaceholder: "Опиши питання або проблему...",
     ask: "Запитати",
     asking: "Відповідаю...",
@@ -36,7 +36,7 @@ const COPY = {
     searchPlaceholder: "Поиск по FAQ...",
     aiTitle: "ISTe AI Support",
     aiText:
-      "AI отвечает только на основе проверенной информации об ISTe.",
+      "AI знает базу ISTe, помнит контекст разговора и может отвечать на общие вопросы.",
     inputPlaceholder: "Опиши вопрос или проблему...",
     ask: "Спросить",
     asking: "Отвечаю...",
@@ -57,7 +57,7 @@ const COPY = {
     searchPlaceholder: "Search FAQ...",
     aiTitle: "ISTe AI Support",
     aiText:
-      "AI answers only from verified ISTe information.",
+      "AI knows the ISTe knowledge base, remembers conversation context and can answer general questions.",
     inputPlaceholder: "Describe your question or problem...",
     ask: "Ask",
     asking: "Thinking...",
@@ -111,7 +111,21 @@ export default function Support() {
     setLoading(true);
 
     try {
-      const result = await askSupportAi(text, locale);
+      const history = messages
+        .slice(-8)
+        .filter((message) =>
+          message.role === "user" || message.role === "assistant"
+        )
+        .map((message) => ({
+          role: message.role,
+          text: message.text,
+        }));
+
+      const result = await askSupportAi(
+        text,
+        locale,
+        history,
+      );
 
       setMessages((current) => [
         ...current,
@@ -122,12 +136,15 @@ export default function Support() {
           needsHuman: result.needsHuman === true,
         },
       ]);
-    } catch {
+    } catch (error) {
       setMessages((current) => [
         ...current,
         {
           role: "assistant",
-          text: c.error,
+          text:
+            error instanceof Error && error.message
+              ? error.message
+              : c.error,
           needsHuman: true,
         },
       ]);

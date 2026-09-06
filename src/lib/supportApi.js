@@ -1,4 +1,8 @@
-export async function askSupportAi(message, locale = "en") {
+export async function askSupportAi(
+  message,
+  locale = "en",
+  history = [],
+) {
   const response = await fetch("/api/support", {
     method: "POST",
     credentials: "include",
@@ -7,7 +11,16 @@ export async function askSupportAi(message, locale = "en") {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message, locale }),
+    body: JSON.stringify({
+      message,
+      locale,
+      history: Array.isArray(history)
+        ? history.slice(-8).map((item) => ({
+            role: item.role,
+            text: item.text,
+          }))
+        : [],
+    }),
   });
 
   let result;

@@ -9,8 +9,10 @@ import {
 const OPENAI_API = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-5.6-luna";
 const MAX_MESSAGE_LENGTH = 1200;
-const MAX_OUTPUT_TOKENS = 500;
+const MAX_OUTPUT_TOKENS = 700;
 const REQUEST_TIMEOUT_MS = 18_000;
+const MAX_HISTORY_MESSAGES = 8;
+const MAX_HISTORY_CHARACTERS = 6000;
 const AI_RATE_LIMIT = 12;
 const AI_RATE_WINDOW_SECONDS = 60 * 60;
 
@@ -140,9 +142,58 @@ function faqContext(matches, locale) {
   }).join("\n\n");
 }
 
-async function askOpenAI(message, locale, matches) {
+function normalizeHistory(rawHistory) {
+  if (!Array.isArray(rawHistory)) return [];
+
+  const valid = rawHistory
+    .filter((item) =>
+      item &&
+      (item.role === "user" || item.role === "assistant") &&
+      typeof item.text === "string"
+    )
+    .map((item) => ({
+      role: item.role,
+      text: item.text.trim().slice(0, MAX_MESSAGE_LENGTH),
+    }))
+    .filter((item) => item.text.length > 0)
+    .slice(-MAX_HISTORY_MESSAGES);
+
+  const result = [];
+  let usedCharacters = 0;
+
+  for (let index = valid.length - 1; index >= 0; index -= 1) {
+    const item = valid[index];
+    const nextCharacters = usedCharacters + item.text.length;
+
+    if (nextCharacters > MAX_HISTORY_CHARACTERS) break;
+
+    result.unshift(item);
+    usedCharacters = nextCharacters;
+  }
+
+  return result;
+}
+
+function formatConversation(history) {
+  if (!history.length) return "No previous conversation.";
+
+  return history
+    .map((item) =>
+      `${item.role === "user" ? "USER" : "ASSISTANT"}: ${item.text}`
+    )
+    .join("\n");
+}
+
+async function askOpenAI(message, locale, matches, history) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) return null;
+
+  if (!apiKey) {
+    return {
+      text: null,
+      status: 0,
+      code: "OPENAI_API_KEY_MISSING",
+    };
+  }
 
   const model =
     process.env.OPENAI_SUPPORT_MODEL?.trim() ||
@@ -157,15 +208,26 @@ async function askOpenAI(message, locale, matches) {
         : "English";
 
   const instructions = [
-    "You are ISTe Support, the first-line technical support assistant for the ISTe esports project.",
-    "Answer only from the verified ISTe knowledge supplied below.",
-    "Never invent project rules, prices, staff decisions, schedules, account status, recruitment decisions or technical facts that are not present in the knowledge.",
-    "If the knowledge is insufficient, say clearly that you do not have enough verified information and recommend contacting human ISTe support.",
-    "Keep the answer concise and practical.",
-    `Answer in ${languageName}.`,
+    "You are ISTe AI Support, a helpful conversational assistant on the ISTe esports website.",
+    "You may answer normal general-knowledge questions and give useful general advice using your model knowledge.",
+    "For facts specifically about ISTe, its team, staff, accounts, prices, schedules, recruitment decisions, internal rules or unpublished plans, use ONLY the verified ISTe knowledge supplied below.",
+    "Never invent ISTe-specific facts. If a requested ISTe-specific fact is not in verified knowledge, say that you do not have verified information and suggest human ISTe support.",
+    "Use conversation history to understand follow-up questions and pronouns.",
+    "If a question is ambiguous and history does not resolve it, ask one short clarifying question instead of refusing.",
+    "Do not claim that you browsed the web or checked live information unless such information is explicitly present in verified knowledge.",
+    "Keep answers concise, friendly and practical.",
+    `Answer in ${languageName} unless the user clearly asks for another language.`,
     "",
     "VERIFIED ISTe KNOWLEDGE:",
-    faqContext(matches, lang) || "No matching verified FAQ entries.",
+    faqContext(matches, lang) || "No matching verified ISTe FAQ entries.",
+  ].join("\n");
+
+  const input = [
+    "CONVERSATION HISTORY:",
+    formatConversation(history),
+    "",
+    "CURRENT USER MESSAGE:",
+    message,
   ].join("\n");
 
   const controller = new AbortController();
@@ -185,7 +247,7 @@ async function askOpenAI(message, locale, matches) {
       body: JSON.stringify({
         model,
         instructions,
-        input: message,
+        input,
         max_output_tokens: MAX_OUTPUT_TOKENS,
       }),
     });
@@ -193,21 +255,52 @@ async function askOpenAI(message, locale, matches) {
     const payload = await result.json().catch(() => null);
 
     if (!result.ok) {
-      console.error("ISTe Support OpenAI request failed", {
+      const diagnostic = {
         status: result.status,
         code: payload?.error?.code || null,
         type: payload?.error?.type || null,
-      });
-      return null;
+        message: payload?.error?.message || null,
+      };
+
+      console.error("ISTe Support OpenAI request failed", diagnostic);
+
+      return {
+        text: null,
+        status: diagnostic.status,
+        code: diagnostic.code || diagnostic.type || "OPENAI_REQUEST_FAILED",
+      };
     }
 
     const text = extractOutputText(payload);
-    return text || null;
+
+    if (!text) {
+      console.error("ISTe Support OpenAI returned no output text", {
+        status: result.status,
+        model,
+      });
+    }
+
+    return {
+      text: text || null,
+      status: result.status,
+      code: text ? null : "OPENAI_EMPTY_OUTPUT",
+    };
   } catch (error) {
+    const code =
+      error instanceof Error && error.name === "AbortError"
+        ? "OPENAI_TIMEOUT"
+        : "OPENAI_FETCH_FAILED";
+
     console.error("ISTe Support OpenAI request failed", {
+      code,
       message: error instanceof Error ? error.message : String(error),
     });
-    return null;
+
+    return {
+      text: null,
+      status: 0,
+      code,
+    };
   } finally {
     clearTimeout(timeout);
   }
@@ -229,6 +322,7 @@ export default async function handler(request, response) {
       : "";
 
   const locale = normalizeSupportLocale(request.body?.locale);
+  const history = normalizeHistory(request.body?.history);
 
   if (
     rawMessage.length < 2 ||
@@ -304,13 +398,15 @@ export default async function handler(request, response) {
     }
   }
 
-  const aiAnswer = await askOpenAI(
+  const aiResult = await askOpenAI(
     rawMessage,
     locale,
     matches,
+    history,
   );
 
-  if (aiAnswer) {
+  if (aiResult.text) {
+    const aiAnswer = aiResult.text;
     const lower = aiAnswer.toLowerCase();
     const needsHuman =
       lower.includes("human support") ||
@@ -327,21 +423,27 @@ export default async function handler(request, response) {
     });
   }
 
-  const fallback = {
+  const providerUnavailable = {
     uk:
-      "У базі знань ISTe поки немає перевіреної відповіді на це питання. Звернися до технічної підтримки ISTe у Discord.",
+      "AI зараз не зміг отримати відповідь. Спробуй ще раз трохи пізніше або звернися до підтримки ISTe.",
     ru:
-      "В базе знаний ISTe пока нет проверенного ответа на этот вопрос. Обратись в техническую поддержку ISTe в Discord.",
+      "AI сейчас не смог получить ответ. Попробуй ещё раз немного позже или обратись в поддержку ISTe.",
     en:
-      "The ISTe knowledge base does not yet contain a verified answer to this question. Please contact ISTe technical support on Discord.",
+      "AI could not get a response right now. Please try again shortly or contact ISTe support.",
   };
 
-  return send(response, 200, {
-    ok: true,
-    answer: fallback[locale],
-    source: "fallback",
-    matchedFaqIds: matches.map(({ faq }) => faq.id),
+  console.error("ISTe Support AI fallback", {
+    status: aiResult.status,
+    code: aiResult.code,
     requestId: supportRequestId(),
-    needsHuman: true,
+  });
+
+  return send(response, 503, {
+    ok: false,
+    error: "SUPPORT_AI_PROVIDER_UNAVAILABLE",
+    message: providerUnavailable[locale],
+    providerStatus: aiResult.status || null,
+    providerCode: aiResult.code || null,
+    requestId: supportRequestId(),
   });
 }
