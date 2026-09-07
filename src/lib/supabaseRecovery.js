@@ -63,7 +63,7 @@ export const recoverySupabase =
         persistSession: true,
         autoRefreshToken: false,
         detectSessionInUrl: true,
-        flowType: "pkce",
+        flowType: "implicit",
         storage:
           recoveryStorage,
         storageKey:

@@ -20,6 +20,7 @@ export function getSupabaseServerClient() {
         persistSession: false,
         autoRefreshToken: false,
         detectSessionInUrl: false,
+        flowType: "implicit",
       },
     },
   );
