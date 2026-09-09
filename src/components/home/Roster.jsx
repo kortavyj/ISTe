@@ -3,7 +3,11 @@ import { useLanguage } from "../../i18n/LanguageContext.jsx";
 
 import "./Roster.css";
 
-const EXCLUDED_PLAYER = "kortavyj";
+const EXCLUDED_PLAYERS = new Set([
+  "kortavyj",
+  "-c1louse",
+  "c1louse",
+]);
 
 const MAIN_ROSTER_ORDER = Object.freeze([
   "perinamara",
@@ -20,8 +24,6 @@ const ROLE_OVERRIDES = Object.freeze({
   perinamara: "ENTRY",
   silryd: "RIFLER",
   tokyok1ng: "RIFLER",
-  "-c1louse": "SUPPORT",
-  c1louse: "SUPPORT",
 });
 
 const CAPTAIN_NICKNAME = "lor9n";
@@ -320,10 +322,11 @@ export default function Roster() {
     Array.isArray(stats.roster)
       ? stats.roster.filter(
           (player) =>
-            normalizeNickname(
-              player.nickname,
-            ) !==
-            EXCLUDED_PLAYER,
+            !EXCLUDED_PLAYERS.has(
+              normalizeNickname(
+                player.nickname,
+              ),
+            ),
         )
       : [];
 
