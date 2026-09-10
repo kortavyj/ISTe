@@ -5,9 +5,9 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 37,
-  "matches": 71,
-  "wins": 58,
+  "tournaments": 38,
+  "matches": 72,
+  "wins": 59,
   "winRate": 82,
   "players": 6,
   "roster": [
@@ -57,7 +57,7 @@
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 59,
-      "kd": 1.21
+      "kd": 1.2
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -83,7 +83,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2386,
+      "elo": 2356,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -105,10 +105,58 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 57,
-      "kd": 1.21
+      "kd": 1.22
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-45e88019-0310-4b30-ba74-9e40dacb3c24",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-45e88019-0310-4b30-ba74-9e40dacb3c24",
+      "tournamentId": "b7b48fe8-6f00-4b17-aec7-8691e9ef0dd8",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-10T18:07:42.000Z",
+      "startedAt": "2026-09-10T18:07:42.000Z",
+      "finishedAt": "2026-09-10T18:42:25.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "P1IP Esports",
+        "avatar": "https://distribution.faceit-cdn.net/images/8a8fbd0e-5487-4d4e-aa66-fba5f3a1c43a.jpg",
+        "score": 7
+      }
+    },
+    {
+      "matchId": "1-d97c1334-f781-4ac0-8da2-543e4e5de0b6",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-d97c1334-f781-4ac0-8da2-543e4e5de0b6",
+      "tournamentId": "b7b48fe8-6f00-4b17-aec7-8691e9ef0dd8",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-10T17:59:02.000Z",
+      "startedAt": "2026-09-10T17:59:02.000Z",
+      "finishedAt": "2026-09-10T17:59:02.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
     {
       "matchId": "1-97cf21e5-e55e-49ce-8ac1-48ddb9477f33",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-97cf21e5-e55e-49ce-8ac1-48ddb9477f33",
@@ -2798,7 +2846,7 @@
       }
     }
   ],
-  "teamMatchCount": 112,
+  "teamMatchCount": 114,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
@@ -2813,5 +2861,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-10T16:54:16.683Z"
+  "updatedAt": "2026-09-10T19:19:41.423Z"
 }
