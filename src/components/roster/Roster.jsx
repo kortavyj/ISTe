@@ -1,13 +1,15 @@
 import useFaceitStats from "../../hooks/useFaceitStats";
 import "./Roster.css";
 
-const EXCLUDED_PLAYER = "kortavyj";
+const EXCLUDED_PLAYERS = new Set([
+  "kortavyj",
+  "infuriat3",
+  "tokyok1ng",
+]);
 
 const OFFICIAL_ROLES = Object.freeze({
-  infuriat3: "AWP",
   perinamara: "ENTRY",
   silryd: "RIFLER",
-  tokyo1ng: "RIFLER",
   lor9n: "SUPPORT",
 });
 
@@ -111,7 +113,7 @@ function RosterSkeleton() {
       className="roster-grid"
       aria-label="Загрузка состава команды"
     >
-      {Array.from({ length: 5 }, (_, index) => (
+      {Array.from({ length: 3 }, (_, index) => (
         <div
           className="player-card player-card--skeleton"
           key={index}
@@ -133,7 +135,7 @@ export default function Roster() {
   const roster = Array.isArray(stats.roster)
     ? stats.roster.filter(
         (player) =>
-          normalizeNickname(player.nickname) !== EXCLUDED_PLAYER,
+          !EXCLUDED_PLAYERS.has(normalizeNickname(player.nickname)),
       )
     : [];
 
