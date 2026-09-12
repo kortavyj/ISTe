@@ -18,14 +18,14 @@
       "country": "ua",
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
-      "level": 5,
-      "elo": 1200,
+      "level": 6,
+      "elo": 1264,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.17
+      "kd": 1.21
     },
     {
       "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
@@ -35,13 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2746,
+      "elo": 2776,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.46
+      "kd": 1.44
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -67,7 +67,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
       "level": 10,
-      "elo": 2486,
+      "elo": 2516,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -3021,7 +3021,7 @@
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 72,
+    "historyMatchesFound": 70,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3029,5 +3029,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-11T22:40:08.860Z"
+  "updatedAt": "2026-09-12T00:37:00.939Z"
 }
