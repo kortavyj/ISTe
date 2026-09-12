@@ -7,23 +7,20 @@ const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
   "-c1louse",
   "c1louse",
+  "infuriat3",
+  "tokyok1ng",
 ]);
 
 const MAIN_ROSTER_ORDER = Object.freeze([
   "perinamara",
-  "infuriat3",
   "lor9n",
   "silryd",
-  "tokyok1ng",
 ]);
 
 const ROLE_OVERRIDES = Object.freeze({
-  infuriat3: "AWP",
-  infuriat: "AWP",
   lor9n: "AWP",
   perinamara: "ENTRY",
   silryd: "RIFLER",
-  tokyok1ng: "RIFLER",
 });
 
 const CAPTAIN_NICKNAME = "lor9n";
@@ -288,7 +285,7 @@ function RosterSkeleton() {
     >
       {Array.from(
         {
-          length: 5,
+          length: 3,
         },
         (_, index) => (
           <div
