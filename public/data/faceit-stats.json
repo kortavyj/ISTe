@@ -5,9 +5,9 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 39,
-  "matches": 78,
-  "wins": 65,
+  "tournaments": 40,
+  "matches": 81,
+  "wins": 67,
   "winRate": 83,
   "players": 6,
   "roster": [
@@ -41,7 +41,7 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.44
+      "kd": 1.42
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -57,7 +57,7 @@
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 60,
-      "kd": 1.25
+      "kd": 1.26
     },
     {
       "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
@@ -89,7 +89,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.35
+      "kd": 1.33
     },
     {
       "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
@@ -105,10 +105,130 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 57,
-      "kd": 1.19
+      "kd": 1.18
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-b1965113-56e0-4e84-bd34-cffe6c4648ac",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-b1965113-56e0-4e84-bd34-cffe6c4648ac",
+      "tournamentId": "845b132b-7cbb-4f5c-a389-2538466a496a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 3",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-12T11:51:06.000Z",
+      "startedAt": "2026-09-12T11:51:06.000Z",
+      "finishedAt": "2026-09-12T12:30:57.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "masK eSports",
+        "avatar": "https://distribution.faceit-cdn.net/images/0f3986c7-ca26-4937-b55b-ebd4fcb61b36.jpg",
+        "score": 9
+      }
+    },
+    {
+      "matchId": "1-c5361655-4b93-48bd-a5cd-9e725802e827",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-c5361655-4b93-48bd-a5cd-9e725802e827",
+      "tournamentId": "845b132b-7cbb-4f5c-a389-2538466a496a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 3",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-12T11:07:06.000Z",
+      "startedAt": "2026-09-12T11:07:06.000Z",
+      "finishedAt": "2026-09-12T11:34:54.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "TheChampionGG",
+        "avatar": "https://distribution.faceit-cdn.net/images/6ccd0ded-4149-4b05-bb18-4a68059bbc27.jpg",
+        "score": 3
+      }
+    },
+    {
+      "matchId": "1-4874c047-8208-446b-9af0-34b94c1aae32",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-4874c047-8208-446b-9af0-34b94c1aae32",
+      "tournamentId": "845b132b-7cbb-4f5c-a389-2538466a496a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 3",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-12T10:45:32.000Z",
+      "startedAt": "2026-09-12T10:45:32.000Z",
+      "finishedAt": "2026-09-12T10:45:32.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
+    {
+      "matchId": "1-81cac740-27ce-418e-818f-639e28d18581",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-81cac740-27ce-418e-818f-639e28d18581",
+      "tournamentId": "845b132b-7cbb-4f5c-a389-2538466a496a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 3",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-09-12T10:08:31.000Z",
+      "startedAt": "2026-09-12T10:08:31.000Z",
+      "finishedAt": "2026-09-12T10:45:22.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 7
+      },
+      "opponent": {
+        "name": "Seizer Young",
+        "avatar": "https://distribution.faceit-cdn.net/images/c58f5734-0b85-4640-9b73-674899174bd8.jpg",
+        "score": 13
+      }
+    },
+    {
+      "matchId": "1-f6eb7e77-87dc-4f78-95bc-37c83400eaa7",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-f6eb7e77-87dc-4f78-95bc-37c83400eaa7",
+      "tournamentId": "845b132b-7cbb-4f5c-a389-2538466a496a",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 4 Qualification 3",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-12T10:04:03.000Z",
+      "startedAt": "2026-09-12T10:04:03.000Z",
+      "finishedAt": "2026-09-12T10:04:03.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
     {
       "matchId": "1-78dfd460-9ffc-4f33-8b33-92db642d46be",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-78dfd460-9ffc-4f33-8b33-92db642d46be",
@@ -3014,14 +3134,14 @@
       }
     }
   ],
-  "teamMatchCount": 121,
+  "teamMatchCount": 126,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 69,
+    "historyMatchesFound": 73,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3029,5 +3149,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-12T04:58:38.632Z"
+  "updatedAt": "2026-09-12T12:48:35.776Z"
 }
