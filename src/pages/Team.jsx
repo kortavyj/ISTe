@@ -1,6 +1,4 @@
 import useFaceitStats from "../hooks/useFaceitStats.js";
-import infuriat3Portrait from "../assets/players/infuriat3.png";
-import ishidoriPortrait from "../assets/players/ishidori.png";
 import riflerPortrait from "../assets/players/rifler-support.png";
 import awpPortrait from "../assets/players/awp-main.png";
 import perinamaraPortrait from "../assets/players/perinamara.png";
@@ -8,58 +6,19 @@ import perinamaraPortrait from "../assets/players/perinamara.png";
 import "./Team.css";
 import "./TeamStats.css";
 
-const EXCLUDED_PLAYER = "kortavyj";
-
-const PROFILE_ORDER = Object.freeze([
+const EXCLUDED_PLAYERS = new Set([
+  "kortavyj",
   "infuriat3",
   "tokyok1ng",
+]);
+
+const PROFILE_ORDER = Object.freeze([
   "silryd",
   "lor9n",
   "perinamara",
 ]);
 
 const CUSTOM_PROFILES = Object.freeze([
-  {
-    sourceNickname: "infuriat3",
-    nickname: null,
-    roleLabel: "IGL",
-    title: "Игровое мышление",
-    description:
-      "Капитан, который читает игру на несколько шагов вперёд и выстраивает стратегию по ходу раунда. Грамотно распределяет ресурсы, координирует действия команды и адаптируется под стиль соперника, сохраняя контроль над ситуацией.",
-    strengths: ["Принятие решений", "Командная координация", "Адаптивность"],
-    portrait: infuriat3Portrait,
-    portraitMode: "cutout",
-    socials: [
-      {
-        name: "Instagram",
-        url: "https://www.instagram.com/jay._.zgg/?hl=ru",
-        icon: "instagram",
-      },
-      {
-        name: "Twitch",
-        url: "https://www.twitch.tv/jayyzzg",
-        icon: "twitch",
-      },
-    ],
-  },
-  {
-    sourceNickname: "tokyok1ng",
-    nickname: "Ishidori",
-    roleLabel: "Lurker",
-    title: "Контроль карты и давление",
-    description:
-      "Находит тайминги, наказывает ротации и создаёт постоянную угрозу на флангах. Терпеливо ждёт момент для решающего выхода и меняет ход раунда одним действием.",
-    strengths: ["Терпение", "Тайминги", "Контроль карты"],
-    portrait: ishidoriPortrait,
-    portraitMode: "cutout",
-    socials: [
-      {
-        name: "Instagram",
-        url: "https://www.instagram.com/wasureteikenai/",
-        icon: "instagram",
-      },
-    ],
-  },
   {
     sourceNickname: "silryd",
     nickname: "silryd",
@@ -129,46 +88,6 @@ const CUSTOM_PROFILES = Object.freeze([
 const PROFILE_BY_NICKNAME = new Map(
   CUSTOM_PROFILES.map((profile) => [profile.sourceNickname, profile]),
 );
-
-const ROLE_PROFILES = Object.freeze({
-  IGL: {
-    title: "Голос команды",
-    description:
-      "Читает раунд на несколько шагов вперёд, задаёт темп и объединяет игроков вокруг одного решения. Быстро перестраивает план, когда соперник ломает привычный сценарий.",
-    strengths: ["Координация", "Чтение карты", "Решения под давлением"],
-  },
-  AWP: {
-    title: "Контроль дистанции",
-    description:
-      "Закрывает ключевые углы и заставляет соперника менять маршрут ещё до начала атаки. Его задача не только делать первый фраг, но и постоянно держать противника в напряжении.",
-    strengths: ["Первый контакт", "Удержание углов", "Хладнокровие"],
-  },
-  ENTRY: {
-    title: "Открывает пространство",
-    description:
-      "Первым входит в опасную зону, собирает информацию и создаёт место для всей команды. Играет агрессивно, но каждое движение направлено на общий размен и захват позиции.",
-    strengths: ["Темп", "Дуэли", "Создание пространства"],
-  },
-  RIFLER: {
-    title: "Универсальная огневая сила",
-    description:
-      "Подстраивается под любой рисунок раунда, уверенно играет на разменах и удерживает сложные позиции. Это игрок, который сохраняет стабильность, когда ситуация становится хаотичной.",
-    strengths: ["Стабильность", "Размены", "Адаптация"],
-  },
-  SUPPORT: {
-    title: "Основа командной игры",
-    description:
-      "Готовит атаки гранатами, страхует тиммейтов и делает незаметную работу, без которой сильный раунд не складывается. Всегда оказывается там, где команде нужна помощь.",
-    strengths: ["Гранаты", "Страховка", "Командная дисциплина"],
-  },
-});
-
-const DEFAULT_PROFILE = Object.freeze({
-  title: "Надёжный игрок состава",
-  description:
-    "Сохраняет баланс между индивидуальной игрой и интересами команды. Умеет менять темп, поддерживать партнёров и принимать полезные решения в нестандартных ситуациях.",
-  strengths: ["Командная игра", "Гибкость", "Самообладание"],
-});
 
 function normalizeNickname(nickname) {
   return String(nickname || "").trim().toLowerCase();
@@ -380,12 +299,14 @@ function PlayerPortrait({ player, profile, displayName }) {
 
 function PlayerProfile({ player, index }) {
   const normalizedNickname = normalizeNickname(player.nickname);
-  const customProfile = PROFILE_BY_NICKNAME.get(normalizedNickname) || null;
-  const fallbackRole = String(player.role || "RIFLER").toUpperCase();
-  const fallbackProfile = ROLE_PROFILES[fallbackRole] || DEFAULT_PROFILE;
-  const profile = customProfile || fallbackProfile;
-  const displayName = customProfile?.nickname || player.nickname;
-  const roleLabel = customProfile?.roleLabel || fallbackRole;
+  const profile = PROFILE_BY_NICKNAME.get(normalizedNickname);
+
+  if (!profile) {
+    return null;
+  }
+
+  const displayName = profile.nickname || player.nickname;
+  const roleLabel = profile.roleLabel || String(player.role || "RIFLER").toUpperCase();
   const flag = countryToFlag(player.country);
   const level = Number.isFinite(player.level) ? player.level : "—";
   const elo = formatInteger(player.elo);
@@ -475,7 +396,9 @@ export default function Team() {
   const { stats, loading, error, reload } = useFaceitStats();
   const players = Array.isArray(stats.roster)
     ? stats.roster
-        .filter((player) => normalizeNickname(player.nickname) !== EXCLUDED_PLAYER)
+        .filter(
+          (player) => !EXCLUDED_PLAYERS.has(normalizeNickname(player.nickname)),
+        )
         .filter((player) => PROFILE_BY_NICKNAME.has(normalizeNickname(player.nickname)))
         .sort((left, right) => {
           const leftIndex = PROFILE_ORDER.indexOf(normalizeNickname(left.nickname));
