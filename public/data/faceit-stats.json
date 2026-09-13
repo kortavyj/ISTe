@@ -9,7 +9,7 @@
   "matches": 83,
   "wins": 68,
   "winRate": 82,
-  "players": 5,
+  "players": 6,
   "roster": [
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -35,7 +35,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2746,
+      "elo": 2751,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
@@ -44,26 +44,26 @@
       "kd": 1.36
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
+      "nickname": "ysgramora",
+      "avatar": "https://distribution.faceit-cdn.net/images/ba47464d-7729-48f0-a808-000eec701918.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
       "level": 10,
-      "elo": 2850,
+      "elo": 3092,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
+      "winRate": 54,
       "kd": 1.24
     },
     {
       "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
       "nickname": "bandai",
-      "avatar": "https://distribution.faceit-cdn.net/images/c5a53907-7117-4640-a57f-2dda48f7cd16.jpg",
-      "country": "gb",
+      "avatar": "https://distribution.faceit-cdn.net/images/8f10e1b3-22f6-4e3a-9983-0f2ecfc6bb2b.jpg",
+      "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/bandai",
       "level": 10,
@@ -83,13 +83,29 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2326,
+      "elo": 2271,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 51,
+      "kd": 1.32
+    },
+    {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2850,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.32
+      "winRate": 60,
+      "kd": 1.24
     }
   ],
   "teamMatches": [
@@ -3172,8 +3188,8 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 5,
-    "historyMatchesFound": 71,
+    "historyPlayersScanned": 6,
+    "historyMatchesFound": 69,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3181,5 +3197,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-13T11:40:56.467Z"
+  "updatedAt": "2026-09-13T14:38:04.178Z"
 }
