@@ -28,8 +28,8 @@ const MANUAL_PLAYERS = Object.freeze([
 
 const MAIN_ROSTER_ORDER = Object.freeze([
   "perinamara",
-  "lor9n",
   "silryd",
+  "lor9n",
   "bandai",
   "ysgramora",
 ]);
