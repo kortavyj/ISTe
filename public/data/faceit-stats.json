@@ -19,7 +19,7 @@
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
       "level": 6,
-      "elo": 1234,
+      "elo": 1220,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
@@ -35,29 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2751,
+      "elo": 2696,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.36
-    },
-    {
-      "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
-      "nickname": "bandai",
-      "avatar": "https://distribution.faceit-cdn.net/images/8f10e1b3-22f6-4e3a-9983-0f2ecfc6bb2b.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/bandai",
-      "level": 10,
-      "elo": 3147,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 1.26
+      "kd": 1.34
     },
     {
       "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
@@ -67,12 +51,28 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
       "level": 10,
-      "elo": 3122,
+      "elo": 3067,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 53,
+      "kd": 1.23
+    },
+    {
+      "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
+      "nickname": "bandai",
+      "avatar": "https://distribution.faceit-cdn.net/images/8f10e1b3-22f6-4e3a-9983-0f2ecfc6bb2b.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/bandai",
+      "level": 10,
+      "elo": 3092,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 54,
+      "winRate": 52,
       "kd": 1.25
     },
     {
@@ -83,13 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2271,
+      "elo": 2216,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.32
+      "kd": 1.31
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -99,16 +99,40 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2850,
+      "elo": 2847,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 60,
-      "kd": 1.24
+      "kd": 1.26
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-c657f5dd-c79a-4775-84be-962db1972513",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-c657f5dd-c79a-4775-84be-962db1972513",
+      "tournamentId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "competitionName": "Europe 5v5 Queue",
+      "competitionType": "matchmaking",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-09-13T15:31:30.000Z",
+      "startedAt": "2026-09-13T15:31:30.000Z",
+      "finishedAt": "2026-09-13T16:15:16.000Z",
+      "ownTeam": {
+        "name": "team_silryd",
+        "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
+        "score": 11
+      },
+      "opponent": {
+        "name": "team_jiter-",
+        "avatar": "https://distribution.faceit-cdn.net/images/339f7b94-565d-4e58-ba2e-0c03266b5939.jpg",
+        "score": 13
+      }
+    },
     {
       "matchId": "1-69dd95ec-e4df-44bf-81e2-cfb0e81e9260",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-69dd95ec-e4df-44bf-81e2-cfb0e81e9260",
@@ -3182,14 +3206,14 @@
       }
     }
   ],
-  "teamMatchCount": 128,
+  "teamMatchCount": 129,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 69,
+    "historyMatchesFound": 65,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3197,5 +3221,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-13T15:02:13.179Z"
+  "updatedAt": "2026-09-13T18:04:23.607Z"
 }
