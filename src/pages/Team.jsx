@@ -1,4 +1,5 @@
 import useFaceitStats from "../hooks/useFaceitStats.js";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 import riflerPortrait from "../assets/players/rifler-support.png";
 import awpPortrait from "../assets/players/awp-main.png";
 import perinamaraPortrait from "../assets/players/perinamara.png";
@@ -18,15 +19,58 @@ const PROFILE_ORDER = Object.freeze([
   "perinamara",
 ]);
 
+const PAGE_COPY = Object.freeze({
+  uk: {
+    title: "Гравці команди",
+    description:
+      "Кожен учасник має власний стиль, свою зону відповідальності та свій спосіб впливати на раунд. Тут зібрані ігрові портрети основного складу ISTe.",
+    faceitProfile: "Відкрити профіль FACEIT",
+    socialsAria: "Соціальні мережі гравця",
+    statsAria: (name) => `Особиста статистика FACEIT гравця ${name}`,
+    strengthsAria: "Сильні сторони гравця",
+    loadingAria: "Завантаження гравців команди",
+    loadError:
+      "Не вдалося отримати склад із FACEIT. Перевір GitHub Actions і секрет FACEIT_API_KEY.",
+    empty:
+      "Склад ще не синхронізовано. Запусти оновлення FACEIT у GitHub Actions.",
+    retry: "Повторити завантаження",
+  },
+  en: {
+    title: "Team players",
+    description:
+      "Every player has a distinct style, area of responsibility and way of influencing a round. Here you can find the player profiles of the main ISTe roster.",
+    faceitProfile: "Open FACEIT profile",
+    socialsAria: "Player social media",
+    statsAria: (name) => `${name} FACEIT personal statistics`,
+    strengthsAria: "Player strengths",
+    loadingAria: "Loading team players",
+    loadError:
+      "Could not retrieve the roster from FACEIT. Check GitHub Actions and the FACEIT_API_KEY secret.",
+    empty:
+      "The roster has not been synchronized yet. Run the FACEIT update in GitHub Actions.",
+    retry: "Retry loading",
+  },
+});
+
 const CUSTOM_PROFILES = Object.freeze([
   {
     sourceNickname: "silryd",
     nickname: "silryd",
     roleLabel: "Rifler",
-    title: "Универсальный саппорт",
-    description:
-      "Контролирует темп раунда, помогает открывать позиции и обеспечивает команде преимущество за счёт использования гранат.",
-    strengths: ["Гранаты", "Размены", "Адаптация"],
+    copy: {
+      uk: {
+        title: "Універсальний сапорт",
+        description:
+          "Контролює темп раунду, допомагає відкривати позиції та забезпечує команді перевагу завдяки грамотному використанню гранат.",
+        strengths: ["Гранати", "Розміни", "Адаптація"],
+      },
+      en: {
+        title: "Versatile support",
+        description:
+          "Controls the pace of the round, helps open positions and gives the team an advantage through smart utility usage.",
+        strengths: ["Utility", "Trading", "Adaptation"],
+      },
+    },
     portrait: riflerPortrait,
     portraitMode: "cutout",
     socials: [
@@ -46,10 +90,20 @@ const CUSTOM_PROFILES = Object.freeze([
     sourceNickname: "lor9n",
     nickname: "Lor9n",
     roleLabel: "AWP",
-    title: "Контроль пространства и давление",
-    description:
-      "Снайпер — главный источник огневой мощи и контроля пространства. Обладая феноменальной реакцией и безупречным чувством позиционирования, он превращает AWP в инструмент психологического давления: он не просто собирает первые фраги, он лишает врага права на ошибку и заставляет его бояться каждого открытого угла.",
-    strengths: ["Позиционирование", "Первый фраг", "Давление AWP"],
+    copy: {
+      uk: {
+        title: "Контроль простору та тиск",
+        description:
+          "Снайпер є головним джерелом вогневої потужності та контролю простору. Завдяки швидкій реакції й точному позиціонуванню він перетворює AWP на інструмент постійного тиску, знаходить перші фраги та змушує суперника обережно грати кожен відкритий кут.",
+        strengths: ["Позиціонування", "Перший фраг", "Тиск з AWP"],
+      },
+      en: {
+        title: "Space control and pressure",
+        description:
+          "The sniper is a key source of firepower and map control. With fast reactions and precise positioning, he turns the AWP into a constant pressure tool, finds opening kills and forces opponents to respect every exposed angle.",
+        strengths: ["Positioning", "Opening kill", "AWP pressure"],
+      },
+    },
     portrait: awpPortrait,
     portraitMode: "cutout",
     socials: [
@@ -69,10 +123,20 @@ const CUSTOM_PROFILES = Object.freeze([
     sourceNickname: "perinamara",
     nickname: "Perinamara",
     roleLabel: "Entry Fragger",
-    title: "Открытие раундов и темп",
-    description:
-      "Открывает раунды и задаёт темп игре. Первым выходит на контакт, берёт на себя риск и находит начальные фраги, ломая оборону соперника. Быстро принимает решения и создаёт пространство, позволяя команде уверенно заходить на позицию.",
-    strengths: ["Первый контакт", "Аим и реакция", "Агрессия"],
+    copy: {
+      uk: {
+        title: "Відкриття раундів і темп",
+        description:
+          "Відкриває раунди та задає темп грі. Першим виходить на контакт, бере на себе ризик і знаходить початкові фраги, руйнуючи оборону суперника. Швидко приймає рішення та створює простір, допомагаючи команді впевнено заходити на позицію.",
+        strengths: ["Перший контакт", "Aim і реакція", "Агресія"],
+      },
+      en: {
+        title: "Opening rounds and setting the pace",
+        description:
+          "Opens rounds and sets the pace of the game. Takes first contact, accepts the risk and finds opening kills that break the opponent's defence. Makes quick decisions and creates space for the team to enter positions with confidence.",
+        strengths: ["First contact", "Aim and reactions", "Aggression"],
+      },
+    },
     portrait: perinamaraPortrait,
     portraitMode: "cutout",
     socials: [
@@ -105,13 +169,19 @@ function countryToFlag(countryCode) {
     .join("");
 }
 
-function formatInteger(value) {
-  return Number.isFinite(value) ? Math.round(value).toLocaleString("ru-RU") : "—";
+function getLocale(language) {
+  return language === "en" ? "en-US" : "uk-UA";
 }
 
-function formatDecimal(value, digits) {
+function formatInteger(value, language) {
   return Number.isFinite(value)
-    ? value.toLocaleString("ru-RU", {
+    ? Math.round(value).toLocaleString(getLocale(language))
+    : "—";
+}
+
+function formatDecimal(value, digits, language) {
+  return Number.isFinite(value)
+    ? value.toLocaleString(getLocale(language), {
         minimumFractionDigits: digits,
         maximumFractionDigits: digits,
       })
@@ -198,7 +268,7 @@ function SocialIcon({ type }) {
   return null;
 }
 
-function PlayerSocials({ socials, faceitUrl }) {
+function PlayerSocials({ socials, faceitUrl, copy }) {
   const links = Array.isArray(socials) ? socials : [];
 
   if (links.length === 0) {
@@ -209,7 +279,7 @@ function PlayerSocials({ socials, faceitUrl }) {
         target="_blank"
         rel="noreferrer"
       >
-        Открыть профиль FACEIT
+        {copy.faceitProfile}
         <span aria-hidden="true">↗</span>
       </a>
     );
@@ -217,7 +287,7 @@ function PlayerSocials({ socials, faceitUrl }) {
 
   return (
     <div
-      aria-label="Социальные сети игрока"
+      aria-label={copy.socialsAria}
       style={{
         display: "flex",
         flexWrap: "wrap",
@@ -297,7 +367,7 @@ function PlayerPortrait({ player, profile, displayName }) {
   );
 }
 
-function PlayerProfile({ player, index }) {
+function PlayerProfile({ player, index, language, copy }) {
   const normalizedNickname = normalizeNickname(player.nickname);
   const profile = PROFILE_BY_NICKNAME.get(normalizedNickname);
 
@@ -305,16 +375,17 @@ function PlayerProfile({ player, index }) {
     return null;
   }
 
+  const profileCopy = profile.copy[language] || profile.copy.uk;
   const displayName = profile.nickname || player.nickname;
   const roleLabel = profile.roleLabel || String(player.role || "RIFLER").toUpperCase();
   const flag = countryToFlag(player.country);
   const level = Number.isFinite(player.level) ? player.level : "—";
-  const elo = formatInteger(player.elo);
+  const elo = formatInteger(player.elo, language);
   const winRate = Number.isFinite(player.winRate)
-    ? `${formatDecimal(player.winRate, 1)}%`
+    ? `${formatDecimal(player.winRate, 1, language)}%`
     : "—";
-  const kd = formatDecimal(player.kd, 2);
-  const faceitUrl = player.faceitUrl || "https://www.faceit.com/ru";
+  const kd = formatDecimal(player.kd, 2, language);
+  const faceitUrl = player.faceitUrl || "https://www.faceit.com";
   const isCutout = profile.portraitMode === "cutout";
 
   const personalStats = [
@@ -349,7 +420,7 @@ function PlayerProfile({ player, index }) {
 
         <div
           className="team-profile__personal-stats"
-          aria-label={`Личная статистика FACEIT игрока ${displayName}`}
+          aria-label={copy.statsAria(displayName)}
         >
           {personalStats.map((stat) => (
             <div className="team-profile__personal-stat" key={stat.label}>
@@ -359,24 +430,28 @@ function PlayerProfile({ player, index }) {
           ))}
         </div>
 
-        <p className="team-profile__title">{profile.title}</p>
-        <p className="team-profile__description">{profile.description}</p>
+        <p className="team-profile__title">{profileCopy.title}</p>
+        <p className="team-profile__description">{profileCopy.description}</p>
 
-        <div className="team-profile__strengths" aria-label="Сильные стороны игрока">
-          {profile.strengths.map((strength) => (
+        <div className="team-profile__strengths" aria-label={copy.strengthsAria}>
+          {profileCopy.strengths.map((strength) => (
             <span key={strength}>{strength}</span>
           ))}
         </div>
 
-        <PlayerSocials socials={profile.socials} faceitUrl={faceitUrl} />
+        <PlayerSocials
+          socials={profile.socials}
+          faceitUrl={faceitUrl}
+          copy={copy}
+        />
       </div>
     </article>
   );
 }
 
-function ProfilesSkeleton() {
+function ProfilesSkeleton({ copy }) {
   return (
-    <div className="team-profiles" aria-label="Загрузка игроков команды">
+    <div className="team-profiles" aria-label={copy.loadingAria}>
       {Array.from({ length: CUSTOM_PROFILES.length }, (_, index) => (
         <div className="team-profile team-profile--loading" key={index} aria-hidden="true">
           <div className="team-profile__visual" />
@@ -393,7 +468,10 @@ function ProfilesSkeleton() {
 }
 
 export default function Team() {
+  const { language } = useLanguage();
   const { stats, loading, error, reload } = useFaceitStats();
+  const copy = PAGE_COPY[language] || PAGE_COPY.uk;
+
   const players = Array.isArray(stats.roster)
     ? stats.roster
         .filter(
@@ -413,18 +491,15 @@ export default function Team() {
 
       <header className="team-page__header">
         <p className="page-eyebrow">ISTE PLAYER PROFILES</p>
-        <h1>Игроки команды</h1>
-        <p>
-          У каждого участника свой стиль, своя зона ответственности и свой способ влиять
-          на раунд. Здесь собраны игровые портреты основного состава ISTe.
-        </p>
+        <h1>{copy.title}</h1>
+        <p>{copy.description}</p>
         <div className="team-page__counter">
           <span>{players.length || CUSTOM_PROFILES.length}</span>
           <small>PLAYER PROFILES</small>
         </div>
       </header>
 
-      {loading && players.length === 0 ? <ProfilesSkeleton /> : null}
+      {loading && players.length === 0 ? <ProfilesSkeleton copy={copy} /> : null}
 
       {!loading && players.length > 0 ? (
         <div className="team-profiles">
@@ -432,6 +507,8 @@ export default function Team() {
             <PlayerProfile
               player={player}
               index={index}
+              language={language}
+              copy={copy}
               key={player.playerId || `${index}-${player.nickname || "player"}`}
             />
           ))}
@@ -440,13 +517,9 @@ export default function Team() {
 
       {!loading && players.length === 0 ? (
         <div className="team-page__empty">
-          <p>
-            {error
-              ? "Не удалось получить состав из FACEIT. Проверь GitHub Actions и секрет FACEIT_API_KEY."
-              : "Состав ещё не синхронизирован. Запусти обновление FACEIT в GitHub Actions."}
-          </p>
+          <p>{error ? copy.loadError : copy.empty}</p>
           <button type="button" onClick={reload}>
-            Повторить загрузку
+            {copy.retry}
           </button>
         </div>
       ) : null}
