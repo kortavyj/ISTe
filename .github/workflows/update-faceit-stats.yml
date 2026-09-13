@@ -3,6 +3,11 @@ name: Update FACEIT statistics
 on:
   schedule:
     - cron: "2-57/5 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "src/components/home/Roster.jsx"
   workflow_dispatch:
     inputs:
       full_match_sync:
