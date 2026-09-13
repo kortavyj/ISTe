@@ -9,7 +9,7 @@
   "matches": 83,
   "wins": 68,
   "winRate": 82,
-  "players": 6,
+  "players": 5,
   "roster": [
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -60,20 +60,20 @@
       "kd": 1.24
     },
     {
-      "playerId": "12b650d3-1ffd-43e6-8a42-43790d0fa52a",
-      "nickname": "tokyok1ng",
-      "avatar": "https://distribution.faceit-cdn.net/images/171ea9f8-a08c-4eb9-bf86-50ae4c309737.jpg",
-      "country": "us",
+      "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
+      "nickname": "bandai",
+      "avatar": "https://distribution.faceit-cdn.net/images/c5a53907-7117-4640-a57f-2dda48f7cd16.jpg",
+      "country": "gb",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tokyok1ng",
+      "faceitUrl": "https://www.faceit.com/ru/players/bandai",
       "level": 10,
-      "elo": 2523,
+      "elo": 3117,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.23
+      "kd": 1.25
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -84,28 +84,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
       "elo": 2326,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.32
-    },
-    {
-      "playerId": "332ccd50-a799-4a2c-8475-de4ab7d984ec",
-      "nickname": "infuriat3",
-      "avatar": "https://distribution.faceit-cdn.net/images/b3ac55c8-7755-4a81-a437-89cf379d20e5.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/infuriat3",
-      "level": 10,
-      "elo": 2912,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 57,
-      "kd": 1.19
+      "winRate": 51,
+      "kd": 1.32
     }
   ],
   "teamMatches": [
@@ -3188,7 +3172,7 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 6,
+    "historyPlayersScanned": 5,
     "historyMatchesFound": 71,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
@@ -3197,5 +3181,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-13T06:04:52.866Z"
+  "updatedAt": "2026-09-13T11:40:56.467Z"
 }
