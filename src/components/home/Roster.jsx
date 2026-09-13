@@ -5,10 +5,6 @@ import "./Roster.css";
 
 const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
-  "-c1louse",
-  "c1louse",
-  "infuriat3",
-  "tokyok1ng",
 ]);
 
 const MAIN_ROSTER_ORDER = Object.freeze([
@@ -29,17 +25,6 @@ function normalizeNickname(nickname) {
   return String(nickname || "")
     .trim()
     .toLowerCase();
-}
-
-function isSubstitute(player) {
-  const nickname = normalizeNickname(
-    player?.nickname,
-  );
-
-  return (
-    nickname === "-c1louse" ||
-    nickname === "c1louse"
-  );
 }
 
 function getRosterOrder(player) {
@@ -128,10 +113,7 @@ function PlayerAvatar({ player }) {
   );
 }
 
-function PlayerCard({
-  player,
-  substitute = false,
-}) {
+function PlayerCard({ player }) {
   const { t, language } =
     useLanguage();
 
@@ -181,9 +163,6 @@ function PlayerCard({
         "player-card",
         isCaptain
           ? "player-card--captain"
-          : "",
-        substitute
-          ? "player-card--substitute"
           : "",
       ]
         .filter(Boolean)
@@ -259,15 +238,9 @@ function PlayerCard({
       </div>
 
       <span className="player-role-note">
-        {substitute
-          ? language === "uk"
-            ? "ГРАВЕЦЬ ЗАМІНИ"
-            : language === "en"
-              ? "SUBSTITUTE PLAYER"
-              : "ИГРОК ЗАМЕНЫ"
-          : t(
-              "home.roster.roleNote",
-            )}
+        {t(
+          "home.roster.roleNote",
+        )}
       </span>
     </a>
   );
@@ -305,7 +278,7 @@ function RosterSkeleton() {
 }
 
 export default function Roster() {
-  const { t, language } =
+  const { t } =
     useLanguage();
 
   const {
@@ -327,27 +300,11 @@ export default function Roster() {
         )
       : [];
 
-  const mainRoster = roster
-    .filter(
-      (player) =>
-        !isSubstitute(player),
-    )
-    .sort(
-      (left, right) =>
-        getRosterOrder(left) -
-        getRosterOrder(right),
-    );
-
-  const substitutes = roster.filter(
-    isSubstitute,
+  const mainRoster = roster.sort(
+    (left, right) =>
+      getRosterOrder(left) -
+      getRosterOrder(right),
   );
-
-  const substituteTitle =
-    language === "uk"
-      ? "ЗАМІНА"
-      : language === "en"
-        ? "SUBSTITUTE"
-        : "ЗАМЕНА";
 
   return (
     <section
@@ -387,34 +344,6 @@ export default function Roster() {
       ) : null}
 
       {!loading &&
-      substitutes.length > 0 ? (
-        <div className="roster-substitutes">
-          <div className="roster-substitutes__title">
-            <span />
-            <strong>
-              {substituteTitle}
-            </strong>
-            <span />
-          </div>
-
-          <div className="roster-substitutes__grid">
-            {substitutes.map(
-              (player) => (
-                <PlayerCard
-                  player={player}
-                  substitute
-                  key={
-                    player.playerId ||
-                    player.nickname
-                  }
-                />
-              ),
-            )}
-          </div>
-        </div>
-      ) : null}
-
-      {!loading &&
       roster.length === 0 ? (
         <div className="roster-empty">
           <p>
@@ -442,9 +371,7 @@ export default function Roster() {
               target="_blank"
               rel="noreferrer"
             >
-              {t(
-                "home.roster.openTeam",
-              )}
+              FACEIT
             </a>
           </div>
         </div>
