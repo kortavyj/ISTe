@@ -44,22 +44,6 @@
       "kd": 1.36
     },
     {
-      "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
-      "nickname": "ysgramora",
-      "avatar": "https://distribution.faceit-cdn.net/images/ba47464d-7729-48f0-a808-000eec701918.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
-      "level": 10,
-      "elo": 3092,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 54,
-      "kd": 1.24
-    },
-    {
       "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
       "nickname": "bandai",
       "avatar": "https://distribution.faceit-cdn.net/images/8f10e1b3-22f6-4e3a-9983-0f2ecfc6bb2b.jpg",
@@ -67,12 +51,28 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/bandai",
       "level": 10,
-      "elo": 3117,
+      "elo": 3147,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 52,
+      "kd": 1.26
+    },
+    {
+      "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
+      "nickname": "ysgramora",
+      "avatar": "https://distribution.faceit-cdn.net/images/ba47464d-7729-48f0-a808-000eec701918.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
+      "level": 10,
+      "elo": 3122,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
+      "winRate": 54,
       "kd": 1.25
     },
     {
@@ -3197,5 +3197,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-13T14:38:04.178Z"
+  "updatedAt": "2026-09-13T15:02:13.179Z"
 }
