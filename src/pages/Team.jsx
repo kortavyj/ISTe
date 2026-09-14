@@ -28,7 +28,6 @@ const PAGE_COPY = Object.freeze({
     title: "Гравці команди",
     description:
       "Кожен учасник має власний стиль, свою зону відповідальності та свій спосіб впливати на раунд. Тут зібрані ігрові портрети основного складу ISTe.",
-    faceitProfile: "Відкрити профіль FACEIT",
     socialsAria: "Соціальні мережі гравця",
     statsAria: (name) => `Особиста статистика FACEIT гравця ${name}`,
     strengthsAria: "Сильні сторони гравця",
@@ -43,7 +42,6 @@ const PAGE_COPY = Object.freeze({
     title: "Team players",
     description:
       "Every player has a distinct style, area of responsibility and way of influencing a round. Here you can find the player profiles of the main ISTe roster.",
-    faceitProfile: "Open FACEIT profile",
     socialsAria: "Player social media",
     statsAria: (name) => `${name} FACEIT personal statistics`,
     strengthsAria: "Player strengths",
@@ -311,8 +309,12 @@ function SocialIcon({ type }) {
   return null;
 }
 
-function PlayerSocials({ socials, faceitUrl, copy }) {
+function PlayerSocials({ socials, copy }) {
   const links = Array.isArray(socials) ? socials : [];
+
+  if (links.length === 0) {
+    return null;
+  }
 
   return (
     <div
@@ -360,16 +362,6 @@ function PlayerSocials({ socials, faceitUrl, copy }) {
           </span>
         </a>
       ))}
-
-      <a
-        className="team-profile__faceit"
-        href={faceitUrl}
-        target="_blank"
-        rel="noreferrer"
-      >
-        {copy.faceitProfile}
-        <span aria-hidden="true">↗</span>
-      </a>
     </div>
   );
 }
@@ -419,7 +411,6 @@ function PlayerProfile({ player, index, language, copy }) {
     ? `${formatDecimal(player.winRate, 1, language)}%`
     : "—";
   const kd = formatDecimal(player.kd, 2, language);
-  const faceitUrl = player.faceitUrl || "https://www.faceit.com";
   const isCutout = profile.portraitMode === "cutout";
 
   const personalStats = [
@@ -473,7 +464,7 @@ function PlayerProfile({ player, index, language, copy }) {
           ))}
         </div>
 
-        <PlayerSocials socials={profile.socials} faceitUrl={faceitUrl} copy={copy} />
+        <PlayerSocials socials={profile.socials} copy={copy} />
       </div>
     </article>
   );
