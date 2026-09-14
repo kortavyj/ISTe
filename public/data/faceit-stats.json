@@ -44,6 +44,22 @@
       "kd": 1.36
     },
     {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2847,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 60,
+      "kd": 1.26
+    },
+    {
       "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
       "nickname": "bandai",
       "avatar": "https://distribution.faceit-cdn.net/images/8f10e1b3-22f6-4e3a-9983-0f2ecfc6bb2b.jpg",
@@ -52,28 +68,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/bandai",
       "level": 10,
       "elo": 3092,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 1.25
-    },
-    {
-      "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
-      "nickname": "ysgramora",
-      "avatar": "https://distribution.faceit-cdn.net/images/ba47464d-7729-48f0-a808-000eec701918.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
-      "level": 10,
-      "elo": 3067,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 53,
-      "kd": 1.23
+      "winRate": 52,
+      "kd": 1.25
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -92,20 +92,20 @@
       "kd": 1.31
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
+      "nickname": "ysgramora",
+      "avatar": "https://distribution.faceit-cdn.net/images/ba47464d-7729-48f0-a808-000eec701918.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
       "level": 10,
-      "elo": 2847,
+      "elo": 3067,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
-      "kd": 1.26
+      "winRate": 53,
+      "kd": 1.23
     }
   ],
   "teamMatches": [
@@ -3221,5 +3221,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-13T22:36:50.988Z"
+  "updatedAt": "2026-09-14T00:23:27.316Z"
 }
