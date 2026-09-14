@@ -5,9 +5,9 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 40,
-  "matches": 83,
-  "wins": 68,
+  "tournaments": 41,
+  "matches": 85,
+  "wins": 70,
   "winRate": 82,
   "players": 6,
   "roster": [
@@ -25,7 +25,7 @@
       "confidence": 95,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.23
+      "kd": 1.24
     },
     {
       "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
@@ -35,13 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2696,
+      "elo": 2666,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.36
+      "kd": 1.35
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -57,7 +57,7 @@
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 60,
-      "kd": 1.26
+      "kd": 1.27
     },
     {
       "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
@@ -67,13 +67,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/bandai",
       "level": 10,
-      "elo": 3062,
+      "elo": 3077,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.23
+      "kd": 1.18
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -89,7 +89,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.31
+      "kd": 1.3
     },
     {
       "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
@@ -99,16 +99,64 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
       "level": 10,
-      "elo": 3037,
+      "elo": 3052,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 53,
-      "kd": 1.22
+      "winRate": 54,
+      "kd": 1.2
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-0ffb731e-f045-4856-830b-abb2baf8f1e5",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-0ffb731e-f045-4856-830b-abb2baf8f1e5",
+      "tournamentId": "dd97169e-8b59-4661-9379-c4db30be35d5",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-14T19:04:53.000Z",
+      "startedAt": "2026-09-14T19:04:53.000Z",
+      "finishedAt": "2026-09-14T19:39:05.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Team Impetus",
+        "avatar": "https://distribution.faceit-cdn.net/images/6a08ad00-70e6-40f0-9624-b2c5107bc588.jpg",
+        "score": 8
+      }
+    },
+    {
+      "matchId": "1-f8f4af62-272a-4a52-9c16-928c1fb6b25a",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-f8f4af62-272a-4a52-9c16-928c1fb6b25a",
+      "tournamentId": "dd97169e-8b59-4661-9379-c4db30be35d5",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-14T18:03:59.000Z",
+      "startedAt": "2026-09-14T18:03:59.000Z",
+      "finishedAt": "2026-09-14T18:53:14.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Logic Fire",
+        "avatar": "https://distribution.faceit-cdn.net/images/f743f5be-5626-4ab3-964c-4ff6504332d7.jpg",
+        "score": 8
+      }
+    },
     {
       "matchId": "1-c657f5dd-c79a-4775-84be-962db1972513",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-c657f5dd-c79a-4775-84be-962db1972513",
@@ -3206,14 +3254,14 @@
       }
     }
   ],
-  "teamMatchCount": 129,
+  "teamMatchCount": 131,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 62,
+    "historyMatchesFound": 61,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3221,5 +3269,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-14T16:30:11.630Z"
+  "updatedAt": "2026-09-14T20:26:09.541Z"
 }
