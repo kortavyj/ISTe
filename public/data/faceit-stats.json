@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 41,
-  "matches": 85,
+  "matches": 86,
   "wins": 70,
-  "winRate": 82,
+  "winRate": 81,
   "players": 6,
   "roster": [
     {
@@ -25,7 +25,7 @@
       "confidence": 95,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.24
+      "kd": 1.23
     },
     {
       "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
@@ -41,23 +41,23 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.35
+      "kd": 1.29
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
+      "nickname": "ysgramora",
+      "avatar": "https://distribution.faceit-cdn.net/images/ba47464d-7729-48f0-a808-000eec701918.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
       "level": 10,
-      "elo": 2847,
+      "elo": 3052,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 60,
-      "kd": 1.27
+      "winRate": 53,
+      "kd": 1.21
     },
     {
       "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
@@ -92,23 +92,47 @@
       "kd": 1.3
     },
     {
-      "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
-      "nickname": "ysgramora",
-      "avatar": "https://distribution.faceit-cdn.net/images/ba47464d-7729-48f0-a808-000eec701918.jpg",
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 3052,
+      "elo": 2847,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 54,
-      "kd": 1.2
+      "winRate": 60,
+      "kd": 1.28
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-97a139a6-e763-4091-8d8a-c6462ddfc5c4",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-97a139a6-e763-4091-8d8a-c6462ddfc5c4",
+      "tournamentId": "dd97169e-8b59-4661-9379-c4db30be35d5",
+      "competitionName": "Normal Competitive",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-09-14T19:50:27.000Z",
+      "startedAt": "2026-09-14T19:50:27.000Z",
+      "finishedAt": "2026-09-14T20:41:04.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 14
+      },
+      "opponent": {
+        "name": "PAZZENGERS",
+        "avatar": "https://distribution.faceit-cdn.net/images/914873eb-63d7-4337-a585-4f00819dc051.jpg",
+        "score": 16
+      }
+    },
     {
       "matchId": "1-0ffb731e-f045-4856-830b-abb2baf8f1e5",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-0ffb731e-f045-4856-830b-abb2baf8f1e5",
@@ -3254,14 +3278,14 @@
       }
     }
   ],
-  "teamMatchCount": 131,
+  "teamMatchCount": 132,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 61,
+    "historyMatchesFound": 62,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3269,5 +3293,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-14T20:26:09.541Z"
+  "updatedAt": "2026-09-14T23:15:30.882Z"
 }
