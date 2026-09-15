@@ -5,7 +5,7 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 41,
+  "tournaments": 42,
   "matches": 86,
   "wins": 70,
   "winRate": 81,
@@ -35,29 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
-      "elo": 2696,
+      "elo": 2720,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.28
-    },
-    {
-      "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
-      "nickname": "bandai",
-      "avatar": "https://distribution.faceit-cdn.net/images/8f10e1b3-22f6-4e3a-9983-0f2ecfc6bb2b.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/bandai",
-      "level": 10,
-      "elo": 3077,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 1.18
+      "kd": 1.31
     },
     {
       "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
@@ -68,12 +52,28 @@
       "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
       "level": 10,
       "elo": 3052,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 53,
+      "kd": 1.21
+    },
+    {
+      "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
+      "nickname": "bandai",
+      "avatar": "https://distribution.faceit-cdn.net/images/8f10e1b3-22f6-4e3a-9983-0f2ecfc6bb2b.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/bandai",
+      "level": 10,
+      "elo": 3077,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 53,
-      "kd": 1.21
+      "winRate": 52,
+      "kd": 1.18
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -83,13 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
-      "elo": 2246,
+      "elo": 2270,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.29
+      "kd": 1.36
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -109,6 +109,78 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-6d36c1f9-2c4b-44f8-9388-d07061330ff7",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-6d36c1f9-2c4b-44f8-9388-d07061330ff7",
+      "tournamentId": "c345748e-f199-416b-8424-ddae79902a12",
+      "competitionName": "Premium Partner Series - AWP Showdown",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-09-15T18:33:28.000Z",
+      "startedAt": "2026-09-15T18:33:28.000Z",
+      "finishedAt": "2026-09-15T18:43:03.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 11
+      },
+      "opponent": {
+        "name": "CourageG",
+        "avatar": "https://distribution.faceit-cdn.net/images/8028b36a-2ad9-4bc6-814d-14710854e5af.jpeg",
+        "score": 13
+      }
+    },
+    {
+      "matchId": "1-3f1f72d8-20ef-4c7d-a74e-f4519d6dc497",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-3f1f72d8-20ef-4c7d-a74e-f4519d6dc497",
+      "tournamentId": "c345748e-f199-416b-8424-ddae79902a12",
+      "competitionName": "Premium Partner Series - AWP Showdown",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-15T18:01:39.000Z",
+      "startedAt": "2026-09-15T18:01:39.000Z",
+      "finishedAt": "2026-09-15T18:12:33.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "DUSTo_OVYKY",
+        "avatar": "https://distribution.faceit-cdn.net/images/1e645ece-ba65-4c9f-882c-2a02cb8af17b.jpg",
+        "score": 3
+      }
+    },
+    {
+      "matchId": "1-a5e2feb8-6be9-4a04-aecf-b04d187e2e31",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-a5e2feb8-6be9-4a04-aecf-b04d187e2e31",
+      "tournamentId": "c345748e-f199-416b-8424-ddae79902a12",
+      "competitionName": "Premium Partner Series - AWP Showdown",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-09-15T17:14:41.000Z",
+      "startedAt": "2026-09-15T17:14:41.000Z",
+      "finishedAt": "2026-09-15T17:21:34.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "team_2Lkanch1",
+        "avatar": "https://distribution.faceit-cdn.net/images/d246960c-6a5d-4f6b-85ed-d1120476e59c.jpg",
+        "score": 1
+      }
+    },
     {
       "matchId": "1-97a139a6-e763-4091-8d8a-c6462ddfc5c4",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-97a139a6-e763-4091-8d8a-c6462ddfc5c4",
@@ -3278,14 +3350,14 @@
       }
     }
   ],
-  "teamMatchCount": 132,
+  "teamMatchCount": 135,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 6,
-    "historyMatchesFound": 62,
+    "historyMatchesFound": 65,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3293,5 +3365,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-15T16:49:37.849Z"
+  "updatedAt": "2026-09-15T19:51:42.189Z"
 }
