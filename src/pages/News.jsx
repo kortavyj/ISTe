@@ -38,26 +38,11 @@ const DATE_LOCALES = {
 };
 
 const CATEGORY_TRANSLATIONS = {
-  team: {
-    uk: "КОМАНДА",
-    en: "TEAM",
-  },
-  tournament: {
-    uk: "ТУРНІР",
-    en: "TOURNAMENT",
-  },
-  match: {
-    uk: "МАТЧ",
-    en: "MATCH",
-  },
-  club: {
-    uk: "КЛУБ",
-    en: "CLUB",
-  },
-  update: {
-    uk: "ОНОВЛЕННЯ",
-    en: "UPDATE",
-  },
+  team: { uk: "КОМАНДА", en: "TEAM" },
+  tournament: { uk: "ТУРНІР", en: "TOURNAMENT" },
+  match: { uk: "МАТЧ", en: "MATCH" },
+  club: { uk: "КЛУБ", en: "CLUB" },
+  update: { uk: "ОНОВЛЕННЯ", en: "UPDATE" },
 };
 
 const CATEGORY_ALIASES = new Map([
@@ -76,16 +61,32 @@ const CATEGORY_ALIASES = new Map([
   ["оновлення", "update"],
 ]);
 
+const LEGACY_UK_TRANSLATIONS = [
+  {
+    match: "roster updates: bandai and ysgramora",
+    title:
+      "Оновлення складу: Bandai та Ysgramora приєдналися до команди, а tokyok1ng та infuriat3 залишили склад",
+    excerpt:
+      "У складі ISTesport відбулися зміни: до команди приєдналися Bandai та Ysgramora, а tokyok1ng і infuriat3 залишили склад. Стежте за наступними оновленнями команди.",
+    content:
+      "У складі ISTesport відбулися зміни. До команди приєдналися два нові гравці: Bandai та Ysgramora. Водночас tokyok1ng та infuriat3 залишили склад. Оновлений ростер продовжить підготовку до наступних матчів і турнірів. Слідкуйте за новинами ISTesport, щоб не пропустити наступні анонси.",
+  },
+  {
+    match: "how is the iste team doing at the uesf ukrainian championship",
+    title:
+      "Як виступає ISTesport на Чемпіонаті України UESF 2026 STAGE 4 Qualification 2?",
+    excerpt:
+      "ISTesport продовжує виступ у UESF Ukrainian Championship 2026 STAGE 4 Qualification 2 та бореться за вихід до наступного етапу.",
+    content:
+      "ISTesport продовжує свій виступ у UESF Ukrainian Championship 2026 STAGE 4 Qualification 2. Команда бореться за вихід до наступного етапу та продовжує підготовку до вирішальних матчів кваліфікації. Слідкуйте за новинами ISTesport, щоб не пропустити результати та наступні матчі команди.",
+  },
+];
+
 function formatDate(value, language) {
-  if (!value) {
-    return "";
-  }
+  if (!value) return "";
 
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
+  if (Number.isNaN(date.getTime())) return "";
 
   return new Intl.DateTimeFormat(
     DATE_LOCALES[language] || DATE_LOCALES.uk,
@@ -99,10 +100,7 @@ function formatDate(value, language) {
 
 function localizeCategory(value, language) {
   const source = String(value ?? "").trim();
-
-  if (!source) {
-    return "";
-  }
+  if (!source) return "";
 
   const key = CATEGORY_ALIASES.get(source.toLowerCase());
   const localized = key ? CATEGORY_TRANSLATIONS[key] : null;
@@ -110,7 +108,7 @@ function localizeCategory(value, language) {
   return localized?.[language] || source;
 }
 
-function readLocalizedField(post, language, field) {
+function getStoredTranslation(post, language, field) {
   const translations =
     post?.translations &&
     typeof post.translations === "object" &&
@@ -119,32 +117,36 @@ function readLocalizedField(post, language, field) {
       : null;
 
   const current = translations?.[language];
-  const fallback =
-    translations?.uk ||
-    translations?.en ||
-    null;
-
-  const currentValue =
+  const value =
     current && typeof current[field] === "string"
       ? current[field].trim()
       : "";
 
-  if (currentValue) {
-    return currentValue;
+  return value;
+}
+
+function getLegacyUkTranslation(post, field) {
+  const title = String(post?.title ?? "")
+    .trim()
+    .toLowerCase();
+
+  const translation = LEGACY_UK_TRANSLATIONS.find((item) =>
+    title.includes(item.match),
+  );
+
+  return translation?.[field] || "";
+}
+
+function readLocalizedField(post, language, field) {
+  const stored = getStoredTranslation(post, language, field);
+  if (stored) return stored;
+
+  if (language === "uk") {
+    const legacy = getLegacyUkTranslation(post, field);
+    if (legacy) return legacy;
   }
 
-  const fallbackValue =
-    fallback && typeof fallback[field] === "string"
-      ? fallback[field].trim()
-      : "";
-
-  if (fallbackValue) {
-    return fallbackValue;
-  }
-
-  return typeof post?.[field] === "string"
-    ? post[field]
-    : "";
+  return typeof post?.[field] === "string" ? post[field] : "";
 }
 
 function localizePost(post, language) {
@@ -183,9 +185,7 @@ export default function News() {
         .order("is_featured", { ascending: false })
         .order("published_at", { ascending: false });
 
-      if (!active) {
-        return;
-      }
+      if (!active) return;
 
       if (error) {
         setPosts([]);
@@ -198,16 +198,9 @@ export default function News() {
       let nextPosts = basePosts;
 
       if (basePosts.length > 0) {
-        const ids = basePosts
-          .map((post) => post.id)
-          .filter(Boolean);
+        const ids = basePosts.map((post) => post.id).filter(Boolean);
 
         if (ids.length > 0) {
-          /*
-           * Отдельный запрос намеренно сделан необязательным.
-           * До применения SQL migration колонка translations может
-           * отсутствовать. Основная лента при этом продолжит работать.
-           */
           const localizationResult = await supabase
             .from("news_posts")
             .select("id, translations")
@@ -234,9 +227,7 @@ export default function News() {
         }
       }
 
-      if (!active) {
-        return;
-      }
+      if (!active) return;
 
       setPosts(nextPosts);
       setLoading(false);
@@ -262,9 +253,7 @@ export default function News() {
   const regularPosts = useMemo(
     () =>
       featuredPost
-        ? localizedPosts.filter(
-            (post) => post.id !== featuredPost.id,
-          )
+        ? localizedPosts.filter((post) => post.id !== featuredPost.id)
         : localizedPosts,
     [featuredPost, localizedPosts],
   );
@@ -272,9 +261,7 @@ export default function News() {
   const selectedPost = useMemo(
     () =>
       selectedPostId
-        ? localizedPosts.find(
-            (post) => post.id === selectedPostId,
-          ) ?? null
+        ? localizedPosts.find((post) => post.id === selectedPostId) ?? null
         : null,
     [localizedPosts, selectedPostId],
   );
@@ -301,9 +288,7 @@ export default function News() {
           </div>
         ) : null}
 
-        {!loading &&
-        !errorMessage &&
-        localizedPosts.length === 0 ? (
+        {!loading && !errorMessage && localizedPosts.length === 0 ? (
           <div className="news-state">
             <h2>{copy.emptyTitle}</h2>
             <p>{copy.emptyText}</p>
@@ -325,24 +310,16 @@ export default function News() {
                 <b>{copy.featured}</b>
                 <span>{featuredPost.category}</span>
                 <time dateTime={featuredPost.published_at}>
-                  {formatDate(
-                    featuredPost.published_at,
-                    language,
-                  )}
+                  {formatDate(featuredPost.published_at, language)}
                 </time>
               </div>
 
               <h2>{featuredPost.title}</h2>
-              <p>
-                {featuredPost.excerpt ||
-                  featuredPost.content}
-              </p>
+              <p>{featuredPost.excerpt || featuredPost.content}</p>
 
               <button
                 type="button"
-                onClick={() =>
-                  setSelectedPostId(featuredPost.id)
-                }
+                onClick={() => setSelectedPostId(featuredPost.id)}
               >
                 {copy.readMore}
               </button>
@@ -356,11 +333,7 @@ export default function News() {
               <article className="news-card" key={post.id}>
                 <div className="news-card-cover">
                   {post.cover_url ? (
-                    <img
-                      src={post.cover_url}
-                      alt=""
-                      loading="lazy"
-                    />
+                    <img src={post.cover_url} alt="" loading="lazy" />
                   ) : (
                     <span>ISTesport</span>
                   )}
@@ -370,10 +343,7 @@ export default function News() {
                   <div className="news-meta">
                     <span>{post.category}</span>
                     <time dateTime={post.published_at}>
-                      {formatDate(
-                        post.published_at,
-                        language,
-                      )}
+                      {formatDate(post.published_at, language)}
                     </time>
                   </div>
 
@@ -382,9 +352,7 @@ export default function News() {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setSelectedPostId(post.id)
-                    }
+                    onClick={() => setSelectedPostId(post.id)}
                   >
                     {copy.readMore}
                   </button>
@@ -431,16 +399,11 @@ export default function News() {
             <div className="news-meta">
               <span>{selectedPost.category}</span>
               <time dateTime={selectedPost.published_at}>
-                {formatDate(
-                  selectedPost.published_at,
-                  language,
-                )}
+                {formatDate(selectedPost.published_at, language)}
               </time>
             </div>
 
-            <h2 id="news-modal-title">
-              {selectedPost.title}
-            </h2>
+            <h2 id="news-modal-title">{selectedPost.title}</h2>
 
             {selectedPost.excerpt ? (
               <p className="news-modal-excerpt">
