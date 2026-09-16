@@ -3,18 +3,33 @@ const DISCORD_API = "https://discord.com/api/v10";
 const GUILD_INSTALL = [0];
 const GUILD_CONTEXT = [0];
 
-const MANAGE_GUILD = "32";
 const MANAGE_MESSAGES = "8192";
 const MODERATE_MEMBERS = "1099511627776";
 
-const locale = (ru, uk) => ({
-  ru,
-  uk,
-});
+const locale = (ru, uk) => ({ ru, uk });
 
-const descriptionLocale = (ru, uk) => ({
-  ru,
-  uk,
+const command = ({
+  name,
+  description,
+  ruName,
+  ukName,
+  ruDescription,
+  ukDescription,
+  options = [],
+  defaultMemberPermissions,
+  userInstall = false,
+}) => ({
+  type: 1,
+  name,
+  description,
+  name_localizations: locale(ruName, ukName),
+  description_localizations: locale(ruDescription, ukDescription),
+  integration_types: userInstall ? [0, 1] : GUILD_INSTALL,
+  contexts: userInstall ? [0, 1, 2] : GUILD_CONTEXT,
+  ...(options.length ? { options } : {}),
+  ...(defaultMemberPermissions
+    ? { default_member_permissions: defaultMemberPermissions }
+    : {}),
 });
 
 const stringOption = ({
@@ -32,10 +47,7 @@ const stringOption = ({
   name,
   description,
   name_localizations: locale(ruName, ukName),
-  description_localizations: descriptionLocale(
-    ruDescription,
-    ukDescription,
-  ),
+  description_localizations: locale(ruDescription, ukDescription),
   required,
   ...(Number.isInteger(minLength) ? { min_length: minLength } : {}),
   ...(Number.isInteger(maxLength) ? { max_length: maxLength } : {}),
@@ -56,10 +68,7 @@ const integerOption = ({
   name,
   description,
   name_localizations: locale(ruName, ukName),
-  description_localizations: descriptionLocale(
-    ruDescription,
-    ukDescription,
-  ),
+  description_localizations: locale(ruDescription, ukDescription),
   required,
   ...(Number.isInteger(minValue) ? { min_value: minValue } : {}),
   ...(Number.isInteger(maxValue) ? { max_value: maxValue } : {}),
@@ -78,44 +87,7 @@ const booleanOption = ({
   name,
   description,
   name_localizations: locale(ruName, ukName),
-  description_localizations: descriptionLocale(
-    ruDescription,
-    ukDescription,
-  ),
-  required,
-});
-
-const channelOption = ({
-  name,
-  description,
-  ruName,
-  ukName,
-  ruDescription,
-  ukDescription,
-  required = false,
-}) => ({
-  type: 7,
-  name,
-  description,
-  name_localizations: locale(ruName, ukName),
-  description_localizations: descriptionLocale(ruDescription, ukDescription),
-  required,
-});
-
-const roleOption = ({
-  name,
-  description,
-  ruName,
-  ukName,
-  ruDescription,
-  ukDescription,
-  required = false,
-}) => ({
-  type: 8,
-  name,
-  description,
-  name_localizations: locale(ruName, ukName),
-  description_localizations: descriptionLocale(ruDescription, ukDescription),
+  description_localizations: locale(ruDescription, ukDescription),
   required,
 });
 
@@ -132,14 +104,45 @@ const userOption = ({
   name,
   description,
   name_localizations: locale(ruName, ukName),
-  description_localizations: descriptionLocale(
-    ruDescription,
-    ukDescription,
-  ),
+  description_localizations: locale(ruDescription, ukDescription),
   required,
 });
 
-function command({
+const channelOption = ({
+  name,
+  description,
+  ruName,
+  ukName,
+  ruDescription,
+  ukDescription,
+  required = false,
+}) => ({
+  type: 7,
+  name,
+  description,
+  name_localizations: locale(ruName, ukName),
+  description_localizations: locale(ruDescription, ukDescription),
+  required,
+});
+
+const roleOption = ({
+  name,
+  description,
+  ruName,
+  ukName,
+  ruDescription,
+  ukDescription,
+  required = false,
+}) => ({
+  type: 8,
+  name,
+  description,
+  name_localizations: locale(ruName, ukName),
+  description_localizations: locale(ruDescription, ukDescription),
+  required,
+});
+
+const subcommand = ({
   name,
   description,
   ruName,
@@ -147,30 +150,14 @@ function command({
   ruDescription,
   ukDescription,
   options = [],
-  defaultMemberPermissions,
-  userInstall = false,
-}) {
-  return {
-    type: 1,
-    name,
-    description,
-    name_localizations: locale(ruName, ukName),
-    description_localizations: descriptionLocale(
-      ruDescription,
-      ukDescription,
-    ),
-    integration_types: userInstall
-      ? [0, 1]
-      : GUILD_INSTALL,
-    contexts: userInstall
-      ? [0, 1, 2]
-      : GUILD_CONTEXT,
-    ...(options.length ? { options } : {}),
-    ...(defaultMemberPermissions
-      ? { default_member_permissions: defaultMemberPermissions }
-      : {}),
-  };
-}
+}) => ({
+  type: 1,
+  name,
+  description,
+  name_localizations: locale(ruName, ukName),
+  description_localizations: locale(ruDescription, ukDescription),
+  ...(options.length ? { options } : {}),
+});
 
 export const ISTE_COMMANDS = [
   command({
@@ -443,6 +430,140 @@ export const ISTE_COMMANDS = [
         ukName: "мультивибір",
         ruDescription: "Разрешить выбирать несколько ответов",
         ukDescription: "Дозволити обирати кілька відповідей",
+      }),
+    ],
+  }),
+
+  command({
+    name: "room",
+    description: "Manage a temporary private voice room",
+    ruName: "комната",
+    ukName: "кімната",
+    ruDescription: "Управление временной приватной голосовой комнатой",
+    ukDescription: "Керування тимчасовою приватною голосовою кімнатою",
+    options: [
+      subcommand({
+        name: "setup",
+        description: "Create the private voice room system",
+        ruName: "настроить",
+        ukName: "налаштувати",
+        ruDescription: "Создать систему приватных голосовых комнат",
+        ukDescription: "Створити систему приватних голосових кімнат",
+      }),
+      subcommand({
+        name: "invite",
+        description: "Give a member access to your room",
+        ruName: "пригласить",
+        ukName: "запросити",
+        ruDescription: "Дать участнику доступ к вашей комнате",
+        ukDescription: "Надати учаснику доступ до вашої кімнати",
+        options: [
+          userOption({
+            name: "member",
+            description: "Member to invite",
+            ruName: "участник",
+            ukName: "учасник",
+            ruDescription: "Кому дать доступ",
+            ukDescription: "Кому надати доступ",
+            required: true,
+          }),
+        ],
+      }),
+      subcommand({
+        name: "remove",
+        description: "Remove a member from your room",
+        ruName: "удалить",
+        ukName: "видалити",
+        ruDescription: "Забрать доступ к вашей комнате",
+        ukDescription: "Забрати доступ до вашої кімнати",
+        options: [
+          userOption({
+            name: "member",
+            description: "Member to remove",
+            ruName: "участник",
+            ukName: "учасник",
+            ruDescription: "У кого забрать доступ",
+            ukDescription: "У кого забрати доступ",
+            required: true,
+          }),
+        ],
+      }),
+      subcommand({
+        name: "rename",
+        description: "Rename your private room",
+        ruName: "переименовать",
+        ukName: "перейменувати",
+        ruDescription: "Изменить название вашей комнаты",
+        ukDescription: "Змінити назву вашої кімнати",
+        options: [
+          stringOption({
+            name: "name",
+            description: "New room name",
+            ruName: "название",
+            ukName: "назва",
+            ruDescription: "Новое название комнаты",
+            ukDescription: "Нова назва кімнати",
+            required: true,
+            minLength: 1,
+            maxLength: 80,
+          }),
+        ],
+      }),
+      subcommand({
+        name: "limit",
+        description: "Set the room member limit",
+        ruName: "лимит",
+        ukName: "ліміт",
+        ruDescription: "Установить лимит участников",
+        ukDescription: "Встановити ліміт учасників",
+        options: [
+          integerOption({
+            name: "amount",
+            description: "0 means unlimited",
+            ruName: "количество",
+            ukName: "кількість",
+            ruDescription: "0 означает без лимита",
+            ukDescription: "0 означає без ліміту",
+            required: true,
+            minValue: 0,
+            maxValue: 99,
+          }),
+        ],
+      }),
+      subcommand({
+        name: "transfer",
+        description: "Transfer room ownership",
+        ruName: "передать",
+        ukName: "передати",
+        ruDescription: "Передать комнату другому участнику",
+        ukDescription: "Передати кімнату іншому учаснику",
+        options: [
+          userOption({
+            name: "member",
+            description: "New room owner",
+            ruName: "участник",
+            ukName: "учасник",
+            ruDescription: "Новый владелец комнаты",
+            ukDescription: "Новий власник кімнати",
+            required: true,
+          }),
+        ],
+      }),
+      subcommand({
+        name: "info",
+        description: "Show your private room information",
+        ruName: "инфо",
+        ukName: "інфо",
+        ruDescription: "Показать состояние вашей комнаты",
+        ukDescription: "Показати стан вашої кімнати",
+      }),
+      subcommand({
+        name: "delete",
+        description: "Delete your private room",
+        ruName: "закрыть",
+        ukName: "закрити",
+        ruDescription: "Удалить вашу приватную комнату",
+        ukDescription: "Видалити вашу приватну кімнату",
       }),
     ],
   }),
