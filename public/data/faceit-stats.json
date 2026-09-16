@@ -25,7 +25,7 @@
       "confidence": 95,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.27
+      "kd": 1.26
     },
     {
       "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
@@ -105,7 +105,7 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 53,
-      "kd": 1.2
+      "kd": 1.19
     }
   ],
   "teamMatches": [
@@ -3365,5 +3365,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-16T09:56:19.694Z"
+  "updatedAt": "2026-09-16T14:31:33.996Z"
 }
