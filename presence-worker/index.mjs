@@ -244,6 +244,219 @@ function privateRoomName(member) {
   );
 }
 
+
+function buildPrivateRoomPanelData(channelId, ownerId, {
+  locked = true,
+  hidden = true,
+  userLimit = 0,
+  rtcRegion = null,
+} = {}) {
+  const lockLabel = locked ? "🔓 Открыть" : "🔒 Закрыть";
+  const visibilityLabel = hidden ? "👁️ Показать" : "🙈 Скрыть";
+
+  return {
+    embeds: [
+      {
+        title: "🔒 Управление приватной комнатой",
+        description:
+          `⭐ **Владелец:** <@${ownerId}>\n\n` +
+          "Только владелец комнаты может использовать элементы управления ниже.",
+        color: 0xe30613,
+        fields: [
+          {
+            name: "👥 Лимит",
+            value: userLimit > 0 ? String(userLimit) : "Без лимита",
+            inline: true,
+          },
+          {
+            name: "🔐 Вход",
+            value: locked ? "Закрыт" : "Открыт",
+            inline: true,
+          },
+          {
+            name: "👁️ Видимость",
+            value: hidden ? "Скрыта" : "Видна",
+            inline: true,
+          },
+          {
+            name: "🌍 Регион",
+            value: rtcRegion || "Automatic",
+            inline: true,
+          },
+        ],
+        footer: {
+          text: "ISTesport Private Voice",
+        },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+    components: [
+      {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 2,
+            label: "✏️ Название",
+            custom_id: `pv:rename:${channelId}:${ownerId}`,
+          },
+          {
+            type: 2,
+            style: 2,
+            label: "👥 Лимит",
+            custom_id: `pv:limit:${channelId}:${ownerId}`,
+          },
+          {
+            type: 2,
+            style: locked ? 3 : 2,
+            label: lockLabel,
+            custom_id: `pv:lock:${channelId}:${ownerId}`,
+          },
+          {
+            type: 2,
+            style: hidden ? 3 : 2,
+            label: visibilityLabel,
+            custom_id: `pv:hide:${channelId}:${ownerId}`,
+          },
+          {
+            type: 2,
+            style: 4,
+            label: "🗑️ Удалить",
+            custom_id: `pv:delete:${channelId}:${ownerId}`,
+          },
+        ],
+      },
+      {
+        type: 1,
+        components: [
+          {
+            type: 5,
+            custom_id: `pv:invite:${channelId}:${ownerId}`,
+            placeholder: "➕ Выдать доступ пользователю",
+            min_values: 1,
+            max_values: 1,
+          },
+        ],
+      },
+      {
+        type: 1,
+        components: [
+          {
+            type: 5,
+            custom_id: `pv:manage:${channelId}:${ownerId}`,
+            placeholder: "👤 Управление участником",
+            min_values: 1,
+            max_values: 1,
+          },
+        ],
+      },
+      {
+        type: 1,
+        components: [
+          {
+            type: 3,
+            custom_id: `pv:region:${channelId}:${ownerId}`,
+            placeholder: "🌍 Выбрать голосовой регион",
+            min_values: 1,
+            max_values: 1,
+            options: [
+              {
+                label: "Automatic",
+                value: "automatic",
+                description: "Discord выберет лучший регион автоматически",
+              },
+              {
+                label: "Europe",
+                value: "rotterdam",
+                description: "Европейский голосовой регион",
+              },
+              {
+                label: "US East",
+                value: "us-east",
+              },
+              {
+                label: "US West",
+                value: "us-west",
+              },
+              {
+                label: "Singapore",
+                value: "singapore",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    allowedMentions: {
+      parse: [],
+      users: [ownerId],
+    },
+  };
+}
+
+async function ensurePrivateRoomPanel(room, ownerId) {
+  if (!room || !ownerId || typeof room.send !== "function") {
+    return;
+  }
+
+  try {
+    let existingPanel = null;
+
+    if (room.messages?.fetch) {
+      const recent = await room.messages.fetch({ limit: 20 }).catch(() => null);
+
+      if (recent) {
+        existingPanel = recent.find((message) =>
+          message.components?.some((row) =>
+            row.components?.some((component) =>
+              String(component.customId || "").startsWith("pv:"),
+            ),
+          ),
+        );
+      }
+    }
+
+    if (existingPanel) {
+      return;
+    }
+
+    const everyone = room.permissionOverwrites.cache.get(
+      room.guild.roles.everyone.id,
+    );
+
+    const locked = Boolean(
+      everyone?.deny?.has(PermissionFlagsBits.Connect),
+    );
+
+    const hidden = Boolean(
+      everyone?.deny?.has(PermissionFlagsBits.ViewChannel),
+    );
+
+    await room.send(
+      buildPrivateRoomPanelData(room.id, ownerId, {
+        locked,
+        hidden,
+        userLimit: room.userLimit || 0,
+        rtcRegion: room.rtcRegion || null,
+      }),
+    );
+
+    log("private_voice_panel_created", {
+      guildId: room.guild.id,
+      channelId: room.id,
+      ownerId,
+    });
+  } catch (error) {
+    log("private_voice_panel_failed", {
+      guildId: room.guild?.id ?? null,
+      channelId: room.id,
+      ownerId,
+      message:
+        error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
 function ownerIdFromRoom(channel) {
   if (!channel?.permissionOverwrites?.cache || !client.user) {
     return "";
@@ -446,6 +659,8 @@ async function createPrivateRoomFor(state, config) {
         ownerId: member.id,
       });
 
+      await ensurePrivateRoomPanel(existing, member.id);
+
       return;
     }
 
@@ -484,6 +699,8 @@ async function createPrivateRoomFor(state, config) {
             PermissionFlagsBits.Stream,
             PermissionFlagsBits.UseVAD,
             PermissionFlagsBits.CreateInstantInvite,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ReadMessageHistory,
             PermissionFlagsBits.ManageChannels,
           ],
         },
@@ -495,6 +712,8 @@ async function createPrivateRoomFor(state, config) {
             PermissionFlagsBits.Speak,
             PermissionFlagsBits.Stream,
             PermissionFlagsBits.UseVAD,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ReadMessageHistory,
             PermissionFlagsBits.ManageChannels,
             PermissionFlagsBits.MoveMembers,
           ],
@@ -520,6 +739,8 @@ async function createPrivateRoomFor(state, config) {
       channelId: room.id,
       ownerId: member.id,
     });
+
+    await ensurePrivateRoomPanel(room, member.id);
   } catch (error) {
     privateVoiceLastError =
       error instanceof Error ? error.message : String(error);
