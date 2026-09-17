@@ -293,6 +293,26 @@
   opacity: 0.42;
 }
 
+.support-ai-privacy {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.support-ai-privacy a {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: rgba(227, 6, 19, 0.55);
+  text-underline-offset: 3px;
+}
+
+.support-ai-privacy a:hover,
+.support-ai-privacy a:focus-visible {
+  color: #ff5d67;
+}
+
 .support-human {
   display: flex;
   align-items: center;

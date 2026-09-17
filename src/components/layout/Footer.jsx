@@ -9,56 +9,34 @@ const footerGroups = [
   {
     titleKey: "footer.navigation",
     links: [
-      {
-        labelKey: "footer.home",
-        to: "/",
-      },
-      {
-        labelKey: "footer.team",
-        to: "/team",
-      },
-      {
-        labelKey: "footer.matches",
-        to: "/matches",
-      },
-      {
-        labelKey: "footer.news",
-        to: "/news",
-      },
+      { labelKey: "footer.home", to: "/" },
+      { labelKey: "footer.team", to: "/team" },
+      { labelKey: "footer.matches", to: "/matches" },
+      { labelKey: "footer.news", to: "/news" },
     ],
   },
   {
     titleKey: "footer.club",
     links: [
-      {
-        labelKey: "footer.history",
-        to: "/history",
-      },
-      {
-        labelKey: "footer.partners",
-        to: "/partners",
-      },
-      {
-        labelKey: "footer.shop",
-        to: "/shop",
-      },
-      {
-        labelKey: "footer.contacts",
-        to: "/contacts",
-      },
+      { labelKey: "footer.history", to: "/history" },
+      { labelKey: "footer.partners", to: "/partners" },
+      { labelKey: "footer.shop", to: "/shop" },
+      { labelKey: "footer.contacts", to: "/contacts" },
     ],
   },
   {
     titleKey: "footer.documents",
     links: [
+      { labelKey: "footer.privacy", to: "/privacy" },
       {
-        labelKey: "footer.privacy",
-        to: "/privacy",
+        customLabel: {
+          uk: "AI та конфіденційність",
+          ru: "AI и конфиденциальность",
+          en: "AI & Privacy",
+        },
+        to: "/privacy/ai",
       },
-      {
-        labelKey: "footer.terms",
-        to: "/terms",
-      },
+      { labelKey: "footer.terms", to: "/terms" },
       {
         labelKey: "footer.downloadLogo",
         href: logo,
@@ -68,16 +46,10 @@ const footerGroups = [
   },
 ];
 
-function FooterLink({
-  item,
-  label,
-}) {
+function FooterLink({ item, label }) {
   if (item.to) {
     return (
-      <Link
-        className="footer-link"
-        to={item.to}
-      >
+      <Link className="footer-link" to={item.to}>
         {label}
       </Link>
     );
@@ -88,16 +60,8 @@ function FooterLink({
       className="footer-link"
       href={item.href}
       download={item.download}
-      target={
-        item.external
-          ? "_blank"
-          : undefined
-      }
-      rel={
-        item.external
-          ? "noopener noreferrer"
-          : undefined
-      }
+      target={item.external ? "_blank" : undefined}
+      rel={item.external ? "noopener noreferrer" : undefined}
     >
       {label}
     </a>
@@ -105,7 +69,7 @@ function FooterLink({
 }
 
 export default function Footer() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <footer className="site-footer">
@@ -115,56 +79,52 @@ export default function Footer() {
             <Link
               className="footer-brand"
               to="/"
-              aria-label={t(
-                "footer.homeAria",
-              )}
+              aria-label={t("footer.homeAria")}
             >
               <img src={logo} alt="" />
               <span>ISTe</span>
             </Link>
 
             <p className="footer-description">
-              {t(
-                "footer.description",
-              )}
+              {t("footer.description")}
             </p>
           </div>
 
           <div className="footer-navigation">
-            {footerGroups.map(
-              (group) => {
-                const groupTitle =
-                  t(group.titleKey);
+            {footerGroups.map((group) => {
+              const groupTitle = t(group.titleKey);
 
-                return (
-                  <nav
-                    className="footer-group"
-                    aria-label={groupTitle}
-                    key={group.titleKey}
-                  >
-                    <h2>
-                      {groupTitle}
-                    </h2>
+              return (
+                <nav
+                  className="footer-group"
+                  aria-label={groupTitle}
+                  key={group.titleKey}
+                >
+                  <h2>{groupTitle}</h2>
 
-                    <div className="footer-group-links">
-                      {group.links.map(
-                        (item) => (
-                          <FooterLink
-                            item={item}
-                            label={t(
-                              item.labelKey,
-                            )}
-                            key={
-                              item.labelKey
-                            }
-                          />
-                        ),
-                      )}
-                    </div>
-                  </nav>
-                );
-              },
-            )}
+                  <div className="footer-group-links">
+                    {group.links.map((item) => {
+                      const label = item.customLabel
+                        ? item.customLabel[language] || item.customLabel.uk
+                        : t(item.labelKey);
+
+                      const key =
+                        item.labelKey ||
+                        item.to ||
+                        item.href;
+
+                      return (
+                        <FooterLink
+                          item={item}
+                          label={label}
+                          key={key}
+                        />
+                      );
+                    })}
+                  </div>
+                </nav>
+              );
+            })}
           </div>
         </div>
       </div>

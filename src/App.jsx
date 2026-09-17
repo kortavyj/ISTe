@@ -12,6 +12,7 @@ import SeoManager from "./components/SeoManager.jsx";
 import FloatingSupportButton from "./components/support/FloatingSupportButton.jsx";
 import Account from "./pages/Account.jsx";
 import AdminNews from "./pages/AdminNews.jsx";
+import AIPrivacy from "./pages/AIPrivacy.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
 import Contacts from "./pages/Contacts.jsx";
 import DiscordBot from "./pages/DiscordBot.jsx";
@@ -125,6 +126,7 @@ export default function App() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/support" element={<Support />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/privacy/ai" element={<AIPrivacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

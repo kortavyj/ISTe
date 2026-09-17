@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import { askSupportAi } from "../lib/supportApi.js";
@@ -27,6 +28,9 @@ const COPY = {
     error: "Не вдалося звернутися до підтримки. Спробуй ще раз.",
     you: "Ви",
     assistant: "ISTe AI",
+    privacyNotice:
+      "Надсилаючи запит, ти розумієш, що текст повідомлення та обмежений контекст розмови можуть бути передані OpenAI API для формування відповіді. Не надсилай паролі, токени, платіжні дані або інші секрети.",
+    privacyLink: "AI та конфіденційність",
   },
   ru: {
     title: "Центр поддержки ISTe",
@@ -48,6 +52,9 @@ const COPY = {
     error: "Не удалось обратиться в поддержку. Попробуй ещё раз.",
     you: "Вы",
     assistant: "ISTe AI",
+    privacyNotice:
+      "Отправляя запрос, ты понимаешь, что текст сообщения и ограниченный контекст разговора могут быть переданы OpenAI API для формирования ответа. Не отправляй пароли, токены, платёжные данные или другие секреты.",
+    privacyLink: "AI и конфиденциальность",
   },
   en: {
     title: "ISTe Support Center",
@@ -69,6 +76,9 @@ const COPY = {
     error: "Could not contact support. Please try again.",
     you: "You",
     assistant: "ISTe AI",
+    privacyNotice:
+      "By sending a request, you understand that your message and limited conversation context may be sent to the OpenAI API to generate a response. Do not send passwords, tokens, payment information or other secrets.",
+    privacyLink: "AI & Privacy",
   },
 };
 
@@ -244,10 +254,18 @@ export default function Support() {
               />
               <div>
                 <small>{question.length}/1200</small>
-                <button type="submit" disabled={loading || question.trim().length < 2}>
+                <button
+                  type="submit"
+                  disabled={loading || question.trim().length < 2}
+                >
                   {loading ? c.asking : c.ask}
                 </button>
               </div>
+
+              <p className="support-ai-privacy">
+                {c.privacyNotice}{" "}
+                <Link to="/privacy/ai">{c.privacyLink}</Link>.
+              </p>
             </form>
 
             <aside className="support-human">
