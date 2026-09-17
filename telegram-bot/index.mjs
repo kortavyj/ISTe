@@ -1,3 +1,4 @@
+import { createMatchAutomation } from "./matches.mjs";
 import { createClient } from "@supabase/supabase-js";
 
 const BOT_TOKEN = requiredEnv("TELEGRAM_BOT_TOKEN");
@@ -172,6 +173,7 @@ const CATEGORY_TRANSLATIONS = {
 let offset = 0;
 let stopping = false;
 let botInfo = null;
+let matchAutomation = null;
 let newsTimer = null;
 let newsPollRunning = false;
 
@@ -801,12 +803,16 @@ async function helpCommand(message, user) {
     "<code>/language</code>",
     "<code>/role</code>",
     "<code>/whoami</code>",
+    "<code>/matches</code>",
+    "<code>/schedule</code>",
   ];
 
   if (hasRole(user, "editor")) {
     lines.push("<code>/admin</code>");
     lines.push("<code>/newsstatus</code>");
     lines.push("<code>/newstest</code>");
+    lines.push("<code>/matchstatus</code>");
+    lines.push("<code>/matchtest</code>");
   }
 
   if (hasRole(user, "owner")) {
@@ -939,6 +945,7 @@ async function adminCommand(message, user) {
               callback_data: "admin:newstest",
             },
           ],
+          ...(matchAutomation ? matchAutomation.adminRows(lang) : []),
           [
             {
               text: `📣 ${c.channelCheck}`,
@@ -1019,6 +1026,13 @@ async function handleMessage(message) {
   if (command === "/admin") return adminCommand(message, user);
   if (command === "/newsstatus") return newsStatusCommand(message, user);
   if (command === "/newstest") return newsTestCommand(message, user);
+
+  if (
+    matchAutomation &&
+    await matchAutomation.handleCommand(command, message, user)
+  ) {
+    return;
+  }
 
   if (command === "/channelcheck") {
     return channelCheck(message.from, message.chat.id, user);
@@ -1102,6 +1116,13 @@ async function handleCallback(query) {
     );
   }
 
+  if (
+    matchAutomation &&
+    await matchAutomation.handleCallback(data, query, user)
+  ) {
+    return;
+  }
+
   if (data === "admin:channelcheck") {
     if (!hasRole(user, "owner")) {
       await answerCallback(query.id, c.noAccess);
@@ -1129,6 +1150,10 @@ async function syncCommands() {
       { command: "admin", description: "Open admin panel" },
       { command: "newsstatus", description: "News autopost status" },
       { command: "newstest", description: "Preview latest news" },
+      { command: "matches", description: "Show ISTesport matches" },
+      { command: "schedule", description: "Show upcoming schedule" },
+      { command: "matchstatus", description: "Match autopost status" },
+      { command: "matchtest", description: "Preview a match post" },
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
@@ -1140,12 +1165,27 @@ async function bootstrap() {
   await ensureNewsBaseline();
 
   botInfo = await telegram("getMe");
+
+  matchAutomation = createMatchAutomation({
+    telegram,
+    sendMessage,
+    answerCallback,
+    audit,
+    supabase,
+    channel: CHANNEL,
+    siteUrl: SITE_URL,
+    ownerId: OWNER_ID,
+    hasRole,
+  });
+
+  const matchInitialized = await matchAutomation.initialize();
+
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.3.1",
+      version: "0.4.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1154,11 +1194,17 @@ async function bootstrap() {
       newsAutopost: true,
       newsPollSeconds: NEWS_POLL_SECONDS,
       channelLanguage: CHANNEL_LANGUAGE,
+      matchAutopost: true,
+      matchInitialized,
+      matchPollSeconds: matchAutomation.config.pollSeconds,
+      matchReminderMinutes: matchAutomation.config.reminderMinutes,
     }),
   );
 
   await pollNews();
   scheduleNewsPoll();
+
+  await matchAutomation.start();
 
   while (!stopping) {
     try {
@@ -1200,6 +1246,8 @@ async function shutdown(signal) {
     clearTimeout(newsTimer);
     newsTimer = null;
   }
+
+  matchAutomation?.stop();
 
   console.log(JSON.stringify({ event: "telegram_bot_stopping", signal }));
   setTimeout(() => process.exit(0), 1500).unref();
