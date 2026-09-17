@@ -5,12 +5,28 @@ const OWNER_ID = requiredEnv("TELEGRAM_OWNER_ID");
 const CHANNEL = String(process.env.TELEGRAM_CHANNEL || "@ISTesport").trim();
 const SUPABASE_URL = requiredEnv("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+const SITE_URL = String(
+  process.env.ISTE_SITE_URL || "https://istesport.com",
+).replace(/\/+$/, "");
+
 const POLL_TIMEOUT = Math.min(
   50,
   Math.max(10, Number(process.env.TELEGRAM_POLL_TIMEOUT || 30)),
 );
 
+const NEWS_POLL_SECONDS = Math.min(
+  300,
+  Math.max(15, Number(process.env.TELEGRAM_NEWS_POLL_SECONDS || 30)),
+);
+
+const CHANNEL_LANGUAGE = localeKey(
+  process.env.TELEGRAM_CHANNEL_LANGUAGE || "uk",
+);
+
+const NEWS_RETRY_MS = 5 * 60 * 1000;
+const NEWS_STATE_KEY = "news_autopost_initialized";
 const API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+
 const supabase = createClient(
   SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY,
@@ -37,11 +53,12 @@ const COPY = {
     startText: "Офіційний Telegram бот ISTesport.",
     commands: "Команди",
     help: "Довідка",
-    whoami: "Мій Telegram ID",
     language: "Мова",
     role: "Моя роль",
     admin: "Адмін панель",
     channelCheck: "Перевірити канал",
+    newsStatus: "Статус автоновин",
+    newsTest: "Тест новини",
     selectLanguage: "Оберіть мову:",
     languageSaved: "Мову збережено.",
     noAccess: "Ця дія недоступна для вашої ролі.",
@@ -49,24 +66,36 @@ const COPY = {
     roleLabel: "Роль",
     ownerPanel: "Панель керування ISTesport Bot",
     adminPanelText:
-      "Базова система ролей активна. Наступними етапами тут з’являться публікації, розіграші, заявки, підтримка та статистика.",
+      "Система ролей активна. Автопублікація новин із сайту також підключена.",
     channelOk: "Перевірка каналу завершена",
     post: "Публікація",
     edit: "Редагування",
     delete: "Видалення",
     yes: "є",
     no: "немає",
+    readMore: "Читати на сайті",
+    latestNews: "ОСТАННЯ НОВИНА",
+    newsAutoTitle: "Автопублікація новин",
+    newsAutoActive: "Стан: активна",
+    interval: "Інтервал",
+    channelLanguage: "Мова каналу",
+    sent: "Надіслано",
+    failed: "Помилки",
+    baseline: "Базових записів",
+    noNews: "Опублікованих новин поки немає.",
+    previewOnly: "Тестовий перегляд. У канал нічого не опубліковано.",
   },
   ru: {
     startTitle: "ISTesport Bot",
     startText: "Официальный Telegram бот ISTesport.",
     commands: "Команды",
     help: "Справка",
-    whoami: "Мой Telegram ID",
     language: "Язык",
     role: "Моя роль",
     admin: "Админ панель",
     channelCheck: "Проверить канал",
+    newsStatus: "Статус автоновостей",
+    newsTest: "Тест новости",
     selectLanguage: "Выберите язык:",
     languageSaved: "Язык сохранён.",
     noAccess: "Это действие недоступно для вашей роли.",
@@ -74,24 +103,36 @@ const COPY = {
     roleLabel: "Роль",
     ownerPanel: "Панель управления ISTesport Bot",
     adminPanelText:
-      "Базовая система ролей активна. Следующими этапами здесь появятся публикации, розыгрыши, заявки, поддержка и статистика.",
+      "Система ролей активна. Автопубликация новостей с сайта также подключена.",
     channelOk: "Проверка канала завершена",
     post: "Публикация",
     edit: "Редактирование",
     delete: "Удаление",
     yes: "есть",
     no: "нет",
+    readMore: "Читать на сайте",
+    latestNews: "ПОСЛЕДНЯЯ НОВОСТЬ",
+    newsAutoTitle: "Автопубликация новостей",
+    newsAutoActive: "Состояние: активна",
+    interval: "Интервал",
+    channelLanguage: "Язык канала",
+    sent: "Отправлено",
+    failed: "Ошибки",
+    baseline: "Базовых записей",
+    noNews: "Опубликованных новостей пока нет.",
+    previewOnly: "Тестовый просмотр. В канал ничего не опубликовано.",
   },
   en: {
     startTitle: "ISTesport Bot",
     startText: "Official ISTesport Telegram bot.",
     commands: "Commands",
     help: "Help",
-    whoami: "My Telegram ID",
     language: "Language",
     role: "My role",
     admin: "Admin panel",
     channelCheck: "Check channel",
+    newsStatus: "News autopost status",
+    newsTest: "Test news",
     selectLanguage: "Choose a language:",
     languageSaved: "Language saved.",
     noAccess: "This action is not available for your role.",
@@ -99,19 +140,40 @@ const COPY = {
     roleLabel: "Role",
     ownerPanel: "ISTesport Bot control panel",
     adminPanelText:
-      "The base role system is active. Publishing, giveaways, applications, support and analytics will be added here next.",
+      "The role system is active. Automatic news publishing from the website is also enabled.",
     channelOk: "Channel check completed",
     post: "Posting",
     edit: "Editing",
     delete: "Deleting",
     yes: "available",
     no: "missing",
+    readMore: "Read on website",
+    latestNews: "LATEST NEWS",
+    newsAutoTitle: "News autopublishing",
+    newsAutoActive: "Status: active",
+    interval: "Interval",
+    channelLanguage: "Channel language",
+    sent: "Sent",
+    failed: "Failed",
+    baseline: "Baseline records",
+    noNews: "There are no published news posts yet.",
+    previewOnly: "Test preview. Nothing was posted to the channel.",
   },
+};
+
+const CATEGORY_TRANSLATIONS = {
+  team: { uk: "КОМАНДА", ru: "КОМАНДА", en: "TEAM" },
+  tournament: { uk: "ТУРНІР", ru: "ТУРНИР", en: "TOURNAMENT" },
+  match: { uk: "МАТЧ", ru: "МАТЧ", en: "MATCH" },
+  club: { uk: "КЛУБ", ru: "КЛУБ", en: "CLUB" },
+  update: { uk: "ОНОВЛЕННЯ", ru: "ОБНОВЛЕНИЕ", en: "UPDATE" },
 };
 
 let offset = 0;
 let stopping = false;
 let botInfo = null;
+let newsTimer = null;
+let newsPollRunning = false;
 
 function requiredEnv(name) {
   const value = String(process.env[name] || "").trim();
@@ -132,6 +194,108 @@ function displayName(from) {
   return [from?.first_name, from?.last_name].filter(Boolean).join(" ").trim()
     || from?.username
     || String(from?.id || "");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function cleanText(value) {
+  return String(value ?? "").replace(/\s+/g, " ").trim();
+}
+
+function clip(value, max) {
+  const text = cleanText(value);
+  if (text.length <= max) return text;
+  return `${text.slice(0, Math.max(0, max - 1)).trimEnd()}…`;
+}
+
+function localizeCategory(value, lang) {
+  const source = cleanText(value);
+  if (!source) return "";
+
+  const key = source.toLowerCase();
+  return CATEGORY_TRANSLATIONS[key]?.[lang] || source.toUpperCase();
+}
+
+function localizedNewsField(post, lang, field) {
+  const translations =
+    post?.translations &&
+    typeof post.translations === "object" &&
+    !Array.isArray(post.translations)
+      ? post.translations
+      : null;
+
+  const translated = cleanText(translations?.[lang]?.[field]);
+  if (translated) return translated;
+
+  return cleanText(post?.[field]);
+}
+
+function formatPublishedDate(value, lang) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const locale =
+    lang === "uk" ? "uk-UA" :
+    lang === "ru" ? "ru-RU" :
+    "en-US";
+
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+function newsUrl(post) {
+  // Current ISTesport News page opens articles on /news.
+  // Keep the URL stable even when a slug is absent.
+  return `${SITE_URL}/news`;
+}
+
+function buildNewsMessage(post, lang, preview = false) {
+  const c = COPY[lang];
+  const title = localizedNewsField(post, lang, "title") || "ISTesport";
+  const excerpt =
+    localizedNewsField(post, lang, "excerpt") ||
+    localizedNewsField(post, lang, "content");
+
+  const category = localizeCategory(post.category, lang);
+  const date = formatPublishedDate(post.published_at, lang);
+
+  const meta = [category, date].filter(Boolean).join(" · ");
+  const lines = [];
+
+  if (preview) {
+    lines.push(`🧪 <b>${escapeHtml(c.previewOnly)}</b>`, "");
+  }
+
+  lines.push(`📰 <b>${escapeHtml(title)}</b>`);
+
+  if (meta) {
+    lines.push("", `<i>${escapeHtml(meta)}</i>`);
+  }
+
+  if (excerpt) {
+    lines.push("", escapeHtml(clip(excerpt, 650)));
+  }
+
+  return {
+    text: lines.join("\n"),
+    coverUrl: cleanText(post.cover_url),
+    replyMarkup: {
+      inline_keyboard: [[
+        {
+          text: `🌐 ${c.readMore}`,
+          url: newsUrl(post),
+        },
+      ]],
+    },
+  };
 }
 
 async function telegram(method, payload = {}) {
@@ -162,6 +326,31 @@ async function sendMessage(chatId, text, extra = {}) {
     parse_mode: "HTML",
     disable_web_page_preview: true,
     ...extra,
+  });
+}
+
+async function sendNews(chatId, post, lang, preview = false) {
+  const built = buildNewsMessage(post, lang, preview);
+
+  if (built.coverUrl) {
+    try {
+      return await telegram("sendPhoto", {
+        chat_id: chatId,
+        photo: built.coverUrl,
+        caption: clip(built.text, 1000),
+        parse_mode: "HTML",
+        reply_markup: built.replyMarkup,
+      });
+    } catch (error) {
+      console.error("telegram_news_photo_failed", {
+        newsPostId: String(post.id),
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  return sendMessage(chatId, built.text, {
+    reply_markup: built.replyMarkup,
   });
 }
 
@@ -279,7 +468,7 @@ function mainKeyboard(lang, privileged) {
       { text: `👤 ${c.role}`, callback_data: "menu:role" },
     ],
     [
-      { text: "🌐 ISTesport", url: "https://istesport.com" },
+      { text: "🌐 ISTesport", url: SITE_URL },
       { text: "📣 Telegram", url: "https://t.me/ISTesport" },
     ],
   ];
@@ -291,6 +480,260 @@ function mainKeyboard(lang, privileged) {
   }
 
   return { inline_keyboard: rows };
+}
+
+async function fetchPublishedNews(limit = 20) {
+  const { data, error } = await supabase
+    .from("news_posts")
+    .select(
+      "id, title, slug, excerpt, content, cover_url, category, translations, published_at",
+    )
+    .eq("status", "published")
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: true })
+    .limit(limit);
+
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+async function ensureNewsBaseline() {
+  const { data: state, error: stateError } = await supabase
+    .from("telegram_bot_state")
+    .select("key")
+    .eq("key", NEWS_STATE_KEY)
+    .maybeSingle();
+
+  if (stateError) throw stateError;
+  if (state) return;
+
+  const current = await fetchPublishedNews(500);
+
+  if (current.length) {
+    const rows = current.map((post) => ({
+      news_post_id: String(post.id),
+      status: "baseline",
+      attempt_count: 0,
+      updated_at: new Date().toISOString(),
+    }));
+
+    const { error } = await supabase
+      .from("telegram_news_publications")
+      .upsert(rows, { onConflict: "news_post_id" });
+
+    if (error) throw error;
+  }
+
+  const { error: insertStateError } = await supabase
+    .from("telegram_bot_state")
+    .insert({
+      key: NEWS_STATE_KEY,
+      value: {
+        initializedAt: new Date().toISOString(),
+        baselineCount: current.length,
+      },
+    });
+
+  if (insertStateError) throw insertStateError;
+
+  console.log("telegram_news_baseline_initialized", {
+    count: current.length,
+  });
+}
+
+async function claimNewsPost(post, existing) {
+  const now = new Date();
+  const postId = String(post.id);
+
+  if (!existing) {
+    const { error } = await supabase
+      .from("telegram_news_publications")
+      .insert({
+        news_post_id: postId,
+        status: "processing",
+        attempt_count: 1,
+        updated_at: now.toISOString(),
+      });
+
+    if (error) {
+      if (error.code === "23505") return false;
+      throw error;
+    }
+
+    return true;
+  }
+
+  if (existing.status !== "failed") return false;
+
+  const previous = new Date(existing.updated_at || 0).getTime();
+  if (Number.isFinite(previous) && Date.now() - previous < NEWS_RETRY_MS) {
+    return false;
+  }
+
+  const { error } = await supabase
+    .from("telegram_news_publications")
+    .update({
+      status: "processing",
+      attempt_count: Number(existing.attempt_count || 0) + 1,
+      last_error: null,
+      updated_at: now.toISOString(),
+    })
+    .eq("news_post_id", postId)
+    .eq("status", "failed");
+
+  if (error) throw error;
+  return true;
+}
+
+async function publishNewsPost(post) {
+  const postId = String(post.id);
+
+  try {
+    const message = await sendNews(
+      CHANNEL,
+      post,
+      CHANNEL_LANGUAGE,
+      false,
+    );
+
+    const { error } = await supabase
+      .from("telegram_news_publications")
+      .update({
+        status: "sent",
+        telegram_chat_id: String(message.chat?.id || CHANNEL),
+        telegram_message_id: Number(message.message_id),
+        sent_at: new Date().toISOString(),
+        last_error: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("news_post_id", postId);
+
+    if (error) {
+      // Keep processing status if Telegram succeeded but DB acknowledgement failed.
+      // This intentionally favors avoiding duplicate channel posts.
+      throw error;
+    }
+
+    await audit(Number(OWNER_ID), "news_autopublished", {
+      newsPostId: postId,
+      telegramMessageId: message.message_id,
+      channel: CHANNEL,
+    });
+
+    console.log("telegram_news_published", {
+      newsPostId: postId,
+      telegramMessageId: message.message_id,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : String(error);
+
+    const { error: updateError } = await supabase
+      .from("telegram_news_publications")
+      .update({
+        status: "failed",
+        last_error: clip(message, 1000),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("news_post_id", postId)
+      .eq("status", "processing");
+
+    if (updateError) {
+      console.error("telegram_news_failure_state_failed", {
+        newsPostId: postId,
+        message: updateError.message,
+      });
+    }
+
+    console.error("telegram_news_publish_failed", {
+      newsPostId: postId,
+      message,
+    });
+  }
+}
+
+async function pollNews() {
+  if (newsPollRunning || stopping) return;
+  newsPollRunning = true;
+
+  try {
+    const posts = await fetchPublishedNews(50);
+    if (!posts.length) return;
+
+    const ids = posts.map((post) => String(post.id));
+
+    const { data: rows, error } = await supabase
+      .from("telegram_news_publications")
+      .select("news_post_id, status, attempt_count, updated_at")
+      .in("news_post_id", ids);
+
+    if (error) throw error;
+
+    const existing = new Map(
+      (rows || []).map((row) => [String(row.news_post_id), row]),
+    );
+
+    for (const post of posts) {
+      if (stopping) break;
+
+      const row = existing.get(String(post.id)) || null;
+      const claimed = await claimNewsPost(post, row);
+      if (!claimed) continue;
+
+      await publishNewsPost(post);
+    }
+  } catch (error) {
+    console.error("telegram_news_poll_failed", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  } finally {
+    newsPollRunning = false;
+  }
+}
+
+function scheduleNewsPoll() {
+  if (stopping) return;
+
+  clearTimeout(newsTimer);
+  newsTimer = setTimeout(async () => {
+    await pollNews();
+    scheduleNewsPoll();
+  }, NEWS_POLL_SECONDS * 1000);
+
+  newsTimer.unref?.();
+}
+
+async function newsStats() {
+  const statuses = ["sent", "failed", "baseline"];
+  const result = {};
+
+  for (const status of statuses) {
+    const { count, error } = await supabase
+      .from("telegram_news_publications")
+      .select("*", { count: "exact", head: true })
+      .eq("status", status);
+
+    if (error) throw error;
+    result[status] = count || 0;
+  }
+
+  return result;
+}
+
+async function latestPublishedNews() {
+  const { data, error } = await supabase
+    .from("news_posts")
+    .select(
+      "id, title, slug, excerpt, content, cover_url, category, translations, published_at",
+    )
+    .eq("status", "published")
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data || null;
 }
 
 async function startCommand(message) {
@@ -332,6 +775,8 @@ async function helpCommand(message, user) {
 
   if (hasRole(user, "editor")) {
     lines.push("<code>/admin</code>");
+    lines.push("<code>/newsstatus</code>");
+    lines.push("<code>/newstest</code>");
   }
 
   if (hasRole(user, "owner")) {
@@ -378,6 +823,57 @@ async function whoamiCommand(message, user) {
   );
 }
 
+async function newsStatusCommand(message, user) {
+  const lang = localeKey(user.language);
+  const c = COPY[lang];
+
+  if (!hasRole(user, "editor")) {
+    await sendMessage(message.chat.id, c.noAccess);
+    return;
+  }
+
+  const stats = await newsStats();
+
+  await sendMessage(
+    message.chat.id,
+    [
+      `📰 <b>${c.newsAutoTitle}</b>`,
+      "",
+      `✅ ${c.newsAutoActive}`,
+      `${c.interval}: <code>${NEWS_POLL_SECONDS}s</code>`,
+      `${c.channelLanguage}: <code>${CHANNEL_LANGUAGE}</code>`,
+      `Channel: <code>${escapeHtml(CHANNEL)}</code>`,
+      "",
+      `${c.sent}: <b>${stats.sent}</b>`,
+      `${c.failed}: <b>${stats.failed}</b>`,
+      `${c.baseline}: <b>${stats.baseline}</b>`,
+    ].join("\n"),
+  );
+}
+
+async function newsTestCommand(message, user) {
+  const lang = localeKey(user.language);
+  const c = COPY[lang];
+
+  if (!hasRole(user, "editor")) {
+    await sendMessage(message.chat.id, c.noAccess);
+    return;
+  }
+
+  const post = await latestPublishedNews();
+
+  if (!post) {
+    await sendMessage(message.chat.id, c.noNews);
+    return;
+  }
+
+  await sendNews(message.chat.id, post, lang, true);
+
+  await audit(message.from.id, "news_preview_opened", {
+    newsPostId: String(post.id),
+  });
+}
+
 async function adminCommand(message, user) {
   const lang = localeKey(user.language);
   const c = COPY[lang];
@@ -403,6 +899,16 @@ async function adminCommand(message, user) {
     {
       reply_markup: {
         inline_keyboard: [
+          [
+            {
+              text: `📰 ${c.newsStatus}`,
+              callback_data: "admin:newsstatus",
+            },
+            {
+              text: `🧪 ${c.newsTest}`,
+              callback_data: "admin:newstest",
+            },
+          ],
           [
             {
               text: `📣 ${c.channelCheck}`,
@@ -447,9 +953,9 @@ async function channelCheck(actor, chatId, user) {
     [
       `✅ <b>${c.channelOk}</b>`,
       "",
-      `Channel: <code>${chat?.title || CHANNEL}</code>`,
+      `Channel: <code>${escapeHtml(chat?.title || CHANNEL)}</code>`,
       `ID: <code>${chat?.id}</code>`,
-      `Status: <code>${rights.status}</code>`,
+      `Status: <code>${escapeHtml(rights.status)}</code>`,
       "",
       `${c.post}: <b>${rights.can_post_messages ? c.yes : c.no}</b>`,
       `${c.edit}: <b>${rights.can_edit_messages ? c.yes : c.no}</b>`,
@@ -481,6 +987,9 @@ async function handleMessage(message) {
   if (command === "/role") return roleCommand(message, user);
   if (command === "/whoami") return whoamiCommand(message, user);
   if (command === "/admin") return adminCommand(message, user);
+  if (command === "/newsstatus") return newsStatusCommand(message, user);
+  if (command === "/newstest") return newsTestCommand(message, user);
+
   if (command === "/channelcheck") {
     return channelCheck(message.from, message.chat.id, user);
   }
@@ -515,29 +1024,52 @@ async function handleCallback(query) {
 
   if (data === "menu:language") {
     await answerCallback(query.id);
-    await languageCommand(
+    return languageCommand(
       { chat: query.message.chat, from: query.from },
       user,
     );
-    return;
   }
 
   if (data === "menu:role") {
     await answerCallback(query.id);
-    await roleCommand(
+    return roleCommand(
       { chat: query.message.chat, from: query.from },
       user,
     );
-    return;
   }
 
   if (data === "menu:admin") {
     await answerCallback(query.id);
-    await adminCommand(
+    return adminCommand(
       { chat: query.message.chat, from: query.from },
       user,
     );
-    return;
+  }
+
+  if (data === "admin:newsstatus") {
+    if (!hasRole(user, "editor")) {
+      await answerCallback(query.id, c.noAccess);
+      return;
+    }
+
+    await answerCallback(query.id);
+    return newsStatusCommand(
+      { chat: query.message.chat, from: query.from },
+      user,
+    );
+  }
+
+  if (data === "admin:newstest") {
+    if (!hasRole(user, "editor")) {
+      await answerCallback(query.id, c.noAccess);
+      return;
+    }
+
+    await answerCallback(query.id);
+    return newsTestCommand(
+      { chat: query.message.chat, from: query.from },
+      user,
+    );
   }
 
   if (data === "admin:channelcheck") {
@@ -547,7 +1079,7 @@ async function handleCallback(query) {
     }
 
     await answerCallback(query.id);
-    await channelCheck(query.from, query.message.chat.id, user);
+    return channelCheck(query.from, query.message.chat.id, user);
   }
 }
 
@@ -565,6 +1097,8 @@ async function syncCommands() {
       { command: "role", description: "Show my role" },
       { command: "whoami", description: "Show my Telegram ID" },
       { command: "admin", description: "Open admin panel" },
+      { command: "newsstatus", description: "News autopost status" },
+      { command: "newstest", description: "Preview latest news" },
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
@@ -573,20 +1107,28 @@ async function syncCommands() {
 
 async function bootstrap() {
   await ensureOwner();
+  await ensureNewsBaseline();
+
   botInfo = await telegram("getMe");
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.2.0",
+      version: "0.3.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
       ownerConfigured: true,
       supabaseConfigured: true,
+      newsAutopost: true,
+      newsPollSeconds: NEWS_POLL_SECONDS,
+      channelLanguage: CHANNEL_LANGUAGE,
     }),
   );
+
+  await pollNews();
+  scheduleNewsPoll();
 
   while (!stopping) {
     try {
@@ -623,6 +1165,12 @@ async function bootstrap() {
 async function shutdown(signal) {
   if (stopping) return;
   stopping = true;
+
+  if (newsTimer) {
+    clearTimeout(newsTimer);
+    newsTimer = null;
+  }
+
   console.log(JSON.stringify({ event: "telegram_bot_stopping", signal }));
   setTimeout(() => process.exit(0), 1500).unref();
 }
