@@ -1,3 +1,4 @@
+import { createFaceitAutomation } from "./faceit.mjs";
 import { createMatchAutomation } from "./matches.mjs";
 import { createClient } from "@supabase/supabase-js";
 
@@ -174,6 +175,7 @@ let offset = 0;
 let stopping = false;
 let botInfo = null;
 let matchAutomation = null;
+let faceitAutomation = null;
 let newsTimer = null;
 let newsPollRunning = false;
 
@@ -787,6 +789,10 @@ async function startCommand(message) {
       "<code>/language</code>",
       "<code>/role</code>",
       "<code>/whoami</code>",
+      "<code>/faceit</code>",
+      "<code>/roster</code>",
+      "<code>/matches</code>",
+      "<code>/schedule</code>",
     ].join("\n"),
     { reply_markup: mainKeyboard(lang, hasRole(user, "editor")) },
   );
@@ -805,6 +811,8 @@ async function helpCommand(message, user) {
     "<code>/whoami</code>",
     "<code>/matches</code>",
     "<code>/schedule</code>",
+    "<code>/faceit</code>",
+    "<code>/roster</code>",
   ];
 
   if (hasRole(user, "editor")) {
@@ -813,6 +821,8 @@ async function helpCommand(message, user) {
     lines.push("<code>/newstest</code>");
     lines.push("<code>/matchstatus</code>");
     lines.push("<code>/matchtest</code>");
+    lines.push("<code>/rosterstatus</code>");
+    lines.push("<code>/rostertest</code>");
   }
 
   if (hasRole(user, "owner")) {
@@ -946,6 +956,7 @@ async function adminCommand(message, user) {
             },
           ],
           ...(matchAutomation ? matchAutomation.adminRows(lang) : []),
+          ...(faceitAutomation ? faceitAutomation.adminRows(lang) : []),
           [
             {
               text: `📣 ${c.channelCheck}`,
@@ -1030,6 +1041,13 @@ async function handleMessage(message) {
   if (
     matchAutomation &&
     await matchAutomation.handleCommand(command, message, user)
+  ) {
+    return;
+  }
+
+  if (
+    faceitAutomation &&
+    await faceitAutomation.handleCommand(command, message, user)
   ) {
     return;
   }
@@ -1123,6 +1141,13 @@ async function handleCallback(query) {
     return;
   }
 
+  if (
+    faceitAutomation &&
+    await faceitAutomation.handleCallback(data, query, user)
+  ) {
+    return;
+  }
+
   if (data === "admin:channelcheck") {
     if (!hasRole(user, "owner")) {
       await answerCallback(query.id, c.noAccess);
@@ -1154,6 +1179,10 @@ async function syncCommands() {
       { command: "schedule", description: "Show upcoming schedule" },
       { command: "matchstatus", description: "Match autopost status" },
       { command: "matchtest", description: "Preview a match post" },
+      { command: "faceit", description: "Show ISTesport FACEIT stats" },
+      { command: "roster", description: "Show ISTesport roster" },
+      { command: "rosterstatus", description: "Roster watch status" },
+      { command: "rostertest", description: "Preview roster change post" },
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
@@ -1180,12 +1209,26 @@ async function bootstrap() {
 
   const matchInitialized = await matchAutomation.initialize();
 
+  faceitAutomation = createFaceitAutomation({
+    telegram,
+    sendMessage,
+    answerCallback,
+    audit,
+    supabase,
+    channel: CHANNEL,
+    siteUrl: SITE_URL,
+    ownerId: OWNER_ID,
+    hasRole,
+  });
+
+  const faceitInitialized = await faceitAutomation.initialize();
+
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.4.0",
+      version: "0.5.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1198,6 +1241,9 @@ async function bootstrap() {
       matchInitialized,
       matchPollSeconds: matchAutomation.config.pollSeconds,
       matchReminderMinutes: matchAutomation.config.reminderMinutes,
+      faceitAutopost: true,
+      faceitInitialized,
+      faceitPollSeconds: faceitAutomation.config.pollSeconds,
     }),
   );
 
@@ -1205,6 +1251,7 @@ async function bootstrap() {
   scheduleNewsPoll();
 
   await matchAutomation.start();
+  await faceitAutomation.start();
 
   while (!stopping) {
     try {
@@ -1248,6 +1295,7 @@ async function shutdown(signal) {
   }
 
   matchAutomation?.stop();
+  faceitAutomation?.stop();
 
   console.log(JSON.stringify({ event: "telegram_bot_stopping", signal }));
   setTimeout(() => process.exit(0), 1500).unref();
