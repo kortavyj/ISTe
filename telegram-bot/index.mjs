@@ -1,3 +1,4 @@
+import { createEngagementAutomation } from "./engagement.mjs";
 import { createRequestAutomation } from "./requests.mjs";
 import { createTwitchAutomation } from "./twitch.mjs";
 import { createFaceitAutomation } from "./faceit.mjs";
@@ -180,6 +181,7 @@ let matchAutomation = null;
 let faceitAutomation = null;
 let twitchAutomation = null;
 let requestAutomation = null;
+let engagementAutomation = null;
 let newsTimer = null;
 let newsPollRunning = false;
 
@@ -966,6 +968,7 @@ async function adminCommand(message, user) {
           ...(faceitAutomation ? faceitAutomation.adminRows(lang) : []),
           ...(twitchAutomation ? twitchAutomation.adminRows(lang) : []),
           ...(requestAutomation ? requestAutomation.adminRows(lang) : []),
+          ...(engagementAutomation ? engagementAutomation.adminRows(lang) : []),
           [
             {
               text: `📣 ${c.channelCheck}`,
@@ -1043,6 +1046,13 @@ async function handleMessage(message) {
     return;
   }
 
+  if (
+    engagementAutomation &&
+    await engagementAutomation.handleMessage(message, user)
+  ) {
+    return;
+  }
+
   const command = normalizeCommand(message.text);
 
   if (command === "/start") return startCommand(message);
@@ -1096,6 +1106,13 @@ async function handleCallback(query) {
   if (
     requestAutomation &&
     await requestAutomation.handleCallback(data, query, user)
+  ) {
+    return;
+  }
+
+  if (
+    engagementAutomation &&
+    await engagementAutomation.handleCallback(data, query, user)
   ) {
     return;
   }
@@ -1230,6 +1247,15 @@ async function syncCommands() {
       { command: "cancel", description: "Cancel request draft" },
       { command: "requests", description: "Admin request queue" },
       { command: "request", description: "Admin request details" },
+      { command: "giveaway", description: "Create giveaway" },
+      { command: "giveaways", description: "Show active giveaways" },
+      { command: "giveawaystatus", description: "Giveaway admin status" },
+      { command: "giveawaycancel", description: "Cancel giveaway draft" },
+      { command: "endgiveaway", description: "Finish giveaway and draw winner" },
+      { command: "poll", description: "Create Telegram poll" },
+      { command: "polls", description: "Show recent polls" },
+      { command: "pollcancel", description: "Cancel poll draft" },
+      { command: "closepoll", description: "Close Telegram poll" },
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
@@ -1295,12 +1321,25 @@ async function bootstrap() {
 
   const requestInitialized = await requestAutomation.initialize();
 
+  engagementAutomation = createEngagementAutomation({
+    telegram,
+    sendMessage,
+    answerCallback,
+    audit,
+    supabase,
+    channel: CHANNEL,
+    ownerId: OWNER_ID,
+    hasRole,
+  });
+
+  const engagementInitialized = await engagementAutomation.initialize();
+
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.7.0",
+      version: "0.8.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1322,6 +1361,9 @@ async function bootstrap() {
       twitchPollSeconds: twitchAutomation.config.pollSeconds,
       requestsEnabled: true,
       requestInitialized,
+      engagementEnabled: true,
+      engagementInitialized,
+      giveawaySweepSeconds: engagementAutomation.config.sweepSeconds,
     }),
   );
 
