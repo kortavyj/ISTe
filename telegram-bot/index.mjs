@@ -213,6 +213,38 @@ function clip(value, max) {
   return `${text.slice(0, Math.max(0, max - 1)).trimEnd()}…`;
 }
 
+function errorDetails(error) {
+  if (!error) {
+    return { message: "Unknown error" };
+  }
+
+  if (error instanceof Error) {
+    return {
+      name: error.name || null,
+      message: error.message || String(error),
+      code: error.code || null,
+      details: error.details || null,
+      hint: error.hint || null,
+      status: error.status || null,
+    };
+  }
+
+  if (typeof error === "object") {
+    return {
+      message:
+        typeof error.message === "string"
+          ? error.message
+          : JSON.stringify(error),
+      code: error.code || null,
+      details: error.details || null,
+      hint: error.hint || null,
+      status: error.status || null,
+    };
+  }
+
+  return { message: String(error) };
+}
+
 function localizeCategory(value, lang) {
   const source = cleanText(value);
   if (!source) return "";
@@ -486,7 +518,7 @@ async function fetchPublishedNews(limit = 20) {
   const { data, error } = await supabase
     .from("news_posts")
     .select(
-      "id, title, slug, excerpt, content, cover_url, category, translations, published_at",
+      "id, title, slug, excerpt, content, cover_url, category, published_at",
     )
     .eq("status", "published")
     .lte("published_at", new Date().toISOString())
@@ -683,9 +715,7 @@ async function pollNews() {
       await publishNewsPost(post);
     }
   } catch (error) {
-    console.error("telegram_news_poll_failed", {
-      message: error instanceof Error ? error.message : String(error),
-    });
+    console.error("telegram_news_poll_failed", errorDetails(error));
   } finally {
     newsPollRunning = false;
   }
@@ -724,7 +754,7 @@ async function latestPublishedNews() {
   const { data, error } = await supabase
     .from("news_posts")
     .select(
-      "id, title, slug, excerpt, content, cover_url, category, translations, published_at",
+      "id, title, slug, excerpt, content, cover_url, category, published_at",
     )
     .eq("status", "published")
     .lte("published_at", new Date().toISOString())
@@ -1115,7 +1145,7 @@ async function bootstrap() {
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.3.0",
+      version: "0.3.1",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1179,8 +1209,6 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
 
 bootstrap().catch((error) => {
-  console.error("telegram_bot_start_failed", {
-    message: error instanceof Error ? error.message : String(error),
-  });
+  console.error("telegram_bot_start_failed", errorDetails(error));
   process.exit(1);
 });
