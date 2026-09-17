@@ -1,3 +1,4 @@
+import { createObservabilityAutomation } from "./observability.mjs";
 import { createModerationAutomation } from "./moderation.mjs";
 import { createChannelAdminAutomation } from "./channel-admin.mjs";
 import { createEngagementAutomation } from "./engagement.mjs";
@@ -186,6 +187,7 @@ let requestAutomation = null;
 let engagementAutomation = null;
 let channelAdminAutomation = null;
 let moderationAutomation = null;
+let observabilityAutomation = null;
 let newsTimer = null;
 let newsPollRunning = false;
 
@@ -838,7 +840,16 @@ async function helpCommand(message, user) {
     lines.push("<code>/livetest</code>");
   }
 
+  if (hasRole(user, "admin")) {
+    lines.push("<code>/health</code>");
+    lines.push("<code>/botstats</code>");
+    lines.push("<code>/audit</code>");
+    lines.push("<code>/errors</code>");
+  }
+
   if (hasRole(user, "owner")) {
+    lines.push("<code>/security</code>");
+    lines.push("<code>/cleanup</code>");
     lines.push("<code>/channelcheck</code>");
   }
 
@@ -974,6 +985,7 @@ async function adminCommand(message, user) {
           ...(requestAutomation ? requestAutomation.adminRows(lang) : []),
           ...(engagementAutomation ? engagementAutomation.adminRows(lang) : []),
           ...(channelAdminAutomation ? channelAdminAutomation.adminRows(lang) : []),
+          ...(observabilityAutomation ? observabilityAutomation.adminRows(lang) : []),
           [
             {
               text: `📣 ${c.channelCheck}`,
@@ -1065,6 +1077,13 @@ async function handleMessage(message) {
     return;
   }
 
+  if (
+    observabilityAutomation &&
+    await observabilityAutomation.handleMessage(message, user)
+  ) {
+    return;
+  }
+
   const command = normalizeCommand(message.text);
 
   if (command === "/start") return startCommand(message);
@@ -1132,6 +1151,13 @@ async function handleCallback(query) {
   if (
     channelAdminAutomation &&
     await channelAdminAutomation.handleCallback(data, query, user)
+  ) {
+    return;
+  }
+
+  if (
+    observabilityAutomation &&
+    await observabilityAutomation.handleCallback(data, query, user)
   ) {
     return;
   }
@@ -1290,6 +1316,12 @@ async function syncCommands() {
       { command: "postcancel", description: "Cancel manual post draft" },
       { command: "editpost", description: "Edit manual channel post" },
       { command: "deletepost", description: "Delete manual channel post" },
+      { command: "health", description: "System health diagnostics" },
+      { command: "botstats", description: "Bot statistics" },
+      { command: "audit", description: "Recent audit activity" },
+      { command: "errors", description: "Recent operational errors" },
+      { command: "security", description: "Security diagnostics" },
+      { command: "cleanup", description: "Run maintenance cleanup" },
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
@@ -1408,12 +1440,36 @@ async function bootstrap() {
 
   const moderationInitialized = await moderationAutomation.initialize();
 
+  observabilityAutomation = createObservabilityAutomation({
+    telegram,
+    sendMessage,
+    answerCallback,
+    audit,
+    supabase,
+    channel: CHANNEL,
+    ownerId: OWNER_ID,
+    botInfo,
+    hasRole,
+    moduleStatus: {
+      news: true,
+      matches: Boolean(matchInitialized),
+      faceit: Boolean(faceitInitialized),
+      twitch: Boolean(twitchInitialized),
+      requests: Boolean(requestInitialized),
+      engagement: Boolean(engagementInitialized),
+      channelAdmin: Boolean(channelAdminInitialized),
+      moderation: Boolean(moderationInitialized),
+    },
+  });
+
+  const observabilityInitialized = await observabilityAutomation.initialize();
+
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.11.0",
+      version: "0.12.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1442,6 +1498,9 @@ async function bootstrap() {
       channelAdminInitialized,
       moderationEnabled: true,
       moderationInitialized,
+      observabilityEnabled: true,
+      observabilityInitialized,
+      maintenanceSeconds: observabilityAutomation.config.maintenanceSeconds,
     }),
   );
 
@@ -1451,6 +1510,7 @@ async function bootstrap() {
   await matchAutomation.start();
   await faceitAutomation.start();
   await twitchAutomation.start();
+  await observabilityAutomation.start();
 
   while (!stopping) {
     try {
@@ -1470,6 +1530,12 @@ async function bootstrap() {
             updateId: update?.update_id ?? null,
             message: error instanceof Error ? error.message : String(error),
           });
+
+          await observabilityAutomation?.recordError(
+            "telegram_update_failed",
+            error,
+            { updateId: update?.update_id ?? null },
+          );
         }
       }
     } catch (error) {
@@ -1478,6 +1544,11 @@ async function bootstrap() {
       console.error("telegram_poll_failed", {
         message: error instanceof Error ? error.message : String(error),
       });
+
+      await observabilityAutomation?.recordError(
+        "telegram_poll_failed",
+        error,
+      );
 
       await sleep(2000);
     }
@@ -1493,6 +1564,7 @@ async function shutdown(signal) {
     newsTimer = null;
   }
 
+  observabilityAutomation?.stop();
   matchAutomation?.stop();
   faceitAutomation?.stop();
   twitchAutomation?.stop();
