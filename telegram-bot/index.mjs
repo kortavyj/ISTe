@@ -1,3 +1,4 @@
+import { createModerationAutomation } from "./moderation.mjs";
 import { createChannelAdminAutomation } from "./channel-admin.mjs";
 import { createEngagementAutomation } from "./engagement.mjs";
 import { createRequestAutomation } from "./requests.mjs";
@@ -184,6 +185,7 @@ let twitchAutomation = null;
 let requestAutomation = null;
 let engagementAutomation = null;
 let channelAdminAutomation = null;
+let moderationAutomation = null;
 let newsTimer = null;
 let newsPollRunning = false;
 
@@ -1231,7 +1233,17 @@ async function handleCallback(query) {
 }
 
 async function handleUpdate(update) {
-  if (update?.message) return handleMessage(update.message);
+  if (update?.message) {
+    if (
+      moderationAutomation &&
+      await moderationAutomation.handleMessage(update.message)
+    ) {
+      return;
+    }
+
+    return handleMessage(update.message);
+  }
+
   if (update?.callback_query) return handleCallback(update.callback_query);
 }
 
@@ -1281,6 +1293,25 @@ async function syncCommands() {
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
+  });
+
+  await telegram("setMyCommands", {
+    commands: [
+      { command: "modstatus", description: "Show moderation status" },
+      { command: "warn", description: "Warn replied user" },
+      { command: "warnings", description: "Show replied user warnings" },
+      { command: "clearwarnings", description: "Clear replied user warnings" },
+      { command: "mute", description: "Mute replied user" },
+      { command: "unmute", description: "Unmute replied user" },
+      { command: "ban", description: "Ban replied user" },
+      { command: "unban", description: "Unban by Telegram user ID" },
+      { command: "antispam", description: "Anti-spam on/off" },
+      { command: "links", description: "Link filter on/off" },
+      { command: "filteradd", description: "Add blocked phrase" },
+      { command: "filterdel", description: "Remove blocked phrase" },
+      { command: "filters", description: "Show blocked phrases" },
+    ],
+    scope: { type: "all_group_chats" },
   });
 }
 
@@ -1368,12 +1399,21 @@ async function bootstrap() {
 
   const channelAdminInitialized = await channelAdminAutomation.initialize();
 
+  moderationAutomation = createModerationAutomation({
+    telegram,
+    sendMessage,
+    audit,
+    supabase,
+  });
+
+  const moderationInitialized = await moderationAutomation.initialize();
+
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.9.0",
+      version: "0.11.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1400,6 +1440,8 @@ async function bootstrap() {
       giveawaySweepSeconds: engagementAutomation.config.sweepSeconds,
       channelAdminEnabled: true,
       channelAdminInitialized,
+      moderationEnabled: true,
+      moderationInitialized,
     }),
   );
 
