@@ -1,3 +1,4 @@
+import { createRequestAutomation } from "./requests.mjs";
 import { createTwitchAutomation } from "./twitch.mjs";
 import { createFaceitAutomation } from "./faceit.mjs";
 import { createMatchAutomation } from "./matches.mjs";
@@ -178,6 +179,7 @@ let botInfo = null;
 let matchAutomation = null;
 let faceitAutomation = null;
 let twitchAutomation = null;
+let requestAutomation = null;
 let newsTimer = null;
 let newsPollRunning = false;
 
@@ -963,6 +965,7 @@ async function adminCommand(message, user) {
           ...(matchAutomation ? matchAutomation.adminRows(lang) : []),
           ...(faceitAutomation ? faceitAutomation.adminRows(lang) : []),
           ...(twitchAutomation ? twitchAutomation.adminRows(lang) : []),
+          ...(requestAutomation ? requestAutomation.adminRows(lang) : []),
           [
             {
               text: `📣 ${c.channelCheck}`,
@@ -1033,6 +1036,13 @@ async function handleMessage(message) {
     return;
   }
 
+  if (
+    requestAutomation &&
+    await requestAutomation.handleMessage(message, user)
+  ) {
+    return;
+  }
+
   const command = normalizeCommand(message.text);
 
   if (command === "/start") return startCommand(message);
@@ -1082,6 +1092,13 @@ async function handleCallback(query) {
   }
 
   const data = String(query.data || "");
+
+  if (
+    requestAutomation &&
+    await requestAutomation.handleCallback(data, query, user)
+  ) {
+    return;
+  }
 
   if (data.startsWith("lang:")) {
     const requested = localeKey(data.slice(5));
@@ -1206,6 +1223,13 @@ async function syncCommands() {
       { command: "live", description: "Show current Twitch LIVE status" },
       { command: "livestatus", description: "Twitch LIVE monitor status" },
       { command: "livetest", description: "Preview Twitch LIVE post" },
+      { command: "apply", description: "Apply to ISTesport" },
+      { command: "support", description: "Contact ISTesport support" },
+      { command: "partner", description: "Partnership request" },
+      { command: "myrequests", description: "Show my requests" },
+      { command: "cancel", description: "Cancel request draft" },
+      { command: "requests", description: "Admin request queue" },
+      { command: "request", description: "Admin request details" },
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
@@ -1259,12 +1283,24 @@ async function bootstrap() {
 
   const twitchInitialized = await twitchAutomation.initialize();
 
+  requestAutomation = createRequestAutomation({
+    telegram,
+    sendMessage,
+    answerCallback,
+    audit,
+    supabase,
+    ownerId: OWNER_ID,
+    hasRole,
+  });
+
+  const requestInitialized = await requestAutomation.initialize();
+
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.6.0",
+      version: "0.7.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1284,6 +1320,8 @@ async function bootstrap() {
       twitchInitialized,
       twitchChannel: twitchAutomation.config.twitchLogin,
       twitchPollSeconds: twitchAutomation.config.pollSeconds,
+      requestsEnabled: true,
+      requestInitialized,
     }),
   );
 
