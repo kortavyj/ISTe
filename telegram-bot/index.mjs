@@ -1,3 +1,4 @@
+import { createTwitchAutomation } from "./twitch.mjs";
 import { createFaceitAutomation } from "./faceit.mjs";
 import { createMatchAutomation } from "./matches.mjs";
 import { createClient } from "@supabase/supabase-js";
@@ -176,6 +177,7 @@ let stopping = false;
 let botInfo = null;
 let matchAutomation = null;
 let faceitAutomation = null;
+let twitchAutomation = null;
 let newsTimer = null;
 let newsPollRunning = false;
 
@@ -813,6 +815,7 @@ async function helpCommand(message, user) {
     "<code>/schedule</code>",
     "<code>/faceit</code>",
     "<code>/roster</code>",
+    "<code>/live</code>",
   ];
 
   if (hasRole(user, "editor")) {
@@ -823,6 +826,8 @@ async function helpCommand(message, user) {
     lines.push("<code>/matchtest</code>");
     lines.push("<code>/rosterstatus</code>");
     lines.push("<code>/rostertest</code>");
+    lines.push("<code>/livestatus</code>");
+    lines.push("<code>/livetest</code>");
   }
 
   if (hasRole(user, "owner")) {
@@ -957,6 +962,7 @@ async function adminCommand(message, user) {
           ],
           ...(matchAutomation ? matchAutomation.adminRows(lang) : []),
           ...(faceitAutomation ? faceitAutomation.adminRows(lang) : []),
+          ...(twitchAutomation ? twitchAutomation.adminRows(lang) : []),
           [
             {
               text: `📣 ${c.channelCheck}`,
@@ -1048,6 +1054,13 @@ async function handleMessage(message) {
   if (
     faceitAutomation &&
     await faceitAutomation.handleCommand(command, message, user)
+  ) {
+    return;
+  }
+
+  if (
+    twitchAutomation &&
+    await twitchAutomation.handleCommand(command, message, user)
   ) {
     return;
   }
@@ -1148,6 +1161,13 @@ async function handleCallback(query) {
     return;
   }
 
+  if (
+    twitchAutomation &&
+    await twitchAutomation.handleCallback(data, query, user)
+  ) {
+    return;
+  }
+
   if (data === "admin:channelcheck") {
     if (!hasRole(user, "owner")) {
       await answerCallback(query.id, c.noAccess);
@@ -1183,6 +1203,9 @@ async function syncCommands() {
       { command: "roster", description: "Show ISTesport roster" },
       { command: "rosterstatus", description: "Roster watch status" },
       { command: "rostertest", description: "Preview roster change post" },
+      { command: "live", description: "Show current Twitch LIVE status" },
+      { command: "livestatus", description: "Twitch LIVE monitor status" },
+      { command: "livetest", description: "Preview Twitch LIVE post" },
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
@@ -1223,12 +1246,25 @@ async function bootstrap() {
 
   const faceitInitialized = await faceitAutomation.initialize();
 
+  twitchAutomation = createTwitchAutomation({
+    telegram,
+    sendMessage,
+    answerCallback,
+    audit,
+    supabase,
+    channel: CHANNEL,
+    ownerId: OWNER_ID,
+    hasRole,
+  });
+
+  const twitchInitialized = await twitchAutomation.initialize();
+
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.5.0",
+      version: "0.6.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1244,6 +1280,10 @@ async function bootstrap() {
       faceitAutopost: true,
       faceitInitialized,
       faceitPollSeconds: faceitAutomation.config.pollSeconds,
+      twitchAutopost: true,
+      twitchInitialized,
+      twitchChannel: twitchAutomation.config.twitchLogin,
+      twitchPollSeconds: twitchAutomation.config.pollSeconds,
     }),
   );
 
@@ -1252,6 +1292,7 @@ async function bootstrap() {
 
   await matchAutomation.start();
   await faceitAutomation.start();
+  await twitchAutomation.start();
 
   while (!stopping) {
     try {
@@ -1296,6 +1337,7 @@ async function shutdown(signal) {
 
   matchAutomation?.stop();
   faceitAutomation?.stop();
+  twitchAutomation?.stop();
 
   console.log(JSON.stringify({ event: "telegram_bot_stopping", signal }));
   setTimeout(() => process.exit(0), 1500).unref();
