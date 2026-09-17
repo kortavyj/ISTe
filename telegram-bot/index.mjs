@@ -1,3 +1,4 @@
+import { createChannelAdminAutomation } from "./channel-admin.mjs";
 import { createEngagementAutomation } from "./engagement.mjs";
 import { createRequestAutomation } from "./requests.mjs";
 import { createTwitchAutomation } from "./twitch.mjs";
@@ -182,6 +183,7 @@ let faceitAutomation = null;
 let twitchAutomation = null;
 let requestAutomation = null;
 let engagementAutomation = null;
+let channelAdminAutomation = null;
 let newsTimer = null;
 let newsPollRunning = false;
 
@@ -969,6 +971,7 @@ async function adminCommand(message, user) {
           ...(twitchAutomation ? twitchAutomation.adminRows(lang) : []),
           ...(requestAutomation ? requestAutomation.adminRows(lang) : []),
           ...(engagementAutomation ? engagementAutomation.adminRows(lang) : []),
+          ...(channelAdminAutomation ? channelAdminAutomation.adminRows(lang) : []),
           [
             {
               text: `📣 ${c.channelCheck}`,
@@ -1053,6 +1056,13 @@ async function handleMessage(message) {
     return;
   }
 
+  if (
+    channelAdminAutomation &&
+    await channelAdminAutomation.handleMessage(message, user)
+  ) {
+    return;
+  }
+
   const command = normalizeCommand(message.text);
 
   if (command === "/start") return startCommand(message);
@@ -1113,6 +1123,13 @@ async function handleCallback(query) {
   if (
     engagementAutomation &&
     await engagementAutomation.handleCallback(data, query, user)
+  ) {
+    return;
+  }
+
+  if (
+    channelAdminAutomation &&
+    await channelAdminAutomation.handleCallback(data, query, user)
   ) {
     return;
   }
@@ -1256,6 +1273,11 @@ async function syncCommands() {
       { command: "polls", description: "Show recent polls" },
       { command: "pollcancel", description: "Cancel poll draft" },
       { command: "closepoll", description: "Close Telegram poll" },
+      { command: "post", description: "Create manual channel post" },
+      { command: "posts", description: "Show manual channel posts" },
+      { command: "postcancel", description: "Cancel manual post draft" },
+      { command: "editpost", description: "Edit manual channel post" },
+      { command: "deletepost", description: "Delete manual channel post" },
       { command: "channelcheck", description: "Check ISTesport channel" },
     ],
     scope: { type: "all_private_chats" },
@@ -1334,12 +1356,24 @@ async function bootstrap() {
 
   const engagementInitialized = await engagementAutomation.initialize();
 
+  channelAdminAutomation = createChannelAdminAutomation({
+    telegram,
+    sendMessage,
+    answerCallback,
+    audit,
+    supabase,
+    channel: CHANNEL,
+    hasRole,
+  });
+
+  const channelAdminInitialized = await channelAdminAutomation.initialize();
+
   await syncCommands();
 
   console.log(
     JSON.stringify({
       event: "telegram_bot_ready",
-      version: "0.8.0",
+      version: "0.9.0",
       id: botInfo.id,
       username: botInfo.username,
       channel: CHANNEL,
@@ -1364,6 +1398,8 @@ async function bootstrap() {
       engagementEnabled: true,
       engagementInitialized,
       giveawaySweepSeconds: engagementAutomation.config.sweepSeconds,
+      channelAdminEnabled: true,
+      channelAdminInitialized,
     }),
   );
 
