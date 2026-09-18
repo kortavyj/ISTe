@@ -83,13 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
-      "elo": 2726,
+      "elo": 2756,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 59,
-      "kd": 1.26
+      "kd": 1.29
     }
   ],
   "teamMatches": [
@@ -3349,5 +3349,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-18T21:51:15.999Z"
+  "updatedAt": "2026-09-18T23:39:00.118Z"
 }
