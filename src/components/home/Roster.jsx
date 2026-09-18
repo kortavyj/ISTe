@@ -5,33 +5,14 @@ import "./Roster.css";
 
 const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
-]);
-
-const MANUAL_PLAYERS = Object.freeze([
-  Object.freeze({
-    playerId: "manual:ysgramora",
-    nickname: "ysgramora",
-    avatar: null,
-    country: "fj",
-    captain: false,
-    faceitUrl: "https://www.faceit.com/ru/players/ysgramora",
-    level: 10,
-    elo: 2796,
-    role: "RIFLER",
-    reason: "Игрок состава ISTe",
-    confidence: 100,
-    roleSource: "ISTe manual roster",
-    winRate: 53,
-    kd: 1.32,
-  }),
+  "bandai",
+  "ysgramora",
 ]);
 
 const MAIN_ROSTER_ORDER = Object.freeze([
   "perinamara",
   "silryd",
   "lor9n",
-  "bandai",
-  "ysgramora",
 ]);
 
 const ROLE_OVERRIDES = Object.freeze({
@@ -320,23 +301,6 @@ export default function Roster() {
             ),
         )
       : [];
-
-  for (const manualPlayer of MANUAL_PLAYERS) {
-    const manualNickname = normalizeNickname(
-      manualPlayer.nickname,
-    );
-
-    const alreadyExists = roster.some(
-      (player) =>
-        normalizeNickname(
-          player.nickname,
-        ) === manualNickname,
-    );
-
-    if (!alreadyExists) {
-      roster.push(manualPlayer);
-    }
-  }
 
   const mainRoster = roster.sort(
     (left, right) =>

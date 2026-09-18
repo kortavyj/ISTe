@@ -5,6 +5,8 @@ const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
   "infuriat3",
   "tokyok1ng",
+  "bandai",
+  "ysgramora",
 ]);
 
 const OFFICIAL_ROLES = Object.freeze({
