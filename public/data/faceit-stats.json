@@ -9,7 +9,7 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 4,
+  "players": 5,
   "roster": [
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -41,23 +41,23 @@
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
-      "kd": 1.28
+      "kd": 1.44
     },
     {
-      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
-      "nickname": "Perinamara",
-      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "playerId": "a8dd8993-c21f-4afb-9498-2f16c681baaa",
+      "nickname": "hak3p",
+      "avatar": "https://distribution.faceit-cdn.net/images/aa11f397-a7a1-44ec-aec5-3fd765469041.jpeg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "faceitUrl": "https://www.faceit.com/ru/players/hak3p",
       "level": 10,
-      "elo": 2726,
+      "elo": 2644,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 59,
-      "kd": 1.26
+      "winRate": 51,
+      "kd": 1.17
     },
     {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
@@ -68,12 +68,28 @@
       "faceitUrl": "https://www.faceit.com/ru/players/silryd",
       "level": 10,
       "elo": 2302,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 51,
+      "kd": 1.23
+    },
+    {
+      "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
+      "nickname": "Perinamara",
+      "avatar": "https://distribution.faceit-cdn.net/images/04cc89b4-2d22-468e-b0f9-ac1b74480cfa.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
+      "level": 10,
+      "elo": 2726,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.37
+      "winRate": 59,
+      "kd": 1.26
     }
   ],
   "teamMatches": [
@@ -3324,8 +3340,8 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 4,
-    "historyMatchesFound": 55,
+    "historyPlayersScanned": 5,
+    "historyMatchesFound": 52,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3333,5 +3349,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-18T17:16:54.373Z"
+  "updatedAt": "2026-09-18T19:40:29.761Z"
 }
