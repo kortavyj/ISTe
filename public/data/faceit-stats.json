@@ -9,7 +9,7 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 6,
+  "players": 4,
   "roster": [
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -28,38 +28,6 @@
       "kd": 1.29
     },
     {
-      "playerId": "5087fb40-2a49-4a0e-99e3-ba59f8ef796c",
-      "nickname": "ysgramora",
-      "avatar": "https://distribution.faceit-cdn.net/images/ba47464d-7729-48f0-a808-000eec701918.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/ysgramora",
-      "level": 10,
-      "elo": 3022,
-      "role": "AWP",
-      "reason": "Лучшие снайперские показатели в доступной статистике",
-      "confidence": 82,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 53,
-      "kd": 1.19
-    },
-    {
-      "playerId": "740691e6-85d3-4158-b100-dfb4ca728163",
-      "nickname": "bandai",
-      "avatar": "https://distribution.faceit-cdn.net/images/8f10e1b3-22f6-4e3a-9983-0f2ecfc6bb2b.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/bandai",
-      "level": 10,
-      "elo": 3077,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 1.16
-    },
-    {
       "playerId": "b99d7beb-930c-4823-98b9-094bcee3f219",
       "nickname": "Lor9n",
       "avatar": "https://distribution.faceit-cdn.net/images/3a63183f-5fb1-41ba-8449-2b3d60760de9.jpg",
@@ -68,28 +36,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/Lor9n",
       "level": 10,
       "elo": 2677,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "AWP",
+      "reason": "Лучшие снайперские показатели в доступной статистике",
+      "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 54,
       "kd": 1.28
-    },
-    {
-      "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
-      "nickname": "silryd",
-      "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/silryd",
-      "level": 10,
-      "elo": 2302,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.38
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -100,12 +52,28 @@
       "faceitUrl": "https://www.faceit.com/ru/players/Perinamara",
       "level": 10,
       "elo": 2726,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 59,
+      "kd": 1.26
+    },
+    {
+      "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
+      "nickname": "silryd",
+      "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/silryd",
+      "level": 10,
+      "elo": 2302,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 59,
-      "kd": 1.26
+      "winRate": 51,
+      "kd": 1.37
     }
   ],
   "teamMatches": [
@@ -3356,8 +3324,8 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 6,
-    "historyMatchesFound": 59,
+    "historyPlayersScanned": 4,
+    "historyMatchesFound": 55,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3365,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-18T13:50:44.514Z"
+  "updatedAt": "2026-09-18T17:16:54.373Z"
 }
