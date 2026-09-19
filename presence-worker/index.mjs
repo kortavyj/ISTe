@@ -22,6 +22,15 @@ const MAX_REFRESH_MS = 300_000;
 const FETCH_TIMEOUT_MS = 12_000;
 const MAX_ACTIVITY_LENGTH = 128;
 
+const AUTO_ROLE_IDS = String(process.env.DISCORD_AUTO_ROLE_IDS || "")
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+const AUTO_ROLE_GUILD_ID = String(
+  process.env.DISCORD_AUTO_ROLE_GUILD_ID || "",
+).trim();
+
 const PRIVATE_CATEGORY_NAME = "🔒 ПРИВАТНІ КІМНАТИ";
 const PRIVATE_LOBBY_NAME = "➕ Створити приватний";
 const PRIVATE_ROOM_PREFIX = "🔒・";
@@ -193,6 +202,7 @@ const refreshMs = clampNumber(
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
   ],
 });
@@ -223,6 +233,92 @@ function log(event, data = {}) {
   );
 }
 
+async function assignAutoRoles(member) {
+  if (!member || member.user?.bot) {
+    return;
+  }
+
+  if (AUTO_ROLE_IDS.length === 0) {
+    return;
+  }
+
+  if (AUTO_ROLE_IDS.length !== 2) {
+    log("auto_roles_invalid_config", {
+      guildId: member.guild.id,
+      configuredRoleCount: AUTO_ROLE_IDS.length,
+      message: "DISCORD_AUTO_ROLE_IDS must contain exactly 2 comma-separated role IDs",
+    });
+    return;
+  }
+
+  if (AUTO_ROLE_GUILD_ID && member.guild.id !== AUTO_ROLE_GUILD_ID) {
+    return;
+  }
+
+  try {
+    await member.guild.roles.fetch();
+
+    const me =
+      member.guild.members.me ||
+      (await member.guild.members.fetchMe().catch(() => null));
+
+    if (!me?.permissions.has(PermissionFlagsBits.ManageRoles)) {
+      throw new Error("ISTesport Bot needs Manage Roles permission");
+    }
+
+    const roles = AUTO_ROLE_IDS.map((roleId) =>
+      member.guild.roles.cache.get(roleId),
+    );
+
+    const missingRoleIds = AUTO_ROLE_IDS.filter(
+      (_, index) => !roles[index],
+    );
+
+    if (missingRoleIds.length > 0) {
+      throw new Error(
+        `Configured auto role(s) not found: ${missingRoleIds.join(", ")}`,
+      );
+    }
+
+    const unmanageableRoles = roles.filter((role) => !role.editable);
+
+    if (unmanageableRoles.length > 0) {
+      throw new Error(
+        "Bot role must be above auto-assigned role(s): " +
+        unmanageableRoles.map((role) => role.name).join(", "),
+      );
+    }
+
+    const roleIdsToAdd = roles
+      .filter((role) => !member.roles.cache.has(role.id))
+      .map((role) => role.id);
+
+    if (roleIdsToAdd.length === 0) {
+      log("auto_roles_already_present", {
+        guildId: member.guild.id,
+        userId: member.id,
+      });
+      return;
+    }
+
+    await member.roles.add(
+      roleIdsToAdd,
+      "ISTesport automatic roles on server join",
+    );
+
+    log("auto_roles_assigned", {
+      guildId: member.guild.id,
+      userId: member.id,
+      roleIds: roleIdsToAdd,
+    });
+  } catch (error) {
+    log("auto_roles_failed", {
+      guildId: member.guild?.id ?? null,
+      userId: member.id,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 function sanitizeRoomName(value) {
   return String(value ?? "")
     .replace(/[\u0000-\u001f\u007f]/g, "")
@@ -960,6 +1056,9 @@ client.once(Events.ClientReady, async (readyClient) => {
     guildCount: readyClient.guilds.cache.size,
     refreshMs,
     matchDataUrl,
+    autoRolesEnabled: AUTO_ROLE_IDS.length === 2,
+    autoRoleIds: AUTO_ROLE_IDS,
+    autoRoleGuildId: AUTO_ROLE_GUILD_ID || null,
   });
 
   try {
@@ -979,6 +1078,10 @@ client.once(Events.ClientReady, async (readyClient) => {
   await initializePrivateVoice();
   await refreshPresence();
   scheduleRefresh();
+});
+
+client.on(Events.GuildMemberAdd, (member) => {
+  void assignAutoRoles(member);
 });
 
 client.on(
