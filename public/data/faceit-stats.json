@@ -44,22 +44,6 @@
       "kd": 1.44
     },
     {
-      "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
-      "nickname": "silryd",
-      "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/silryd",
-      "level": 10,
-      "elo": 2302,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.23
-    },
-    {
       "playerId": "a8dd8993-c21f-4afb-9498-2f16c681baaa",
       "nickname": "hak3p",
       "avatar": "https://distribution.faceit-cdn.net/images/aa11f397-a7a1-44ec-aec5-3fd765469041.jpeg",
@@ -68,12 +52,28 @@
       "faceitUrl": "https://www.faceit.com/ru/players/hak3p",
       "level": 10,
       "elo": 2674,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 51,
+      "kd": 1.17
+    },
+    {
+      "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
+      "nickname": "silryd",
+      "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/silryd",
+      "level": 10,
+      "elo": 2302,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.17
+      "kd": 1.23
     },
     {
       "playerId": "600e69f1-a9ed-4be7-9ef8-d2609660cc99",
@@ -3349,5 +3349,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-18T23:39:00.118Z"
+  "updatedAt": "2026-09-19T01:33:40.309Z"
 }
