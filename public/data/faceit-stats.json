@@ -9,7 +9,7 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 5,
+  "players": 4,
   "roster": [
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -60,22 +60,6 @@
       "kd": 1.29
     },
     {
-      "playerId": "a8dd8993-c21f-4afb-9498-2f16c681baaa",
-      "nickname": "hak3p",
-      "avatar": "https://distribution.faceit-cdn.net/images/aa11f397-a7a1-44ec-aec5-3fd765469041.jpeg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/hak3p",
-      "level": 10,
-      "elo": 2720,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.17
-    },
-    {
       "playerId": "2ff91098-0d18-4d93-bc1a-6d82175bb97a",
       "nickname": "silryd",
       "avatar": "https://distribution.faceit-cdn.net/images/fc2109d6-b655-4d77-b591-e0ec606a0f1d.jpg",
@@ -89,7 +73,7 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.23
+      "kd": 1.24
     }
   ],
   "teamMatches": [
@@ -3340,7 +3324,7 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 5,
+    "historyPlayersScanned": 4,
     "historyMatchesFound": 49,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
@@ -3349,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-19T23:26:35.889Z"
+  "updatedAt": "2026-09-20T11:39:32.136Z"
 }
