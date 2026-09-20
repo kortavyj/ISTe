@@ -19,6 +19,11 @@ const TEAM_URL = `https://www.faceit.com/ru/teams/${TEAM_ID}`;
 const OUTPUT_FILE = resolve("public/data/faceit-stats.json");
 const API_KEY = process.env.FACEIT_API_KEY?.trim();
 
+const EXCLUDED_ROSTER_NICKNAMES = new Set([
+  "perinamara",
+  "hak3p",
+]);
+
 if (!API_KEY) {
   throw new Error("FACEIT_API_KEY is not configured in GitHub Actions secrets.");
 }
@@ -675,8 +680,20 @@ async function buildRoster(team) {
     return [];
   }
 
+  const visibleMembers = team.members.filter((member) => {
+    const nickname = String(
+      member?.nickname ?? member?.name ?? "",
+    )
+      .trim()
+      .toLowerCase();
+
+    return !EXCLUDED_ROSTER_NICKNAMES.has(nickname);
+  });
+
   const members = await Promise.all(
-    team.members.map((member) => enrichRosterMember(member, team.leader)),
+    visibleMembers.map((member) =>
+      enrichRosterMember(member, team.leader),
+    ),
   );
 
   const sortedMembers = members.sort((left, right) => {

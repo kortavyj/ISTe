@@ -7,17 +7,17 @@ const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
   "bandai",
   "ysgramora",
+  "perinamara",
+  "hak3p",
 ]);
 
 const MAIN_ROSTER_ORDER = Object.freeze([
-  "perinamara",
   "silryd",
   "lor9n",
 ]);
 
 const ROLE_OVERRIDES = Object.freeze({
   lor9n: "AWP",
-  perinamara: "ENTRY",
   silryd: "RIFLER",
 });
 

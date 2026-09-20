@@ -7,10 +7,11 @@ const EXCLUDED_PLAYERS = new Set([
   "tokyok1ng",
   "bandai",
   "ysgramora",
+  "perinamara",
+  "hak3p",
 ]);
 
 const OFFICIAL_ROLES = Object.freeze({
-  perinamara: "ENTRY",
   silryd: "RIFLER",
   lor9n: "SUPPORT",
 });

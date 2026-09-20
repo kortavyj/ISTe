@@ -2,7 +2,6 @@ import useFaceitStats from "../hooks/useFaceitStats.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import riflerPortrait from "../assets/players/rifler-support.png";
 import awpPortrait from "../assets/players/awp-main.png";
-import perinamaraPortrait from "../assets/players/perinamara.png";
 
 import "./Team.css";
 import "./TeamStats.css";
@@ -12,12 +11,13 @@ const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
   "infuriat3",
   "tokyok1ng",
+  "perinamara",
+  "hak3p",
 ]);
 
 const PROFILE_ORDER = Object.freeze([
   "silryd",
   "lor9n",
-  "perinamara",
 ]);
 
 const PAGE_COPY = Object.freeze({
@@ -115,34 +115,6 @@ const CUSTOM_PROFILES = Object.freeze([
         name: "Twitch",
         url: "https://www.twitch.tv/lor9n",
         icon: "twitch",
-      },
-    ],
-  },
-  {
-    sourceNickname: "perinamara",
-    nickname: "Perinamara",
-    roleLabel: "Entry Fragger",
-    copy: {
-      uk: {
-        title: "Відкриття раундів і темп",
-        description:
-          "Відкриває раунди та задає темп грі. Першим виходить на контакт, бере на себе ризик і знаходить початкові фраги, руйнуючи оборону суперника. Швидко приймає рішення та створює простір, допомагаючи команді впевнено заходити на позицію.",
-        strengths: ["Перший контакт", "Aim і реакція", "Агресія"],
-      },
-      en: {
-        title: "Opening rounds and setting the pace",
-        description:
-          "Opens rounds and sets the pace of the game. Takes first contact, accepts the risk and finds opening kills that break the opponent's defence. Makes quick decisions and creates space for the team to enter positions with confidence.",
-        strengths: ["First contact", "Aim and reactions", "Aggression"],
-      },
-    },
-    portrait: perinamaraPortrait,
-    portraitMode: "cutout",
-    socials: [
-      {
-        name: "Instagram",
-        url: "https://www.instagram.com/nikita5227_st/",
-        icon: "instagram",
       },
     ],
   },
