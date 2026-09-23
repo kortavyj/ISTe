@@ -19,13 +19,13 @@
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
       "level": 7,
-      "elo": 1500,
+      "elo": 1527,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.29
+      "kd": 1.31
     },
     {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
@@ -35,7 +35,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/valaf",
       "level": 10,
-      "elo": 2633,
+      "elo": 2663,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
@@ -51,13 +51,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/hagg1Nho",
       "level": 10,
-      "elo": 2771,
+      "elo": 2801,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.27
+      "kd": 1.28
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -67,7 +67,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
       "level": 10,
-      "elo": 2598,
+      "elo": 2628,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -3333,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-23T21:38:12.662Z"
+  "updatedAt": "2026-09-23T23:55:55.425Z"
 }
