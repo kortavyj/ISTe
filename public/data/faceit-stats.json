@@ -30,18 +30,18 @@
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
       "nickname": "1sagi",
-      "avatar": "https://distribution.faceit-cdn.net/images/fb2cc631-c565-4fac-af0c-b6ae0b3e59bf.jpg",
+      "avatar": "https://distribution.faceit-cdn.net/images/de3009e0-8701-465b-a3c6-5074100c4c3a.jpg",
       "country": "mc",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
       "level": 10,
-      "elo": 2538,
+      "elo": 2568,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.02
+      "kd": 1.01
     }
   ],
   "teamMatches": [
@@ -3301,5 +3301,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-23T14:21:00.029Z"
+  "updatedAt": "2026-09-23T18:26:39.319Z"
 }
