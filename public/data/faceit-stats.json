@@ -9,7 +9,7 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 2,
+  "players": 4,
   "roster": [
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -19,7 +19,7 @@
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
       "level": 7,
-      "elo": 1477,
+      "elo": 1500,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
@@ -28,20 +28,52 @@
       "kd": 1.29
     },
     {
-      "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
-      "nickname": "1sagi",
-      "avatar": "https://distribution.faceit-cdn.net/images/de3009e0-8701-465b-a3c6-5074100c4c3a.jpg",
-      "country": "mc",
+      "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
+      "nickname": "valaf",
+      "avatar": "https://distribution.faceit-cdn.net/images/198dbe80-75a8-41c8-ba5c-ae519cd74c6a.jpg",
+      "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
+      "faceitUrl": "https://www.faceit.com/ru/players/valaf",
       "level": 10,
-      "elo": 2568,
+      "elo": 2633,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.01
+      "kd": 1.22
+    },
+    {
+      "playerId": "889789da-d4b8-4bf7-8242-ac74368aee79",
+      "nickname": "hagg1Nho",
+      "avatar": "https://distribution.faceit-cdn.net/images/afc56f01-cc96-4a5d-a5e2-6cc699117b73.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/hagg1Nho",
+      "level": 10,
+      "elo": 2771,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 52,
+      "kd": 1.27
+    },
+    {
+      "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
+      "nickname": "1sagi",
+      "avatar": "https://distribution.faceit-cdn.net/images/afbc6997-3ae4-4094-8c88-b2965d38d39e.jpg",
+      "country": "mc",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
+      "level": 10,
+      "elo": 2598,
+      "role": "SUPPORT",
+      "reason": "Лучший вклад гранатами и ассистами",
+      "confidence": 78,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 51,
+      "kd": 1
     }
   ],
   "teamMatches": [
@@ -3292,8 +3324,8 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 2,
-    "historyMatchesFound": 6,
+    "historyPlayersScanned": 4,
+    "historyMatchesFound": 7,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3301,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-23T18:26:39.319Z"
+  "updatedAt": "2026-09-23T21:38:12.662Z"
 }
