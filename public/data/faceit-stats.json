@@ -12,36 +12,36 @@
   "players": 4,
   "roster": [
     {
-      "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
-      "nickname": "Kortavyj",
-      "avatar": "https://distribution.faceit-cdn.net/images/069028e3-ed27-4bfa-914b-5566e372c1a0.jpg",
-      "country": "ua",
-      "captain": true,
-      "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
-      "level": 7,
-      "elo": 1527,
-      "role": "IGL",
-      "reason": "Капитан команды на FACEIT",
-      "confidence": 95,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.31
-    },
-    {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
       "nickname": "valaf",
       "avatar": "https://distribution.faceit-cdn.net/images/198dbe80-75a8-41c8-ba5c-ae519cd74c6a.jpg",
       "country": "ua",
-      "captain": false,
+      "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/valaf",
       "level": 10,
       "elo": 2633,
+      "role": "IGL",
+      "reason": "Капитан команды на FACEIT",
+      "confidence": 95,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 51,
+      "kd": 1.19
+    },
+    {
+      "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
+      "nickname": "Kortavyj",
+      "avatar": "https://distribution.faceit-cdn.net/images/069028e3-ed27-4bfa-914b-5566e372c1a0.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
+      "level": 7,
+      "elo": 1478,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.19
+      "winRate": 49,
+      "kd": 1.3
     },
     {
       "playerId": "889789da-d4b8-4bf7-8242-ac74368aee79",
@@ -51,7 +51,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/hagg1Nho",
       "level": 10,
-      "elo": 2800,
+      "elo": 2830,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -3325,7 +3325,7 @@
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 4,
-    "historyMatchesFound": 7,
+    "historyMatchesFound": 6,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3333,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-24T17:38:49.773Z"
+  "updatedAt": "2026-09-24T20:45:56.048Z"
 }
