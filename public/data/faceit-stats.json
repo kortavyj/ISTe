@@ -35,7 +35,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/valaf",
       "level": 10,
-      "elo": 2603,
+      "elo": 2633,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
@@ -67,7 +67,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
       "level": 10,
-      "elo": 2568,
+      "elo": 2598,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -3333,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-24T02:34:59.356Z"
+  "updatedAt": "2026-09-24T07:47:02.459Z"
 }
