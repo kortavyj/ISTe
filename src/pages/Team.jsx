@@ -16,6 +16,7 @@ const EXCLUDED_PLAYERS = new Set([
 ]);
 
 const PROFILE_ORDER = Object.freeze([
+  "valaf",
   "silryd",
   "lor9n",
 ]);
@@ -52,6 +53,39 @@ const PAGE_COPY = Object.freeze({
 });
 
 const CUSTOM_PROFILES = Object.freeze([
+  {
+    sourceNickname: "valaf",
+    nickname: "VALAF",
+    roleLabel: "AWP",
+    copy: {
+      uk: {
+        title: "Valentyn",
+        description:
+          "Основний снайпер ISTe. Контролює ключові кути, шукає перший контакт і створює простір для команди завдяки точній та холоднокровній грі з AWP.",
+        strengths: ["Точність", "Позиціонування", "Клатчі"],
+      },
+      en: {
+        title: "Valentyn",
+        description:
+          "ISTe's primary sniper. He controls key angles, looks for opening contacts and creates space for the team through precise and composed AWP play.",
+        strengths: ["Precision", "Positioning", "Clutches"],
+      },
+    },
+    portrait: null,
+    portraitMode: "cutout",
+    socials: [
+      {
+        name: "Twitch",
+        url: "https://www.twitch.tv/valaf_",
+        icon: "twitch",
+      },
+      {
+        name: "Telegram",
+        url: "https://t.me/valafff",
+        icon: "telegram",
+      },
+    ],
+  },
   {
     sourceNickname: "silryd",
     nickname: "silryd",
@@ -180,6 +214,17 @@ function SocialIcon({ type }) {
           strokeLinejoin="round"
         />
         <path d="M9 8v5M15 8v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type === "telegram") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M21.5 3.5 18.2 19c-.25 1.1-.9 1.35-1.82.84l-5.03-3.71-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.63-.2L5.43 12.5.47 10.95c-1.08-.34-1.1-1.08.23-1.6L20.1 1.87c.9-.33 1.69.2 1.4 1.63Z"
+          fill="currentColor"
+        />
       </svg>
     );
   }
