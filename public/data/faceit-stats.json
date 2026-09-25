@@ -34,14 +34,14 @@
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
-      "level": 7,
-      "elo": 1507,
+      "level": 8,
+      "elo": 1542,
       "role": "AWP",
       "reason": "Лучшие снайперские показатели в доступной статистике",
       "confidence": 82,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.3
+      "kd": 1.33
     },
     {
       "playerId": "889789da-d4b8-4bf7-8242-ac74368aee79",
@@ -3325,7 +3325,7 @@
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 4,
-    "historyMatchesFound": 5,
+    "historyMatchesFound": 4,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3333,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-25T01:47:45.503Z"
+  "updatedAt": "2026-09-25T12:14:11.437Z"
 }
