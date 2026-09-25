@@ -15,6 +15,15 @@ import {
 const API_BASE = "https://open.faceit.com/data/v4";
 const TEAM_ID = "fe19e71d-c974-404c-a038-beb9a578fb61";
 const GAME_ID = "cs2";
+
+const ISTE_ROLE_OVERRIDES = Object.freeze({
+  valaf: {
+    role: "AWP",
+    reason: "Закреплённая роль основного состава ISTe",
+    confidence: 100,
+    roleSource: "ISTe manual roster override",
+  },
+});
 const TEAM_URL = `https://www.faceit.com/ru/teams/${TEAM_ID}`;
 const OUTPUT_FILE = resolve("public/data/faceit-stats.json");
 const API_KEY = process.env.FACEIT_API_KEY?.trim();
@@ -706,7 +715,19 @@ async function buildRoster(team) {
 
   const roleOrder = { IGL: 0, AWP: 1, ENTRY: 2, RIFLER: 3, SUPPORT: 4 };
 
-  return inferPlayerRoles(sortedMembers)
+  const roleAssignedMembers = inferPlayerRoles(sortedMembers).map((player) => {
+    const nickname = String(player.nickname || "").trim().toLowerCase();
+    const override = ISTE_ROLE_OVERRIDES[nickname];
+
+    return override
+      ? {
+          ...player,
+          ...override,
+        }
+      : player;
+  });
+
+  return roleAssignedMembers
     .sort((left, right) => {
       const leftOrder = roleOrder[left.role] ?? 99;
       const rightOrder = roleOrder[right.role] ?? 99;
