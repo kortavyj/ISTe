@@ -2,6 +2,7 @@ import useFaceitStats from "../hooks/useFaceitStats.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import riflerPortrait from "../assets/players/rifler-support.png";
 import awpPortrait from "../assets/players/awp-main.png";
+import valafPortrait from "../assets/players/valaf.png";
 
 import "./Team.css";
 import "./TeamStats.css";
@@ -71,7 +72,7 @@ const CUSTOM_PROFILES = Object.freeze([
         strengths: ["Precision", "Positioning", "Clutches"],
       },
     },
-    portrait: null,
+    portrait: valafPortrait,
     portraitMode: "cutout",
     socials: [
       {
