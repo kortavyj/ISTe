@@ -5,6 +5,8 @@ import "./Roster.css";
 
 const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
+  "infuriat3",
+  "tokyok1ng",
   "bandai",
   "ysgramora",
   "perinamara",
@@ -12,16 +14,16 @@ const EXCLUDED_PLAYERS = new Set([
 ]);
 
 const MAIN_ROSTER_ORDER = Object.freeze([
+  "valaf",
   "silryd",
   "lor9n",
 ]);
 
 const ROLE_OVERRIDES = Object.freeze({
+  valaf: "AWP",
   lor9n: "AWP",
   silryd: "RIFLER",
 });
-
-const CAPTAIN_NICKNAME = "lor9n";
 
 function normalizeNickname(nickname) {
   return String(nickname || "")
@@ -138,8 +140,7 @@ function PlayerCard({ player }) {
       player.nickname,
     );
 
-  const isCaptain =
-    nickname === CAPTAIN_NICKNAME;
+  const isCaptain = Boolean(player.captain);
 
   const roleLabel =
     ROLE_OVERRIDES[nickname] ||
