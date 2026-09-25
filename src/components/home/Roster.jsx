@@ -15,12 +15,14 @@ const EXCLUDED_PLAYERS = new Set([
 
 const MAIN_ROSTER_ORDER = Object.freeze([
   "valaf",
+  "1sagi",
   "silryd",
   "lor9n",
 ]);
 
 const ROLE_OVERRIDES = Object.freeze({
   valaf: "AWP",
+  "1sagi": "RIFLER",
   lor9n: "AWP",
   silryd: "RIFLER",
 });

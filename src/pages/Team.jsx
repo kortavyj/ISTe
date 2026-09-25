@@ -3,6 +3,7 @@ import { useLanguage } from "../i18n/LanguageContext.jsx";
 import riflerPortrait from "../assets/players/rifler-support.png";
 import awpPortrait from "../assets/players/awp-main.png";
 import valafPortrait from "../assets/players/valaf.png";
+import sagiPortrait from "../assets/players/1sagi.png";
 
 import "./Team.css";
 import "./TeamStats.css";
@@ -18,6 +19,7 @@ const EXCLUDED_PLAYERS = new Set([
 
 const PROFILE_ORDER = Object.freeze([
   "valaf",
+  "1sagi",
   "silryd",
   "lor9n",
 ]);
@@ -83,6 +85,39 @@ const CUSTOM_PROFILES = Object.freeze([
       {
         name: "Telegram",
         url: "https://t.me/valafff",
+        icon: "telegram",
+      },
+    ],
+  },
+  {
+    sourceNickname: "1sagi",
+    nickname: "1sagi",
+    roleLabel: "Rifle",
+    copy: {
+      uk: {
+        title: "Serhii",
+        description:
+          "Зірковий рифлер. Ламає раунд першим дуелем, забирає сайт і тягне карту мультикілами. Диктує темп різкими піками, щільним спреєм і безстрашною агресією.",
+        strengths: ["Ентрі-дуелі", "Мультикіли", "Безстрашний аім"],
+      },
+      en: {
+        title: "Serhii",
+        description:
+          "Star rifler. Breaks rounds open with the first duel, takes sites and carries maps with multikills. Sets the pace with sharp peeks, tight sprays and fearless aggression.",
+        strengths: ["Entry duels", "Multikills", "Fearless aim"],
+      },
+    },
+    portrait: sagiPortrait,
+    portraitMode: "cutout",
+    socials: [
+      {
+        name: "Twitch",
+        url: "https://www.twitch.tv/1sagiw",
+        icon: "twitch",
+      },
+      {
+        name: "Telegram",
+        url: "https://t.me/Isag1cs2",
         icon: "telegram",
       },
     ],

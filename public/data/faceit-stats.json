@@ -68,10 +68,10 @@
       "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
       "level": 10,
       "elo": 2538,
-      "role": "SUPPORT",
-      "reason": "Лучший вклад гранатами и ассистами",
-      "confidence": 78,
-      "roleSource": "FACEIT statistical inference",
+      "role": "RIFLER",
+      "reason": "Закреплённая роль основного состава ISTe",
+      "confidence": 100,
+      "roleSource": "ISTe manual roster override",
       "winRate": 51,
       "kd": 0.99
     }

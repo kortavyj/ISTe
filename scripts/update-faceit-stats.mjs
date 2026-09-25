@@ -23,6 +23,12 @@ const ISTE_ROLE_OVERRIDES = Object.freeze({
     confidence: 100,
     roleSource: "ISTe manual roster override",
   },
+  "1sagi": {
+    role: "RIFLER",
+    reason: "Закреплённая роль основного состава ISTe",
+    confidence: 100,
+    roleSource: "ISTe manual roster override",
+  },
 });
 const TEAM_URL = `https://www.faceit.com/ru/teams/${TEAM_ID}`;
 const OUTPUT_FILE = resolve("public/data/faceit-stats.json");
