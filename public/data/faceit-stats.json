@@ -25,7 +25,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 50,
-      "kd": 1.18
+      "kd": 1.17
     },
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -51,13 +51,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/hagg1Nho",
       "level": 10,
-      "elo": 2799,
+      "elo": 2880,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 52,
-      "kd": 1.3
+      "kd": 1.32
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -3333,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-26T18:32:46.874Z"
+  "updatedAt": "2026-09-26T21:26:32.063Z"
 }
