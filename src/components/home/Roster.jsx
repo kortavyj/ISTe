@@ -1,5 +1,6 @@
 import useFaceitStats from "../../hooks/useFaceitStats";
 import { useLanguage } from "../../i18n/LanguageContext.jsx";
+import sharedPlayerPortrait from "../../assets/players/team-player.webp";
 
 import "./Roster.css";
 
@@ -103,18 +104,11 @@ function PlayerAvatar({ player }) {
     >
       <span>{initial}</span>
 
-      {player.avatar ? (
-        <img
-          src={player.avatar}
+      <img
+          src={sharedPlayerPortrait}
           alt=""
           loading="lazy"
-          referrerPolicy="no-referrer"
-          onError={(event) => {
-            event.currentTarget.hidden =
-              true;
-          }}
         />
-      ) : null}
     </div>
   );
 }

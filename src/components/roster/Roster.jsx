@@ -1,4 +1,5 @@
 import useFaceitStats from "../../hooks/useFaceitStats";
+import sharedPlayerPortrait from "../../assets/players/team-player.webp";
 import "./Roster.css";
 
 const EXCLUDED_PLAYERS = new Set([
@@ -41,17 +42,11 @@ function PlayerAvatar({ player }) {
     <div className="player-avatar" aria-hidden="true">
       <span>{initial}</span>
 
-      {player.avatar ? (
-        <img
-          src={player.avatar}
+      <img
+          src={sharedPlayerPortrait}
           alt=""
           loading="lazy"
-          referrerPolicy="no-referrer"
-          onError={(event) => {
-            event.currentTarget.hidden = true;
-          }}
         />
-      ) : null}
     </div>
   );
 }

@@ -1,9 +1,6 @@
 import useFaceitStats from "../hooks/useFaceitStats.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
-import riflerPortrait from "../assets/players/rifler-support.png";
-import awpPortrait from "../assets/players/awp-main.png";
-import valafPortrait from "../assets/players/valaf.png";
-import sagiPortrait from "../assets/players/1sagi.png";
+import sharedPlayerPortrait from "../assets/players/team-player.webp";
 
 import "./Team.css";
 import "./TeamStats.css";
@@ -74,7 +71,7 @@ const CUSTOM_PROFILES = Object.freeze([
         strengths: ["Precision", "Positioning", "Clutches"],
       },
     },
-    portrait: valafPortrait,
+    portrait: sharedPlayerPortrait,
     portraitMode: "cutout",
     socials: [
       {
@@ -107,7 +104,7 @@ const CUSTOM_PROFILES = Object.freeze([
         strengths: ["Entry duels", "Multikills", "Fearless aim"],
       },
     },
-    portrait: sagiPortrait,
+    portrait: sharedPlayerPortrait,
     portraitMode: "cutout",
     socials: [
       {
@@ -140,7 +137,7 @@ const CUSTOM_PROFILES = Object.freeze([
         strengths: ["Utility", "Trading", "Adaptation"],
       },
     },
-    portrait: riflerPortrait,
+    portrait: sharedPlayerPortrait,
     portraitMode: "cutout",
     socials: [
       {
@@ -173,7 +170,7 @@ const CUSTOM_PROFILES = Object.freeze([
         strengths: ["Positioning", "Opening kill", "AWP pressure"],
       },
     },
-    portrait: awpPortrait,
+    portrait: sharedPlayerPortrait,
     portraitMode: "cutout",
     socials: [
       {
