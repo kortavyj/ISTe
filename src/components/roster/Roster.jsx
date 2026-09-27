@@ -23,12 +23,38 @@ const DISPLAY_NAME_OVERRIDES = Object.freeze({
   hagg1nho: "Hagg1CH",
 });
 
+const MAIN_ROSTER_ORDER = Object.freeze([
+  "valaf",
+  "1sagi",
+  "anubis",
+  "hagg1nho",
+  "tw3ntyq",
+]);
+
+const CAPTAIN_NICKNAME = "anubis";
+
 function normalizeNickname(value) {
   return String(value || "").trim().toLowerCase();
 }
 
 function normalizeRosterKey(value) {
   return normalizeNickname(value).replace(/[^a-z0-9]/g, "");
+}
+
+function getRosterOrder(player) {
+  const nickname =
+    normalizeNickname(
+      player?.nickname,
+    );
+
+  const index =
+    MAIN_ROSTER_ORDER.indexOf(
+      nickname,
+    );
+
+  return index === -1
+    ? 999
+    : index;
 }
 
 function countryToFlag(countryCode) {
@@ -69,6 +95,7 @@ function PlayerCard({ player }) {
   const officialRole = OFFICIAL_ROLES[nicknameKey];
   const roleLabel = officialRole || player.role || "RIFLER";
   const displayName = DISPLAY_NAME_OVERRIDES[nicknameKey] || player.nickname;
+  const isCaptain = nicknameKey === CAPTAIN_NICKNAME;
   const roleDescription = officialRole
     ? "Официальная роль игрока в составе ISTe"
     : player.reason || "Игровая роль участника команды ISTe";
@@ -104,7 +131,7 @@ function PlayerCard({ player }) {
       <div className="player-card__badges">
         <span className="player-level">FACEIT LVL {level}</span>
 
-        {player.captain ? (
+        {isCaptain ? (
           <span className="player-captain">CAPTAIN</span>
         ) : null}
       </div>
@@ -142,10 +169,17 @@ export default function Roster() {
   const { stats, loading, error, reload } = useFaceitStats();
 
   const roster = Array.isArray(stats.roster)
-    ? stats.roster.filter(
-        (player) =>
-          !EXCLUDED_PLAYERS.has(normalizeNickname(player.nickname)),
-      )
+    ? stats.roster
+        .filter(
+          (player) =>
+            !EXCLUDED_PLAYERS.has(normalizeNickname(player.nickname)) &&
+            !EXCLUDED_PLAYERS.has(normalizeRosterKey(player.nickname)),
+        )
+        .sort(
+          (left, right) =>
+            getRosterOrder(left) -
+            getRosterOrder(right),
+        )
     : [];
 
   return (
