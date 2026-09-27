@@ -227,6 +227,10 @@ function normalizeNickname(nickname) {
   return String(nickname || "").trim().toLowerCase();
 }
 
+function normalizeRosterKey(nickname) {
+  return normalizeNickname(nickname).replace(/[^a-z0-9]/g, "");
+}
+
 function countryToFlag(countryCode) {
   if (!countryCode || countryCode.length !== 2) return "";
 
@@ -527,7 +531,9 @@ export default function Team() {
   const players = Array.isArray(stats.roster)
     ? stats.roster
         .filter(
-          (player) => !EXCLUDED_PLAYERS.has(normalizeNickname(player.nickname)),
+          (player) =>
+            !EXCLUDED_PLAYERS.has(normalizeNickname(player.nickname)) &&
+            !EXCLUDED_PLAYERS.has(normalizeRosterKey(player.nickname)),
         )
         .filter((player) =>
           PROFILE_BY_NICKNAME.has(normalizeNickname(player.nickname)),
