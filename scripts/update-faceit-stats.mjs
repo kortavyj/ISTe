@@ -709,7 +709,13 @@ async function buildRoster(team) {
       .trim()
       .toLowerCase();
 
-    return !EXCLUDED_ROSTER_NICKNAMES.has(nickname);
+    const rosterKey =
+      nickname.replace(/[^a-z0-9]/g, "");
+
+    return (
+      !EXCLUDED_ROSTER_NICKNAMES.has(nickname) &&
+      !EXCLUDED_ROSTER_NICKNAMES.has(rosterKey)
+    );
   });
 
   const members = await Promise.all(
