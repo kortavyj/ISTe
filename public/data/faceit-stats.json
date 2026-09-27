@@ -9,7 +9,7 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 7,
+  "players": 6,
   "roster": [
     {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
@@ -74,22 +74,6 @@
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
       "kd": 1.03
-    },
-    {
-      "playerId": "c6396075-7fcc-4fb9-b5a9-caec5d151744",
-      "nickname": "-Hunter----",
-      "avatar": "https://distribution.faceit-cdn.net/images/b638523b-aa4d-40e6-99dc-13ce346eaf54.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/-Hunter----",
-      "level": 9,
-      "elo": 1766,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.12
     },
     {
       "playerId": "889789da-d4b8-4bf7-8242-ac74368aee79",
