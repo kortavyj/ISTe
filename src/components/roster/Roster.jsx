@@ -27,6 +27,10 @@ function normalizeNickname(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function normalizeRosterKey(value) {
+  return normalizeNickname(value).replace(/[^a-z0-9]/g, "");
+}
+
 function countryToFlag(countryCode) {
   if (!countryCode || countryCode.length !== 2) {
     return "";
