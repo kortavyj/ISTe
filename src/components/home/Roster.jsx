@@ -26,8 +26,8 @@ const ROLE_OVERRIDES = Object.freeze({
   valaf: "AWP",
   "1sagi": "RIFLER",
   hagg1nho: {
-    uk: "ОПОРНИК",
-    en: "ANCHOR",
+    uk: "SUPPORT",
+    en: "SUPPORT",
   },
   lor9n: "AWP",
   silryd: "RIFLER",

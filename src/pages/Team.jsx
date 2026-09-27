@@ -123,10 +123,7 @@ const CUSTOM_PROFILES = Object.freeze([
   {
     sourceNickname: "hagg1nho",
     nickname: "Hagg1CH",
-    roleLabel: {
-      uk: "ОПОРНИК",
-      en: "ANCHOR",
-    },
+    roleLabel: "SUPPORT",
     copy: {
       uk: {
         title: "Олександр",
@@ -220,8 +217,8 @@ const PROFILE_BY_NICKNAME = new Map(
 
 const OFFICIAL_ROLE_LABELS = Object.freeze({
   hagg1nho: {
-    uk: "ОПОРНИК",
-    en: "ANCHOR",
+    uk: "SUPPORT",
+    en: "SUPPORT",
   },
 });
 

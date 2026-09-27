@@ -30,8 +30,8 @@ const ISTE_ROLE_OVERRIDES = Object.freeze({
     roleSource: "ISTe manual roster override",
   },
   hagg1nho: {
-    role: "ANCHOR",
-    reason: "Офіційна роль у складі ISTe: опорник",
+    role: "SUPPORT",
+    reason: "Закреплённая роль основного состава ISTe",
     confidence: 100,
     roleSource: "ISTe manual roster override",
   },
