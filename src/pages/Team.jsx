@@ -17,6 +17,7 @@ const EXCLUDED_PLAYERS = new Set([
 const PROFILE_ORDER = Object.freeze([
   "valaf",
   "1sagi",
+  "hagg1nho",
   "silryd",
   "lor9n",
 ]);
@@ -118,6 +119,31 @@ const CUSTOM_PROFILES = Object.freeze([
         icon: "telegram",
       },
     ],
+  },
+  {
+    sourceNickname: "hagg1nho",
+    nickname: "Hagg1CH",
+    roleLabel: {
+      uk: "ОПОРНИК",
+      en: "ANCHOR",
+    },
+    copy: {
+      uk: {
+        title: "Олександр",
+        description:
+          "Опорник команди. Відповідає за ключові позиції на карті, часто грає соло та люркує, щоб знайти перевагу для команди у найкращий таймінг.",
+        strengths: ["Контроль позицій", "Люрк", "Таймінги"],
+      },
+      en: {
+        title: "Oleksandr",
+        description:
+          "Team anchor. Responsible for key positions on the map, often plays solo and lurks to find an advantage for the team at the right timing.",
+        strengths: ["Position control", "Lurking", "Timing"],
+      },
+    },
+    portrait: sharedPlayerPortrait,
+    portraitMode: "cutout",
+    socials: [],
   },
   {
     sourceNickname: "silryd",
@@ -390,7 +416,10 @@ function PlayerProfile({ player, index, language, copy }) {
 
   const profileCopy = profile.copy[language] || profile.copy.uk;
   const displayName = profile.nickname || player.nickname;
-  const roleLabel = profile.roleLabel || String(player.role || "RIFLER").toUpperCase();
+  const roleLabel =
+    typeof profile.roleLabel === "object"
+      ? profile.roleLabel[language] || profile.roleLabel.uk || String(player.role || "RIFLER").toUpperCase()
+      : profile.roleLabel || String(player.role || "RIFLER").toUpperCase();
   const flag = countryToFlag(player.country);
   const level = Number.isFinite(player.level) ? player.level : "—";
   const elo = formatInteger(player.elo, language);

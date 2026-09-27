@@ -13,8 +13,13 @@ const EXCLUDED_PLAYERS = new Set([
 ]);
 
 const OFFICIAL_ROLES = Object.freeze({
+  hagg1nho: "ANCHOR",
   silryd: "RIFLER",
   lor9n: "SUPPORT",
+});
+
+const DISPLAY_NAME_OVERRIDES = Object.freeze({
+  hagg1nho: "Hagg1CH",
 });
 
 function normalizeNickname(value) {
@@ -58,6 +63,7 @@ function PlayerCard({ player }) {
   const nicknameKey = normalizeNickname(player.nickname);
   const officialRole = OFFICIAL_ROLES[nicknameKey];
   const roleLabel = officialRole || player.role || "RIFLER";
+  const displayName = DISPLAY_NAME_OVERRIDES[nicknameKey] || player.nickname;
   const roleDescription = officialRole
     ? "Официальная роль игрока в составе ISTe"
     : player.reason || "Игровая роль участника команды ISTe";
@@ -68,7 +74,7 @@ function PlayerCard({ player }) {
       href={faceitUrl}
       target="_blank"
       rel="noreferrer"
-      aria-label={`Открыть FACEIT профиль игрока ${player.nickname}`}
+      aria-label={`Открыть FACEIT профиль игрока ${displayName}`}
     >
       <span className="player-card__external" aria-hidden="true">
         ↗
@@ -77,7 +83,7 @@ function PlayerCard({ player }) {
       <PlayerAvatar player={player} />
 
       <div className="player-card__identity">
-        <h3>{player.nickname}</h3>
+        <h3>{displayName}</h3>
 
         {flag ? (
           <span className="player-country" title={player.country}>

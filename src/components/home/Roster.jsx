@@ -17,6 +17,7 @@ const EXCLUDED_PLAYERS = new Set([
 const MAIN_ROSTER_ORDER = Object.freeze([
   "valaf",
   "1sagi",
+  "hagg1nho",
   "silryd",
   "lor9n",
 ]);
@@ -24,8 +25,16 @@ const MAIN_ROSTER_ORDER = Object.freeze([
 const ROLE_OVERRIDES = Object.freeze({
   valaf: "AWP",
   "1sagi": "RIFLER",
+  hagg1nho: {
+    uk: "ОПОРНИК",
+    en: "ANCHOR",
+  },
   lor9n: "AWP",
   silryd: "RIFLER",
+});
+
+const DISPLAY_NAME_OVERRIDES = Object.freeze({
+  hagg1nho: "Hagg1CH",
 });
 
 function normalizeNickname(nickname) {
@@ -138,10 +147,16 @@ function PlayerCard({ player }) {
 
   const isCaptain = Boolean(player.captain);
 
+  const roleOverride = ROLE_OVERRIDES[nickname];
+
   const roleLabel =
-    ROLE_OVERRIDES[nickname] ||
-    player.role ||
-    "RIFLER";
+    typeof roleOverride === "object"
+      ? roleOverride[language] || roleOverride.uk || player.role || "RIFLER"
+      : roleOverride || player.role || "RIFLER";
+
+  const displayName =
+    DISPLAY_NAME_OVERRIDES[nickname] ||
+    player.nickname;
 
   const roleDescription =
     player.reason ||
@@ -173,7 +188,7 @@ function PlayerCard({ player }) {
         "home.roster.openProfile",
         {
           nickname:
-            player.nickname,
+            displayName,
         },
       )}
     >
@@ -200,7 +215,7 @@ function PlayerCard({ player }) {
 
       <div className="player-card__identity">
         <h3>
-          {player.nickname}
+          {displayName}
         </h3>
 
         {isCaptain ? (

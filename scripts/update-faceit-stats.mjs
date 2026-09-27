@@ -29,6 +29,12 @@ const ISTE_ROLE_OVERRIDES = Object.freeze({
     confidence: 100,
     roleSource: "ISTe manual roster override",
   },
+  hagg1nho: {
+    role: "ANCHOR",
+    reason: "Офіційна роль у складі ISTe: опорник",
+    confidence: 100,
+    roleSource: "ISTe manual roster override",
+  },
 });
 const TEAM_URL = `https://www.faceit.com/ru/teams/${TEAM_ID}`;
 const OUTPUT_FILE = resolve("public/data/faceit-stats.json");
@@ -719,7 +725,7 @@ async function buildRoster(team) {
     return (right.elo ?? 0) - (left.elo ?? 0);
   });
 
-  const roleOrder = { IGL: 0, AWP: 1, ENTRY: 2, RIFLER: 3, SUPPORT: 4 };
+  const roleOrder = { IGL: 0, AWP: 1, ENTRY: 2, RIFLER: 3, ANCHOR: 4, SUPPORT: 5 };
 
   const roleAssignedMembers = inferPlayerRoles(sortedMembers).map((player) => {
     const nickname = String(player.nickname || "").trim().toLowerCase();
