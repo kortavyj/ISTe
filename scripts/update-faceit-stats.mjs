@@ -43,6 +43,7 @@ const API_KEY = process.env.FACEIT_API_KEY?.trim();
 const EXCLUDED_ROSTER_NICKNAMES = new Set([
   "perinamara",
   "hak3p",
+  "hunter",
 ]);
 
 if (!API_KEY) {
