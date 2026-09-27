@@ -9,7 +9,7 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 4,
+  "players": 3,
   "roster": [
     {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
@@ -42,22 +42,6 @@
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
       "kd": 1.33
-    },
-    {
-      "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
-      "nickname": "1sagi",
-      "avatar": "https://distribution.faceit-cdn.net/images/afbc6997-3ae4-4094-8c88-b2965d38d39e.jpg",
-      "country": "mc",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
-      "level": 10,
-      "elo": 2732,
-      "role": "RIFLER",
-      "reason": "Закреплённая роль основного состава ISTe",
-      "confidence": 100,
-      "roleSource": "ISTe manual roster override",
-      "winRate": 51,
-      "kd": 1.03
     },
     {
       "playerId": "889789da-d4b8-4bf7-8242-ac74368aee79",
@@ -3324,7 +3308,7 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 4,
+    "historyPlayersScanned": 3,
     "historyMatchesFound": 4,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
@@ -3333,5 +3317,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-27T15:03:16.218Z"
+  "updatedAt": "2026-09-27T17:35:55.194Z"
 }
