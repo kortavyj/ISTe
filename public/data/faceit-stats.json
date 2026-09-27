@@ -14,7 +14,7 @@
     {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
       "nickname": "valaf",
-      "avatar": "https://distribution.faceit-cdn.net/images/198dbe80-75a8-41c8-ba5c-ae519cd74c6a.jpg",
+      "avatar": "https://distribution.faceit-cdn.net/images/10cfb301-1d19-4f41-a084-cd8a008af188.jpg",
       "country": "ua",
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/valaf",
@@ -3333,5 +3333,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-27T14:47:41.422Z"
+  "updatedAt": "2026-09-27T15:03:16.218Z"
 }
