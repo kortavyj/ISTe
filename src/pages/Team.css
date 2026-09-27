@@ -222,11 +222,11 @@
 }
 
 .team-profile__portrait--cutout {
-  width: min(470px, 100%);
+  width: 100%;
   height: 100%;
   aspect-ratio: auto;
-  align-self: end;
-  overflow: visible;
+  align-self: stretch;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -239,9 +239,14 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center bottom;
-  filter: drop-shadow(0 24px 32px rgba(0, 0, 0, 0.5));
+  object-fit: cover;
+  object-position: 50% 22%;
+  transform: scale(1.035);
+  transform-origin: 50% 24%;
+  filter:
+    saturate(1.04)
+    contrast(1.035)
+    drop-shadow(0 24px 32px rgba(0, 0, 0, 0.5));
 }
 
 .team-profile__scanline,
@@ -449,10 +454,6 @@
     min-height: 340px;
   }
 
-  .team-profile__portrait--cutout {
-    width: min(420px, 100%);
-  }
-
   .team-profile__heading {
     flex-direction: column;
     align-items: flex-start;
@@ -469,8 +470,9 @@
     min-height: 300px;
   }
 
-  .team-profile__portrait--cutout {
-    width: min(320px, 96%);
+  .team-profile__portrait--cutout img {
+    object-position: 50% 18%;
+    transform: scale(1.02);
   }
 
   .team-profile__content {

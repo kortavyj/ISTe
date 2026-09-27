@@ -218,6 +218,13 @@ const PROFILE_BY_NICKNAME = new Map(
   CUSTOM_PROFILES.map((profile) => [profile.sourceNickname, profile]),
 );
 
+const OFFICIAL_ROLE_LABELS = Object.freeze({
+  hagg1nho: {
+    uk: "ОПОРНИК",
+    en: "ANCHOR",
+  },
+});
+
 function normalizeNickname(nickname) {
   return String(nickname || "").trim().toLowerCase();
 }
@@ -416,10 +423,20 @@ function PlayerProfile({ player, index, language, copy }) {
 
   const profileCopy = profile.copy[language] || profile.copy.uk;
   const displayName = profile.nickname || player.nickname;
+  const officialRole =
+    OFFICIAL_ROLE_LABELS[normalizedNickname];
+
   const roleLabel =
-    typeof profile.roleLabel === "object"
-      ? profile.roleLabel[language] || profile.roleLabel.uk || String(player.role || "RIFLER").toUpperCase()
-      : profile.roleLabel || String(player.role || "RIFLER").toUpperCase();
+    officialRole?.[language] ||
+    officialRole?.uk ||
+    (
+      typeof profile.roleLabel === "object"
+        ? profile.roleLabel[language] ||
+          profile.roleLabel.uk ||
+          String(player.role || "RIFLER").toUpperCase()
+        : profile.roleLabel ||
+          String(player.role || "RIFLER").toUpperCase()
+    );
   const flag = countryToFlag(player.country);
   const level = Number.isFinite(player.level) ? player.level : "—";
   const elo = formatInteger(player.elo, language);
