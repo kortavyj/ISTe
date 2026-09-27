@@ -18,10 +18,12 @@ const EXCLUDED_PLAYERS = new Set([
 const MAIN_ROSTER_ORDER = Object.freeze([
   "valaf",
   "1sagi",
+  "anubis",
   "hagg1nho",
-  "silryd",
-  "lor9n",
+  "tw3ntyq",
 ]);
+
+const CAPTAIN_NICKNAME = "anubis";
 
 const ROLE_OVERRIDES = Object.freeze({
   valaf: "AWP",
@@ -150,7 +152,8 @@ function PlayerCard({ player }) {
       player.nickname,
     );
 
-  const isCaptain = Boolean(player.captain);
+  const isCaptain =
+    nickname === CAPTAIN_NICKNAME;
 
   const roleOverride = ROLE_OVERRIDES[nickname];
 
