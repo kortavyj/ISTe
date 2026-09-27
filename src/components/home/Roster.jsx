@@ -44,6 +44,10 @@ function normalizeNickname(nickname) {
     .toLowerCase();
 }
 
+function normalizeRosterKey(nickname) {
+  return normalizeNickname(nickname).replace(/[^a-z0-9]/g, "");
+}
+
 function getRosterOrder(player) {
   const nickname = normalizeNickname(
     player?.nickname,
