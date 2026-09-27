@@ -10,6 +10,7 @@ const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
   "infuriat3",
   "tokyok1ng",
+  "hunter",
   "perinamara",
   "hak3p",
 ]);
