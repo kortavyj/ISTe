@@ -1,6 +1,6 @@
 import useFaceitStats from "../../hooks/useFaceitStats";
 import { useLanguage } from "../../i18n/LanguageContext.jsx";
-import sharedPlayerPortrait from "../../assets/players/team-player.webp";
+import sharedPlayerPortrait from "../../assets/players/teamPlayerPhoto.js";
 
 import "./Roster.css";
 

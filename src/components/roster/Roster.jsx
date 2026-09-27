@@ -1,5 +1,5 @@
 import useFaceitStats from "../../hooks/useFaceitStats";
-import sharedPlayerPortrait from "../../assets/players/team-player.webp";
+import sharedPlayerPortrait from "../../assets/players/teamPlayerPhoto.js";
 import "./Roster.css";
 
 const EXCLUDED_PLAYERS = new Set([
