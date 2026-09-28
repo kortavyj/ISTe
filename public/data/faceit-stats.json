@@ -52,9 +52,9 @@
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
       "elo": 2706,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
       "kd": 1.17
@@ -3365,5 +3365,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-27T23:09:47.952Z"
+  "updatedAt": "2026-09-28T01:36:51.900Z"
 }
