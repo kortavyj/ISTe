@@ -12,11 +12,27 @@
   "players": 6,
   "roster": [
     {
+      "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
+      "nickname": "Kortavyj",
+      "avatar": "https://distribution.faceit-cdn.net/images/069028e3-ed27-4bfa-914b-5566e372c1a0.jpg",
+      "country": "ua",
+      "captain": true,
+      "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
+      "level": 8,
+      "elo": 1542,
+      "role": "IGL",
+      "reason": "Капитан команды на FACEIT",
+      "confidence": 95,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 49,
+      "kd": 1.33
+    },
+    {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
       "nickname": "valaf",
       "avatar": "https://distribution.faceit-cdn.net/images/10cfb301-1d19-4f41-a084-cd8a008af188.jpg",
       "country": "ua",
-      "captain": true,
+      "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/valaf",
       "level": 10,
       "elo": 2498,
@@ -28,22 +44,6 @@
       "kd": 1.17
     },
     {
-      "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
-      "nickname": "Kortavyj",
-      "avatar": "https://distribution.faceit-cdn.net/images/069028e3-ed27-4bfa-914b-5566e372c1a0.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
-      "level": 8,
-      "elo": 1542,
-      "role": "AWP",
-      "reason": "Лучшие снайперские показатели в доступной статистике",
-      "confidence": 82,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.33
-    },
-    {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
       "nickname": "tw3ntyq",
       "avatar": "https://distribution.faceit-cdn.net/images/78893d81-b58e-4510-8843-7b40689ba588.jpg",
@@ -52,9 +52,9 @@
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
       "elo": 2706,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
       "kd": 1.17
@@ -78,7 +78,7 @@
     {
       "playerId": "889789da-d4b8-4bf7-8242-ac74368aee79",
       "nickname": "hagg1Nho",
-      "avatar": "https://distribution.faceit-cdn.net/images/afc56f01-cc96-4a5d-a5e2-6cc699117b73.jpg",
+      "avatar": "https://distribution.faceit-cdn.net/images/bb886ced-cbea-4e19-826c-ab7c1f76b104.jpg",
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/hagg1Nho",
@@ -3365,5 +3365,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-28T01:36:51.900Z"
+  "updatedAt": "2026-09-28T21:24:48.487Z"
 }
