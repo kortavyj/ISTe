@@ -19,6 +19,7 @@ const PROFILE_ORDER = Object.freeze([
   "valaf",
   "1sagi",
   "hagg1nho",
+  "tw3ntyq",
   "silryd",
   "lor9n",
 ]);
@@ -137,6 +138,28 @@ const CUSTOM_PROFILES = Object.freeze([
         description:
           "Team anchor. Responsible for key positions on the map, often plays solo and lurks to find an advantage for the team at the right timing.",
         strengths: ["Position control", "Lurking", "Timing"],
+      },
+    },
+    portrait: sharedPlayerPortrait,
+    portraitMode: "cutout",
+    socials: [],
+  },
+  {
+    sourceNickname: "tw3ntyq",
+    nickname: "tw3ntyq",
+    roleLabel: "RIFLER",
+    copy: {
+      uk: {
+        title: "Олександр",
+        description:
+          "Надійний рифлер, який тримає структуру раунду, швидко підключається до трейдів і підтримує партнерів у ключових розіграшах. У напружених ситуаціях зберігає холоднокровність і здатен закривати клатчі, коли команді потрібен вирішальний момент.",
+        strengths: ["Трейди", "Підтримка", "Клатчі"],
+      },
+      en: {
+        title: "OLEKSANDR",
+        description:
+          "Reliable rifler who keeps the round structured, connects quickly for trades and supports teammates in key situations. He stays composed under pressure and can close clutches when the team needs a decisive final play.",
+        strengths: ["Trades", "Support", "Clutches"],
       },
     },
     portrait: sharedPlayerPortrait,
