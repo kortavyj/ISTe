@@ -9,24 +9,8 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 6,
+  "players": 5,
   "roster": [
-    {
-      "playerId": "ffddda11-d930-439d-b4f9-d4a18e86284a",
-      "nickname": "Anubis",
-      "avatar": "https://distribution.faceit-cdn.net/images/2f2ffa0d-216d-4a83-9a75-1c921db31895.jpg",
-      "country": "il",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Anubis",
-      "level": 10,
-      "elo": 2321,
-      "role": "IGL",
-      "reason": "Закреплённая роль основного состава ISTe",
-      "confidence": 100,
-      "roleSource": "ISTe manual roster override",
-      "winRate": 50,
-      "kd": 1.16
-    },
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
       "nickname": "Kortavyj",
@@ -57,7 +41,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 50,
-      "kd": 1.17
+      "kd": 1.19
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -73,7 +57,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.17
+      "kd": 1.16
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -99,13 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/hagg1Nho",
       "level": 10,
-      "elo": 2880,
+      "elo": 2850,
       "role": "SUPPORT",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 52,
-      "kd": 1.32
+      "kd": 1.34
     }
   ],
   "teamMatches": [
@@ -3356,8 +3340,8 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 7,
-    "historyMatchesFound": 6,
+    "historyPlayersScanned": 6,
+    "historyMatchesFound": 5,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3365,5 +3349,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-29T13:23:30.684Z"
+  "updatedAt": "2026-09-29T18:43:01.565Z"
 }
