@@ -327,7 +327,7 @@ export default function News() {
       const { data, error } = await supabase
         .from("news_posts")
         .select(
-          "id, title, slug, excerpt, content, cover_url, category, translations, is_featured, published_at",
+          "id, title, slug, excerpt, content, cover_url, category, is_featured, published_at",
         )
         .eq("status", "published")
         .lte("published_at", new Date().toISOString())
@@ -348,9 +348,60 @@ export default function News() {
           ? data
           : [];
 
+      let postsWithStoredTranslations =
+        basePosts;
+
+      if (basePosts.length > 0) {
+        const ids =
+          basePosts
+            .map(
+              (post) =>
+                post.id,
+            )
+            .filter(Boolean);
+
+        if (ids.length > 0) {
+          const localizationResult =
+            await supabase
+              .from("news_posts")
+              .select(
+                "id, translations",
+              )
+              .in("id", ids);
+
+          if (
+            !localizationResult.error &&
+            Array.isArray(
+              localizationResult.data,
+            )
+          ) {
+            const translationsById =
+              new Map(
+                localizationResult.data.map(
+                  (post) => [
+                    post.id,
+                    post.translations,
+                  ],
+                ),
+              );
+
+            postsWithStoredTranslations =
+              basePosts.map(
+                (post) => ({
+                  ...post,
+                  translations:
+                    translationsById.get(
+                      post.id,
+                    ) || null,
+                }),
+              );
+          }
+        }
+      }
+
       const nextPosts =
         await localizeMissingPosts(
-          basePosts,
+          postsWithStoredTranslations,
           language,
         );
 
