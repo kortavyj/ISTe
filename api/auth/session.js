@@ -25,7 +25,7 @@ const LEGACY_PROFILE_COLUMNS =
   "id, username, display_name, avatar_url, bio, created_at, updated_at";
 
 const NEWS_COLUMNS =
-  "id, title, slug, excerpt, content, cover_url, category, status, is_featured, author_id, updated_by, published_at, created_at, updated_at";
+  "id, title, slug, excerpt, content, cover_url, category, translations, status, is_featured, author_id, updated_by, published_at, created_at, updated_at";
 
 const STAFF_ROLES = new Set([
   "editor",
@@ -60,6 +60,515 @@ const ALLOWED_IMAGE_TYPES = new Map([
 ]);
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+const NEWS_LANGUAGES = Object.freeze([
+  "uk",
+  "en",
+]);
+
+const NEWS_TRANSLATION_ENDPOINT =
+  "https://translate.googleapis.com/translate_a/single";
+
+const NEWS_TRANSLATION_CHUNK_SIZE = 3000;
+const NEWS_TRANSLATION_TIMEOUT_MS = 12000;
+
+function splitNewsTranslationText(value) {
+  const source = String(value ?? "");
+
+  if (
+    source.length <=
+    NEWS_TRANSLATION_CHUNK_SIZE
+  ) {
+    return [source];
+  }
+
+  const chunks = [];
+  let remaining = source;
+
+  while (remaining.length > 0) {
+    if (
+      remaining.length <=
+      NEWS_TRANSLATION_CHUNK_SIZE
+    ) {
+      chunks.push(remaining);
+      break;
+    }
+
+    const windowText =
+      remaining.slice(
+        0,
+        NEWS_TRANSLATION_CHUNK_SIZE,
+      );
+
+    const splitCandidates = [
+      windowText.lastIndexOf("\n\n"),
+      windowText.lastIndexOf("\n"),
+      windowText.lastIndexOf(". "),
+      windowText.lastIndexOf("! "),
+      windowText.lastIndexOf("? "),
+      windowText.lastIndexOf(" "),
+    ];
+
+    const minimumSplit =
+      Math.floor(
+        NEWS_TRANSLATION_CHUNK_SIZE *
+          0.55,
+      );
+
+    const splitAt =
+      splitCandidates.find(
+        (index) =>
+          index >= minimumSplit,
+      ) ?? -1;
+
+    const take =
+      splitAt > 0
+        ? splitAt + 1
+        : NEWS_TRANSLATION_CHUNK_SIZE;
+
+    chunks.push(
+      remaining.slice(0, take),
+    );
+
+    remaining =
+      remaining.slice(take);
+  }
+
+  return chunks;
+}
+
+async function requestNewsTranslation(
+  value,
+  targetLanguage,
+) {
+  const source = String(value ?? "");
+
+  if (!source.trim()) {
+    return "";
+  }
+
+  const controller =
+    new AbortController();
+
+  const timeoutId =
+    setTimeout(
+      () =>
+        controller.abort(),
+      NEWS_TRANSLATION_TIMEOUT_MS,
+    );
+
+  const params =
+    new URLSearchParams({
+      client: "gtx",
+      sl: "auto",
+      tl: targetLanguage,
+      dt: "t",
+      q: source,
+    });
+
+  try {
+    const response = await fetch(
+      NEWS_TRANSLATION_ENDPOINT,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+        body: params.toString(),
+        signal:
+          controller.signal,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Translation provider returned ${response.status}.`,
+      );
+    }
+
+    const payload =
+      await response.json();
+
+    const translated =
+      Array.isArray(payload?.[0])
+        ? payload[0]
+            .map(
+              (part) =>
+                typeof part?.[0] ===
+                "string"
+                  ? part[0]
+                  : "",
+            )
+            .join("")
+        : "";
+
+    if (!translated.trim()) {
+      throw new Error(
+        "Translation provider returned an empty result.",
+      );
+    }
+
+    return translated;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function translateNewsText(
+  value,
+  targetLanguage,
+) {
+  const source =
+    String(value ?? "");
+
+  if (!source.trim()) {
+    return "";
+  }
+
+  const chunks =
+    splitNewsTranslationText(
+      source,
+    );
+
+  const translated = [];
+
+  for (const chunk of chunks) {
+    translated.push(
+      await requestNewsTranslation(
+        chunk,
+        targetLanguage,
+      ),
+    );
+  }
+
+  return translated.join("");
+}
+
+async function buildNewsTranslation(
+  source,
+  language,
+) {
+  const [
+    title,
+    excerpt,
+    content,
+    category,
+  ] = await Promise.all([
+    translateNewsText(
+      source?.title,
+      language,
+    ),
+    translateNewsText(
+      source?.excerpt,
+      language,
+    ),
+    translateNewsText(
+      source?.content,
+      language,
+    ),
+    translateNewsText(
+      source?.category,
+      language,
+    ),
+  ]);
+
+  return {
+    title,
+    excerpt,
+    content,
+    category,
+  };
+}
+
+async function buildNewsTranslations(
+  source,
+) {
+  const entries =
+    await Promise.all(
+      NEWS_LANGUAGES.map(
+        async (language) => [
+          language,
+          await buildNewsTranslation(
+            source,
+            language,
+          ),
+        ],
+      ),
+    );
+
+  return Object.fromEntries(
+    entries,
+  );
+}
+
+function hasCompleteNewsTranslation(
+  post,
+  language,
+) {
+  const item =
+    post?.translations?.[
+      language
+    ];
+
+  return Boolean(
+    item &&
+      typeof item ===
+        "object" &&
+      typeof item.title ===
+        "string" &&
+      item.title.trim() &&
+      typeof item.content ===
+        "string" &&
+      item.content.trim(),
+  );
+}
+
+async function backfillNewsTranslations(
+  supabase,
+  posts,
+) {
+  const output = [];
+
+  for (
+    const post
+    of Array.isArray(posts)
+      ? posts
+      : []
+  ) {
+    const missingLanguages =
+      NEWS_LANGUAGES.filter(
+        (language) =>
+          !hasCompleteNewsTranslation(
+            post,
+            language,
+          ),
+      );
+
+    if (
+      missingLanguages.length === 0
+    ) {
+      output.push(post);
+      continue;
+    }
+
+    try {
+      const generatedEntries =
+        await Promise.all(
+          missingLanguages.map(
+            async (language) => [
+              language,
+              await buildNewsTranslation(
+                post,
+                language,
+              ),
+            ],
+          ),
+        );
+
+      const translations = {
+        ...(
+          post?.translations &&
+          typeof post.translations ===
+            "object" &&
+          !Array.isArray(
+            post.translations,
+          )
+            ? post.translations
+            : {}
+        ),
+        ...Object.fromEntries(
+          generatedEntries,
+        ),
+      };
+
+      const { error } =
+        await supabase
+          .from("news_posts")
+          .update({
+            translations,
+          })
+          .eq("id", post.id);
+
+      if (error) {
+        console.error(
+          "News localization backfill update error:",
+          error,
+        );
+
+        output.push(post);
+        continue;
+      }
+
+      output.push({
+        ...post,
+        translations,
+      });
+    } catch (error) {
+      console.error(
+        "News localization backfill error:",
+        error?.cause || error,
+      );
+
+      output.push(post);
+    }
+  }
+
+  return output;
+}
+
+function readPublicNewsLocalizationInput(
+  body,
+) {
+  const language =
+    typeof body.language ===
+    "string"
+      ? body.language
+          .trim()
+          .toLowerCase()
+      : "";
+
+  if (
+    !NEWS_LANGUAGES.includes(
+      language,
+    )
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error:
+        "INVALID_NEWS_LANGUAGE",
+      message:
+        "Unsupported news language.",
+    };
+  }
+
+  const posts =
+    Array.isArray(body.posts)
+      ? body.posts.slice(0, 12)
+      : [];
+
+  const normalizedPosts = [];
+
+  for (const post of posts) {
+    const id =
+      typeof post?.id ===
+      "string"
+        ? post.id.trim()
+        : "";
+
+    const title =
+      typeof post?.title ===
+      "string"
+        ? post.title.trim()
+        : "";
+
+    const excerpt =
+      typeof post?.excerpt ===
+      "string"
+        ? post.excerpt.trim()
+        : "";
+
+    const content =
+      typeof post?.content ===
+      "string"
+        ? post.content.trim()
+        : "";
+
+    const category =
+      typeof post?.category ===
+      "string"
+        ? post.category.trim()
+        : "";
+
+    if (
+      !id ||
+      title.length > 160 ||
+      excerpt.length > 320 ||
+      content.length > 100000 ||
+      category.length > 60
+    ) {
+      return {
+        ok: false,
+        status: 400,
+        error:
+          "INVALID_NEWS_LOCALIZATION_INPUT",
+        message:
+          "Invalid news localization payload.",
+      };
+    }
+
+    normalizedPosts.push({
+      id,
+      title,
+      excerpt,
+      content,
+      category,
+    });
+  }
+
+  return {
+    ok: true,
+    language,
+    posts:
+      normalizedPosts,
+  };
+}
+
+async function handlePublicNewsLocalization(
+  response,
+  body,
+) {
+  const input =
+    readPublicNewsLocalizationInput(
+      body,
+    );
+
+  if (!input.ok) {
+    return sendError(
+      response,
+      input.status,
+      input.error,
+      input.message,
+    );
+  }
+
+  try {
+    const entries = [];
+
+    for (const post of input.posts) {
+      entries.push([
+        post.id,
+        await buildNewsTranslation(
+          post,
+          input.language,
+        ),
+      ]);
+    }
+
+    return response.status(200).json({
+      ok: true,
+      language:
+        input.language,
+      translations:
+        Object.fromEntries(
+          entries,
+        ),
+    });
+  } catch (error) {
+    console.error(
+      "Public news localization error:",
+      error?.cause || error,
+    );
+
+    return sendError(
+      response,
+      502,
+      "NEWS_TRANSLATION_FAILED",
+      "Could not translate news.",
+    );
+  }
+}
 
 function sendGuardError(response, guard) {
   if (guard.allow) {
@@ -1802,11 +2311,15 @@ async function handleNewsList(
       );
     }
 
+    const localizedPosts =
+      await backfillNewsTranslations(
+        account.supabase,
+        data,
+      );
+
     return response.status(200).json({
       ok: true,
-      posts: Array.isArray(data)
-        ? data
-        : [],
+      posts: localizedPosts,
     });
   } catch (error) {
     console.error(
@@ -1861,6 +2374,27 @@ async function handleNewsSave(
         account.access.role,
       );
 
+    let translations;
+
+    try {
+      translations =
+        await buildNewsTranslations(
+          input,
+        );
+    } catch (error) {
+      console.error(
+        "News translation error:",
+        error?.cause || error,
+      );
+
+      return sendError(
+        response,
+        502,
+        "NEWS_TRANSLATION_FAILED",
+        "Не удалось подготовить украинскую и английскую версии новости.",
+      );
+    }
+
     const payload = {
       title: input.title,
       slug: input.slug,
@@ -1869,6 +2403,7 @@ async function handleNewsSave(
       cover_url:
         input.coverUrl || null,
       category: input.category,
+      translations,
       status: canManageAll
         ? input.status
         : "draft",
@@ -2391,6 +2926,16 @@ export default async function handler(
 
   const action =
   normalizeAction(body.action);
+
+if (
+  action ===
+  "news-localize-public"
+) {
+  return handlePublicNewsLocalization(
+    response,
+    body,
+  );
+}
 
 if (action === "mfa-enroll") {
   return handleMfaEnroll(
