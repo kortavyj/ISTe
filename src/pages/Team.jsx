@@ -18,6 +18,7 @@ const EXCLUDED_PLAYERS = new Set([
 const PROFILE_ORDER = Object.freeze([
   "valaf",
   "1sagi",
+  "anubis",
   "hagg1nho",
   "tw3ntyq",
   "silryd",
@@ -121,6 +122,28 @@ const CUSTOM_PROFILES = Object.freeze([
         icon: "telegram",
       },
     ],
+  },
+  {
+    sourceNickname: "anubis",
+    nickname: "Anubis",
+    roleLabel: "IGL",
+    copy: {
+      uk: {
+        title: "Dmitrii",
+        description:
+          "Ігровий лідер команди, який відповідає за побудову раундів, координацію гравців і прийняття рішень у ключові моменти. Контролює темп гри, адаптує план під суперника та допомагає команді зберігати структуру навіть у складних ситуаціях.",
+        strengths: ["Коллинг", "Координація", "Тактика"],
+      },
+      en: {
+        title: "Dmitrii",
+        description:
+          "The team's in-game leader, responsible for structuring rounds, coordinating players and making decisions in key moments. He controls the pace, adapts the game plan to the opponent and keeps the team organized under pressure.",
+        strengths: ["Calling", "Coordination", "Tactics"],
+      },
+    },
+    portrait: sharedPlayerPortrait,
+    portraitMode: "cutout",
+    socials: [],
   },
   {
     sourceNickname: "hagg1nho",
