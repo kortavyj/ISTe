@@ -14,6 +14,7 @@ const EXCLUDED_PLAYERS = new Set([
 ]);
 
 const OFFICIAL_ROLES = Object.freeze({
+  anubis: "IGL",
   hagg1nho: "SUPPORT",
   silryd: "RIFLER",
   lor9n: "SUPPORT",
