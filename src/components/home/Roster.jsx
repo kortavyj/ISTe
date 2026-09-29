@@ -32,6 +32,7 @@ const ROLE_OVERRIDES = Object.freeze({
     uk: "SUPPORT",
     en: "SUPPORT",
   },
+  tw3ntyq: "RIFLER",
   lor9n: "AWP",
   silryd: "RIFLER",
 });
