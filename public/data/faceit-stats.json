@@ -100,10 +100,10 @@
       "faceitUrl": "https://www.faceit.com/ru/players/Anubis",
       "level": 10,
       "elo": 2321,
-      "role": "SUPPORT",
-      "reason": "Лучший вклад гранатами и ассистами",
-      "confidence": 78,
-      "roleSource": "FACEIT statistical inference",
+      "role": "IGL",
+      "reason": "Закреплённая роль основного состава ISTe",
+      "confidence": 100,
+      "roleSource": "ISTe manual roster override",
       "winRate": 50,
       "kd": 1.16
     }
