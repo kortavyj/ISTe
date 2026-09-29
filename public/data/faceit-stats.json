@@ -53,9 +53,9 @@
       "level": 10,
       "elo": 2706,
       "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
+      "reason": "Закреплённая роль основного состава ISTe",
+      "confidence": 100,
+      "roleSource": "ISTe manual roster override",
       "winRate": 51,
       "kd": 1.17
     },
