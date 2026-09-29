@@ -25,7 +25,7 @@ const LEGACY_PROFILE_COLUMNS =
   "id, username, display_name, avatar_url, bio, created_at, updated_at";
 
 const NEWS_COLUMNS =
-  "id, title, slug, excerpt, content, cover_url, category, translations, status, is_featured, author_id, updated_by, published_at, created_at, updated_at";
+  "id, title, slug, excerpt, content, cover_url, category, status, is_featured, author_id, updated_by, published_at, created_at, updated_at";
 
 const STAFF_ROLES = new Set([
   "editor",
@@ -2311,15 +2311,11 @@ async function handleNewsList(
       );
     }
 
-    const localizedPosts =
-      await backfillNewsTranslations(
-        account.supabase,
-        data,
-      );
-
     return response.status(200).json({
       ok: true,
-      posts: localizedPosts,
+      posts: Array.isArray(data)
+        ? data
+        : [],
     });
   } catch (error) {
     console.error(
@@ -2403,7 +2399,6 @@ async function handleNewsSave(
       cover_url:
         input.coverUrl || null,
       category: input.category,
-      translations,
       status: canManageAll
         ? input.status
         : "draft",
@@ -2531,9 +2526,49 @@ async function handleNewsSave(
       );
     }
 
+    /*
+     * translations is optional at database level.
+     * If the localization migration is present we persist both languages.
+     * If it is not present yet, the public News page still receives
+     * automatic runtime localization through news-localize-public.
+     */
+    try {
+      const {
+        error:
+          translationSaveError,
+      } =
+        await account.supabase
+          .from("news_posts")
+          .update({
+            translations,
+          })
+          .eq(
+            "id",
+            result.data.id,
+          );
+
+      if (
+        translationSaveError
+      ) {
+        console.warn(
+          "News translations were not persisted:",
+          translationSaveError.message ||
+            translationSaveError,
+        );
+      }
+    } catch (error) {
+      console.warn(
+        "News translations persistence skipped:",
+        error?.message || error,
+      );
+    }
+
     return response.status(200).json({
       ok: true,
-      post: result.data,
+      post: {
+        ...result.data,
+        translations,
+      },
     });
   } catch (error) {
     console.error(
