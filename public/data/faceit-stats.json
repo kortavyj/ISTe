@@ -12,20 +12,36 @@
   "players": 6,
   "roster": [
     {
+      "playerId": "ffddda11-d930-439d-b4f9-d4a18e86284a",
+      "nickname": "Anubis",
+      "avatar": "https://distribution.faceit-cdn.net/images/2f2ffa0d-216d-4a83-9a75-1c921db31895.jpg",
+      "country": "il",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Anubis",
+      "level": 10,
+      "elo": 2321,
+      "role": "IGL",
+      "reason": "Закреплённая роль основного состава ISTe",
+      "confidence": 100,
+      "roleSource": "ISTe manual roster override",
+      "winRate": 50,
+      "kd": 1.16
+    },
+    {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
       "nickname": "Kortavyj",
       "avatar": "https://distribution.faceit-cdn.net/images/069028e3-ed27-4bfa-914b-5566e372c1a0.jpg",
       "country": "ua",
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
-      "level": 8,
-      "elo": 1542,
+      "level": 7,
+      "elo": 1485,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.33
+      "kd": 1.34
     },
     {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
@@ -90,22 +106,6 @@
       "roleSource": "ISTe manual roster override",
       "winRate": 52,
       "kd": 1.32
-    },
-    {
-      "playerId": "ffddda11-d930-439d-b4f9-d4a18e86284a",
-      "nickname": "Anubis",
-      "avatar": "https://distribution.faceit-cdn.net/images/2f2ffa0d-216d-4a83-9a75-1c921db31895.jpg",
-      "country": "il",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Anubis",
-      "level": 10,
-      "elo": 2321,
-      "role": "IGL",
-      "reason": "Закреплённая роль основного состава ISTe",
-      "confidence": 100,
-      "roleSource": "ISTe manual roster override",
-      "winRate": 50,
-      "kd": 1.16
     }
   ],
   "teamMatches": [
@@ -3365,5 +3365,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-29T06:48:52.690Z"
+  "updatedAt": "2026-09-29T13:23:30.684Z"
 }
