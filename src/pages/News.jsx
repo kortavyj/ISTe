@@ -150,13 +150,162 @@ function readLocalizedField(post, language, field) {
 }
 
 function localizePost(post, language) {
+  const storedCategory =
+    getStoredTranslation(
+      post,
+      language,
+      "category",
+    );
+
   return {
     ...post,
     title: readLocalizedField(post, language, "title"),
     excerpt: readLocalizedField(post, language, "excerpt"),
     content: readLocalizedField(post, language, "content"),
-    category: localizeCategory(post.category, language),
+    category: (
+      storedCategory ||
+      localizeCategory(
+        post.category,
+        language,
+      )
+    ).toUpperCase(),
   };
+}
+
+function hasCompleteStoredTranslation(
+  post,
+  language,
+) {
+  return Boolean(
+    getStoredTranslation(
+      post,
+      language,
+      "title",
+    ) &&
+      getStoredTranslation(
+        post,
+        language,
+        "content",
+      ),
+  );
+}
+
+async function localizeMissingPosts(
+  posts,
+  language,
+) {
+  const sourcePosts =
+    Array.isArray(posts)
+      ? posts
+      : [];
+
+  const missingPosts =
+    sourcePosts.filter(
+      (post) =>
+        !hasCompleteStoredTranslation(
+          post,
+          language,
+        ),
+    );
+
+  if (
+    missingPosts.length === 0
+  ) {
+    return sourcePosts;
+  }
+
+  try {
+    const response = await fetch(
+      "/api/auth/session",
+      {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+        headers: {
+          Accept:
+            "application/json",
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          action:
+            "news-localize-public",
+          language,
+          posts:
+            missingPosts.map(
+              (post) => ({
+                id: post.id,
+                title:
+                  post.title || "",
+                excerpt:
+                  post.excerpt || "",
+                content:
+                  post.content || "",
+                category:
+                  post.category || "",
+              }),
+            ),
+        }),
+      },
+    );
+
+    const result =
+      await response.json();
+
+    if (
+      !response.ok ||
+      result?.ok !== true ||
+      !result.translations ||
+      typeof result.translations !==
+        "object"
+    ) {
+      return sourcePosts;
+    }
+
+    return sourcePosts.map(
+      (post) => {
+        const generated =
+          result.translations[
+            post.id
+          ];
+
+        if (
+          !generated ||
+          typeof generated !==
+            "object"
+        ) {
+          return post;
+        }
+
+        const existing =
+          post.translations &&
+          typeof post.translations ===
+            "object" &&
+          !Array.isArray(
+            post.translations,
+          )
+            ? post.translations
+            : {};
+
+        return {
+          ...post,
+          translations: {
+            ...existing,
+            [language]: {
+              ...(
+                existing[
+                  language
+                ] || {}
+              ),
+              ...generated,
+            },
+          },
+        };
+      },
+    );
+  } catch {
+    return sourcePosts;
+  }
 }
 
 export default function News() {
@@ -178,7 +327,7 @@ export default function News() {
       const { data, error } = await supabase
         .from("news_posts")
         .select(
-          "id, title, slug, excerpt, content, cover_url, category, is_featured, published_at",
+          "id, title, slug, excerpt, content, cover_url, category, translations, is_featured, published_at",
         )
         .eq("status", "published")
         .lte("published_at", new Date().toISOString())
@@ -194,38 +343,16 @@ export default function News() {
         return;
       }
 
-      const basePosts = Array.isArray(data) ? data : [];
-      let nextPosts = basePosts;
+      const basePosts =
+        Array.isArray(data)
+          ? data
+          : [];
 
-      if (basePosts.length > 0) {
-        const ids = basePosts.map((post) => post.id).filter(Boolean);
-
-        if (ids.length > 0) {
-          const localizationResult = await supabase
-            .from("news_posts")
-            .select("id, translations")
-            .in("id", ids);
-
-          if (
-            active &&
-            !localizationResult.error &&
-            Array.isArray(localizationResult.data)
-          ) {
-            const translationsById = new Map(
-              localizationResult.data.map((post) => [
-                post.id,
-                post.translations,
-              ]),
-            );
-
-            nextPosts = basePosts.map((post) => ({
-              ...post,
-              translations:
-                translationsById.get(post.id) || null,
-            }));
-          }
-        }
-      }
+      const nextPosts =
+        await localizeMissingPosts(
+          basePosts,
+          language,
+        );
 
       if (!active) return;
 
@@ -238,7 +365,7 @@ export default function News() {
     return () => {
       active = false;
     };
-  }, [copy.loadErrorText]);
+  }, [copy.loadErrorText, language]);
 
   const localizedPosts = useMemo(
     () => posts.map((post) => localizePost(post, language)),
