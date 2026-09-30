@@ -9,7 +9,7 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 8,
+  "players": 6,
   "roster": [
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -35,13 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/valaf",
       "level": 10,
-      "elo": 2348,
+      "elo": 2408,
       "role": "AWP",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 50,
-      "kd": 1.2
+      "kd": 1.21
     },
     {
       "playerId": "b4c511c8-5035-4094-bace-a19e14261ba0",
@@ -51,7 +51,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/FatalExcept",
       "level": 10,
-      "elo": 2621,
+      "elo": 2591,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -83,29 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
-      "elo": 2613,
+      "elo": 2563,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.13
-    },
-    {
-      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
-      "nickname": "sssoo",
-      "avatar": "https://distribution.faceit-cdn.net/images/8ae69796-88c6-431b-8a75-4946858b3eb7.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
-      "level": 10,
-      "elo": 2035,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.13
+      "kd": 1.14
     },
     {
       "playerId": "889789da-d4b8-4bf7-8242-ac74368aee79",
@@ -122,22 +106,6 @@
       "roleSource": "ISTe manual roster override",
       "winRate": 52,
       "kd": 1.31
-    },
-    {
-      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
-      "nickname": "Droni452",
-      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
-      "level": 10,
-      "elo": 2423,
-      "role": "SUPPORT",
-      "reason": "Лучший вклад гранатами и ассистами",
-      "confidence": 78,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.06
     }
   ],
   "teamMatches": [
@@ -3388,7 +3356,7 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 9,
+    "historyPlayersScanned": 7,
     "historyMatchesFound": 5,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
@@ -3397,5 +3365,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-30T20:08:44.626Z"
+  "updatedAt": "2026-09-30T22:34:02.839Z"
 }
