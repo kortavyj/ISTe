@@ -20,12 +20,12 @@ const EXCLUDED_PLAYERS = new Set([
 const MAIN_ROSTER_ORDER = Object.freeze([
   "valaf",
   "1sagi",
-  "anubis",
+  "droni452",
   "hagg1nho",
   "tw3ntyq",
 ]);
 
-const CAPTAIN_NICKNAME = "anubis";
+const CAPTAIN_NICKNAME = "droni452";
 
 const SUBSTITUTE_PLAYERS = new Set([
   "sssoo",
@@ -40,6 +40,7 @@ const ROLE_OVERRIDES = Object.freeze({
     en: "SUPPORT",
   },
   tw3ntyq: "RIFLER",
+  droni452: "IGL",
   anubis: "IGL",
   lor9n: "AWP",
   silryd: "RIFLER",
@@ -47,6 +48,7 @@ const ROLE_OVERRIDES = Object.freeze({
 
 const DISPLAY_NAME_OVERRIDES = Object.freeze({
   hagg1nho: "Hagg1CH",
+  droni452: "DRONI",
 });
 
 function normalizeNickname(nickname) {
