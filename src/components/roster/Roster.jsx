@@ -34,6 +34,10 @@ const MAIN_ROSTER_ORDER = Object.freeze([
 
 const CAPTAIN_NICKNAME = "anubis";
 
+const SUBSTITUTE_PLAYERS = new Set([
+  "sssoo",
+]);
+
 function normalizeNickname(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -88,7 +92,7 @@ function PlayerAvatar({ player }) {
   );
 }
 
-function PlayerCard({ player }) {
+function PlayerCard({ player, rosterStatus = "main" }) {
   const faceitUrl = player.faceitUrl || "https://www.faceit.com/ru";
   const flag = countryToFlag(player.country);
   const level = Number.isFinite(player.level) ? player.level : "?";
@@ -138,7 +142,9 @@ function PlayerCard({ player }) {
       </div>
 
       <span className="player-role-note">
-        официальная роль в составе
+        {rosterStatus === "substitute"
+          ? "игрок замены ISTe"
+          : "официальная роль в составе"}
       </span>
     </a>
   );
@@ -183,6 +189,18 @@ export default function Roster() {
         )
     : [];
 
+  const mainRoster = roster.filter(
+    (player) =>
+      !SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) &&
+      !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+  );
+
+  const substitutes = roster.filter(
+    (player) =>
+      SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) ||
+      SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+  );
+
   return (
     <section className="section roster-section" id="roster">
       <header className="section-header">
@@ -196,13 +214,13 @@ export default function Roster() {
         </p>
       </header>
 
-      {loading && roster.length === 0 ? (
+      {loading && mainRoster.length + substitutes.length === 0 ? (
         <RosterSkeleton />
       ) : null}
 
-      {!loading && roster.length > 0 ? (
+      {!loading && mainRoster.length > 0 ? (
         <div className="roster-grid">
-          {roster.map((player) => (
+          {mainRoster.map((player) => (
             <PlayerCard
               player={player}
               key={player.playerId || player.nickname}
@@ -211,7 +229,28 @@ export default function Roster() {
         </div>
       ) : null}
 
-      {!loading && roster.length === 0 ? (
+      {!loading && substitutes.length > 0 ? (
+        <div style={{ marginTop: "34px" }}>
+          <header className="section-header" style={{ marginBottom: "18px" }}>
+            <p className="section-tag">ISTE SUBSTITUTE</p>
+            <h3 className="section-title" style={{ fontSize: "clamp(1.45rem, 3vw, 2rem)" }}>
+              ЗАМЕНА
+            </h3>
+          </header>
+
+          <div className="roster-grid">
+            {substitutes.map((player) => (
+              <PlayerCard
+                player={player}
+                rosterStatus="substitute"
+                key={player.playerId || player.nickname}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {!loading && mainRoster.length + substitutes.length === 0 ? (
         <div className="roster-empty">
           <p>
             {error
