@@ -208,7 +208,7 @@ export default function Roster() {
   );
 
   return (
-    <section className="section roster-section" id="roster">
+    <section className="section roster-section" id="roster" data-roster-layout="substitute-v2">
       <header className="section-header">
         <p className="section-tag">ISTE ROSTER</p>
         <h2 className="section-title">СОСТАВ КОМАНДЫ</h2>
