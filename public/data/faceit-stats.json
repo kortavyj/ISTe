@@ -18,8 +18,8 @@
       "country": "ua",
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
-      "level": 7,
-      "elo": 1485,
+      "level": 8,
+      "elo": 1546,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
@@ -35,13 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/valaf",
       "level": 10,
-      "elo": 2498,
+      "elo": 2408,
       "role": "AWP",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 50,
-      "kd": 1.19
+      "kd": 1.18
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -67,13 +67,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
-      "elo": 2659,
+      "elo": 2635,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.15
+      "kd": 1.14
     },
     {
       "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
@@ -83,7 +83,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2026,
+      "elo": 2024,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -3365,5 +3365,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-09-29T22:38:06.492Z"
+  "updatedAt": "2026-09-30T01:31:38.791Z"
 }
