@@ -23,6 +23,11 @@ const PROFILE_ORDER = Object.freeze([
   "tw3ntyq",
   "silryd",
   "lor9n",
+  "sssoo",
+]);
+
+const SUBSTITUTE_PLAYERS = new Set([
+  "sssoo",
 ]);
 
 const PAGE_COPY = Object.freeze({
@@ -183,6 +188,31 @@ const CUSTOM_PROFILES = Object.freeze([
         description:
           "Reliable rifler who keeps the round structured, connects quickly for trades and supports teammates in key situations. He stays composed under pressure and can close clutches when the team needs a decisive final play.",
         strengths: ["Trades", "Support", "Clutches"],
+      },
+    },
+    portrait: sharedPlayerPortrait,
+    portraitMode: "cutout",
+    socials: [],
+  },
+  {
+    sourceNickname: "sssoo",
+    nickname: "sssoo",
+    roleLabel: {
+      uk: "ЗАМІНА",
+      en: "SUBSTITUTE",
+    },
+    copy: {
+      uk: {
+        title: "Гравець заміни",
+        description:
+          "Резервний гравець ISTe, який підключається до складу за потреби та готовий закрити позицію у матчах команди.",
+        strengths: ["Готовність", "Адаптація", "Командна гра"],
+      },
+      en: {
+        title: "Substitute player",
+        description:
+          "ISTe substitute player who joins the lineup when needed and is ready to cover a position in team matches.",
+        strengths: ["Readiness", "Adaptation", "Team play"],
       },
     },
     portrait: sharedPlayerPortrait,
@@ -591,6 +621,18 @@ export default function Team() {
         })
     : [];
 
+  const mainPlayers = players.filter(
+    (player) =>
+      !SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) &&
+      !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+  );
+
+  const substitutePlayers = players.filter(
+    (player) =>
+      SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) ||
+      SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+  );
+
   return (
     <section className="team-page">
       <div className="team-page__glow" aria-hidden="true" />
@@ -600,16 +642,16 @@ export default function Team() {
         <h1>{copy.title}</h1>
         <p>{copy.description}</p>
         <div className="team-page__counter">
-          <span>{players.length || CUSTOM_PROFILES.length}</span>
+          <span>{mainPlayers.length || CUSTOM_PROFILES.length - SUBSTITUTE_PLAYERS.size}</span>
           <small>PLAYER PROFILES</small>
         </div>
       </header>
 
       {loading && players.length === 0 ? <ProfilesSkeleton copy={copy} /> : null}
 
-      {!loading && players.length > 0 ? (
+      {!loading && mainPlayers.length > 0 ? (
         <div className="team-profiles">
-          {players.map((player, index) => (
+          {mainPlayers.map((player, index) => (
             <PlayerProfile
               player={player}
               index={index}
@@ -619,6 +661,27 @@ export default function Team() {
             />
           ))}
         </div>
+      ) : null}
+
+      {!loading && substitutePlayers.length > 0 ? (
+        <section style={{ marginTop: "72px" }}>
+          <header className="team-page__header" style={{ marginBottom: "28px" }}>
+            <p className="page-eyebrow">ISTE SUBSTITUTE</p>
+            <h2>{language === "en" ? "Substitute" : "Заміна"}</h2>
+          </header>
+
+          <div className="team-profiles">
+            {substitutePlayers.map((player, index) => (
+              <PlayerProfile
+                player={player}
+                index={index}
+                language={language}
+                copy={copy}
+                key={player.playerId || `substitute-${index}-${player.nickname || "player"}`}
+              />
+            ))}
+          </div>
+        </section>
       ) : null}
 
       {!loading && players.length === 0 ? (
