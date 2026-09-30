@@ -98,12 +98,18 @@ function PlayerCard({ player, rosterStatus = "main" }) {
   const level = Number.isFinite(player.level) ? player.level : "?";
   const nicknameKey = normalizeNickname(player.nickname);
   const officialRole = OFFICIAL_ROLES[nicknameKey];
-  const roleLabel = officialRole || player.role || "RIFLER";
+  const roleLabel =
+    rosterStatus === "substitute"
+      ? "ЗАМЕНА"
+      : officialRole || player.role || "RIFLER";
   const displayName = DISPLAY_NAME_OVERRIDES[nicknameKey] || player.nickname;
   const isCaptain = nicknameKey === CAPTAIN_NICKNAME;
-  const roleDescription = officialRole
-    ? "Официальная роль игрока в составе ISTe"
-    : player.reason || "Игровая роль участника команды ISTe";
+  const roleDescription =
+    rosterStatus === "substitute"
+      ? "Игрок замены ISTe"
+      : officialRole
+        ? "Официальная роль игрока в составе ISTe"
+        : player.reason || "Игровая роль участника команды ISTe";
 
   return (
     <a
