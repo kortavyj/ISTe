@@ -4,6 +4,8 @@ import sharedPlayerPortrait from "../../assets/players/team-player.webp";
 
 import "./Roster.css";
 
+// FACEIT roster refresh trigger 2026-09-30T23:07:00+03:00
+
 const EXCLUDED_PLAYERS = new Set([
   "kortavyj",
   "infuriat3",
