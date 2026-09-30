@@ -24,10 +24,12 @@ const PROFILE_ORDER = Object.freeze([
   "silryd",
   "lor9n",
   "sssoo",
+  "fatalexcept",
 ]);
 
 const SUBSTITUTE_PLAYERS = new Set([
   "sssoo",
+  "fatalexcept",
 ]);
 
 const PAGE_COPY = Object.freeze({
@@ -197,6 +199,31 @@ const CUSTOM_PROFILES = Object.freeze([
   {
     sourceNickname: "sssoo",
     nickname: "sssoo",
+    roleLabel: {
+      uk: "ЗАМІНА",
+      en: "SUBSTITUTE",
+    },
+    copy: {
+      uk: {
+        title: "Гравець заміни",
+        description:
+          "Резервний гравець ISTe, який підключається до складу за потреби та готовий закрити позицію у матчах команди.",
+        strengths: ["Готовність", "Адаптація", "Командна гра"],
+      },
+      en: {
+        title: "Substitute player",
+        description:
+          "ISTe substitute player who joins the lineup when needed and is ready to cover a position in team matches.",
+        strengths: ["Readiness", "Adaptation", "Team play"],
+      },
+    },
+    portrait: sharedPlayerPortrait,
+    portraitMode: "cutout",
+    socials: [],
+  },
+  {
+    sourceNickname: "fatalexcept",
+    nickname: "FatalExcept",
     roleLabel: {
       uk: "ЗАМІНА",
       en: "SUBSTITUTE",
@@ -664,13 +691,13 @@ export default function Team() {
       ) : null}
 
       {!loading && substitutePlayers.length > 0 ? (
-        <section style={{ marginTop: "72px" }}>
-          <header className="team-page__header" style={{ marginBottom: "28px" }}>
+        <section className="team-substitutes">
+          <header className="team-substitutes__header">
             <p className="page-eyebrow">ISTE SUBSTITUTE</p>
             <h2>{t("home.roster.substituteSection")}</h2>
           </header>
 
-          <div className="team-profiles">
+          <div className="team-profiles team-profiles--substitutes">
             {substitutePlayers.map((player, index) => (
               <PlayerProfile
                 player={player}
