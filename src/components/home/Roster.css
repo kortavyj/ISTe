@@ -317,8 +317,9 @@
 
 .roster-substitutes__grid {
   display: grid;
-  grid-template-columns: minmax(205px, 248px);
+  grid-template-columns: repeat(2, minmax(205px, 248px));
   justify-content: center;
+  gap: 22px;
 }
 
 .player-card--substitute {
