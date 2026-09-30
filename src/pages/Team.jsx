@@ -18,7 +18,7 @@ const EXCLUDED_PLAYERS = new Set([
 const PROFILE_ORDER = Object.freeze([
   "valaf",
   "1sagi",
-  "anubis",
+  "droni452",
   "hagg1nho",
   "tw3ntyq",
   "silryd",
@@ -129,6 +129,28 @@ const CUSTOM_PROFILES = Object.freeze([
         icon: "telegram",
       },
     ],
+  },
+  {
+    sourceNickname: "droni452",
+    nickname: "DRONI",
+    roleLabel: "IGL",
+    copy: {
+      uk: {
+        title: "Никита",
+        description:
+          "Капітан команди. Відповідає за колли під час раунду, читання гри суперника та побудову структури раундів.",
+        strengths: ["Читання гри", "Макро-гра", "Позитив"],
+      },
+      en: {
+        title: "Nikita",
+        description:
+          "Team captain. Responsible for in-round calls, reading the opponent's game and building the team's round structure.",
+        strengths: ["Game reading", "Macro play", "Positive mindset"],
+      },
+    },
+    portrait: sharedPlayerPortrait,
+    portraitMode: "cutout",
+    socials: [],
   },
   {
     sourceNickname: "anubis",
