@@ -27,6 +27,7 @@ const CAPTAIN_NICKNAME = "anubis";
 
 const SUBSTITUTE_PLAYERS = new Set([
   "sssoo",
+  "fatalexcept",
 ]);
 
 const ROLE_OVERRIDES = Object.freeze({
