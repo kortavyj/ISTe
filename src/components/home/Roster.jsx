@@ -318,7 +318,7 @@ function RosterSkeleton() {
 }
 
 export default function Roster() {
-  const { t } =
+  const { t, language } =
     useLanguage();
 
   const {
@@ -404,7 +404,7 @@ export default function Roster() {
             </p>
 
             <h3 className="section-title roster-substitute__title">
-              {t("common.language") === "English" ? "SUBSTITUTE" : "ЗАМЕНА"}
+              {language === "en" ? "SUBSTITUTE" : "ЗАМЕНА"}
             </h3>
           </header>
 
