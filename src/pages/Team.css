@@ -569,3 +569,39 @@
     margin: 0 auto 36px !important;
   }
 }
+
+
+.team-substitutes {
+  width: min(1320px, 100%);
+  margin: 86px auto 0;
+}
+
+.team-substitutes__header {
+  width: min(760px, 100%);
+  margin: 0 auto 34px;
+  text-align: center;
+}
+
+.team-substitutes__header h2 {
+  margin: 8px 0 0;
+  color: #fff;
+  font-size: clamp(2.2rem, 5vw, 4.4rem);
+  font-weight: 950;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.team-profiles--substitutes {
+  gap: 30px;
+}
+
+@media (max-width: 640px) {
+  .team-substitutes {
+    margin-top: 56px;
+  }
+
+  .team-substitutes__header {
+    margin-bottom: 24px;
+  }
+}
