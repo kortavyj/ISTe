@@ -600,7 +600,7 @@ function ProfilesSkeleton({ copy }) {
 }
 
 export default function Team() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { stats, loading, error, reload } = useFaceitStats();
   const copy = PAGE_COPY[language] || PAGE_COPY.uk;
 
@@ -667,7 +667,7 @@ export default function Team() {
         <section style={{ marginTop: "72px" }}>
           <header className="team-page__header" style={{ marginBottom: "28px" }}>
             <p className="page-eyebrow">ISTE SUBSTITUTE</p>
-            <h2>{language === "en" ? "Substitute" : "Заміна"}</h2>
+            <h2>{t("home.roster.substituteSection")}</h2>
           </header>
 
           <div className="team-profiles">
