@@ -25,6 +25,10 @@ const MAIN_ROSTER_ORDER = Object.freeze([
 
 const CAPTAIN_NICKNAME = "anubis";
 
+const SUBSTITUTE_PLAYERS = new Set([
+  "sssoo",
+]);
+
 const ROLE_OVERRIDES = Object.freeze({
   valaf: "AWP",
   "1sagi": "RIFLER",
@@ -131,7 +135,7 @@ function PlayerAvatar({ player }) {
   );
 }
 
-function PlayerCard({ player }) {
+function PlayerCard({ player, rosterStatus = "main" }) {
   const { t, language } =
     useLanguage();
 
@@ -160,19 +164,27 @@ function PlayerCard({ player }) {
   const roleOverride = ROLE_OVERRIDES[nickname];
 
   const roleLabel =
-    typeof roleOverride === "object"
-      ? roleOverride[language] || roleOverride.uk || player.role || "RIFLER"
-      : roleOverride || player.role || "RIFLER";
+    rosterStatus === "substitute"
+      ? language === "en"
+        ? "SUBSTITUTE"
+        : "ЗАМЕНА"
+      : typeof roleOverride === "object"
+        ? roleOverride[language] || roleOverride.uk || player.role || "RIFLER"
+        : roleOverride || player.role || "RIFLER";
 
   const displayName =
     DISPLAY_NAME_OVERRIDES[nickname] ||
     player.nickname;
 
   const roleDescription =
-    player.reason ||
-    t(
-      "home.roster.roleFallback",
-    );
+    rosterStatus === "substitute"
+      ? language === "en"
+        ? "ISTe substitute player"
+        : "Игрок замены ISTe"
+      : player.reason ||
+        t(
+          "home.roster.roleFallback",
+        );
 
   const captainTitle =
     language === "uk"
@@ -262,9 +274,13 @@ function PlayerCard({ player }) {
       </div>
 
       <span className="player-role-note">
-        {t(
-          "home.roster.roleNote",
-        )}
+        {rosterStatus === "substitute"
+          ? language === "en"
+            ? "ISTe substitute"
+            : "ИГРОК ЗАМЕНЫ ISTe"
+          : t(
+              "home.roster.roleNote",
+            )}
       </span>
     </a>
   );
@@ -324,10 +340,22 @@ export default function Roster() {
         )
       : [];
 
-  const mainRoster = roster.sort(
+  const sortedRoster = [...roster].sort(
     (left, right) =>
       getRosterOrder(left) -
       getRosterOrder(right),
+  );
+
+  const mainRoster = sortedRoster.filter(
+    (player) =>
+      !SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) &&
+      !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+  );
+
+  const substituteRoster = sortedRoster.filter(
+    (player) =>
+      SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) ||
+      SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
   );
 
   return (
@@ -364,6 +392,36 @@ export default function Roster() {
               />
             ),
           )}
+        </div>
+      ) : null}
+
+      {!loading &&
+      substituteRoster.length > 0 ? (
+        <div className="roster-substitute">
+          <header className="section-header roster-substitute__header">
+            <p className="section-tag">
+              ISTE SUBSTITUTE
+            </p>
+
+            <h3 className="section-title roster-substitute__title">
+              {t("common.language") === "English" ? "SUBSTITUTE" : "ЗАМЕНА"}
+            </h3>
+          </header>
+
+          <div className="roster-grid roster-grid--substitute">
+            {substituteRoster.map(
+              (player) => (
+                <PlayerCard
+                  player={player}
+                  rosterStatus="substitute"
+                  key={
+                    player.playerId ||
+                    player.nickname
+                  }
+                />
+              ),
+            )}
+          </div>
         </div>
       ) : null}
 
