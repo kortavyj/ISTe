@@ -200,6 +200,9 @@ function PlayerCard({ player, rosterStatus = "main" }) {
         isCaptain
           ? "player-card--captain"
           : "",
+        rosterStatus === "substitute"
+          ? "player-card--substitute"
+          : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -397,18 +400,16 @@ export default function Roster() {
 
       {!loading &&
       substituteRoster.length > 0 ? (
-        <div className="roster-substitute">
-          <header className="section-header roster-substitute__header">
-            <p className="section-tag">
-              ISTE SUBSTITUTE
-            </p>
-
-            <h3 className="section-title roster-substitute__title">
+        <div className="roster-substitutes">
+          <div className="roster-substitutes__title">
+            <span aria-hidden="true" />
+            <strong>
               {language === "en" ? "SUBSTITUTE" : "ЗАМЕНА"}
-            </h3>
-          </header>
+            </strong>
+            <span aria-hidden="true" />
+          </div>
 
-          <div className="roster-grid roster-grid--substitute">
+          <div className="roster-substitutes__grid">
             {substituteRoster.map(
               (player) => (
                 <PlayerCard
