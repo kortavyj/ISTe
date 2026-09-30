@@ -166,9 +166,7 @@ function PlayerCard({ player, rosterStatus = "main" }) {
 
   const roleLabel =
     rosterStatus === "substitute"
-      ? language === "en"
-        ? "SUBSTITUTE"
-        : "ЗАМЕНА"
+      ? t("home.roster.substituteRole")
       : typeof roleOverride === "object"
         ? roleOverride[language] || roleOverride.uk || player.role || "RIFLER"
         : roleOverride || player.role || "RIFLER";
@@ -179,9 +177,7 @@ function PlayerCard({ player, rosterStatus = "main" }) {
 
   const roleDescription =
     rosterStatus === "substitute"
-      ? language === "en"
-        ? "ISTe substitute player"
-        : "Игрок замены ISTe"
+      ? t("home.roster.substituteNote")
       : player.reason ||
         t(
           "home.roster.roleFallback",
@@ -279,9 +275,7 @@ function PlayerCard({ player, rosterStatus = "main" }) {
 
       <span className="player-role-note">
         {rosterStatus === "substitute"
-          ? language === "en"
-            ? "ISTe substitute"
-            : "ИГРОК ЗАМЕНЫ ISTe"
+          ? t("home.roster.substituteNote")
           : t(
               "home.roster.roleNote",
             )}
@@ -405,7 +399,7 @@ export default function Roster() {
           <div className="roster-substitutes__title">
             <span aria-hidden="true" />
             <strong>
-              {language === "en" ? "SUBSTITUTE" : "ЗАМЕНА"}
+              {t("home.roster.substituteSection")}
             </strong>
             <span aria-hidden="true" />
           </div>
