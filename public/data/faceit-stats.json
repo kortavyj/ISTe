@@ -44,22 +44,6 @@
       "kd": 1.21
     },
     {
-      "playerId": "b4c511c8-5035-4094-bace-a19e14261ba0",
-      "nickname": "FatalExcept",
-      "avatar": "https://distribution.faceit-cdn.net/images/77fb9f03-d9b3-4b2a-a283-3b21fce30b88.jpeg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/FatalExcept",
-      "level": 10,
-      "elo": 2591,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.2
-    },
-    {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
       "nickname": "1sagi",
       "avatar": "https://distribution.faceit-cdn.net/images/66f667f0-6121-479d-bec3-95fae354c6bf.jpg",
@@ -99,13 +83,29 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/hagg1Nho",
       "level": 10,
-      "elo": 2851,
+      "elo": 2821,
       "role": "SUPPORT",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 52,
-      "kd": 1.31
+      "kd": 1.3
+    },
+    {
+      "playerId": "b4c511c8-5035-4094-bace-a19e14261ba0",
+      "nickname": "FatalExcept",
+      "avatar": "https://distribution.faceit-cdn.net/images/77fb9f03-d9b3-4b2a-a283-3b21fce30b88.jpeg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/FatalExcept",
+      "level": 10,
+      "elo": 2591,
+      "role": "SUPPORT",
+      "reason": "Лучший вклад гранатами и ассистами",
+      "confidence": 78,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.2
     }
   ],
   "teamMatches": [
@@ -3365,5 +3365,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-01T07:34:38.387Z"
+  "updatedAt": "2026-10-01T14:44:15.562Z"
 }
