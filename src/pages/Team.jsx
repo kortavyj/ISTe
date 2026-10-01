@@ -32,6 +32,42 @@ const SUBSTITUTE_PLAYERS = new Set([
   "fatalexcept",
 ]);
 
+const ROSTER_FALLBACKS = Object.freeze([
+  {
+    playerId: "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
+    nickname: "Droni452",
+    avatar: "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
+    country: "ua",
+    captain: false,
+    faceitUrl: "https://www.faceit.com/ru/players/Droni452",
+    level: 10,
+    elo: 2423,
+    role: "IGL",
+    reason: "Капітан основного складу ISTe",
+    confidence: 100,
+    roleSource: "ISTe manual roster",
+    winRate: 50,
+    kd: 1.06,
+  },
+  {
+    playerId: "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
+    nickname: "sssoo",
+    avatar: "https://distribution.faceit-cdn.net/images/8ae69796-88c6-431b-8a75-4946858b3eb7.jpg",
+    country: "ua",
+    captain: false,
+    faceitUrl: "https://www.faceit.com/ru/players/sssoo",
+    level: 10,
+    elo: 2035,
+    role: "RIFLER",
+    reason: "Гравець заміни ISTe",
+    confidence: 100,
+    roleSource: "ISTe manual roster",
+    winRate: 49,
+    kd: 1.13,
+  },
+]);
+
+
 const PAGE_COPY = Object.freeze({
   uk: {
     title: "Гравці команди",
@@ -653,22 +689,33 @@ export default function Team() {
   const { stats, loading, error, reload } = useFaceitStats();
   const copy = PAGE_COPY[language] || PAGE_COPY.uk;
 
-  const players = Array.isArray(stats.roster)
-    ? stats.roster
-        .filter(
-          (player) =>
-            !EXCLUDED_PLAYERS.has(normalizeNickname(player.nickname)) &&
-            !EXCLUDED_PLAYERS.has(normalizeRosterKey(player.nickname)),
-        )
-        .filter((player) =>
-          PROFILE_BY_NICKNAME.has(normalizeNickname(player.nickname)),
-        )
-        .sort((left, right) => {
-          const leftIndex = PROFILE_ORDER.indexOf(normalizeNickname(left.nickname));
-          const rightIndex = PROFILE_ORDER.indexOf(normalizeNickname(right.nickname));
-          return leftIndex - rightIndex;
-        })
-    : [];
+  const liveRoster = Array.isArray(stats.roster) ? stats.roster : [];
+  const rosterByNickname = new Map(
+    liveRoster.map((player) => [normalizeNickname(player.nickname), player]),
+  );
+
+  ROSTER_FALLBACKS.forEach((player) => {
+    const key = normalizeNickname(player.nickname);
+
+    if (!rosterByNickname.has(key)) {
+      rosterByNickname.set(key, player);
+    }
+  });
+
+  const players = [...rosterByNickname.values()]
+    .filter(
+      (player) =>
+        !EXCLUDED_PLAYERS.has(normalizeNickname(player.nickname)) &&
+        !EXCLUDED_PLAYERS.has(normalizeRosterKey(player.nickname)),
+    )
+    .filter((player) =>
+      PROFILE_BY_NICKNAME.has(normalizeNickname(player.nickname)),
+    )
+    .sort((left, right) => {
+      const leftIndex = PROFILE_ORDER.indexOf(normalizeNickname(left.nickname));
+      const rightIndex = PROFILE_ORDER.indexOf(normalizeNickname(right.nickname));
+      return leftIndex - rightIndex;
+    });
 
   const mainPlayers = players.filter(
     (player) =>
