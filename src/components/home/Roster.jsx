@@ -32,6 +32,28 @@ const SUBSTITUTE_PLAYERS = new Set([
   "fatalexcept",
 ]);
 
+const ROSTER_FALLBACKS = Object.freeze([
+  {
+    playerId: "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
+    nickname: "Droni452",
+    country: "ua",
+    faceitUrl: "https://www.faceit.com/ru/players/Droni452",
+    level: 10,
+    role: "IGL",
+    reason: "Капітан основного складу ISTe",
+  },
+  {
+    playerId: "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
+    nickname: "sssoo",
+    country: "ua",
+    faceitUrl: "https://www.faceit.com/ru/players/sssoo",
+    level: 10,
+    role: "RIFLER",
+    reason: "Гравець заміни ISTe",
+  },
+]);
+
+
 const ROLE_OVERRIDES = Object.freeze({
   valaf: "AWP",
   "1sagi": "RIFLER",
@@ -330,17 +352,54 @@ export default function Roster() {
     reload,
   } = useFaceitStats();
 
-  const roster =
+  const liveRoster =
     Array.isArray(stats.roster)
-      ? stats.roster.filter(
-          (player) =>
-            !EXCLUDED_PLAYERS.has(
-              normalizeNickname(
-                player.nickname,
-              ),
-            ),
-        )
+      ? stats.roster
       : [];
+
+  const rosterByNickname =
+    new Map(
+      liveRoster.map(
+        (player) => [
+          normalizeNickname(
+            player.nickname,
+          ),
+          player,
+        ],
+      ),
+    );
+
+  ROSTER_FALLBACKS.forEach(
+    (player) => {
+      const key =
+        normalizeNickname(
+          player.nickname,
+        );
+
+      if (
+        !rosterByNickname.has(
+          key,
+        )
+      ) {
+        rosterByNickname.set(
+          key,
+          player,
+        );
+      }
+    },
+  );
+
+  const roster =
+    [
+      ...rosterByNickname.values(),
+    ].filter(
+      (player) =>
+        !EXCLUDED_PLAYERS.has(
+          normalizeNickname(
+            player.nickname,
+          ),
+        ),
+    );
 
   const sortedRoster = [...roster].sort(
     (left, right) =>
