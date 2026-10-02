@@ -1,4 +1,4 @@
-import useFaceitStats from "../hooks/useFaceitStats.js";
+import useOfficialRoster from "../hooks/useOfficialRoster.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import sharedPlayerPortrait from "../assets/players/team-player.webp";
 
@@ -580,26 +580,68 @@ function PlayerPortrait({ player, profile, displayName }) {
 
 function PlayerProfile({ player, index, language, copy }) {
   const normalizedNickname = normalizeNickname(player.nickname);
-  const profile = PROFILE_BY_NICKNAME.get(normalizedNickname);
+  const savedProfile = PROFILE_BY_NICKNAME.get(normalizedNickname);
 
-  if (!profile) return null;
+  const fallbackCopy = {
+    uk: {
+      title: player.realName || "Гравець ISTe",
+      description:
+        player.rosterStatus === "substitute"
+          ? "Гравець заміни ISTe, готовий підключитися до складу за потреби."
+          : "Гравець основного складу ISTe.",
+      strengths:
+        Array.isArray(player.strengths) && player.strengths.length
+          ? player.strengths
+          : ["Командна гра"],
+    },
+    en: {
+      title: player.realName || "ISTe player",
+      description:
+        player.rosterStatus === "substitute"
+          ? "ISTe substitute player, ready to join the lineup when needed."
+          : "ISTe main roster player.",
+      strengths:
+        Array.isArray(player.strengths) && player.strengths.length
+          ? player.strengths
+          : ["Team play"],
+    },
+  };
+
+  const profile =
+    savedProfile || {
+      nickname:
+        player.displayName ||
+        player.nickname,
+      roleLabel:
+        player.role ||
+        "RIFLER",
+      copy: fallbackCopy,
+      portrait: player.avatar || "",
+      portraitMode: "default",
+      socials: [],
+    };
 
   const profileCopy = profile.copy[language] || profile.copy.uk;
-  const displayName = profile.nickname || player.nickname;
+  const displayName =
+    player.displayName ||
+    profile.nickname ||
+    player.nickname;
   const officialRole =
     OFFICIAL_ROLE_LABELS[normalizedNickname];
 
   const roleLabel =
-    officialRole?.[language] ||
-    officialRole?.uk ||
-    (
-      typeof profile.roleLabel === "object"
-        ? profile.roleLabel[language] ||
-          profile.roleLabel.uk ||
-          String(player.role || "RIFLER").toUpperCase()
-        : profile.roleLabel ||
-          String(player.role || "RIFLER").toUpperCase()
-    );
+    player.officialRoster
+      ? String(player.role || "RIFLER").toUpperCase()
+      : officialRole?.[language] ||
+        officialRole?.uk ||
+        (
+          typeof profile.roleLabel === "object"
+            ? profile.roleLabel[language] ||
+              profile.roleLabel.uk ||
+              String(player.role || "RIFLER").toUpperCase()
+            : profile.roleLabel ||
+              String(player.role || "RIFLER").toUpperCase()
+        );
   const flag = countryToFlag(player.country);
   const level = Number.isFinite(player.level) ? player.level : "—";
   const elo = formatInteger(player.elo, language);
@@ -686,7 +728,7 @@ function ProfilesSkeleton({ copy }) {
 
 export default function Team() {
   const { language, t } = useLanguage();
-  const { stats, loading, error, reload } = useFaceitStats();
+  const { stats, loading, error, reload } = useOfficialRoster();
   const copy = PAGE_COPY[language] || PAGE_COPY.uk;
 
   const liveRoster = Array.isArray(stats.roster) ? stats.roster : [];
@@ -694,13 +736,15 @@ export default function Team() {
     liveRoster.map((player) => [normalizeNickname(player.nickname), player]),
   );
 
-  ROSTER_FALLBACKS.forEach((player) => {
-    const key = normalizeNickname(player.nickname);
+  if (!stats.officialRosterActive) {
+    ROSTER_FALLBACKS.forEach((player) => {
+      const key = normalizeNickname(player.nickname);
 
-    if (!rosterByNickname.has(key)) {
-      rosterByNickname.set(key, player);
-    }
-  });
+      if (!rosterByNickname.has(key)) {
+        rosterByNickname.set(key, player);
+      }
+    });
+  }
 
   const players = [...rosterByNickname.values()]
     .filter(
@@ -709,9 +753,21 @@ export default function Team() {
         !EXCLUDED_PLAYERS.has(normalizeRosterKey(player.nickname)),
     )
     .filter((player) =>
-      PROFILE_BY_NICKNAME.has(normalizeNickname(player.nickname)),
+      stats.officialRosterActive
+        ? true
+        : PROFILE_BY_NICKNAME.has(normalizeNickname(player.nickname)),
     )
     .sort((left, right) => {
+      if (
+        left.officialRoster &&
+        right.officialRoster
+      ) {
+        return (
+          Number(left.sortOrder || 0) -
+          Number(right.sortOrder || 0)
+        );
+      }
+
       const leftIndex = PROFILE_ORDER.indexOf(normalizeNickname(left.nickname));
       const rightIndex = PROFILE_ORDER.indexOf(normalizeNickname(right.nickname));
       return leftIndex - rightIndex;
@@ -719,14 +775,18 @@ export default function Team() {
 
   const mainPlayers = players.filter(
     (player) =>
-      !SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) &&
-      !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+      player.officialRoster
+        ? player.rosterStatus === "main"
+        : !SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) &&
+          !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
   );
 
   const substitutePlayers = players.filter(
     (player) =>
-      SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) ||
-      SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+      player.officialRoster
+        ? player.rosterStatus === "substitute"
+        : SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) ||
+          SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
   );
 
   return (
