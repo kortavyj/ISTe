@@ -42,6 +42,7 @@
 }
 
 .tactics-primary,
+.tactics-export,
 .tactics-danger,
 .tactics-tools button,
 .tactics-sidebar button {
@@ -49,6 +50,7 @@
 }
 
 .tactics-primary,
+.tactics-export,
 .tactics-danger {
   min-height: 42px;
   padding: 0 16px;
@@ -62,6 +64,24 @@
   border: 1px solid rgba(255, 54, 70, 0.5);
   background: #e30613;
   color: #fff;
+}
+
+.tactics-export {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.055);
+  color: #fff;
+}
+
+.tactics-export:hover {
+  border-color: rgba(227, 6, 19, 0.38);
+  background: rgba(227, 6, 19, 0.1);
+}
+
+.tactics-primary:disabled,
+.tactics-export:disabled,
+.tactics-danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .tactics-danger {
