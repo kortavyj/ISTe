@@ -4,6 +4,7 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "./AuthContext.jsx";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 const ROSTER_MANAGER_ROLES = new Set([
   "game_manager",
@@ -14,6 +15,7 @@ export default function RosterManagerRoute({
   children,
 }) {
   const location = useLocation();
+  const { t } = useLanguage();
 
   const {
     user,
@@ -32,7 +34,7 @@ export default function RosterManagerRoute({
           />
 
           <p>
-            Проверяем доступ к Roster Manager...
+            {t("rosterAccess.checking")}
           </p>
         </div>
       </section>
