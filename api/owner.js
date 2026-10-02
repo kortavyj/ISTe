@@ -11,6 +11,7 @@ import {
 import shopHandler from "../server/shopHandler.js";
 import discordHandler from "../server/discordHandler.js";
 import rosterHandler from "../server/rosterHandler.js";
+import publicRosterHandler from "../server/publicRosterHandler.js";
 
 const ALLOWED_ROLES = new Set([
   "user",
@@ -367,6 +368,10 @@ export default async function handler(request, response) {
 
   if (moduleName === "roster") {
     return rosterHandler(request, response);
+  }
+
+  if (moduleName === "public-roster") {
+    return publicRosterHandler(request, response);
   }
 
   const rawAction =
