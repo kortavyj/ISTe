@@ -584,7 +584,7 @@ function PlayerProfile({ player, index, language, copy }) {
 
   const fallbackCopy = {
     uk: {
-      title: player.realName || "Гравець ISTe",
+      title: player.realNameUk || player.realName || "Гравець ISTe",
       description:
         player.rosterStatus === "substitute"
           ? "Гравець заміни ISTe, готовий підключитися до складу за потреби."
@@ -595,7 +595,7 @@ function PlayerProfile({ player, index, language, copy }) {
           : ["Командна гра"],
     },
     en: {
-      title: player.realName || "ISTe player",
+      title: player.realNameEn || player.realName || "ISTe player",
       description:
         player.rosterStatus === "substitute"
           ? "ISTe substitute player, ready to join the lineup when needed."
@@ -622,6 +622,17 @@ function PlayerProfile({ player, index, language, copy }) {
     };
 
   const profileCopy = profile.copy[language] || profile.copy.uk;
+  const localizedRealName =
+    language === "en"
+      ? player.realNameEn || player.realName || ""
+      : player.realNameUk || player.realName || "";
+  const localizedProfileCopy =
+    player.officialRoster && localizedRealName
+      ? {
+          ...profileCopy,
+          title: localizedRealName,
+        }
+      : profileCopy;
   const displayName =
     player.displayName ||
     profile.nickname ||
@@ -693,11 +704,11 @@ function PlayerProfile({ player, index, language, copy }) {
           ))}
         </div>
 
-        <p className="team-profile__title">{profileCopy.title}</p>
-        <p className="team-profile__description">{profileCopy.description}</p>
+        <p className="team-profile__title">{localizedProfileCopy.title}</p>
+        <p className="team-profile__description">{localizedProfileCopy.description}</p>
 
         <div className="team-profile__strengths" aria-label={copy.strengthsAria}>
-          {profileCopy.strengths.map((strength) => (
+          {localizedProfileCopy.strengths.map((strength) => (
             <span key={strength}>{strength}</span>
           ))}
         </div>
