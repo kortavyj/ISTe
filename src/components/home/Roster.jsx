@@ -381,25 +381,27 @@ export default function Roster() {
       ),
     );
 
-  ROSTER_FALLBACKS.forEach(
-    (player) => {
-      const key =
-        normalizeNickname(
-          player.nickname,
-        );
+  if (!stats.officialRosterActive) {
+    ROSTER_FALLBACKS.forEach(
+      (player) => {
+        const key =
+          normalizeNickname(
+            player.nickname,
+          );
 
-      if (
-        !rosterByNickname.has(
-          key,
-        )
-      ) {
-        rosterByNickname.set(
-          key,
-          player,
-        );
-      }
-    },
-  );
+        if (
+          !rosterByNickname.has(
+            key,
+          )
+        ) {
+          rosterByNickname.set(
+            key,
+            player,
+          );
+        }
+      },
+    );
+  }
 
   const roster =
     [
