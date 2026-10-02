@@ -180,7 +180,7 @@ async function readJson(response, fallbackMessage) {
 
   if (!response.ok || result?.ok !== true) {
     throw new Error(
-      result?.message || fallbackMessage,
+      fallbackMessage,
     );
   }
 
