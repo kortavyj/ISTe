@@ -12,6 +12,9 @@ const copy = {
       "Окремий центр керування ISTe, доступний лише власнику. Усі ключові адміністративні розділи зібрані в одному місці.",
     protected: "OWNER ONLY",
     open: "Відкрити",
+    rosterTitle: "Roster Manager",
+    rosterText:
+      "Основний склад, заміни, ролі, капітан і офіційний статус гравців ISTe.",
     usersTitle: "Користувачі",
     usersText:
       "Ролі, блокування, пошук акаунтів та журнал адміністративних дій.",
@@ -38,6 +41,9 @@ const copy = {
       "Отдельный центр управления ISTe, доступный только владельцу. Все ключевые административные разделы собраны в одном месте.",
     protected: "ТОЛЬКО OWNER",
     open: "Открыть",
+    rosterTitle: "Roster Manager",
+    rosterText:
+      "Основной состав, замены, роли, капитан и официальный статус игроков ISTe.",
     usersTitle: "Пользователи",
     usersText:
       "Роли, блокировки, поиск аккаунтов и журнал административных действий.",
@@ -64,6 +70,9 @@ const copy = {
       "A dedicated ISTe management center available only to the owner. All key administrative sections are collected in one place.",
     protected: "OWNER ONLY",
     open: "Open",
+    rosterTitle: "Roster Manager",
+    rosterText:
+      "Main roster, substitutes, roles, captain and official ISTe player status.",
     usersTitle: "Users",
     usersText:
       "Roles, bans, account search and administrative audit log.",
@@ -86,12 +95,13 @@ const copy = {
 };
 
 const cards = [
-  { key: "users", to: "/owner/users", mark: "01" },
-  { key: "news", to: "/admin/news", mark: "02" },
-  { key: "shop", to: "/owner/shop", mark: "03" },
-  { key: "discord", to: "/owner/discord", mark: "04" },
-  { key: "publicBot", to: "/discord", mark: "05" },
-  { key: "website", to: "/", mark: "06" },
+  { key: "roster", to: "/owner/roster", mark: "01" },
+  { key: "users", to: "/owner/users", mark: "02" },
+  { key: "news", to: "/admin/news", mark: "03" },
+  { key: "shop", to: "/owner/shop", mark: "04" },
+  { key: "discord", to: "/owner/discord", mark: "05" },
+  { key: "publicBot", to: "/discord", mark: "06" },
+  { key: "website", to: "/", mark: "07" },
 ];
 
 export default function FounderDashboard() {
@@ -99,6 +109,7 @@ export default function FounderDashboard() {
   const c = copy[language] || copy.uk;
 
   const content = {
+    roster: [c.rosterTitle, c.rosterText],
     users: [c.usersTitle, c.usersText],
     news: [c.newsTitle, c.newsText],
     shop: [c.shopTitle, c.shopText],
