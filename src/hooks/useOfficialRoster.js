@@ -39,6 +39,8 @@ function mergeOfficialPlayer(official, faceitRoster) {
       faceitPlayer?.nickname ||
       "",
     realName: official.realName || "",
+    realNameUk: official.realNameUk || "",
+    realNameEn: official.realNameEn || "",
     rosterStatus: official.status || "main",
     role:
       official.role ||
