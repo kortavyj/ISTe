@@ -532,3 +532,403 @@
     white-space: normal;
   }
 }
+
+
+/* Tactical controls v2 */
+.tactics-tools {
+  padding: 12px;
+  gap: 10px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(227, 6, 19, 0.4) transparent;
+}
+
+.tactics-tool-section {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.028), transparent 52%),
+    rgba(10, 13, 17, 0.26);
+}
+
+.tactics-context-section {
+  border-color: rgba(227, 6, 19, 0.2);
+  background:
+    linear-gradient(145deg, rgba(227, 6, 19, 0.07), transparent 58%),
+    rgba(10, 13, 17, 0.3);
+}
+
+.tactics-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tactics-section-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.tactics-section-heading h2 {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.72rem;
+  letter-spacing: 0.095em;
+}
+
+.tactics-section-heading p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.36);
+  font-size: 0.64rem;
+  line-height: 1.4;
+}
+
+.tactics-section-badge {
+  max-width: 94px;
+  overflow: hidden;
+  padding: 5px 8px;
+  border: 1px solid rgba(227, 6, 19, 0.24);
+  border-radius: 999px;
+  background: rgba(227, 6, 19, 0.08);
+  color: #ff7c86;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactics-map-select {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(9, 12, 16, 0.72) !important;
+  font-weight: 800 !important;
+}
+
+.tactics-tool-grid--rich {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tactics-tool-grid--rich button {
+  position: relative;
+  display: grid;
+  min-height: 62px;
+  grid-template-columns: 30px 1fr;
+  grid-template-rows: 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 9px;
+  overflow: hidden;
+  text-align: left;
+}
+
+.tactics-tool-grid--rich button::after {
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: #e30613;
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.tactics-tool-grid--rich button.active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.tactics-tool-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.tactics-tool-grid--rich button.active .tactics-tool-icon {
+  border-color: rgba(227, 6, 19, 0.4);
+  background: rgba(227, 6, 19, 0.14);
+  color: #ff5360;
+}
+
+.tactics-tool-label {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactics-tool-grid--rich kbd {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  color: rgba(255, 255, 255, 0.28);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.55rem;
+  font-weight: 900;
+}
+
+.tactics-field {
+  display: grid;
+  gap: 8px;
+}
+
+.tactics-field > span,
+.tactics-object-group > span,
+.tactics-range-label > span {
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 0.63rem;
+  font-weight: 900;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.tactics-colors {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.tactics-colors button,
+.tactics-custom-color {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 7px;
+}
+
+.tactics-colors button {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.tactics-colors button.active {
+  border-color: #fff;
+  box-shadow:
+    0 0 0 2px rgba(227, 6, 19, 0.6),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.tactics-custom-color {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+}
+
+.tactics-custom-color input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px !important;
+  min-height: 0 !important;
+  opacity: 0;
+}
+
+.tactics-custom-color span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tactics-size-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.tactics-size-switch button {
+  display: grid;
+  min-height: 44px;
+  place-items: center;
+  gap: 4px;
+  padding: 5px 3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.56);
+  cursor: pointer;
+}
+
+.tactics-size-switch button.active {
+  border-color: rgba(227, 6, 19, 0.36);
+  background: rgba(227, 6, 19, 0.1);
+  color: #fff;
+}
+
+.tactics-size-switch i {
+  width: 30px;
+  max-height: 12px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.tactics-size-switch button span {
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.tactics-size-switch--markers button {
+  min-height: 36px;
+}
+
+.tactics-range-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tactics-range-label strong {
+  color: #ff7c86;
+  font-size: 0.66rem;
+}
+
+.tactics-range {
+  width: 100%;
+  height: 4px;
+  accent-color: #e30613;
+  cursor: pointer;
+}
+
+.tactics-object-group {
+  display: grid;
+  gap: 7px;
+}
+
+.tactics-marker-grid--players,
+.tactics-marker-grid--utility {
+  grid-template-columns: 1fr 1fr;
+}
+
+.tactics-marker-grid--utility button:last-child {
+  grid-column: 1 / -1;
+}
+
+.tactics-marker-grid button {
+  display: grid;
+  min-height: 54px;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  text-align: left;
+}
+
+.tactics-marker-grid button em {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactics-marker-grid button.active em {
+  color: #fff;
+}
+
+.tactics-object-icon {
+  display: grid;
+  width: 32px !important;
+  height: 32px !important;
+  place-items: center;
+  border: 2px solid rgba(0, 0, 0, 0.28);
+  border-radius: 50%;
+  color: #11151a !important;
+  font-size: 0.62rem !important;
+  font-weight: 1000 !important;
+}
+
+.tactics-selection-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.tactics-selection-card span {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.tactics-selection-card strong {
+  max-width: 130px;
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.67rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactics-history-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tactics-history-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.tactics-history-actions button > span {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.95rem;
+}
+
+.tactics-clear-button:not(:disabled) {
+  border-color: rgba(255, 77, 89, 0.22) !important;
+  color: #ff9299 !important;
+}
+
+.tactics-tools input:not([type="range"]):not([type="color"]) {
+  border-color: rgba(255, 255, 255, 0.11);
+  background: rgba(9, 12, 16, 0.72);
+}
+
+@media (max-width: 1180px) {
+  .tactics-tools {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .tactics-tool-section {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .tactics-tool-grid--rich {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tactics-colors {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .tactics-tool-grid--rich {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tactics-colors {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

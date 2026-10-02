@@ -65,6 +65,24 @@ const MARKERS = [
   "molotov",
 ];
 
+const STROKE_SIZES = {
+  thin: 5,
+  medium: 8,
+  thick: 13,
+};
+
+const FONT_SIZES = {
+  thin: 28,
+  medium: 34,
+  thick: 42,
+};
+
+const MARKER_SIZES = {
+  small: 18,
+  medium: 24,
+  large: 32,
+};
+
 const COPY = {
   uk: {
     eyebrow: "ISTe PLAYER HUB",
@@ -99,6 +117,26 @@ const COPY = {
     upper: "Верхній",
     lower: "Нижній",
     tools: "Інструменти",
+    toolsHint: "Оберіть дію для роботи з картою",
+    mapHint: "Активна карта та поверх",
+    appearance: "Вигляд",
+    appearanceHint: "Колір, товщина та прозорість",
+    stroke: "Товщина",
+    opacity: "Прозорість",
+    thin: "Тонка",
+    medium: "Середня",
+    thick: "Товста",
+    customColor: "Свій колір",
+    players: "Гравці",
+    utility: "Гранати та C4",
+    markerSize: "Розмір об'єкта",
+    small: "Малий",
+    large: "Великий",
+    objectLabel: "Підпис об'єкта",
+    objectLabelPlaceholder: "Наприклад: DRONI",
+    history: "Історія та вибір",
+    historyHint: "Швидкі дії з поточним планом",
+    keyboard: "Гарячі клавіші",
     select: "Вибір",
     draw: "Олівець",
     arrow: "Стрілка",
@@ -131,6 +169,22 @@ const COPY = {
       flash: "FL",
       he: "HE",
       molotov: "MOL",
+    },
+    markerNames: {
+      t: "Терорист",
+      ct: "Спецпризначенець",
+      bomb: "Бомба C4",
+      smoke: "Димова",
+      flash: "Світлова",
+      he: "Осколкова",
+      molotov: "Молотов",
+    },
+    itemTypes: {
+      path: "Лінія",
+      arrow: "Стрілка",
+      circle: "Коло",
+      text: "Текст",
+      marker: "Об'єкт",
     },
   },
   en: {
@@ -166,6 +220,26 @@ const COPY = {
     upper: "Upper",
     lower: "Lower",
     tools: "Tools",
+    toolsHint: "Choose an action for the map",
+    mapHint: "Active map and floor",
+    appearance: "Appearance",
+    appearanceHint: "Color, thickness and opacity",
+    stroke: "Thickness",
+    opacity: "Opacity",
+    thin: "Thin",
+    medium: "Medium",
+    thick: "Thick",
+    customColor: "Custom color",
+    players: "Players",
+    utility: "Utility and C4",
+    markerSize: "Object size",
+    small: "Small",
+    large: "Large",
+    objectLabel: "Object label",
+    objectLabelPlaceholder: "Example: DRONI",
+    history: "History and selection",
+    historyHint: "Quick actions for the current plan",
+    keyboard: "Shortcuts",
     select: "Select",
     draw: "Pencil",
     arrow: "Arrow",
@@ -198,6 +272,22 @@ const COPY = {
       flash: "FL",
       he: "HE",
       molotov: "MOL",
+    },
+    markerNames: {
+      t: "Terrorist",
+      ct: "Counter-Terrorist",
+      bomb: "C4 bomb",
+      smoke: "Smoke",
+      flash: "Flash",
+      he: "HE grenade",
+      molotov: "Molotov",
+    },
+    itemTypes: {
+      path: "Line",
+      arrow: "Arrow",
+      circle: "Circle",
+      text: "Text",
+      marker: "Object",
     },
   },
 };
@@ -261,8 +351,16 @@ function ArrowShape({
 
   const ux = dx / length;
   const uy = dy / length;
-  const size = 22;
-  const wing = 10;
+  const strokeWidth =
+    Number(item.strokeWidth) || 7;
+  const opacity =
+    Number.isFinite(item.opacity)
+      ? item.opacity
+      : 1;
+  const size =
+    18 + strokeWidth * 0.8;
+  const wing =
+    8 + strokeWidth * 0.45;
 
   const bx =
     item.x2 - ux * size;
@@ -288,12 +386,18 @@ function ArrowShape({
         x2={item.x2}
         y2={item.y2}
         stroke={item.color}
-        strokeWidth={selected ? 10 : 7}
+        strokeWidth={
+          selected
+            ? strokeWidth + 3
+            : strokeWidth
+        }
         strokeLinecap="round"
+        opacity={opacity}
       />
       <polygon
         points={`${p1} ${p2} ${p3}`}
         fill={item.color}
+        opacity={opacity}
       />
     </g>
   );
@@ -324,7 +428,16 @@ function BoardItem({
           .join(" ")}
         fill="none"
         stroke={item.color}
-        strokeWidth={selected ? 11 : 8}
+        strokeWidth={
+          selected
+            ? (Number(item.strokeWidth) || 8) + 3
+            : Number(item.strokeWidth) || 8
+        }
+        opacity={
+          Number.isFinite(item.opacity)
+            ? item.opacity
+            : 1
+        }
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -350,7 +463,16 @@ function BoardItem({
         r={item.r}
         fill="rgba(0,0,0,0.08)"
         stroke={item.color}
-        strokeWidth={selected ? 10 : 7}
+        strokeWidth={
+          selected
+            ? (Number(item.strokeWidth) || 7) + 3
+            : Number(item.strokeWidth) || 7
+        }
+        opacity={
+          Number.isFinite(item.opacity)
+            ? item.opacity
+            : 1
+        }
       />
     );
   }
@@ -362,8 +484,13 @@ function BoardItem({
         x={item.x}
         y={item.y}
         fill={item.color}
-        fontSize="34"
+        fontSize={item.fontSize || 34}
         fontWeight="900"
+        opacity={
+          Number.isFinite(item.opacity)
+            ? item.opacity
+            : 1
+        }
         paintOrder="stroke"
         stroke="#111827"
         strokeWidth="7"
@@ -380,7 +507,11 @@ function BoardItem({
         transform={`translate(${item.x} ${item.y})`}
       >
         <circle
-          r={selected ? 28 : 24}
+          r={
+            selected
+              ? (item.markerSize || 24) + 4
+              : item.markerSize || 24
+          }
           fill={markerFill(item.marker)}
           stroke={
             selected
@@ -388,6 +519,11 @@ function BoardItem({
               : "rgba(0,0,0,0.8)"
           }
           strokeWidth={selected ? 6 : 4}
+          opacity={
+            Number.isFinite(item.opacity)
+              ? item.opacity
+              : 1
+          }
         />
         <text
           y="7"
@@ -480,15 +616,23 @@ function drawArrowOnCanvas(
 
   const ux = dx / length;
   const uy = dy / length;
-  const headLength = 24 * scale;
-  const headWidth = 12 * scale;
+  const strokeWidth =
+    Number(item.strokeWidth) || 7;
+  const headLength =
+    (18 + strokeWidth * 0.8) * scale;
+  const headWidth =
+    (8 + strokeWidth * 0.45) * scale;
 
+  context.globalAlpha =
+    Number.isFinite(item.opacity)
+      ? item.opacity
+      : 1;
   context.strokeStyle =
     item.color;
   context.fillStyle =
     item.color;
   context.lineWidth =
-    7 * scale;
+    strokeWidth * scale;
   context.lineCap = "round";
 
   context.beginPath();
@@ -513,6 +657,7 @@ function drawArrowOnCanvas(
   );
   context.closePath();
   context.fill();
+  context.globalAlpha = 1;
 }
 
 function drawBoardItemOnCanvas(
@@ -529,10 +674,14 @@ function drawBoardItemOnCanvas(
       return;
     }
 
+    context.globalAlpha =
+      Number.isFinite(item.opacity)
+        ? item.opacity
+        : 1;
     context.strokeStyle =
       item.color;
     context.lineWidth =
-      8 * scale;
+      (Number(item.strokeWidth) || 8) * scale;
     context.lineCap = "round";
     context.lineJoin = "round";
 
@@ -552,6 +701,7 @@ function drawBoardItemOnCanvas(
       });
 
     context.stroke();
+    context.globalAlpha = 1;
     return;
   }
 
@@ -565,10 +715,14 @@ function drawBoardItemOnCanvas(
   }
 
   if (item.type === "circle") {
+    context.globalAlpha =
+      Number.isFinite(item.opacity)
+        ? item.opacity
+        : 1;
     context.strokeStyle =
       item.color;
     context.lineWidth =
-      7 * scale;
+      (Number(item.strokeWidth) || 7) * scale;
 
     context.beginPath();
     context.arc(
@@ -579,13 +733,18 @@ function drawBoardItemOnCanvas(
       Math.PI * 2,
     );
     context.stroke();
+    context.globalAlpha = 1;
     return;
   }
 
   if (item.type === "text") {
     const fontSize =
-      34 * scale;
+      (item.fontSize || 34) * scale;
 
+    context.globalAlpha =
+      Number.isFinite(item.opacity)
+        ? item.opacity
+        : 1;
     context.font =
       `900 ${fontSize}px Arial, sans-serif`;
     context.textBaseline =
@@ -611,6 +770,7 @@ function drawBoardItemOnCanvas(
       item.y * scale,
     );
 
+    context.globalAlpha = 1;
     return;
   }
 
@@ -620,8 +780,12 @@ function drawBoardItemOnCanvas(
     const y =
       item.y * scale;
     const radius =
-      24 * scale;
+      (item.markerSize || 24) * scale;
 
+    context.globalAlpha =
+      Number.isFinite(item.opacity)
+        ? item.opacity
+        : 1;
     context.fillStyle =
       markerFill(
         item.marker,
@@ -679,6 +843,7 @@ function drawBoardItemOnCanvas(
 
     context.textAlign =
       "start";
+    context.globalAlpha = 1;
   }
 }
 
@@ -775,6 +940,14 @@ export default function PlayerTactics() {
     useState(COLORS[0]);
   const [markerType, setMarkerType] =
     useState("t");
+  const [strokeSize, setStrokeSize] =
+    useState("medium");
+  const [markerSize, setMarkerSize] =
+    useState("medium");
+  const [opacity, setOpacity] =
+    useState(100);
+  const [objectLabel, setObjectLabel] =
+    useState("");
   const [labelText, setLabelText] =
     useState("");
   const [draft, setDraft] =
@@ -1478,11 +1651,16 @@ export default function PlayerTactics() {
           item.marker === markerType,
       ).length + 1;
 
+    const customLabel =
+      objectLabel.trim();
+
     const label =
-      markerType === "t" ||
-      markerType === "ct"
-        ? `${c.markerLabels[markerType]}${count}`
-        : c.markerLabels[markerType];
+      customLabel
+        ? customLabel.slice(0, 12)
+        : markerType === "t" ||
+            markerType === "ct"
+          ? `${c.markerLabels[markerType]}${count}`
+          : c.markerLabels[markerType];
 
     commitItems([
       ...items,
@@ -1493,6 +1671,10 @@ export default function PlayerTactics() {
         label,
         x: point.x,
         y: point.y,
+        markerSize:
+          MARKER_SIZES[markerSize],
+        opacity:
+          opacity / 100,
       },
     ]);
   }
@@ -1536,6 +1718,10 @@ export default function PlayerTactics() {
           x: point.x,
           y: point.y,
           color,
+          fontSize:
+            FONT_SIZES[strokeSize],
+          opacity:
+            opacity / 100,
         },
       ]);
 
@@ -1552,6 +1738,10 @@ export default function PlayerTactics() {
         id: makeId(),
         type: "path",
         color,
+        strokeWidth:
+          STROKE_SIZES[strokeSize],
+        opacity:
+          opacity / 100,
         points: [point],
       });
     }
@@ -1561,6 +1751,10 @@ export default function PlayerTactics() {
         id: makeId(),
         type: "arrow",
         color,
+        strokeWidth:
+          STROKE_SIZES[strokeSize],
+        opacity:
+          opacity / 100,
         x1: point.x,
         y1: point.y,
         x2: point.x,
@@ -1573,6 +1767,10 @@ export default function PlayerTactics() {
         id: makeId(),
         type: "circle",
         color,
+        strokeWidth:
+          STROKE_SIZES[strokeSize],
+        opacity:
+          opacity / 100,
         cx: point.x,
         cy: point.y,
         r: 0,
@@ -1674,11 +1872,36 @@ export default function PlayerTactics() {
 
   useEffect(() => {
     function onKeyDown(event) {
+      const tag =
+        document.activeElement?.tagName;
+
+      const isTyping =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT";
+
+      if (!isTyping) {
+        const shortcut =
+          event.key.toLowerCase();
+
+        const shortcutTool = {
+          v: "select",
+          p: "draw",
+          a: "arrow",
+          c: "circle",
+          t: "text",
+          o: "marker",
+        }[shortcut];
+
+        if (shortcutTool) {
+          setTool(shortcutTool);
+        }
+      }
+
       if (
-        event.key === "Delete" ||
-        event.key === "Backspace" &&
-          document.activeElement?.tagName !==
-            "INPUT"
+        (event.key === "Delete" ||
+          event.key === "Backspace") &&
+        !isTyping
       ) {
         deleteSelected();
       }
@@ -1716,13 +1939,49 @@ export default function PlayerTactics() {
       : items;
 
   const tools = [
-    ["select", c.select],
-    ["draw", c.draw],
-    ["arrow", c.arrow],
-    ["circle", c.circle],
-    ["text", c.text],
-    ["marker", c.marker],
+    {
+      id: "select",
+      label: c.select,
+      icon: "↖",
+      shortcut: "V",
+    },
+    {
+      id: "draw",
+      label: c.draw,
+      icon: "✎",
+      shortcut: "P",
+    },
+    {
+      id: "arrow",
+      label: c.arrow,
+      icon: "↗",
+      shortcut: "A",
+    },
+    {
+      id: "circle",
+      label: c.circle,
+      icon: "○",
+      shortcut: "C",
+    },
+    {
+      id: "text",
+      label: c.text,
+      icon: "T",
+      shortcut: "T",
+    },
+    {
+      id: "marker",
+      label: c.marker,
+      icon: "●",
+      shortcut: "O",
+    },
   ];
+
+  const selectedItem =
+    items.find(
+      (item) =>
+        item.id === selectedId,
+    ) || null;
 
   const activeTactic =
     useMemo(
@@ -1986,9 +2245,19 @@ export default function PlayerTactics() {
           </main>
 
           <aside className="tactics-tools">
-            <section>
-              <h2>{c.map}</h2>
+            <section className="tactics-tool-section">
+              <div className="tactics-section-heading">
+                <div>
+                  <h2>{c.map}</h2>
+                  <p>{c.mapHint}</p>
+                </div>
+                <span className="tactics-section-badge">
+                  {currentMap.name}
+                </span>
+              </div>
+
               <select
+                className="tactics-map-select"
                 value={mapId}
                 onChange={(event) => {
                   setMapId(
@@ -2043,59 +2312,164 @@ export default function PlayerTactics() {
               ) : null}
             </section>
 
-            <section>
-              <h2>{c.tools}</h2>
-              <div className="tactics-tool-grid">
+            <section className="tactics-tool-section">
+              <div className="tactics-section-heading">
+                <div>
+                  <h2>{c.tools}</h2>
+                  <p>{c.toolsHint}</p>
+                </div>
+              </div>
+
+              <div className="tactics-tool-grid tactics-tool-grid--rich">
                 {tools.map(
-                  ([id, label]) => (
+                  (item) => (
                     <button
                       type="button"
-                      key={id}
+                      key={item.id}
                       className={
-                        tool === id
+                        tool === item.id
                           ? "active"
                           : ""
                       }
                       onClick={() =>
-                        setTool(id)
+                        setTool(item.id)
                       }
+                      title={`${item.label} · ${item.shortcut}`}
                     >
-                      {label}
+                      <span className="tactics-tool-icon">
+                        {item.icon}
+                      </span>
+                      <span className="tactics-tool-label">
+                        {item.label}
+                      </span>
+                      <kbd>
+                        {item.shortcut}
+                      </kbd>
                     </button>
                   ),
                 )}
               </div>
             </section>
 
-            <section>
-              <h2>{c.colors}</h2>
-              <div className="tactics-colors">
-                {COLORS.map(
-                  (value) => (
-                    <button
-                      type="button"
-                      key={value}
-                      aria-label={value}
-                      className={
-                        color === value
-                          ? "active"
-                          : ""
-                      }
-                      style={{
-                        background: value,
-                      }}
-                      onClick={() =>
-                        setColor(value)
+            <section className="tactics-tool-section">
+              <div className="tactics-section-heading">
+                <div>
+                  <h2>{c.appearance}</h2>
+                  <p>{c.appearanceHint}</p>
+                </div>
+              </div>
+
+              <div className="tactics-field">
+                <span>{c.colors}</span>
+
+                <div className="tactics-colors">
+                  {COLORS.map(
+                    (value) => (
+                      <button
+                        type="button"
+                        key={value}
+                        aria-label={value}
+                        className={
+                          color === value
+                            ? "active"
+                            : ""
+                        }
+                        style={{
+                          background: value,
+                        }}
+                        onClick={() =>
+                          setColor(value)
+                        }
+                      />
+                    ),
+                  )}
+
+                  <label
+                    className="tactics-custom-color"
+                    title={c.customColor}
+                  >
+                    <input
+                      type="color"
+                      value={color}
+                      onChange={(event) =>
+                        setColor(
+                          event.target.value,
+                        )
                       }
                     />
-                  ),
-                )}
+                    <span>+</span>
+                  </label>
+                </div>
               </div>
+
+              {tool !== "marker" ? (
+                <>
+                  <div className="tactics-field">
+                    <span>{c.stroke}</span>
+                    <div className="tactics-size-switch">
+                      {[
+                        ["thin", c.thin],
+                        ["medium", c.medium],
+                        ["thick", c.thick],
+                      ].map(
+                        ([id, label]) => (
+                          <button
+                            type="button"
+                            key={id}
+                            className={
+                              strokeSize === id
+                                ? "active"
+                                : ""
+                            }
+                            onClick={() =>
+                              setStrokeSize(id)
+                            }
+                          >
+                            <i
+                              style={{
+                                height:
+                                  STROKE_SIZES[id],
+                              }}
+                            />
+                            <span>{label}</span>
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="tactics-field">
+                    <div className="tactics-range-label">
+                      <span>{c.opacity}</span>
+                      <strong>{opacity}%</strong>
+                    </div>
+                    <input
+                      className="tactics-range"
+                      type="range"
+                      min="25"
+                      max="100"
+                      step="5"
+                      value={opacity}
+                      onChange={(event) =>
+                        setOpacity(
+                          Number(
+                            event.target.value,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                </>
+              ) : null}
             </section>
 
             {tool === "text" ? (
-              <section>
-                <h2>{c.label}</h2>
+              <section className="tactics-tool-section tactics-context-section">
+                <div className="tactics-section-heading">
+                  <div>
+                    <h2>{c.label}</h2>
+                  </div>
+                </div>
                 <input
                   value={labelText}
                   maxLength={60}
@@ -2112,54 +2486,203 @@ export default function PlayerTactics() {
             ) : null}
 
             {tool === "marker" ? (
-              <section>
-                <h2>{c.objects}</h2>
-                <div className="tactics-marker-grid">
-                  {MARKERS.map(
-                    (type) => (
-                      <button
-                        type="button"
-                        key={type}
-                        className={
-                          markerType ===
-                          type
-                            ? "active"
-                            : ""
-                        }
-                        onClick={() =>
-                          setMarkerType(
-                            type,
-                          )
-                        }
-                      >
-                        <span
-                          style={{
-                            background:
-                              markerFill(
-                                type,
-                              ),
-                          }}
-                        >
-                          {
-                            c.markerLabels[
-                              type
-                            ]
+              <section className="tactics-tool-section tactics-context-section">
+                <div className="tactics-section-heading">
+                  <div>
+                    <h2>{c.objects}</h2>
+                    <p>{c.objectLabel}</p>
+                  </div>
+                </div>
+
+                <div className="tactics-object-group">
+                  <span>{c.players}</span>
+                  <div className="tactics-marker-grid tactics-marker-grid--players">
+                    {["t", "ct"].map(
+                      (type) => (
+                        <button
+                          type="button"
+                          key={type}
+                          className={
+                            markerType ===
+                            type
+                              ? "active"
+                              : ""
                           }
-                        </span>
-                      </button>
-                    ),
-                  )}
+                          onClick={() =>
+                            setMarkerType(
+                              type,
+                            )
+                          }
+                        >
+                          <span
+                            className="tactics-object-icon"
+                            style={{
+                              background:
+                                markerFill(
+                                  type,
+                                ),
+                            }}
+                          >
+                            {
+                              c.markerLabels[
+                                type
+                              ]
+                            }
+                          </span>
+                          <em>
+                            {
+                              c.markerNames[
+                                type
+                              ]
+                            }
+                          </em>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                <div className="tactics-object-group">
+                  <span>{c.utility}</span>
+                  <div className="tactics-marker-grid tactics-marker-grid--utility">
+                    {[
+                      "bomb",
+                      "smoke",
+                      "flash",
+                      "he",
+                      "molotov",
+                    ].map(
+                      (type) => (
+                        <button
+                          type="button"
+                          key={type}
+                          className={
+                            markerType ===
+                            type
+                              ? "active"
+                              : ""
+                          }
+                          onClick={() =>
+                            setMarkerType(
+                              type,
+                            )
+                          }
+                        >
+                          <span
+                            className="tactics-object-icon"
+                            style={{
+                              background:
+                                markerFill(
+                                  type,
+                                ),
+                            }}
+                          >
+                            {
+                              c.markerLabels[
+                                type
+                              ]
+                            }
+                          </span>
+                          <em>
+                            {
+                              c.markerNames[
+                                type
+                              ]
+                            }
+                          </em>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                <div className="tactics-field">
+                  <span>{c.markerSize}</span>
+                  <div className="tactics-size-switch tactics-size-switch--markers">
+                    {[
+                      ["small", c.small],
+                      ["medium", c.medium],
+                      ["large", c.large],
+                    ].map(
+                      ([id, label]) => (
+                        <button
+                          type="button"
+                          key={id}
+                          className={
+                            markerSize === id
+                              ? "active"
+                              : ""
+                          }
+                          onClick={() =>
+                            setMarkerSize(id)
+                          }
+                        >
+                          <span>{label}</span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                <label className="tactics-field">
+                  <span>{c.objectLabel}</span>
+                  <input
+                    value={objectLabel}
+                    maxLength={12}
+                    placeholder={
+                      c.objectLabelPlaceholder
+                    }
+                    onChange={(event) =>
+                      setObjectLabel(
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
+
+                <div className="tactics-field">
+                  <div className="tactics-range-label">
+                    <span>{c.opacity}</span>
+                    <strong>{opacity}%</strong>
+                  </div>
+                  <input
+                    className="tactics-range"
+                    type="range"
+                    min="25"
+                    max="100"
+                    step="5"
+                    value={opacity}
+                    onChange={(event) =>
+                      setOpacity(
+                        Number(
+                          event.target.value,
+                        ),
+                      )
+                    }
+                  />
                 </div>
               </section>
             ) : null}
 
-            <section>
-              <h2>
-                {c.selected}:{" "}
-                {selectedId
-                  ? c.selected
-                  : c.noSelection}
-              </h2>
+            <section className="tactics-tool-section tactics-history-section">
+              <div className="tactics-section-heading">
+                <div>
+                  <h2>{c.history}</h2>
+                  <p>{c.historyHint}</p>
+                </div>
+              </div>
+
+              <div className="tactics-selection-card">
+                <span>{c.selected}</span>
+                <strong>
+                  {selectedItem
+                    ? c.itemTypes[
+                        selectedItem.type
+                      ] ||
+                      selectedItem.type
+                    : c.noSelection}
+                </strong>
+              </div>
 
               <div className="tactics-history-actions">
                 <button
@@ -2167,6 +2690,7 @@ export default function PlayerTactics() {
                   disabled={!past.length}
                   onClick={undo}
                 >
+                  <span>↶</span>
                   {c.undo}
                 </button>
                 <button
@@ -2174,6 +2698,7 @@ export default function PlayerTactics() {
                   disabled={!future.length}
                   onClick={redo}
                 >
+                  <span>↷</span>
                   {c.redo}
                 </button>
                 <button
@@ -2183,20 +2708,23 @@ export default function PlayerTactics() {
                     deleteSelected
                   }
                 >
+                  <span>⌫</span>
                   {c.remove}
                 </button>
                 <button
                   type="button"
+                  className="tactics-clear-button"
                   disabled={!items.length}
                   onClick={() =>
                     commitItems([])
                   }
                 >
+                  <span>×</span>
                   {c.clear}
                 </button>
               </div>
             </section>
-          </aside>
+          </aside>          </aside>
         </div>
       </div>
     </section>
