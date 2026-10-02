@@ -31,6 +31,8 @@ const founderCopy = {
     dashboardText: "Центр керування ISTe",
     roster: "Roster Manager",
     rosterText: "Керування офіційним складом",
+    tactics: "Тактична дошка",
+    tacticsText: "Плани, розстановки та гранати",
     users: "Користувачі",
     usersText: "Ролі, блокування та журнал",
     news: "Новини",
@@ -47,6 +49,8 @@ const founderCopy = {
     dashboardText: "ISTe management center",
     roster: "Roster Manager",
     rosterText: "Manage the official roster",
+    tactics: "Tactical Board",
+    tacticsText: "Plans, setups and utility",
     users: "Users",
     usersText: "Roles, bans and audit log",
     news: "News",
@@ -217,6 +221,15 @@ function FounderMenu({ language, onNavigate }) {
       </NavLink>
 
       <NavLink
+        to="/player/tactics"
+        className="navbar-founder-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.tactics}</strong>
+        <span>{c.tacticsText}</span>
+      </NavLink>
+
+      <NavLink
         to="/owner/users"
         className="navbar-founder-item"
         onClick={onNavigate}
@@ -276,6 +289,12 @@ export default function Navbar() {
   ].includes(role);
 
   const canManageRoster = [
+    "game_manager",
+    "owner",
+  ].includes(role);
+
+  const canUseTactics = [
+    "player",
     "game_manager",
     "owner",
   ].includes(role);
@@ -482,6 +501,19 @@ export default function Navbar() {
                   menuOpen={menuOpen}
                   onClick={closeAccountMenu}
                 />
+
+                {canUseTactics && !isFounder ? (
+                  <ProfileAction
+                    to="/player/tactics"
+                    icon={icons.users}
+                    title={t("account.manageTacticsTitle")}
+                    description={t(
+                      "account.manageTacticsDescription",
+                    )}
+                    menuOpen={menuOpen}
+                    onClick={closeAccountMenu}
+                  />
+                ) : null}
 
                 {canManageRoster && !isFounder ? (
                   <ProfileAction

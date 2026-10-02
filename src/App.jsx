@@ -5,6 +5,7 @@ import { useAuth } from "./auth/AuthContext.jsx";
 import OwnerRoute from "./auth/OwnerRoute.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import RosterManagerRoute from "./auth/RosterManagerRoute.jsx";
+import PlayerRoute from "./auth/PlayerRoute.jsx";
 import StaffRoute from "./auth/StaffRoute.jsx";
 import Footer from "./components/layout/Footer.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
@@ -31,6 +32,7 @@ import OwnerRoster from "./pages/OwnerRoster.jsx";
 import OwnerShop from "./pages/OwnerShop.jsx";
 import OwnerUsers from "./pages/OwnerUsers.jsx";
 import Partners from "./pages/Partners.jsx";
+import PlayerTactics from "./pages/PlayerTactics.jsx";
 import Register from "./pages/Register.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Shop from "./pages/Shop.jsx";
@@ -205,6 +207,15 @@ export default function App() {
               <RosterManagerRoute>
                 <OwnerRoster />
               </RosterManagerRoute>
+            }
+          />
+
+          <Route
+            path="/player/tactics"
+            element={
+              <PlayerRoute>
+                <PlayerTactics />
+              </PlayerRoute>
             }
           />
 
