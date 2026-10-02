@@ -60,9 +60,9 @@ async function apiRequest(
       {
         error: "INVALID_SERVER_RESPONSE",
         message:
-          "Сервер вернул некорректный ответ.",
+          "INVALID_SERVER_RESPONSE",
       },
-      "Сервер вернул некорректный ответ.",
+      "INVALID_SERVER_RESPONSE",
     );
   }
 
@@ -72,7 +72,7 @@ async function apiRequest(
   ) {
     throw createApiError(
       result,
-      "Не удалось выполнить запрос.",
+      "REQUEST_FAILED",
     );
   }
 
@@ -602,7 +602,9 @@ export default function OwnerUsers() {
             onClick={() =>
               switchTab("users")
             }
-          >\n            {t("ownerUsers.usersTab")}\n          </button>
+          >
+            {t("ownerUsers.usersTab")}
+          </button>
 
           <button
             className={
@@ -618,7 +620,9 @@ export default function OwnerUsers() {
             onClick={() =>
               switchTab("audit")
             }
-          >\n            {t("ownerUsers.auditTab")}\n          </button>
+          >
+            {t("ownerUsers.auditTab")}
+          </button>
         </div>
 
         {(
@@ -713,14 +717,18 @@ export default function OwnerUsers() {
               <button
                 className="owner-button owner-button-primary"
                 type="submit"
-              >\n                {t("ownerUsers.search")}\n              </button>
+              >
+                {t("ownerUsers.search")}
+              </button>
 
               {search ? (
                 <button
                   className="owner-button owner-button-secondary"
                   type="button"
                   onClick={resetSearch}
-                >\n                  {t("ownerUsers.reset")}\n                </button>
+                >
+                  {t("ownerUsers.reset")}
+                </button>
               ) : null}
             </form>
 
@@ -794,18 +802,22 @@ export default function OwnerUsers() {
                             </h2>
 
                             {isSelf ? (
-                              <span className="owner-chip">\n                                {t("ownerUsers.you")}\n                              </span>
+                              <span className="owner-chip">
+                                {t("ownerUsers.you")}
+                              </span>
                             ) : null}
 
                             {item.is_blocked ? (
-                              <span className="owner-chip owner-chip-danger">\n                                {t("ownerUsers.blockedChip")}\n                              </span>
+                              <span className="owner-chip owner-chip-danger">
+                                {t("ownerUsers.blockedChip")}
+                              </span>
                             ) : null}
                           </div>
 
                           <p>
                             @
                             {item.username ||
-                              "без_ника"}
+                              t("ownerUsers.usernameFallback")}
 
                             <span aria-hidden="true">
                               •
@@ -825,7 +837,7 @@ export default function OwnerUsers() {
                             </span>
 
                             <span>
-                              Регистрация:{" "}
+                              {t("ownerUsers.registration")}{" "}
                               {formatDate(
                                 item.created_at,
                                 language,
@@ -834,7 +846,7 @@ export default function OwnerUsers() {
                             </span>
 
                             <span>
-                              Последний вход:{" "}
+                              {t("ownerUsers.lastSignIn")}{" "}
                               {formatDate(
                                 item.last_sign_in_at,
                                 language,
@@ -847,7 +859,7 @@ export default function OwnerUsers() {
                           {item.is_blocked &&
                           item.blocked_reason ? (
                             <p className="owner-block-reason">
-                              Причина:{" "}
+                              {t("ownerUsers.reason")}{" "}
                               {
                                 item.blocked_reason
                               }
@@ -884,7 +896,7 @@ export default function OwnerUsers() {
                           >
                             {isOwner ? (
                               <option value="owner">
-                                Владелец
+                                {t("roles.owner")}
                               </option>
                             ) : (
                               roleOptions.map(
@@ -927,7 +939,8 @@ export default function OwnerUsers() {
                           }
                         >
                           {busy
-                            ? t("ownerUsers.saving")\n                            : t("ownerUsers.saveRole")}
+                            ? t("ownerUsers.saving")
+                            : t("ownerUsers.saveRole")}
                         </button>
 
                         <button
@@ -948,14 +961,15 @@ export default function OwnerUsers() {
                           }
                         >
                           {item.is_blocked
-                            ? t("ownerUsers.unblock")\n                            : t("ownerUsers.block")}
+                            ? t("ownerUsers.unblock")
+                            : t("ownerUsers.block")}
                         </button>
 
                         {controlsDisabled ? (
                           <small>
                             {isSelf
-                              ? "{t("ownerUsers.selfProtected")}"
-                              : "{t("ownerUsers.ownerProtected")}"}
+                              ? t("ownerUsers.selfProtected")
+                              : t("ownerUsers.ownerProtected")}
                           </small>
                         ) : null}
                       </div>
@@ -985,7 +999,8 @@ export default function OwnerUsers() {
                 }
               >
                 {loadingAudit
-                  ? t("ownerUsers.refreshing")\n                  : t("ownerUsers.refresh")}
+                  ? t("ownerUsers.refreshing")
+                  : t("ownerUsers.refresh")}
               </button>
             </div>
 
@@ -1059,9 +1074,7 @@ export default function OwnerUsers() {
 
                           <span>
                             {" "}
-                            {language === "en"
-                              ? "changed account"
-                              : "змінив акаунт"}
+                            {t("ownerUsers.auditChangedConnector")}
                             {" "}
                           </span>
 
@@ -1121,7 +1134,7 @@ export default function OwnerUsers() {
             </h2>
 
             <p>
-              {t("accountPage.memberFallback")}:{" "}
+              {t("ownerUsers.userLabel")}:{" "}
               <strong>
                 {getUserTitle(
                   dialog.user,
@@ -1137,7 +1150,7 @@ export default function OwnerUsers() {
 
                 <strong>
                   {
-                    ROLE_NAMES[
+                    roleNames[
                       dialog.nextRole
                     ]
                   }
@@ -1179,7 +1192,9 @@ export default function OwnerUsers() {
                 disabled={Boolean(
                   actionUserId,
                 )}
-              >\n                {t("ownerUsers.cancel")}\n              </button>
+              >
+                {t("ownerUsers.cancel")}
+              </button>
 
               <button
                 className={`owner-button ${
@@ -1197,7 +1212,8 @@ export default function OwnerUsers() {
                 )}
               >
                 {actionUserId
-                  ? t("ownerUsers.processing")\n                  : t("ownerUsers.confirm")}
+                  ? t("ownerUsers.processing")
+                  : t("ownerUsers.confirm")}
               </button>
             </div>
           </div>
