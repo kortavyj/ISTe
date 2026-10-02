@@ -335,6 +335,12 @@
   color: #ffc56f;
 }
 
+.owner-role-game_manager {
+  border-color: rgba(130, 110, 255, 0.32);
+  background: rgba(130, 110, 255, 0.09);
+  color: #b6aaff;
+}
+
 .owner-role-editor {
   border-color: rgba(90, 159, 255, 0.28);
   background: rgba(90, 159, 255, 0.08);
