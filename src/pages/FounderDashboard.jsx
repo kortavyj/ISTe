@@ -34,35 +34,6 @@ const copy = {
     websiteText:
       "Повернутися до публічної частини ISTesport та перевірити результат змін.",
   },
-  ru: {
-    eyebrow: "ISTe FOUNDER CONTROL",
-    title: "Панель основателя",
-    intro:
-      "Отдельный центр управления ISTe, доступный только владельцу. Все ключевые административные разделы собраны в одном месте.",
-    protected: "ТОЛЬКО OWNER",
-    open: "Открыть",
-    rosterTitle: "Roster Manager",
-    rosterText:
-      "Основной состав, замены, роли, капитан и официальный статус игроков ISTe.",
-    usersTitle: "Пользователи",
-    usersText:
-      "Роли, блокировки, поиск аккаунтов и журнал административных действий.",
-    newsTitle: "Новости",
-    newsText:
-      "Черновики, публикации и управление новостями ISTesport.",
-    shopTitle: "ISTe Wear",
-    shopText:
-      "Товары, предзаказы и управление магазином.",
-    discordTitle: "Discord Bot",
-    discordText:
-      "Серверы, проверка подключения и глобальные slash-команды.",
-    publicBotTitle: "Публичная страница бота",
-    publicBotText:
-      "Просмотр страницы, через которую пользователи добавляют ISTe Bot на свои серверы.",
-    websiteTitle: "Публичный сайт",
-    websiteText:
-      "Вернуться в публичную часть ISTesport и проверить результат изменений.",
-  },
   en: {
     eyebrow: "ISTe FOUNDER CONTROL",
     title: "Founder dashboard",
