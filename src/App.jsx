@@ -26,6 +26,7 @@ import Matches from "./pages/Matches.jsx";
 import News from "./pages/News.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import OwnerDiscord from "./pages/OwnerDiscord.jsx";
+import OwnerRoster from "./pages/OwnerRoster.jsx";
 import OwnerShop from "./pages/OwnerShop.jsx";
 import OwnerUsers from "./pages/OwnerUsers.jsx";
 import Partners from "./pages/Partners.jsx";
@@ -184,6 +185,15 @@ export default function App() {
             element={
               <OwnerRoute>
                 <OwnerShop />
+              </OwnerRoute>
+            }
+          />
+
+          <Route
+            path="/owner/roster"
+            element={
+              <OwnerRoute>
+                <OwnerRoster />
               </OwnerRoute>
             }
           />
