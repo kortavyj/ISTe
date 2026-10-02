@@ -28,6 +28,8 @@ const ROSTER_COLUMNS = [
   "nickname",
   "display_name",
   "real_name",
+  "real_name_uk",
+  "real_name_en",
   "roster_status",
   "player_role",
   "is_captain",
@@ -89,6 +91,8 @@ function normalizePlayer(row) {
     nickname: row.nickname || "",
     displayName: row.display_name || row.nickname || "",
     realName: row.real_name || "",
+    realNameUk: row.real_name_uk || "",
+    realNameEn: row.real_name_en || "",
     status: row.roster_status || "trial",
     role: row.player_role || "RIFLER",
     isCaptain: row.is_captain === true,
@@ -117,6 +121,10 @@ function readPlayerInput(body) {
       : "";
   const realName =
     typeof body?.realName === "string" ? body.realName.trim() : "";
+  const realNameUk =
+    typeof body?.realNameUk === "string" ? body.realNameUk.trim() : "";
+  const realNameEn =
+    typeof body?.realNameEn === "string" ? body.realNameEn.trim() : "";
   const status =
     typeof body?.status === "string"
       ? body.status.trim().toLowerCase()
@@ -195,7 +203,12 @@ function readPlayerInput(body) {
     };
   }
 
-  if (realName.length > 100 || notes.length > 2500) {
+  if (
+    realName.length > 100 ||
+    realNameUk.length > 100 ||
+    realNameEn.length > 100 ||
+    notes.length > 2500
+  ) {
     return {
       ok: false,
       status: 400,
@@ -237,6 +250,8 @@ function readPlayerInput(body) {
       nickname,
       display_name: displayName,
       real_name: realName,
+      real_name_uk: realNameUk,
+      real_name_en: realNameEn,
       roster_status: status,
       player_role: role,
       is_captain: isCaptain,
@@ -448,6 +463,8 @@ async function handleImportFaceit(request, response) {
         nickname,
         display_name: nickname,
         real_name: "",
+        real_name_uk: "",
+        real_name_en: "",
         roster_status: "trial",
         player_role: String(player?.role || "RIFLER")
           .trim()
