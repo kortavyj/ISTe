@@ -95,7 +95,7 @@ const copy = {
 };
 
 const cards = [
-  { key: "roster", to: "/owner/roster", mark: "01" },
+  { key: "roster", to: "/control/roster", mark: "01" },
   { key: "users", to: "/owner/users", mark: "02" },
   { key: "news", to: "/admin/news", mark: "03" },
   { key: "shop", to: "/owner/shop", mark: "04" },
