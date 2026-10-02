@@ -129,7 +129,7 @@ async function handleList(
         .from("iste_tactics")
         .select(COLUMNS)
         .or(
-          \`visibility.eq.team,author_id.eq.\${access.user.id}\`,
+          `visibility.eq.team,author_id.eq.${access.user.id}`,
         )
         .order(
           "updated_at",
