@@ -8,6 +8,7 @@ import "./OwnerUsers.css";
 const ROLE_NAMES = Object.freeze({
   user: "Пользователь",
   editor: "Редактор",
+  game_manager: "Игровой менеджер",
   admin: "Администратор",
   owner: "Владелец",
 });
@@ -15,6 +16,7 @@ const ROLE_NAMES = Object.freeze({
 const ROLE_OPTIONS = Object.freeze([
   { value: "user", label: "Пользователь" },
   { value: "editor", label: "Редактор" },
+  { value: "game_manager", label: "Игровой менеджер" },
   { value: "admin", label: "Администратор" },
 ]);
 
@@ -358,6 +360,11 @@ export default function OwnerUsers() {
           item.role === "editor",
       ).length,
 
+      gameManagers: users.filter(
+        (item) =>
+          item.role === "game_manager",
+      ).length,
+
       blocked: users.filter(
         (item) => item.is_blocked,
       ).length,
@@ -562,10 +569,10 @@ export default function OwnerUsers() {
           </h1>
 
           <p>
-            Назначение администраторов и
-            редакторов, блокировка
-            аккаунтов и журнал действий
-            владельца.
+            Назначение администраторов,
+            редакторов и игровых менеджеров,
+            блокировка аккаунтов и журнал
+            действий владельца.
           </p>
         </header>
 
@@ -659,6 +666,16 @@ export default function OwnerUsers() {
 
                 <span>
                   Редакторов
+                </span>
+              </div>
+
+              <div>
+                <strong>
+                  {summary.gameManagers}
+                </strong>
+
+                <span>
+                  Игровых менеджеров
                 </span>
               </div>
 
