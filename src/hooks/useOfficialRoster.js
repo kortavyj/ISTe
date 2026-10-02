@@ -81,7 +81,7 @@ export default function useOfficialRoster() {
   const loadOfficialRoster = useCallback(async () => {
     try {
       const response = await fetch(
-        `/api/roster?time=${Date.now()}`,
+        `/api/owner?module=public-roster&time=${Date.now()}`,
         {
           cache: "no-store",
           headers: {
