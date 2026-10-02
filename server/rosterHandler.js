@@ -1,6 +1,6 @@
 import { guardRequest } from "../api/lib/requestGuard.js";
 import { readJsonBody, readQueryString } from "../api/lib/requestBody.js";
-import { requireOwner } from "../api/lib/ownerRequest.js";
+import { requireRosterAccess } from "../api/lib/rosterRequest.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 
 const STATUS_VALUES = new Set([
@@ -265,15 +265,15 @@ function readPlayerInput(body) {
   };
 }
 
-async function getOwner(request, response) {
-  const owner = await requireOwner(request, response);
+async function getRosterAccess(request, response) {
+  const access = await requireRosterAccess(request, response);
 
-  if (!owner.ok) {
-    sendError(response, owner.status, owner.error, owner.message);
+  if (!access.ok) {
+    sendError(response, access.status, access.error, access.message);
     return null;
   }
 
-  return owner;
+  return access;
 }
 
 async function handleList(request, response) {
@@ -285,8 +285,8 @@ async function handleList(request, response) {
 
   if (!guard.ok) return sendGuardError(response, guard);
 
-  const owner = await getOwner(request, response);
-  if (!owner) return;
+  const access = await getRosterAccess(request, response);
+  if (!access) return;
 
   try {
     const supabase = getSupabaseAdminClient();
@@ -351,8 +351,8 @@ async function handleSave(request, response) {
 
   if (!guard.ok) return sendGuardError(response, guard);
 
-  const owner = await getOwner(request, response);
-  if (!owner) return;
+  const access = await getRosterAccess(request, response);
+  if (!access) return;
 
   const input = readPlayerInput(readJsonBody(request));
   if (!input?.ok) {
@@ -438,8 +438,8 @@ async function handleImportFaceit(request, response) {
 
   if (!guard.ok) return sendGuardError(response, guard);
 
-  const owner = await getOwner(request, response);
-  if (!owner) return;
+  const access = await getRosterAccess(request, response);
+  if (!access) return;
 
   const body = readJsonBody(request);
   const players = Array.isArray(body?.players) ? body.players : [];
