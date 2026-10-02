@@ -15,6 +15,7 @@ import { getSupabaseServerClient } from "../lib/supabaseServer.js";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const MFA_REQUIRED_ROLES = new Set([
+  "game_manager",
   "admin",
   "owner",
 ]);
