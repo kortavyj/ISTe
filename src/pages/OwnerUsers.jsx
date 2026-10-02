@@ -1,50 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 import "./Auth.css";
 import "./OwnerUsers.css";
-
-const ROLE_NAMES = Object.freeze({
-  user: "Пользователь",
-  editor: "Редактор",
-  game_manager: "Игровой менеджер",
-  admin: "Администратор",
-  owner: "Владелец",
-});
-
-const ROLE_OPTIONS = Object.freeze([
-  { value: "user", label: "Пользователь" },
-  { value: "editor", label: "Редактор" },
-  { value: "game_manager", label: "Игровой менеджер" },
-  { value: "admin", label: "Администратор" },
-]);
-
-const ACTION_NAMES = Object.freeze({
-  role_changed: "Изменение роли",
-  user_blocked: "Блокировка пользователя",
-  user_unblocked: "Разблокировка пользователя",
-  assign_owner: "Назначение владельца",
-});
-
-const ERROR_MESSAGES = Object.freeze({
-  AUTH_REQUIRED: "Нужно повторно войти в аккаунт.",
-  OWNER_REQUIRED: "Эта операция доступна только владельцу.",
-  ACCOUNT_BLOCKED: "Этот аккаунт заблокирован.",
-  ACCOUNT_CHECK_FAILED: "Не удалось проверить права аккаунта.",
-  TARGET_REQUIRED: "Пользователь не выбран.",
-  CANNOT_CHANGE_OWN_ROLE: "Нельзя изменить собственную роль.",
-  CANNOT_CHANGE_OWNER: "Нельзя изменить роль владельца.",
-  INVALID_ROLE: "Выбрана недопустимая роль.",
-  INVALID_BLOCK_STATE: "Некорректное состояние блокировки.",
-  INVALID_REASON: "Причина блокировки слишком длинная.",
-  USER_ROLE_NOT_FOUND: "Роль пользователя не найдена.",
-  CANNOT_BLOCK_SELF: "Нельзя заблокировать собственный аккаунт.",
-  CANNOT_BLOCK_OWNER: "Нельзя заблокировать владельца.",
-  OWNER_OPERATION_FAILED: "Не удалось выполнить операцию.",
-  INTERNAL_SERVER_ERROR: "Произошла серверная ошибка.",
-  INVALID_SERVER_RESPONSE: "Сервер вернул некорректный ответ.",
-});
 
 function createApiError(result, fallbackMessage) {
   const error = new Error(
@@ -119,7 +79,7 @@ async function apiRequest(
   return result;
 }
 
-function getErrorMessage(error) {
+function getErrorMessage(error, t) {
   const source = [
     error?.message,
     error?.details,
@@ -129,31 +89,54 @@ function getErrorMessage(error) {
     .filter(Boolean)
     .join(" ");
 
-  const knownCode = Object.keys(
-    ERROR_MESSAGES,
-  ).find((code) =>
+  const codes = [
+    "AUTH_REQUIRED",
+    "OWNER_REQUIRED",
+    "ACCOUNT_BLOCKED",
+    "ACCOUNT_CHECK_FAILED",
+    "TARGET_REQUIRED",
+    "CANNOT_CHANGE_OWN_ROLE",
+    "CANNOT_CHANGE_OWNER",
+    "INVALID_ROLE",
+    "INVALID_BLOCK_STATE",
+    "INVALID_REASON",
+    "USER_ROLE_NOT_FOUND",
+    "CANNOT_BLOCK_SELF",
+    "CANNOT_BLOCK_OWNER",
+    "OWNER_OPERATION_FAILED",
+    "INTERNAL_SERVER_ERROR",
+    "INVALID_SERVER_RESPONSE",
+    "REQUEST_FAILED",
+  ];
+
+  const knownCode = codes.find((code) =>
     source.includes(code),
   );
 
   return knownCode
-    ? ERROR_MESSAGES[knownCode]
+    ? t(`ownerUsers.errors.${knownCode}`)
     : error?.message ||
-        "Не удалось выполнить операцию.";
+        t("ownerUsers.errors.OWNER_OPERATION_FAILED");
 }
 
-function formatDate(value, withTime = false) {
+function formatDate(
+  value,
+  language,
+  emptyLabel,
+  withTime = false,
+) {
   if (!value) {
-    return "Нет данных";
+    return emptyLabel;
   }
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "Нет данных";
+    return emptyLabel;
   }
 
   return new Intl.DateTimeFormat(
-    "ru-RU",
+    language === "en" ? "en-US" : "uk-UA",
     {
       day: "2-digit",
       month: "long",
@@ -182,28 +165,55 @@ function getInitials(user) {
     .toUpperCase();
 }
 
-function getUserTitle(user) {
+function getUserTitle(user, fallback) {
   return (
     user?.display_name ||
     user?.username ||
-    "Пользователь ISTe"
+    fallback
   );
 }
 
 function getAuditPerson(
   email,
   username,
+  fallback,
 ) {
   return (
     username ||
     email ||
-    "Неизвестный пользователь"
+    fallback
   );
 }
 
 export default function OwnerUsers() {
   const { user: currentUser } =
     useAuth();
+  const { language, t } = useLanguage();
+
+  const roleNames = {
+    user: t("roles.user"),
+    editor: t("roles.editor"),
+    game_manager: t("roles.game_manager"),
+    admin: t("roles.admin"),
+    owner: t("roles.owner"),
+  };
+
+  const roleOptions = [
+    { value: "user", label: roleNames.user },
+    { value: "editor", label: roleNames.editor },
+    {
+      value: "game_manager",
+      label: roleNames.game_manager,
+    },
+    { value: "admin", label: roleNames.admin },
+  ];
+
+  const actionNames = {
+    role_changed: t("ownerUsers.actions.role_changed"),
+    user_blocked: t("ownerUsers.actions.user_blocked"),
+    user_unblocked: t("ownerUsers.actions.user_unblocked"),
+    assign_owner: t("ownerUsers.actions.assign_owner"),
+  };
 
   const [activeTab, setActiveTab] =
     useState("users");
@@ -292,13 +302,13 @@ export default function OwnerUsers() {
         setUsers([]);
         setRoleDrafts({});
         setErrorMessage(
-          getErrorMessage(error),
+          getErrorMessage(error, t),
         );
       } finally {
         setLoadingUsers(false);
       }
     },
-    [],
+    [t],
   );
 
   const loadAudit = useCallback(
@@ -320,13 +330,13 @@ export default function OwnerUsers() {
       } catch (error) {
         setAuditLog([]);
         setErrorMessage(
-          getErrorMessage(error),
+          getErrorMessage(error, t),
         );
       } finally {
         setLoadingAudit(false);
       }
     },
-    [],
+    [t],
   );
 
   useEffect(() => {
@@ -419,7 +429,7 @@ export default function OwnerUsers() {
       nextRole === targetUser.role
     ) {
       setErrorMessage(
-        "Сначала выбери новую роль.",
+        t("ownerUsers.selectNewRole"),
       );
 
       setSuccessMessage("");
@@ -489,13 +499,13 @@ export default function OwnerUsers() {
         );
 
         setSuccessMessage(
-          `${getUserTitle(
-            targetUser,
-          )}: назначена роль «${
-            ROLE_NAMES[
-              dialog.nextRole
-            ]
-          }».`,
+          t("ownerUsers.roleAssigned", {
+            name: getUserTitle(
+              targetUser,
+              t("accountPage.memberFallback"),
+            ),
+            role: roleNames[dialog.nextRole] || dialog.nextRole,
+          }),
         );
       } else {
         const nextBlocked =
@@ -523,12 +533,18 @@ export default function OwnerUsers() {
 
         setSuccessMessage(
           nextBlocked
-            ? `${getUserTitle(
+            ? t("ownerUsers.accountBlocked", {
+              name: getUserTitle(
                 targetUser,
-              )}: аккаунт заблокирован.`
-            : `${getUserTitle(
+                t("accountPage.memberFallback"),
+              ),
+            })
+            : t("ownerUsers.accountUnblocked", {
+              name: getUserTitle(
                 targetUser,
-              )}: аккаунт разблокирован.`,
+                t("accountPage.memberFallback"),
+              ),
+            }),
         );
       }
 
@@ -544,7 +560,7 @@ export default function OwnerUsers() {
       }
     } catch (error) {
       setErrorMessage(
-        getErrorMessage(error),
+        getErrorMessage(error, t),
       );
     } finally {
       setActionUserId("");
@@ -560,26 +576,17 @@ export default function OwnerUsers() {
     <section className="auth-page owner-page">
       <div className="auth-shell owner-shell">
         <header className="auth-heading owner-heading">
-          <p className="auth-kicker">
-            ISTe control center
-          </p>
+          <p className="auth-kicker">{t("ownerUsers.kicker")}</p>
 
-          <h1>
-            Управление пользователями
-          </h1>
+          <h1>{t("ownerUsers.title")}</h1>
 
-          <p>
-            Назначение администраторов,
-            редакторов и игровых менеджеров,
-            блокировка аккаунтов и журнал
-            действий владельца.
-          </p>
+          <p>{t("ownerUsers.description")}</p>
         </header>
 
         <div
           className="owner-tabs"
           role="tablist"
-          aria-label="Разделы панели владельца"
+          aria-label={t("ownerUsers.tabsAria")}
         >
           <button
             className={
@@ -595,9 +602,7 @@ export default function OwnerUsers() {
             onClick={() =>
               switchTab("users")
             }
-          >
-            Пользователи
-          </button>
+          >\n            {t("ownerUsers.usersTab")}\n          </button>
 
           <button
             className={
@@ -613,9 +618,7 @@ export default function OwnerUsers() {
             onClick={() =>
               switchTab("audit")
             }
-          >
-            Журнал действий
-          </button>
+          >\n            {t("ownerUsers.auditTab")}\n          </button>
         </div>
 
         {(
@@ -639,14 +642,14 @@ export default function OwnerUsers() {
           <>
             <div
               className="owner-summary"
-              aria-label="Сводка по пользователям"
+              aria-label={t("ownerUsers.summaryAria")}
             >
               <div>
                 <strong>
                   {summary.total}
                 </strong>
 
-                <span>Найдено</span>
+                <span>{t("ownerUsers.found")}</span>
               </div>
 
               <div>
@@ -654,9 +657,7 @@ export default function OwnerUsers() {
                   {summary.admins}
                 </strong>
 
-                <span>
-                  Администраторов
-                </span>
+                <span>{t("ownerUsers.admins")}</span>
               </div>
 
               <div>
@@ -664,9 +665,7 @@ export default function OwnerUsers() {
                   {summary.editors}
                 </strong>
 
-                <span>
-                  Редакторов
-                </span>
+                <span>{t("ownerUsers.editors")}</span>
               </div>
 
               <div>
@@ -674,9 +673,7 @@ export default function OwnerUsers() {
                   {summary.gameManagers}
                 </strong>
 
-                <span>
-                  Игровых менеджеров
-                </span>
+                <span>{t("ownerUsers.gameManagers")}</span>
               </div>
 
               <div>
@@ -684,9 +681,7 @@ export default function OwnerUsers() {
                   {summary.blocked}
                 </strong>
 
-                <span>
-                  Заблокировано
-                </span>
+                <span>{t("ownerUsers.blocked")}</span>
               </div>
             </div>
 
@@ -710,26 +705,22 @@ export default function OwnerUsers() {
                       event.target.value,
                     )
                   }
-                  placeholder="Поиск по нику, имени или почте"
-                  aria-label="Поиск пользователей"
+                  placeholder={t("ownerUsers.searchPlaceholder")}
+                  aria-label={t("ownerUsers.searchAria")}
                 />
               </label>
 
               <button
                 className="owner-button owner-button-primary"
                 type="submit"
-              >
-                Найти
-              </button>
+              >\n                {t("ownerUsers.search")}\n              </button>
 
               {search ? (
                 <button
                   className="owner-button owner-button-secondary"
                   type="button"
                   onClick={resetSearch}
-                >
-                  Сбросить
-                </button>
+                >\n                  {t("ownerUsers.reset")}\n                </button>
               ) : null}
             </form>
 
@@ -740,25 +731,16 @@ export default function OwnerUsers() {
                   aria-hidden="true"
                 />
 
-                <p>
-                  Загружаем
-                  пользователей...
-                </p>
+                <p>{t("ownerUsers.loadingUsers")}</p>
               </div>
             ) : null}
 
             {!loadingUsers &&
             users.length === 0 ? (
               <div className="auth-card owner-empty">
-                <h2>
-                  Пользователи не
-                  найдены
-                </h2>
+                <h2>{t("ownerUsers.noUsersTitle")}</h2>
 
-                <p>
-                  Измени запрос или
-                  сбрось поиск.
-                </p>
+                <p>{t("ownerUsers.noUsersText")}</p>
               </div>
             ) : null}
 
@@ -807,19 +789,16 @@ export default function OwnerUsers() {
                             <h2>
                               {getUserTitle(
                                 item,
+                                t("accountPage.memberFallback"),
                               )}
                             </h2>
 
                             {isSelf ? (
-                              <span className="owner-chip">
-                                Вы
-                              </span>
+                              <span className="owner-chip">\n                                {t("ownerUsers.you")}\n                              </span>
                             ) : null}
 
                             {item.is_blocked ? (
-                              <span className="owner-chip owner-chip-danger">
-                                Заблокирован
-                              </span>
+                              <span className="owner-chip owner-chip-danger">\n                                {t("ownerUsers.blockedChip")}\n                              </span>
                             ) : null}
                           </div>
 
@@ -839,7 +818,7 @@ export default function OwnerUsers() {
                             <span
                               className={`owner-role owner-role-${item.role}`}
                             >
-                              {ROLE_NAMES[
+                              {roleNames[
                                 item.role
                               ] ||
                                 item.role}
@@ -849,6 +828,8 @@ export default function OwnerUsers() {
                               Регистрация:{" "}
                               {formatDate(
                                 item.created_at,
+                                language,
+                                t("ownerUsers.noData"),
                               )}
                             </span>
 
@@ -856,6 +837,8 @@ export default function OwnerUsers() {
                               Последний вход:{" "}
                               {formatDate(
                                 item.last_sign_in_at,
+                                language,
+                                t("ownerUsers.noData"),
                                 true,
                               )}
                             </span>
@@ -875,9 +858,7 @@ export default function OwnerUsers() {
 
                       <div className="owner-user-controls">
                         <label>
-                          <span>
-                            Роль
-                          </span>
+                          <span>{t("ownerUsers.role")}</span>
 
                           <select
                             value={
@@ -906,7 +887,7 @@ export default function OwnerUsers() {
                                 Владелец
                               </option>
                             ) : (
-                              ROLE_OPTIONS.map(
+                              roleOptions.map(
                                 (
                                   option,
                                 ) => (
@@ -946,8 +927,7 @@ export default function OwnerUsers() {
                           }
                         >
                           {busy
-                            ? "Сохраняем..."
-                            : "Сохранить роль"}
+                            ? t("ownerUsers.saving")\n                            : t("ownerUsers.saveRole")}
                         </button>
 
                         <button
@@ -968,15 +948,14 @@ export default function OwnerUsers() {
                           }
                         >
                           {item.is_blocked
-                            ? "Разблокировать"
-                            : "Заблокировать"}
+                            ? t("ownerUsers.unblock")\n                            : t("ownerUsers.block")}
                         </button>
 
                         {controlsDisabled ? (
                           <small>
                             {isSelf
-                              ? "Свою роль и блокировку менять нельзя."
-                              : "Аккаунт владельца защищён."}
+                              ? "{t("ownerUsers.selfProtected")}"
+                              : "{t("ownerUsers.ownerProtected")}"}
                           </small>
                         ) : null}
                       </div>
@@ -990,15 +969,9 @@ export default function OwnerUsers() {
           <div className="owner-audit-section">
             <div className="owner-audit-toolbar">
               <div>
-                <h2>
-                  Журнал действий
-                </h2>
+                <h2>{t("ownerUsers.auditTitle")}</h2>
 
-                <p>
-                  Последние 100
-                  административных
-                  операций.
-                </p>
+                <p>{t("ownerUsers.auditDescription")}</p>
               </div>
 
               <button
@@ -1012,8 +985,7 @@ export default function OwnerUsers() {
                 }
               >
                 {loadingAudit
-                  ? "Обновляем..."
-                  : "Обновить"}
+                  ? t("ownerUsers.refreshing")\n                  : t("ownerUsers.refresh")}
               </button>
             </div>
 
@@ -1024,24 +996,16 @@ export default function OwnerUsers() {
                   aria-hidden="true"
                 />
 
-                <p>
-                  Загружаем журнал...
-                </p>
+                <p>{t("ownerUsers.loadingAudit")}</p>
               </div>
             ) : null}
 
             {!loadingAudit &&
             auditLog.length === 0 ? (
               <div className="auth-card owner-empty">
-                <h2>
-                  Журнал пока пуст
-                </h2>
+                <h2>{t("ownerUsers.emptyAuditTitle")}</h2>
 
-                <p>
-                  Здесь появятся
-                  изменения ролей и
-                  блокировки аккаунтов.
-                </p>
+                <p>{t("ownerUsers.emptyAuditText")}</p>
               </div>
             ) : null}
 
@@ -1064,7 +1028,7 @@ export default function OwnerUsers() {
                       <div>
                         <div className="owner-audit-title">
                           <strong>
-                            {ACTION_NAMES[
+                            {actionNames[
                               item.action
                             ] ||
                               item.action}
@@ -1077,6 +1041,8 @@ export default function OwnerUsers() {
                           >
                             {formatDate(
                               item.created_at,
+                              language,
+                              t("ownerUsers.noData"),
                               true,
                             )}
                           </time>
@@ -1087,18 +1053,23 @@ export default function OwnerUsers() {
                             {getAuditPerson(
                               item.actor_email,
                               item.actor_username,
+                              t("ownerUsers.unknownUser"),
                             )}
                           </b>
 
                           <span>
                             {" "}
-                            изменил аккаунт{" "}
+                            {language === "en"
+                              ? "changed account"
+                              : "змінив акаунт"}
+                            {" "}
                           </span>
 
                           <b>
                             {getAuditPerson(
                               item.target_email,
                               item.target_username,
+                              t("ownerUsers.unknownUser"),
                             )}
                           </b>
                         </p>
@@ -1138,24 +1109,23 @@ export default function OwnerUsers() {
               event.stopPropagation()
             }
           >
-            <p className="auth-kicker">
-              Подтверждение
-            </p>
+            <p className="auth-kicker">{t("ownerUsers.confirmation")}</p>
 
             <h2 id="owner-dialog-title">
               {dialog.type === "role"
-                ? "Изменить роль?"
+                ? t("ownerUsers.changeRoleTitle")
                 : dialog.type ===
                     "block"
-                  ? "Заблокировать аккаунт?"
-                  : "Разблокировать аккаунт?"}
+                  ? t("ownerUsers.blockTitle")
+                  : t("ownerUsers.unblockTitle")}
             </h2>
 
             <p>
-              Пользователь:{" "}
+              {t("accountPage.memberFallback")}:{" "}
               <strong>
                 {getUserTitle(
                   dialog.user,
+                  t("accountPage.memberFallback"),
                 )}
               </strong>
             </p>
@@ -1163,7 +1133,7 @@ export default function OwnerUsers() {
             {dialog.type ===
             "role" ? (
               <p>
-                Новая роль:{" "}
+                {t("ownerUsers.newRole")}{" "}
 
                 <strong>
                   {
@@ -1178,9 +1148,7 @@ export default function OwnerUsers() {
             {dialog.type ===
             "block" ? (
               <label className="owner-dialog-reason">
-                <span>
-                  Причина блокировки
-                </span>
+                <span>{t("ownerUsers.blockReason")}</span>
 
                 <textarea
                   value={blockReason}
@@ -1190,7 +1158,7 @@ export default function OwnerUsers() {
                     )
                   }
                   maxLength={500}
-                  placeholder="Например: нарушение правил сообщества"
+                  placeholder={t("ownerUsers.blockReasonPlaceholder")}
                   disabled={Boolean(
                     actionUserId,
                   )}
@@ -1211,9 +1179,7 @@ export default function OwnerUsers() {
                 disabled={Boolean(
                   actionUserId,
                 )}
-              >
-                Отмена
-              </button>
+              >\n                {t("ownerUsers.cancel")}\n              </button>
 
               <button
                 className={`owner-button ${
@@ -1231,8 +1197,7 @@ export default function OwnerUsers() {
                 )}
               >
                 {actionUserId
-                  ? "Выполняем..."
-                  : "Подтвердить"}
+                  ? t("ownerUsers.processing")\n                  : t("ownerUsers.confirm")}
               </button>
             </div>
           </div>
