@@ -59,7 +59,7 @@
 
 .owner-summary {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 20px;
 }
@@ -333,6 +333,12 @@
   border-color: rgba(255, 174, 62, 0.3);
   background: rgba(255, 174, 62, 0.08);
   color: #ffc56f;
+}
+
+.owner-role-player {
+  border-color: rgba(83, 190, 255, 0.32);
+  background: rgba(83, 190, 255, 0.09);
+  color: #9fdcff;
 }
 
 .owner-role-game_manager {

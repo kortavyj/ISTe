@@ -211,28 +211,6 @@ const CUSTOM_PROFILES = Object.freeze([
     socials: [],
   },
   {
-    sourceNickname: "hagg1nho",
-    nickname: "Hagg1CH",
-    roleLabel: "SUPPORT",
-    copy: {
-      uk: {
-        title: "Олександр",
-        description:
-          "Опорник команди. Відповідає за ключові позиції на карті, часто грає соло та люркує, щоб знайти перевагу для команди у найкращий таймінг.",
-        strengths: ["Контроль позицій", "Люрк", "Таймінги"],
-      },
-      en: {
-        title: "Oleksandr",
-        description:
-          "Team anchor. Responsible for key positions on the map, often plays solo and lurks to find an advantage for the team at the right timing.",
-        strengths: ["Position control", "Lurking", "Timing"],
-      },
-    },
-    portrait: sharedPlayerPortrait,
-    portraitMode: "cutout",
-    socials: [],
-  },
-  {
     sourceNickname: "tw3ntyq",
     nickname: "tw3ntyq",
     roleLabel: "RIFLER",
@@ -377,12 +355,7 @@ const PROFILE_BY_NICKNAME = new Map(
   CUSTOM_PROFILES.map((profile) => [profile.sourceNickname, profile]),
 );
 
-const OFFICIAL_ROLE_LABELS = Object.freeze({
-  hagg1nho: {
-    uk: "SUPPORT",
-    en: "SUPPORT",
-  },
-});
+const OFFICIAL_ROLE_LABELS = Object.freeze({});
 
 function normalizeNickname(nickname) {
   return String(nickname || "").trim().toLowerCase();

@@ -11,6 +11,7 @@ import "./AccountId.css";
 
 const KNOWN_ROLES = new Set([
   "user",
+  "player",
   "editor",
   "game_manager",
   "admin",

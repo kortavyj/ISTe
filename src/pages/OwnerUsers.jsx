@@ -192,6 +192,7 @@ export default function OwnerUsers() {
 
   const roleNames = {
     user: t("roles.user"),
+    player: t("roles.player"),
     editor: t("roles.editor"),
     game_manager: t("roles.game_manager"),
     admin: t("roles.admin"),
@@ -200,6 +201,7 @@ export default function OwnerUsers() {
 
   const roleOptions = [
     { value: "user", label: roleNames.user },
+    { value: "player", label: roleNames.player },
     { value: "editor", label: roleNames.editor },
     {
       value: "game_manager",
@@ -363,6 +365,11 @@ export default function OwnerUsers() {
       admins: users.filter(
         (item) =>
           item.role === "admin",
+      ).length,
+
+      players: users.filter(
+        (item) =>
+          item.role === "player",
       ).length,
 
       editors: users.filter(
@@ -662,6 +669,14 @@ export default function OwnerUsers() {
                 </strong>
 
                 <span>{t("ownerUsers.admins")}</span>
+              </div>
+
+              <div>
+                <strong>
+                  {summary.players}
+                </strong>
+
+                <span>{t("ownerUsers.players")}</span>
               </div>
 
               <div>

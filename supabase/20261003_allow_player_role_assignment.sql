@@ -1,0 +1,2 @@
+-- Applied in Supabase: owner_update_user_role now accepts player.
+-- Kept as a repository marker for the role migration.
