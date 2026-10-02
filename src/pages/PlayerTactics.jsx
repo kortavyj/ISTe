@@ -186,9 +186,9 @@ const COPY = {
 };
 
 function makeId() {
-  return \`item-\${Date.now()}-\${Math.random()
+  return `item-${Date.now()}-${Math.random()
     .toString(36)
-    .slice(2, 8)}\`;
+    .slice(2, 8)}`;
 }
 
 function markerFill(type) {
@@ -252,11 +252,11 @@ function ArrowShape({
   const by =
     item.y2 - uy * size;
 
-  const p1 = \`\${item.x2},\${item.y2}\`;
+  const p1 = `${item.x2},${item.y2}`;
   const p2 =
-    \`\${bx - uy * wing},\${by + ux * wing}\`;
+    `${bx - uy * wing},${by + ux * wing}`;
   const p3 =
-    \`\${bx + uy * wing},\${by - ux * wing}\`;
+    `${bx + uy * wing},${by - ux * wing}`;
 
   return (
     <g
@@ -275,7 +275,7 @@ function ArrowShape({
         strokeLinecap="round"
       />
       <polygon
-        points={\`\${p1} \${p2} \${p3}\`}
+        points={`${p1} ${p2} ${p3}`}
         fill={item.color}
       />
     </g>
@@ -302,7 +302,7 @@ function BoardItem({
         points={item.points
           .map(
             (point) =>
-              \`\${point.x},\${point.y}\`,
+              `${point.x},${point.y}`,
           )
           .join(" ")}
         fill="none"
@@ -360,7 +360,7 @@ function BoardItem({
     return (
       <g
         {...common}
-        transform={\`translate(\${item.x} \${item.y})\`}
+        transform={`translate(${item.x} ${item.y})`}
       >
         <circle
           r={selected ? 28 : 24}
@@ -570,7 +570,7 @@ function drawBoardItemOnCanvas(
       34 * scale;
 
     context.font =
-      \`900 \${fontSize}px Arial, sans-serif\`;
+      `900 ${fontSize}px Arial, sans-serif`;
     context.textBaseline =
       "alphabetic";
     context.lineJoin =
@@ -639,14 +639,14 @@ function drawBoardItemOnCanvas(
     context.textBaseline =
       "middle";
     context.font =
-      \`1000 \${
+      `1000 ${
         (
           item.marker === "t" ||
           item.marker === "ct"
         )
           ? 20
           : 14
-      }px Arial, sans-serif\`;
+      }px Arial, sans-serif`;
 
     context.save();
     context.scale(
@@ -671,7 +671,7 @@ async function apiRequest(
   options = {},
 ) {
   const response = await fetch(
-    \`/api/owner?module=tactics&action=\${action}\`,
+    `/api/owner?module=tactics&action=${action}`,
     {
       credentials: "include",
       cache: "no-store",
@@ -1016,6 +1016,9 @@ export default function PlayerTactics() {
       const y =
         (size - height) / 2;
 
+      context.filter =
+        "saturate(0.72) brightness(0.86) contrast(1.06)";
+
       context.drawImage(
         image,
         x,
@@ -1023,6 +1026,8 @@ export default function PlayerTactics() {
         width,
         height,
       );
+
+      context.filter = "none";
 
       items.forEach((item) => {
         drawBoardItemOnCanvas(
@@ -1070,7 +1075,7 @@ export default function PlayerTactics() {
         "900 24px Arial, sans-serif";
 
       context.fillText(
-        \`ISTe · \${currentMap.name}\`,
+        `ISTe · ${currentMap.name}`,
         size - 34,
         size - 43,
       );
@@ -1115,7 +1120,7 @@ export default function PlayerTactics() {
       anchor.href =
         objectUrl;
       anchor.download =
-        \`\${fileTitle}_\${mapId}_ISTe.png\`;
+        `${fileTitle}_${mapId}_ISTe.png`;
 
       document.body.appendChild(
         anchor,
@@ -1197,7 +1202,7 @@ export default function PlayerTactics() {
     const label =
       markerType === "t" ||
       markerType === "ct"
-        ? \`\${c.markerLabels[markerType]}\${count}\`
+        ? `${c.markerLabels[markerType]}${count}`
         : c.markerLabels[markerType];
 
     commitItems([
