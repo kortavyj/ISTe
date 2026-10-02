@@ -1,6 +1,6 @@
 import { guardRequest } from "../api/lib/requestGuard.js";
 import { readJsonBody, readQueryString } from "../api/lib/requestBody.js";
-import { requireRosterAccess } from "../api/lib/rosterRequest.js";
+import { requireRosterAccess } from "./lib/rosterRequest.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 
 const STATUS_VALUES = new Set([
