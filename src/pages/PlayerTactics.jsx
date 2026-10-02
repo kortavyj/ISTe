@@ -2,10 +2,13 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
+import { useAuth } from "../auth/AuthContext.jsx";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
+import { supabase } from "../lib/supabase.js";
 
 import "./PlayerTactics.css";
 
@@ -82,6 +85,13 @@ const COPY = {
     downloading: "Створення PNG...",
     downloadFailed: "Не вдалося створити PNG.",
     downloadOk: "PNG тактики завантажено.",
+    live: "LIVE",
+    liveConnected: "Спільна дошка активна",
+    liveConnecting: "Підключення...",
+    liveOffline: "Офлайн",
+    liveUsers: "Онлайн: {{count}}",
+    liveHint: "Зміни видно команді в реальному часі. Збереження в Supabase виконується кнопкою «Зберегти».",
+    liveSaveFirst: "Збережіть командну тактику, щоб увімкнути спільну дошку.",
     delete: "Видалити",
     deleting: "Видалення...",
     map: "Карта",
@@ -142,6 +152,13 @@ const COPY = {
     downloading: "Creating PNG...",
     downloadFailed: "Could not create the PNG.",
     downloadOk: "Tactic PNG downloaded.",
+    live: "LIVE",
+    liveConnected: "Shared board is active",
+    liveConnecting: "Connecting...",
+    liveOffline: "Offline",
+    liveUsers: "Online: {{count}}",
+    liveHint: "Changes are visible to the team in real time. Use “Save” to persist them in Supabase.",
+    liveSaveFirst: "Save the team tactic to enable the shared board.",
     delete: "Delete",
     deleting: "Deleting...",
     map: "Map",
@@ -724,6 +741,11 @@ export default function PlayerTactics() {
   const { language } =
     useLanguage();
 
+  const {
+    user,
+    profile,
+  } = useAuth();
+
   const c =
     COPY[language] || COPY.uk;
 
@@ -769,6 +791,17 @@ export default function PlayerTactics() {
     useState("");
   const [notice, setNotice] =
     useState("");
+  const [liveStatus, setLiveStatus] =
+    useState("offline");
+  const [liveUsers, setLiveUsers] =
+    useState(0);
+
+  const liveChannelRef =
+    useRef(null);
+  const applyingRemoteRef =
+    useRef(false);
+  const broadcastTimerRef =
+    useRef(null);
 
   const currentMap =
     MAPS[mapId] || MAPS.mirage;
@@ -779,6 +812,252 @@ export default function PlayerTactics() {
     currentMap.lowerRadar
       ? currentMap.lowerRadar
       : currentMap.radar;
+
+
+  const liveEnabled =
+    Boolean(activeId) &&
+    visibility === "team";
+
+  useEffect(() => {
+    if (!liveEnabled || !user?.id) {
+      setLiveStatus("offline");
+      setLiveUsers(0);
+
+      return undefined;
+    }
+
+    setLiveStatus("connecting");
+
+    const channel =
+      supabase.channel(
+        `iste-tactic-${activeId}`,
+        {
+          config: {
+            broadcast: {
+              self: false,
+            },
+            presence: {
+              key: user.id,
+            },
+          },
+        },
+      );
+
+    liveChannelRef.current =
+      channel;
+
+    channel
+      .on(
+        "broadcast",
+        {
+          event: "board-state",
+        },
+        ({ payload }) => {
+          if (
+            !payload ||
+            payload.senderId ===
+              user.id
+          ) {
+            return;
+          }
+
+          applyingRemoteRef.current =
+            true;
+
+          if (
+            Array.isArray(
+              payload.items,
+            )
+          ) {
+            setItems(
+              payload.items,
+            );
+          }
+
+          if (
+            typeof payload.mapId ===
+              "string" &&
+            MAPS[payload.mapId]
+          ) {
+            setMapId(
+              payload.mapId,
+            );
+          }
+
+          if (
+            payload.layer ===
+              "upper" ||
+            payload.layer ===
+              "lower"
+          ) {
+            setLayer(
+              payload.layer,
+            );
+          }
+
+          setSelectedId("");
+          setDraft(null);
+
+          window.requestAnimationFrame(
+            () => {
+              applyingRemoteRef.current =
+                false;
+            },
+          );
+        },
+      )
+      .on(
+        "presence",
+        {
+          event: "sync",
+        },
+        () => {
+          const state =
+            channel.presenceState();
+
+          const total =
+            Object.values(state)
+              .flat()
+              .length;
+
+          setLiveUsers(total);
+        },
+      )
+      .subscribe(
+        async (status) => {
+          if (
+            status ===
+            "SUBSCRIBED"
+          ) {
+            setLiveStatus(
+              "connected",
+            );
+
+            await channel.track({
+              userId: user.id,
+              name:
+                profile?.display_name ||
+                profile?.username ||
+                user.email ||
+                "ISTe",
+              joinedAt:
+                new Date()
+                  .toISOString(),
+            });
+
+            return;
+          }
+
+          if (
+            status ===
+              "CHANNEL_ERROR" ||
+            status ===
+              "TIMED_OUT" ||
+            status === "CLOSED"
+          ) {
+            setLiveStatus(
+              "offline",
+            );
+          }
+        },
+      );
+
+    return () => {
+      if (
+        broadcastTimerRef.current
+      ) {
+        window.clearTimeout(
+          broadcastTimerRef.current,
+        );
+
+        broadcastTimerRef.current =
+          null;
+      }
+
+      liveChannelRef.current =
+        null;
+
+      void supabase.removeChannel(
+        channel,
+      );
+
+      setLiveStatus("offline");
+      setLiveUsers(0);
+    };
+  }, [
+    activeId,
+    liveEnabled,
+    profile?.display_name,
+    profile?.username,
+    user?.email,
+    user?.id,
+  ]);
+
+  useEffect(() => {
+    if (
+      !liveEnabled ||
+      liveStatus !==
+        "connected" ||
+      !liveChannelRef.current ||
+      applyingRemoteRef.current
+    ) {
+      return undefined;
+    }
+
+    if (
+      broadcastTimerRef.current
+    ) {
+      window.clearTimeout(
+        broadcastTimerRef.current,
+      );
+    }
+
+    broadcastTimerRef.current =
+      window.setTimeout(
+        () => {
+          const channel =
+            liveChannelRef.current;
+
+          if (!channel) return;
+
+          void channel.send({
+            type: "broadcast",
+            event: "board-state",
+            payload: {
+              senderId:
+                user?.id || "",
+              items,
+              mapId,
+              layer,
+              sentAt:
+                Date.now(),
+            },
+          });
+        },
+        120,
+      );
+
+    return () => {
+      if (
+        broadcastTimerRef.current
+      ) {
+        window.clearTimeout(
+          broadcastTimerRef.current,
+        );
+
+        broadcastTimerRef.current =
+          null;
+      }
+    };
+  }, [
+    items,
+    mapId,
+    layer,
+    liveEnabled,
+    liveStatus,
+    user?.id,
+  ]);
+
 
   const loadTactics =
     useCallback(async () => {
@@ -1485,6 +1764,50 @@ export default function PlayerTactics() {
             {error || notice}
           </div>
         ) : null}
+
+        <div className="tactics-livebar">
+          <div
+            className={[
+              "tactics-live-status",
+              liveStatus === "connected"
+                ? "tactics-live-status--connected"
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <span
+              className="tactics-live-dot"
+              aria-hidden="true"
+            />
+
+            <strong>{c.live}</strong>
+
+            <span>
+              {!liveEnabled
+                ? c.liveSaveFirst
+                : liveStatus ===
+                    "connected"
+                  ? c.liveConnected
+                  : liveStatus ===
+                      "connecting"
+                    ? c.liveConnecting
+                    : c.liveOffline}
+            </span>
+          </div>
+
+          {liveEnabled ? (
+            <div className="tactics-live-meta">
+              <strong>
+                {c.liveUsers.replace(
+                  "{{count}}",
+                  String(liveUsers),
+                )}
+              </strong>
+              <span>{c.liveHint}</span>
+            </div>
+          ) : null}
+        </div>
 
         <div className="tactics-layout">
           <aside className="tactics-sidebar">
