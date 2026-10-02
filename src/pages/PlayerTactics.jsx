@@ -78,6 +78,10 @@ const COPY = {
     private: "Лише я",
     save: "Зберегти",
     saving: "Збереження...",
+    download: "Завантажити PNG",
+    downloading: "Створення PNG...",
+    downloadFailed: "Не вдалося створити PNG.",
+    downloadOk: "PNG тактики завантажено.",
     delete: "Видалити",
     deleting: "Видалення...",
     map: "Карта",
@@ -134,6 +138,10 @@ const COPY = {
     private: "Only me",
     save: "Save",
     saving: "Saving...",
+    download: "Download PNG",
+    downloading: "Creating PNG...",
+    downloadFailed: "Could not create the PNG.",
+    downloadOk: "Tactic PNG downloaded.",
     delete: "Delete",
     deleting: "Deleting...",
     map: "Map",
@@ -386,6 +394,278 @@ function BoardItem({
   return null;
 }
 
+
+function sanitizeFileName(value) {
+  return String(value || "iste-tactic")
+    .trim()
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, "_")
+    .replace(/_+/g, "_")
+    .slice(0, 80) || "iste-tactic";
+}
+
+async function loadImageForCanvas(url) {
+  const response = await fetch(url, {
+    mode: "cors",
+    cache: "force-cache",
+  });
+
+  if (!response.ok) {
+    throw new Error("RADAR_IMAGE_LOAD_FAILED");
+  }
+
+  const blob = await response.blob();
+  const objectUrl =
+    URL.createObjectURL(blob);
+
+  try {
+    const image = new Image();
+    image.decoding = "async";
+
+    await new Promise(
+      (resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () =>
+          reject(
+            new Error(
+              "RADAR_IMAGE_DECODE_FAILED",
+            ),
+          );
+        image.src = objectUrl;
+      },
+    );
+
+    return image;
+  } finally {
+    URL.revokeObjectURL(
+      objectUrl,
+    );
+  }
+}
+
+function drawArrowOnCanvas(
+  context,
+  item,
+  scale,
+) {
+  const x1 = item.x1 * scale;
+  const y1 = item.y1 * scale;
+  const x2 = item.x2 * scale;
+  const y2 = item.y2 * scale;
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length =
+    Math.max(
+      1,
+      Math.hypot(dx, dy),
+    );
+
+  const ux = dx / length;
+  const uy = dy / length;
+  const headLength = 24 * scale;
+  const headWidth = 12 * scale;
+
+  context.strokeStyle =
+    item.color;
+  context.fillStyle =
+    item.color;
+  context.lineWidth =
+    7 * scale;
+  context.lineCap = "round";
+
+  context.beginPath();
+  context.moveTo(x1, y1);
+  context.lineTo(x2, y2);
+  context.stroke();
+
+  const bx =
+    x2 - ux * headLength;
+  const by =
+    y2 - uy * headLength;
+
+  context.beginPath();
+  context.moveTo(x2, y2);
+  context.lineTo(
+    bx - uy * headWidth,
+    by + ux * headWidth,
+  );
+  context.lineTo(
+    bx + uy * headWidth,
+    by - ux * headWidth,
+  );
+  context.closePath();
+  context.fill();
+}
+
+function drawBoardItemOnCanvas(
+  context,
+  item,
+  scale,
+  copy,
+) {
+  if (item.type === "path") {
+    if (
+      !Array.isArray(item.points) ||
+      item.points.length < 2
+    ) {
+      return;
+    }
+
+    context.strokeStyle =
+      item.color;
+    context.lineWidth =
+      8 * scale;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+
+    context.beginPath();
+    context.moveTo(
+      item.points[0].x * scale,
+      item.points[0].y * scale,
+    );
+
+    item.points
+      .slice(1)
+      .forEach((point) => {
+        context.lineTo(
+          point.x * scale,
+          point.y * scale,
+        );
+      });
+
+    context.stroke();
+    return;
+  }
+
+  if (item.type === "arrow") {
+    drawArrowOnCanvas(
+      context,
+      item,
+      scale,
+    );
+    return;
+  }
+
+  if (item.type === "circle") {
+    context.strokeStyle =
+      item.color;
+    context.lineWidth =
+      7 * scale;
+
+    context.beginPath();
+    context.arc(
+      item.cx * scale,
+      item.cy * scale,
+      item.r * scale,
+      0,
+      Math.PI * 2,
+    );
+    context.stroke();
+    return;
+  }
+
+  if (item.type === "text") {
+    const fontSize =
+      34 * scale;
+
+    context.font =
+      \`900 \${fontSize}px Arial, sans-serif\`;
+    context.textBaseline =
+      "alphabetic";
+    context.lineJoin =
+      "round";
+    context.strokeStyle =
+      "#111827";
+    context.lineWidth =
+      7 * scale;
+    context.fillStyle =
+      item.color;
+
+    context.strokeText(
+      item.text,
+      item.x * scale,
+      item.y * scale,
+    );
+
+    context.fillText(
+      item.text,
+      item.x * scale,
+      item.y * scale,
+    );
+
+    return;
+  }
+
+  if (item.type === "marker") {
+    const x =
+      item.x * scale;
+    const y =
+      item.y * scale;
+    const radius =
+      24 * scale;
+
+    context.fillStyle =
+      markerFill(
+        item.marker,
+      );
+    context.strokeStyle =
+      "rgba(0,0,0,0.82)";
+    context.lineWidth =
+      4 * scale;
+
+    context.beginPath();
+    context.arc(
+      x,
+      y,
+      radius,
+      0,
+      Math.PI * 2,
+    );
+    context.fill();
+    context.stroke();
+
+    const label =
+      item.label ||
+      copy.markerLabels[
+        item.marker
+      ] ||
+      "";
+
+    context.fillStyle =
+      "#0a0d12";
+    context.textAlign =
+      "center";
+    context.textBaseline =
+      "middle";
+    context.font =
+      \`1000 \${
+        (
+          item.marker === "t" ||
+          item.marker === "ct"
+        )
+          ? 20
+          : 14
+      }px Arial, sans-serif\`;
+
+    context.save();
+    context.scale(
+      scale,
+      scale,
+    );
+    context.fillText(
+      label,
+      item.x,
+      item.y + 1,
+    );
+    context.restore();
+
+    context.textAlign =
+      "start";
+  }
+}
+
+
 async function apiRequest(
   action,
   options = {},
@@ -482,6 +762,8 @@ export default function PlayerTactics() {
   const [saving, setSaving] =
     useState(false);
   const [deleting, setDeleting] =
+    useState(false);
+  const [downloading, setDownloading] =
     useState(false);
   const [error, setError] =
     useState("");
@@ -667,6 +949,204 @@ export default function PlayerTactics() {
       setError(c.saveFailed);
     } finally {
       setSaving(false);
+    }
+  }
+
+
+  async function downloadBoardPng() {
+    setDownloading(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const image =
+        await loadImageForCanvas(
+          radarUrl,
+        );
+
+      const size = 2000;
+      const scale = size / 1000;
+
+      const canvas =
+        document.createElement(
+          "canvas",
+        );
+
+      canvas.width = size;
+      canvas.height = size;
+
+      const context =
+        canvas.getContext(
+          "2d",
+          {
+            alpha: false,
+          },
+        );
+
+      if (!context) {
+        throw new Error(
+          "CANVAS_UNAVAILABLE",
+        );
+      }
+
+      context.fillStyle =
+        "#101419";
+      context.fillRect(
+        0,
+        0,
+        size,
+        size,
+      );
+
+      const imageScale =
+        Math.min(
+          size / image.naturalWidth,
+          size / image.naturalHeight,
+        );
+
+      const width =
+        image.naturalWidth *
+        imageScale;
+      const height =
+        image.naturalHeight *
+        imageScale;
+
+      const x =
+        (size - width) / 2;
+      const y =
+        (size - height) / 2;
+
+      context.drawImage(
+        image,
+        x,
+        y,
+        width,
+        height,
+      );
+
+      items.forEach((item) => {
+        drawBoardItemOnCanvas(
+          context,
+          item,
+          scale,
+          c,
+        );
+      });
+
+      context.fillStyle =
+        "rgba(9, 12, 16, 0.86)";
+      context.fillRect(
+        0,
+        size - 86,
+        size,
+        86,
+      );
+
+      context.fillStyle =
+        "#ffffff";
+      context.font =
+        "900 30px Arial, sans-serif";
+      context.textBaseline =
+        "middle";
+
+      const exportTitle =
+        title.trim() ||
+        currentMap.name;
+
+      context.fillText(
+        exportTitle.slice(
+          0,
+          70,
+        ),
+        34,
+        size - 43,
+      );
+
+      context.textAlign =
+        "right";
+      context.fillStyle =
+        "#ff3345";
+      context.font =
+        "900 24px Arial, sans-serif";
+
+      context.fillText(
+        \`ISTe · \${currentMap.name}\`,
+        size - 34,
+        size - 43,
+      );
+
+      const blob =
+        await new Promise(
+          (resolve, reject) => {
+            canvas.toBlob(
+              (value) => {
+                if (value) {
+                  resolve(value);
+                } else {
+                  reject(
+                    new Error(
+                      "PNG_ENCODE_FAILED",
+                    ),
+                  );
+                }
+              },
+              "image/png",
+              1,
+            );
+          },
+        );
+
+      const objectUrl =
+        URL.createObjectURL(
+          blob,
+        );
+
+      const anchor =
+        document.createElement(
+          "a",
+        );
+
+      const fileTitle =
+        sanitizeFileName(
+          title.trim() ||
+            "iste-tactic",
+        );
+
+      anchor.href =
+        objectUrl;
+      anchor.download =
+        \`\${fileTitle}_\${mapId}_ISTe.png\`;
+
+      document.body.appendChild(
+        anchor,
+      );
+
+      anchor.click();
+      anchor.remove();
+
+      window.setTimeout(
+        () => {
+          URL.revokeObjectURL(
+            objectUrl,
+          );
+        },
+        1000,
+      );
+
+      setNotice(
+        c.downloadOk,
+      );
+    } catch (downloadError) {
+      console.error(
+        "Tactical Board PNG export error:",
+        downloadError,
+      );
+
+      setError(
+        c.downloadFailed,
+      );
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -1105,6 +1585,17 @@ export default function PlayerTactics() {
                     : c.save}
                 </button>
 
+                <button
+                  type="button"
+                  className="tactics-export"
+                  disabled={downloading}
+                  onClick={downloadBoardPng}
+                >
+                  {downloading
+                    ? c.downloading
+                    : c.download}
+                </button>
+
                 {activeTactic ? (
                   <button
                     type="button"
@@ -1124,6 +1615,7 @@ export default function PlayerTactics() {
               <img
                 className="tactics-radar"
                 src={radarUrl}
+                crossOrigin="anonymous"
                 alt={currentMap.name}
                 draggable="false"
               />
