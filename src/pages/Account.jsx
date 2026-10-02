@@ -11,6 +11,7 @@ import "./AccountId.css";
 const roleNames = {
   user: "Пользователь",
   editor: "Редактор",
+  game_manager: "Игровой менеджер",
   admin: "Администратор",
   owner: "Владелец",
 };
@@ -246,6 +247,15 @@ export default function Account() {
             </dl>
 
             <div className="account-summary-actions">
+              {role === "game_manager" || role === "owner" ? (
+                <Link
+                  className="auth-button"
+                  to="/control/roster"
+                >
+                  Roster Manager
+                </Link>
+              ) : null}
+
               <Link className="auth-button account-search-button" to="/users">
                 Найти пользователя по ID
               </Link>
