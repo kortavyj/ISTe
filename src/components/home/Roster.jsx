@@ -57,10 +57,6 @@ const ROSTER_FALLBACKS = Object.freeze([
 const ROLE_OVERRIDES = Object.freeze({
   valaf: "AWP",
   "1sagi": "RIFLER",
-  hagg1nho: {
-    uk: "SUPPORT",
-    en: "SUPPORT",
-  },
   tw3ntyq: "RIFLER",
   droni452: "IGL",
   anubis: "IGL",
@@ -69,7 +65,6 @@ const ROLE_OVERRIDES = Object.freeze({
 });
 
 const DISPLAY_NAME_OVERRIDES = Object.freeze({
-  hagg1nho: "Hagg1CH",
   droni452: "DRONI",
 });
 
