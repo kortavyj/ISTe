@@ -15,6 +15,7 @@ import rosterHandler from "../server/rosterHandler.js";
 const ALLOWED_ROLES = new Set([
   "user",
   "editor",
+  "game_manager",
   "admin",
 ]);
 
