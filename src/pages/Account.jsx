@@ -4,26 +4,27 @@ import { Link, useNavigate } from "react-router-dom";
 import { getAuthErrorMessage } from "../auth/authErrors.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { formatAccountId } from "../utils/accountId.js";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 import "./Auth.css";
 import "./AccountId.css";
 
-const roleNames = {
-  user: "Пользователь",
-  editor: "Редактор",
-  game_manager: "Игровой менеджер",
-  admin: "Администратор",
-  owner: "Владелец",
-};
+const KNOWN_ROLES = new Set([
+  "user",
+  "editor",
+  "game_manager",
+  "admin",
+  "owner",
+]);
 
-async function readApiResponse(response) {
+async function readApiResponse(response, t) {
   let result;
 
   try {
     result = await response.json();
   } catch {
     throw new Error(
-      "Сервер вернул некорректный ответ.",
+      t("accountPage.invalidServerResponse"),
     );
   }
 
@@ -33,27 +34,31 @@ async function readApiResponse(response) {
   ) {
     throw new Error(
       result?.message ||
-        "Не удалось выполнить запрос.",
+        t("accountPage.requestFailed"),
     );
   }
 
   return result;
 }
 
-function formatDate(value) {
+function formatDate(value, language, emptyLabel) {
   if (!value) {
-    return "Не указана";
+    return emptyLabel;
   }
 
-  return new Intl.DateTimeFormat("ru-RU", {
+  return new Intl.DateTimeFormat(
+    language === "en" ? "en-US" : "uk-UA",
+    {
     day: "2-digit",
     month: "long",
     year: "numeric",
-  }).format(new Date(value));
+    },
+  ).format(new Date(value));
 }
 
 export default function Account() {
   const navigate = useNavigate();
+  const { language, t } = useLanguage();
   const {
     user,
     profile,
@@ -106,9 +111,9 @@ export default function Account() {
 
     try {
       await navigator.clipboard.writeText(accountId);
-      setCopyMessage("ID скопирован.");
+      setCopyMessage(t("accountPage.idCopied"));
     } catch {
-      setCopyMessage("Не удалось скопировать ID.");
+      setCopyMessage(t("accountPage.idCopyFailed"));
     }
   }
 
@@ -123,14 +128,14 @@ export default function Account() {
 
     if (!/^[A-Za-z0-9_]{3,32}$/.test(username)) {
       setErrorMessage(
-        "Никнейм должен содержать от 3 до 32 латинских букв, цифр или символов подчёркивания.",
+        t("accountPage.usernameInvalid"),
       );
       setSaving(false);
       return;
     }
 
     if (displayName.length < 2 || displayName.length > 60) {
-      setErrorMessage("Имя должно содержать от 2 до 60 символов.");
+      setErrorMessage(t("accountPage.displayNameInvalid"));
       setSaving(false);
       return;
     }
@@ -156,11 +161,11 @@ export default function Account() {
         },
       );
 
-      await readApiResponse(response);
+      await readApiResponse(response, t);
       await refreshAccount();
 
       setSuccessMessage(
-        "Профиль сохранён.",
+        t("accountPage.profileSaved"),
       );
     } catch (error) {
       setErrorMessage(
@@ -185,9 +190,9 @@ export default function Account() {
     <section className="auth-page">
       <div className="auth-shell auth-shell-wide">
         <header className="auth-heading">
-          <p className="auth-kicker">ISTe account</p>
-          <h1>Личный кабинет</h1>
-          <p>Основные данные аккаунта и настройки профиля.</p>
+          <p className="auth-kicker">{t("accountPage.kicker")}</p>
+          <h1>{t("accountPage.title")}</h1>
+          <p>{t("accountPage.description")}</p>
         </header>
 
         <div className="account-grid">
@@ -196,25 +201,24 @@ export default function Account() {
               {initials}
             </div>
 
-            <h2>{profile?.display_name || "Пользователь ISTe"}</h2>
+            <h2>{profile?.display_name || t("accountPage.memberFallback")}</h2>
 
             <dl className="account-details">
               <div className="account-detail account-id-detail">
-                <dt>ID аккаунта</dt>
+                <dt>{t("accountPage.accountId")}</dt>
                 <dd className="account-id-value">
-                  <code>{accountId || "Не создан"}</code>
+                  <code>{accountId || t("accountPage.notCreated")}</code>
                   <button
                     className="account-id-copy"
                     type="button"
                     onClick={handleCopyAccountId}
                     disabled={!accountId}
                   >
-                    Копировать
+                    {t("accountPage.copy")}
                   </button>
                 </dd>
                 <span className="account-id-help">
-                  По этому ID вас могут найти другие зарегистрированные
-                  пользователи. Электронная почта при поиске не показывается.
+                  {t("accountPage.accountIdHelp")}
                 </span>
                 <span className="account-id-copy-message" aria-live="polite">
                   {copyMessage}
@@ -222,27 +226,33 @@ export default function Account() {
               </div>
 
               <div className="account-detail">
-                <dt>Электронная почта</dt>
+                <dt>{t("accountPage.email")}</dt>
                 <dd>{user.email}</dd>
               </div>
 
               <div className="account-detail">
-                <dt>Никнейм</dt>
-                <dd>{profile?.username || "Не указан"}</dd>
+                <dt>{t("accountPage.nickname")}</dt>
+                <dd>{profile?.username || t("accountPage.notSpecified")}</dd>
               </div>
 
               <div className="account-detail">
-                <dt>Роль</dt>
+                <dt>{t("accountPage.role")}</dt>
                 <dd>
                   <span className="account-role">
-                    {roleNames[role] ?? role}
+                    {KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}
                   </span>
                 </dd>
               </div>
 
               <div className="account-detail">
-                <dt>Дата регистрации</dt>
-                <dd>{formatDate(profile?.created_at)}</dd>
+                <dt>{t("accountPage.registeredAt")}</dt>
+                <dd>
+                  {formatDate(
+                    profile?.created_at,
+                    language,
+                    t("accountPage.notSpecified"),
+                  )}
+                </dd>
               </div>
             </dl>
 
@@ -252,12 +262,12 @@ export default function Account() {
                   className="auth-button"
                   to="/control/roster"
                 >
-                  Roster Manager
+                  {t("accountPage.rosterManager")}
                 </Link>
               ) : null}
 
               <Link className="auth-button account-search-button" to="/users">
-                Найти пользователя по ID
+                {t("accountPage.findUser")}
               </Link>
 
               <button
@@ -265,13 +275,13 @@ export default function Account() {
                 type="button"
                 onClick={handleSignOut}
               >
-                Выйти из аккаунта
+                {t("accountPage.signOut")}
               </button>
             </div>
           </aside>
 
           <div className="auth-card account-editor">
-            <h2>Редактирование профиля</h2>
+            <h2>{t("accountPage.editProfile")}</h2>
 
             <form className="auth-form" onSubmit={handleSave}>
               {(errorMessage || accountError) && (
@@ -287,7 +297,7 @@ export default function Account() {
               )}
 
               <label className="auth-field">
-                <span>Никнейм</span>
+                <span>{t("accountPage.nickname")}</span>
                 <input
                   className="auth-input"
                   type="text"
@@ -302,7 +312,7 @@ export default function Account() {
               </label>
 
               <label className="auth-field">
-                <span>Отображаемое имя</span>
+                <span>{t("accountPage.displayName")}</span>
                 <input
                   className="auth-input"
                   type="text"
@@ -317,7 +327,7 @@ export default function Account() {
               </label>
 
               <label className="auth-field">
-                <span>О себе</span>
+                <span>{t("accountPage.about")}</span>
                 <textarea
                   className="auth-textarea"
                   value={form.bio}
@@ -326,7 +336,7 @@ export default function Account() {
                   disabled={saving}
                 />
                 <small className="auth-hint">
-                  До 500 символов.
+                  {t("accountPage.bioHint")}
                 </small>
               </label>
 
@@ -335,7 +345,9 @@ export default function Account() {
                 type="submit"
                 disabled={saving}
               >
-                {saving ? "Сохраняем..." : "Сохранить изменения"}
+                {saving
+                  ? t("accountPage.saving")
+                  : t("accountPage.saveChanges")}
               </button>
             </form>
           </div>
