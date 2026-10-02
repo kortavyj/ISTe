@@ -10,6 +10,7 @@ import {
 } from "./lib/requestBody.js";
 import shopHandler from "../server/shopHandler.js";
 import discordHandler from "../server/discordHandler.js";
+import rosterHandler from "../server/rosterHandler.js";
 
 const ALLOWED_ROLES = new Set([
   "user",
@@ -361,6 +362,10 @@ export default async function handler(request, response) {
 
   if (moduleName === "discord") {
     return discordHandler(request, response);
+  }
+
+  if (moduleName === "roster") {
+    return rosterHandler(request, response);
   }
 
   const rawAction =
