@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext.jsx";
 import OwnerRoute from "./auth/OwnerRoute.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
+import RosterManagerRoute from "./auth/RosterManagerRoute.jsx";
 import StaffRoute from "./auth/StaffRoute.jsx";
 import Footer from "./components/layout/Footer.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
@@ -192,9 +193,18 @@ export default function App() {
           <Route
             path="/owner/roster"
             element={
-              <OwnerRoute>
+              <RosterManagerRoute>
                 <OwnerRoster />
-              </OwnerRoute>
+              </RosterManagerRoute>
+            }
+          />
+
+          <Route
+            path="/control/roster"
+            element={
+              <RosterManagerRoute>
+                <OwnerRoster />
+              </RosterManagerRoute>
             }
           />
 
