@@ -41,7 +41,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 50,
-      "kd": 1.21
+      "kd": 1.25
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -99,13 +99,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2048,
+      "elo": 2073,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.14
+      "kd": 1.15
     },
     {
       "playerId": "889789da-d4b8-4bf7-8242-ac74368aee79",
@@ -115,7 +115,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/hagg1Nho",
       "level": 10,
-      "elo": 2821,
+      "elo": 2762,
       "role": "SUPPORT",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
@@ -136,7 +136,7 @@
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": null,
+      "winRate": 50,
       "kd": 1.06
     }
   ],
@@ -3397,5 +3397,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-02T08:48:00.229Z"
+  "updatedAt": "2026-10-02T15:03:54.551Z"
 }
