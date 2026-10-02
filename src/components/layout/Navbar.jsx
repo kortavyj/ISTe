@@ -30,6 +30,8 @@ const founderCopy = {
     menuAria: "Меню засновника ISTe",
     dashboard: "Панель засновника",
     dashboardText: "Центр керування ISTe",
+    roster: "Roster Manager",
+    rosterText: "Керування офіційним складом",
     users: "Користувачі",
     usersText: "Ролі, блокування та журнал",
     news: "Новини",
@@ -39,25 +41,13 @@ const founderCopy = {
     discord: "Discord Bot",
     discordText: "Сервери та slash-команди",
   },
-  ru: {
-    trigger: "Основатель",
-    menuAria: "Меню основателя ISTe",
-    dashboard: "Панель основателя",
-    dashboardText: "Центр управления ISTe",
-    users: "Пользователи",
-    usersText: "Роли, блокировки и журнал",
-    news: "Новости",
-    newsText: "Черновики и публикации",
-    shop: "ISTe Wear",
-    shopText: "Товары и предзаказы",
-    discord: "Discord Bot",
-    discordText: "Серверы и slash-команды",
-  },
   en: {
     trigger: "Founder",
     menuAria: "ISTe founder menu",
     dashboard: "Founder dashboard",
     dashboardText: "ISTe management center",
+    roster: "Roster Manager",
+    rosterText: "Manage the official roster",
     users: "Users",
     usersText: "Roles, bans and audit log",
     news: "News",
@@ -219,6 +209,15 @@ function FounderMenu({ language, onNavigate }) {
       </NavLink>
 
       <NavLink
+        to="/control/roster"
+        className="navbar-founder-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.roster}</strong>
+        <span>{c.rosterText}</span>
+      </NavLink>
+
+      <NavLink
         to="/owner/users"
         className="navbar-founder-item"
         onClick={onNavigate}
@@ -274,6 +273,11 @@ export default function Navbar() {
   const canManageNews = [
     "editor",
     "admin",
+    "owner",
+  ].includes(role);
+
+  const canManageRoster = [
+    "game_manager",
     "owner",
   ].includes(role);
 
@@ -479,6 +483,19 @@ export default function Navbar() {
                   menuOpen={menuOpen}
                   onClick={closeAccountMenu}
                 />
+
+                {canManageRoster && !isFounder ? (
+                  <ProfileAction
+                    to="/control/roster"
+                    icon={icons.users}
+                    title={t("account.manageRosterTitle")}
+                    description={t(
+                      "account.manageRosterDescription",
+                    )}
+                    menuOpen={menuOpen}
+                    onClick={closeAccountMenu}
+                  />
+                ) : null}
 
                 {isFounder ? (
                   <>
