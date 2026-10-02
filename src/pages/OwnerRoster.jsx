@@ -60,43 +60,12 @@ const copy = {
     notes: "Опис / внутрішня інформація",
     empty: "Гравців поки немає.",
     newPlayer: "Новий гравець",
-  },
-  ru: {
-    eyebrow: "ISTe CONTROL CENTER",
-    title: "Roster Manager",
-    intro:
-      "Официальный состав ISTe управляется здесь. FACEIT используется как источник статистики, но не решает, кто является игроком команды.",
-    loading: "Загрузка состава...",
-    retry: "Повторить",
-    import: "Импортировать FACEIT",
-    importing: "Импорт...",
-    add: "Добавить игрока",
-    save: "Сохранить",
-    saving: "Сохранение...",
-    setupTitle: "Нужно подключить базу Roster Manager",
-    setupText:
-      "Код уже подготовлен. Примени SQL миграцию в Supabase, после этого панель станет полностью редактируемой.",
-    previewText:
-      "Ниже показан текущий FACEIT состав только для просмотра.",
-    main: "Основной состав",
-    substitutes: "Замена",
-    other: "Другие статусы",
-    captain: "Капитан",
-    visible: "На публичном сайте",
-    nickname: "FACEIT nickname",
-    displayName: "Имя на сайте",
-    realName: "Имя (legacy)",
-    realNameUk: "Имя на украинском",
-    realNameEn: "Имя на английском",
-    role: "Роль",
-    status: "Статус",
-    order: "Порядок",
-    country: "Страна",
-    faceit: "FACEIT URL",
-    strengths: "Сильные стороны",
-    notes: "Описание / внутренняя информация",
-    empty: "Игроков пока нет.",
-    newPlayer: "Новый игрок",
+    requestFailed: "Не вдалося виконати запит.",
+    loadFailed: "Не вдалося завантажити Roster Manager.",
+    saved: "{{name}} збережено.",
+    saveFailed: "Не вдалося зберегти гравця.",
+    imported: "FACEIT: імпортовано {{count}} записів.",
+    importFailed: "Не вдалося імпортувати FACEIT.",
   },
   en: {
     eyebrow: "ISTe CONTROL CENTER",
@@ -134,6 +103,12 @@ const copy = {
     notes: "Description / internal notes",
     empty: "No players yet.",
     newPlayer: "New player",
+    requestFailed: "Request failed.",
+    loadFailed: "Could not load Roster Manager.",
+    saved: "{{name}} saved.",
+    saveFailed: "Could not save player.",
+    imported: "FACEIT: imported {{count}} records.",
+    importFailed: "Could not import FACEIT.",
   },
 };
 
@@ -182,12 +157,12 @@ function normalizeFaceitPreview(player, index) {
   };
 }
 
-async function readJson(response) {
+async function readJson(response, fallbackMessage) {
   const result = await response.json().catch(() => null);
 
   if (!response.ok || result?.ok !== true) {
     throw new Error(
-      result?.message || "Не удалось выполнить запрос.",
+      result?.message || fallbackMessage,
     );
   }
 
@@ -407,7 +382,7 @@ function PlayerEditor({
 
 export default function OwnerRoster() {
   const { language } = useLanguage();
-  const c = copy[language] || copy.ru;
+  const c = copy[language] || copy.uk;
 
   const [players, setPlayers] = useState([]);
   const [setupRequired, setSetupRequired] = useState(false);
@@ -433,7 +408,10 @@ export default function OwnerRoster() {
         },
       );
 
-      const result = await readJson(response);
+      const result = await readJson(
+        response,
+        c.requestFailed,
+      );
 
       setSetupRequired(result.setupRequired === true);
       setMigration(result.migration || "");
@@ -451,7 +429,7 @@ export default function OwnerRoster() {
         setPlayers(Array.isArray(result.players) ? result.players : []);
       }
     } catch (loadError) {
-      setError(loadError?.message || "Не удалось загрузить Roster Manager.");
+      setError(loadError?.message || c.loadFailed);
     } finally {
       setLoading(false);
     }
@@ -510,7 +488,10 @@ export default function OwnerRoster() {
         },
       );
 
-      const result = await readJson(response);
+      const result = await readJson(
+        response,
+        c.requestFailed,
+      );
       const saved = result.player;
 
       setPlayers((current) => {
@@ -525,9 +506,14 @@ export default function OwnerRoster() {
         );
       });
 
-      setNotice(`${saved.displayName} сохранён.`);
+      setNotice(
+        c.saved.replace(
+          "{{name}}",
+          saved.displayName,
+        ),
+      );
     } catch (saveError) {
-      setError(saveError?.message || "Не удалось сохранить игрока.");
+      setError(saveError?.message || c.saveFailed);
     } finally {
       setSavingId("");
     }
@@ -569,11 +555,19 @@ export default function OwnerRoster() {
         },
       );
 
-      const result = await readJson(response);
-      setNotice(`FACEIT: импортировано ${result.imported || 0} записей.`);
+      const result = await readJson(
+        response,
+        c.requestFailed,
+      );
+      setNotice(
+        c.imported.replace(
+          "{{count}}",
+          String(result.imported || 0),
+        ),
+      );
       await loadRoster();
     } catch (importError) {
-      setError(importError?.message || "Не удалось импортировать FACEIT.");
+      setError(importError?.message || c.importFailed);
     } finally {
       setImporting(false);
     }
