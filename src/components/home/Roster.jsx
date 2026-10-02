@@ -1,4 +1,4 @@
-import useFaceitStats from "../../hooks/useFaceitStats";
+import useOfficialRoster from "../../hooks/useOfficialRoster.js";
 import { useLanguage } from "../../i18n/LanguageContext.jsx";
 import sharedPlayerPortrait from "../../assets/players/team-player.webp";
 
@@ -84,6 +84,13 @@ function normalizeRosterKey(nickname) {
 }
 
 function getRosterOrder(player) {
+  if (
+    player?.officialRoster &&
+    Number.isFinite(player?.sortOrder)
+  ) {
+    return player.sortOrder;
+  }
+
   const nickname = normalizeNickname(
     player?.nickname,
   );
@@ -186,18 +193,23 @@ function PlayerCard({ player, rosterStatus = "main" }) {
     );
 
   const isCaptain =
-    nickname === CAPTAIN_NICKNAME;
+    player.officialRoster
+      ? player.isCaptain === true
+      : nickname === CAPTAIN_NICKNAME;
 
   const roleOverride = ROLE_OVERRIDES[nickname];
 
   const roleLabel =
     rosterStatus === "substitute"
       ? t("home.roster.substituteRole")
-      : typeof roleOverride === "object"
-        ? roleOverride[language] || roleOverride.uk || player.role || "RIFLER"
-        : roleOverride || player.role || "RIFLER";
+      : player.officialRoster
+        ? player.role || "RIFLER"
+        : typeof roleOverride === "object"
+          ? roleOverride[language] || roleOverride.uk || player.role || "RIFLER"
+          : roleOverride || player.role || "RIFLER";
 
   const displayName =
+    player.displayName ||
     DISPLAY_NAME_OVERRIDES[nickname] ||
     player.nickname;
 
@@ -350,7 +362,7 @@ export default function Roster() {
     loading,
     error,
     reload,
-  } = useFaceitStats();
+  } = useOfficialRoster();
 
   const liveRoster =
     Array.isArray(stats.roster)
@@ -409,14 +421,18 @@ export default function Roster() {
 
   const mainRoster = sortedRoster.filter(
     (player) =>
-      !SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) &&
-      !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+      player.officialRoster
+        ? player.rosterStatus === "main"
+        : !SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) &&
+          !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
   );
 
   const substituteRoster = sortedRoster.filter(
     (player) =>
-      SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) ||
-      SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
+      player.officialRoster
+        ? player.rosterStatus === "substitute"
+        : SUBSTITUTE_PLAYERS.has(normalizeNickname(player.nickname)) ||
+          SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
   );
 
   return (
