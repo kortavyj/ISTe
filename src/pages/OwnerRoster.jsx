@@ -480,7 +480,14 @@ export default function OwnerRoster() {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(player),
+          body: JSON.stringify({
+            ...player,
+            id:
+              typeof player.id === "string" &&
+              player.id.startsWith("new-")
+                ? ""
+                : player.id,
+          }),
         },
       );
 
