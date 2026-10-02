@@ -5,12 +5,12 @@ import { useLanguage } from "../i18n/LanguageContext.jsx";
 import "./OwnerRoster.css";
 
 const STATUS_OPTIONS = [
-  ["main", "MAIN"],
-  ["substitute", "SUBSTITUTE"],
-  ["trial", "TRIAL"],
-  ["benched", "BENCHED"],
-  ["inactive", "INACTIVE"],
-  ["left", "LEFT"],
+  "main",
+  "substitute",
+  "trial",
+  "benched",
+  "inactive",
+  "left",
 ];
 
 const ROLE_OPTIONS = [
@@ -66,6 +66,15 @@ const copy = {
     saveFailed: "Не вдалося зберегти гравця.",
     imported: "FACEIT: імпортовано {{count}} записів.",
     importFailed: "Не вдалося імпортувати FACEIT.",
+    previewNote: "Попередній перегляд даних FACEIT.",
+    statusLabels: {
+      main: "ОСНОВНИЙ",
+      substitute: "ЗАМІНА",
+      trial: "ТЕСТ",
+      benched: "ЗАПАС",
+      inactive: "НЕАКТИВНИЙ",
+      left: "ВИБУВ",
+    },
   },
   en: {
     eyebrow: "ISTe CONTROL CENTER",
@@ -109,6 +118,15 @@ const copy = {
     saveFailed: "Could not save player.",
     imported: "FACEIT: imported {{count}} records.",
     importFailed: "Could not import FACEIT.",
+    previewNote: "FACEIT data preview.",
+    statusLabels: {
+      main: "MAIN",
+      substitute: "SUBSTITUTE",
+      trial: "TRIAL",
+      benched: "BENCHED",
+      inactive: "INACTIVE",
+      left: "LEFT",
+    },
   },
 };
 
@@ -133,7 +151,7 @@ function createDraft() {
   };
 }
 
-function normalizeFaceitPreview(player, index) {
+function normalizeFaceitPreview(player, index, previewNote) {
   return {
     id: `faceit-${player.playerId || player.nickname || index}`,
     faceitPlayerId: player.playerId || "",
@@ -148,7 +166,7 @@ function normalizeFaceitPreview(player, index) {
     sortOrder: 200 + index * 10,
     country: player.country || "",
     faceitUrl: player.faceitUrl || "",
-    notes: "FACEIT preview",
+    notes: previewNote,
     strengths: [],
     publicVisible: false,
     readOnly: true,
@@ -200,7 +218,7 @@ function PlayerEditor({
       <div className="owner-roster-card__top">
         <div>
           <span className="owner-roster-card__status">
-            {player.status}
+            {c.statusLabels[player.status] || player.status}
           </span>
           <h2>{player.displayName || player.nickname || c.newPlayer}</h2>
           <p>
@@ -296,9 +314,9 @@ function PlayerEditor({
             disabled={disabled}
             onChange={(event) => patch("status", event.target.value)}
           >
-            {STATUS_OPTIONS.map(([value, label]) => (
+            {STATUS_OPTIONS.map((value) => (
               <option key={value} value={value}>
-                {label}
+                {c.statusLabels[value] || value}
               </option>
             ))}
           </select>
@@ -424,7 +442,15 @@ export default function OwnerRoster() {
         const stats = await faceitResponse.json();
         const faceitRoster = Array.isArray(stats?.roster) ? stats.roster : [];
 
-        setPlayers(faceitRoster.map(normalizeFaceitPreview));
+        setPlayers(
+          faceitRoster.map((player, index) =>
+            normalizeFaceitPreview(
+              player,
+              index,
+              c.previewNote,
+            ),
+          ),
+        );
       } else {
         setPlayers(Array.isArray(result.players) ? result.players : []);
       }
@@ -433,7 +459,7 @@ export default function OwnerRoster() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [c]);
 
   useEffect(() => {
     void loadRoster();
