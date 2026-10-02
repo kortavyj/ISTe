@@ -20,7 +20,6 @@ const navigation = [
   { to: "/", labelKey: "navigation.home", end: true },
   { to: "/team", labelKey: "navigation.team" },
   { to: "/news", labelKey: "navigation.news" },
-  { to: "/partners", labelKey: "navigation.partners" },
   { to: "/discord", label: "ISTe Bot" },
 ];
 
