@@ -39,6 +39,7 @@ const MANAGER_ROLES = new Set([
 ]);
 
 const MFA_REQUIRED_ROLES = new Set([
+  "game_manager",
   "admin",
   "owner",
 ]);
