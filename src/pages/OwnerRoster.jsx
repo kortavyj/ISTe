@@ -48,7 +48,9 @@ const copy = {
     visible: "На публічному сайті",
     nickname: "FACEIT nickname",
     displayName: "Ім'я на сайті",
-    realName: "Ім'я",
+    realName: "Ім'я (legacy)",
+    realNameUk: "Ім'я українською",
+    realNameEn: "Ім'я англійською",
     role: "Роль",
     status: "Статус",
     order: "Порядок",
@@ -83,7 +85,9 @@ const copy = {
     visible: "На публичном сайте",
     nickname: "FACEIT nickname",
     displayName: "Имя на сайте",
-    realName: "Имя",
+    realName: "Имя (legacy)",
+    realNameUk: "Имя на украинском",
+    realNameEn: "Имя на английском",
     role: "Роль",
     status: "Статус",
     order: "Порядок",
@@ -118,7 +122,9 @@ const copy = {
     visible: "Public website",
     nickname: "FACEIT nickname",
     displayName: "Display name",
-    realName: "Real name",
+    realName: "Real name (legacy)",
+    realNameUk: "Ukrainian name",
+    realNameEn: "English name",
     role: "Role",
     status: "Status",
     order: "Order",
@@ -138,6 +144,8 @@ function createDraft() {
     nickname: "",
     displayName: "",
     realName: "",
+    realNameUk: "",
+    realNameEn: "",
     status: "trial",
     role: "RIFLER",
     isCaptain: false,
@@ -157,6 +165,8 @@ function normalizeFaceitPreview(player, index) {
     nickname: player.nickname || "",
     displayName: player.nickname || "",
     realName: "",
+    realNameUk: "",
+    realNameEn: "",
     status: "trial",
     role: String(player.role || "RIFLER").toUpperCase(),
     isCaptain: false,
@@ -272,11 +282,20 @@ function PlayerEditor({
         </label>
 
         <label>
-          <span>{c.realName}</span>
+          <span>{c.realNameUk}</span>
           <input
-            value={player.realName}
+            value={player.realNameUk || ""}
             disabled={disabled}
-            onChange={(event) => patch("realName", event.target.value)}
+            onChange={(event) => patch("realNameUk", event.target.value)}
+          />
+        </label>
+
+        <label>
+          <span>{c.realNameEn}</span>
+          <input
+            value={player.realNameEn || ""}
+            disabled={disabled}
+            onChange={(event) => patch("realNameEn", event.target.value)}
           />
         </label>
 
