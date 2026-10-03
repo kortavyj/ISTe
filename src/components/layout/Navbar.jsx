@@ -17,10 +17,27 @@ import "./Navbar.css";
 import "./NavbarLanguage.css";
 
 const navigation = [
-  { to: "/", labelKey: "navigation.home", end: true },
-  { to: "/team", labelKey: "navigation.team" },
-  { to: "/news", labelKey: "navigation.news" },
-  { to: "/discord", label: "ISTe Bot" },
+  {
+    to: "/",
+    labelKey: "navigation.home",
+    end: true,
+    icon: "home",
+  },
+  {
+    to: "/team",
+    labelKey: "navigation.team",
+    icon: "team",
+  },
+  {
+    to: "/news",
+    labelKey: "navigation.news",
+    icon: "news",
+  },
+  {
+    to: "/discord",
+    label: "ISTe Bot",
+    icon: "bot",
+  },
 ];
 
 const founderCopy = {
@@ -61,6 +78,75 @@ const founderCopy = {
     discordText: "Servers and slash commands",
   },
 };
+
+const navigationIcons = {
+  home: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="m4 11 8-7 8 7v8a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1v-8Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  ),
+  team: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.55" />
+      <path d="M3.5 19c.7-3.2 2.5-5 5.5-5s4.8 1.8 5.5 5M14 15c2.8-.2 4.8 1.2 5.7 3.8"
+        fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
+    </svg>
+  ),
+  news: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="14" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M8 9h4M8 13h8M8 16h6M15 9h1.5"
+        fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.6" />
+    </svg>
+  ),
+  bot: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 8 5 5M16 8l3-3M9 7h6a4 4 0 0 1 4 4v5a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-5a4 4 0 0 1 4-4Z"
+        fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
+      <circle cx="9.5" cy="13" r="1" fill="currentColor" />
+      <circle cx="14.5" cy="13" r="1" fill="currentColor" />
+    </svg>
+  ),
+  tactics: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="5" y="4" width="14" height="16" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M9 8h6M9 12h6M9 16h3M7 8h.01M7 12h.01M7 16h.01"
+        fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
+    </svg>
+  ),
+};
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="10.5" cy="10.5" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path d="m15 15 5 5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M7 10a5 5 0 0 1 10 0v3.4l1.5 2.6h-13L7 13.4V10Zm3.2 8a2 2 0 0 0 3.6 0"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
 
 const icons = {
   profile: (
@@ -365,7 +451,7 @@ export default function Navbar() {
           className="navbar-links"
           aria-label={t("navigation.ariaLabel")}
         >
-          {navigation.map(({ to, labelKey, label, end }) => (
+          {navigation.map(({ to, labelKey, label, end, icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -376,7 +462,10 @@ export default function Navbar() {
                 }`
               }
             >
-              {label || t(labelKey)}
+              <span className="navbar-link-icon">
+                {navigationIcons[icon]}
+              </span>
+              <span>{label || t(labelKey)}</span>
             </NavLink>
           ))}
 
@@ -387,12 +476,53 @@ export default function Navbar() {
                 `navbar-link${isActive ? " navbar-link-active" : ""}`
               }
             >
-              {t("navigation.tactics")}
+              <span className="navbar-link-icon">
+                {navigationIcons.tactics}
+              </span>
+              <span>{t("navigation.tactics")}</span>
             </NavLink>
           ) : null}
         </nav>
 
         <div className="navbar-auth">
+          <button
+            type="button"
+            className="navbar-utility-button"
+            aria-label={
+              language === "en"
+                ? "Search users"
+                : "Пошук користувачів"
+            }
+            title={
+              language === "en"
+                ? "Search users"
+                : "Пошук користувачів"
+            }
+            onClick={() =>
+              navigate("/users")
+            }
+          >
+            <SearchIcon />
+          </button>
+
+          <span
+            className="navbar-utility-button navbar-notification-indicator"
+            role="img"
+            aria-label={
+              language === "en"
+                ? "Notifications"
+                : "Сповіщення"
+            }
+            title={
+              language === "en"
+                ? "Notifications"
+                : "Сповіщення"
+            }
+          >
+            <BellIcon />
+            <i aria-hidden="true" />
+          </span>
+
           <LanguageSwitcher />
 
           {loading ? (

@@ -14,7 +14,7 @@
   --accent: #ff2525;
   --accent-soft: rgba(255, 37, 37, 0.16);
   --border-soft: rgba(255, 37, 37, 0.18);
-  --navbar-height: 70px;
+  --navbar-height: 56px;
 }
 
 * {

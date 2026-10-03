@@ -564,3 +564,285 @@
     transition: none;
   }
 }
+
+
+/* Compact ISTe navigation v2 — matches the approved tactical header reference */
+.navbar {
+  height: var(--navbar-height);
+  border-bottom-color: rgba(227, 6, 19, 0.42);
+  background:
+    linear-gradient(90deg, rgba(227, 6, 19, 0.025), transparent 18%),
+    rgba(5, 7, 10, 0.94);
+  box-shadow:
+    0 5px 18px rgba(0, 0, 0, 0.28),
+    0 1px 0 rgba(227, 6, 19, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.navbar-container {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: clamp(20px, 2.7vw, 48px);
+  padding: 0 clamp(18px, 2vw, 34px);
+}
+
+.navbar-logo {
+  font-size: 1.27rem;
+  line-height: 1;
+  letter-spacing: 0.055em;
+  text-shadow:
+    0 0 18px rgba(255, 255, 255, 0.05);
+}
+
+.navbar-links {
+  height: 100%;
+  justify-content: flex-start;
+  gap: 4px;
+  overflow: visible;
+}
+
+.navbar-link {
+  display: inline-flex;
+  height: 100%;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border-radius: 8px 8px 0 0;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.navbar-link:hover,
+.navbar-link:focus-visible {
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.navbar-link-active {
+  background:
+    linear-gradient(180deg, rgba(227, 6, 19, 0.09), rgba(227, 6, 19, 0.025));
+  color: #ffffff;
+}
+
+.navbar-link::after {
+  bottom: 0;
+  height: 2px;
+  background: #e30613;
+  box-shadow:
+    0 0 9px rgba(227, 6, 19, 0.65),
+    0 -4px 14px rgba(227, 6, 19, 0.12);
+}
+
+.navbar-link-icon {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.navbar-link-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.navbar-link-active .navbar-link-icon {
+  color: #ef3340;
+}
+
+.navbar-auth {
+  gap: 7px;
+}
+
+.navbar-utility-button {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  background: rgba(10, 13, 17, 0.82);
+  color: rgba(255, 255, 255, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+button.navbar-utility-button {
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+button.navbar-utility-button:hover,
+button.navbar-utility-button:focus-visible {
+  border-color: rgba(227, 6, 19, 0.32);
+  background: rgba(227, 6, 19, 0.055);
+  color: #ffffff;
+  outline: none;
+}
+
+.navbar-utility-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.navbar-notification-indicator > i {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #0b0e13;
+  border-radius: 50%;
+  background: #e30613;
+  box-shadow: 0 0 7px rgba(227, 6, 19, 0.7);
+}
+
+.navbar-auth .navbar-account-trigger {
+  min-width: 116px;
+  min-height: 36px;
+  grid-template-columns: 28px minmax(0, 1fr) 18px;
+  gap: 7px;
+  padding: 3px 7px 3px 4px;
+  border-radius: 10px;
+  background: rgba(10, 13, 17, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.navbar-auth .navbar-account-trigger::before {
+  display: none;
+}
+
+.navbar-auth .navbar-account-avatar {
+  width: 28px;
+  border-radius: 50%;
+  font-size: 0.58rem;
+}
+
+.navbar-auth .navbar-account-copy {
+  display: block;
+}
+
+.navbar-auth .navbar-account-title {
+  display: none;
+}
+
+.navbar-auth .navbar-account-name {
+  max-width: 86px;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.67rem;
+  font-weight: 800;
+}
+
+.navbar-auth .navbar-account-chevron {
+  width: 16px;
+  height: 16px;
+  padding: 3px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.navbar-profile-dropdown {
+  top: calc(100% + 8px);
+}
+
+@media (max-width: 1080px) {
+  .navbar-container {
+    gap: 14px;
+    padding-inline: 14px;
+  }
+
+  .navbar-links {
+    gap: 1px;
+  }
+
+  .navbar-link {
+    gap: 5px;
+    padding-inline: 8px;
+    font-size: 0.66rem;
+  }
+
+  .navbar-link-icon,
+  .navbar-link-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .navbar-auth .navbar-account-trigger {
+    min-width: 40px;
+    grid-template-columns: 28px;
+    padding: 3px;
+  }
+
+  .navbar-auth .navbar-account-copy,
+  .navbar-auth .navbar-account-chevron {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .navbar-container {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 9px;
+    padding-inline: 9px;
+  }
+
+  .navbar-logo {
+    font-size: 1.08rem;
+  }
+
+  .navbar-links {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .navbar-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navbar-link {
+    padding-inline: 7px;
+  }
+
+  .navbar-notification-indicator {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .navbar-utility-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .navbar-link {
+    font-size: 0;
+    padding-inline: 8px;
+  }
+
+  .navbar-link-icon,
+  .navbar-link-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .navbar-auth .navbar-account-trigger {
+    min-width: 34px;
+    min-height: 34px;
+    grid-template-columns: 26px;
+  }
+
+  .navbar-auth .navbar-account-avatar {
+    width: 26px;
+  }
+}
