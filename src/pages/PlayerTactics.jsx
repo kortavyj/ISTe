@@ -116,6 +116,79 @@ const DEFAULT_STAGES = Object.freeze([
   },
 ]);
 
+const PRESET_TEMPLATES = Object.freeze([
+  {
+    id: "preset-default",
+    title: "Default",
+    stages: [
+      { id: "spawn", name: "Spawn", duration: 4 },
+      { id: "setup", name: "Setup", duration: 6 },
+      { id: "execute", name: "Execute", duration: 5 },
+      { id: "postplant", name: "Post-plant", duration: 5 },
+    ],
+  },
+  {
+    id: "preset-fast-a",
+    title: "Fast A",
+    stages: [
+      { id: "spawn", name: "Spawn", duration: 2 },
+      { id: "setup", name: "Setup", duration: 3 },
+      { id: "execute", name: "Execute", duration: 4 },
+      { id: "postplant", name: "Post-plant", duration: 5 },
+    ],
+  },
+  {
+    id: "preset-b-execute",
+    title: "B Execute",
+    stages: [
+      { id: "spawn", name: "Spawn", duration: 3 },
+      { id: "setup", name: "Setup", duration: 6 },
+      { id: "execute", name: "Execute", duration: 5 },
+      { id: "postplant", name: "Post-plant", duration: 6 },
+    ],
+  },
+  {
+    id: "preset-eco",
+    title: "Eco",
+    stages: [
+      { id: "spawn", name: "Spawn", duration: 3 },
+      { id: "setup", name: "Setup", duration: 4 },
+      { id: "execute", name: "Execute", duration: 4 },
+      { id: "postplant", name: "Post-plant", duration: 4 },
+    ],
+  },
+  {
+    id: "preset-anti-eco",
+    title: "Anti-eco",
+    stages: [
+      { id: "spawn", name: "Spawn", duration: 3 },
+      { id: "setup", name: "Setup", duration: 6 },
+      { id: "execute", name: "Execute", duration: 5 },
+      { id: "postplant", name: "Post-plant", duration: 5 },
+    ],
+  },
+  {
+    id: "preset-pistol",
+    title: "Pistol",
+    stages: [
+      { id: "spawn", name: "Spawn", duration: 3 },
+      { id: "setup", name: "Setup", duration: 4 },
+      { id: "execute", name: "Execute", duration: 5 },
+      { id: "postplant", name: "Post-plant", duration: 6 },
+    ],
+  },
+  {
+    id: "preset-retake",
+    title: "Retake",
+    stages: [
+      { id: "spawn", name: "Positions", duration: 3 },
+      { id: "setup", name: "Setup", duration: 5 },
+      { id: "execute", name: "Retake", duration: 6 },
+      { id: "postplant", name: "Defuse", duration: 4 },
+    ],
+  },
+]);
+
 const PLAYER_COLORS = [
   "#82b7ff",
   "#f2d56b",
@@ -405,6 +478,18 @@ const COPY = {
     purpose: "Завдання",
     purposePlaceholder: "Наприклад: перекрити CT",
     utilityNumber: "Номер гранати",
+    templates: "Шаблони",
+    presetTemplates: "Готові",
+    customTemplates: "Мої",
+    noCustomTemplates: "Власних шаблонів поки немає.",
+    saveAsTemplate: "Зберегти як шаблон",
+    savingTemplate: "Збереження...",
+    templateSaved: "Шаблон збережено.",
+    templateApplied: "Шаблон застосовано. Збережіть його як нову тактику.",
+    deleteTemplate: "Видалити шаблон",
+    presentation: "Презентація",
+    exitPresentation: "Вийти з презентації",
+    presentationHint: "← → етапи · Space Play/Pause · Esc вихід",
     size: "Розмір",
     moveHint: "Перетягуйте вибраний об'єкт прямо по карті.",
     centerBoard: "Центрувати",
@@ -545,6 +630,18 @@ const COPY = {
     purpose: "Purpose",
     purposePlaceholder: "Example: block CT",
     utilityNumber: "Utility number",
+    templates: "Templates",
+    presetTemplates: "Presets",
+    customTemplates: "My templates",
+    noCustomTemplates: "No custom templates yet.",
+    saveAsTemplate: "Save as template",
+    savingTemplate: "Saving...",
+    templateSaved: "Template saved.",
+    templateApplied: "Template applied. Save it as a new tactic.",
+    deleteTemplate: "Delete template",
+    presentation: "Presentation",
+    exitPresentation: "Exit presentation",
+    presentationHint: "← → stages · Space Play/Pause · Esc exit",
     size: "Size",
     moveHint: "Drag the selected object directly on the map.",
     centerBoard: "Center board",
@@ -1940,6 +2037,8 @@ export default function PlayerTactics() {
 
   const [tactics, setTactics] =
     useState([]);
+  const [templates, setTemplates] =
+    useState([]);
   const [searchQuery, setSearchQuery] =
     useState("");
   const [loading, setLoading] =
@@ -1963,6 +2062,10 @@ export default function PlayerTactics() {
   const [activeStageId, setActiveStageId] =
     useState("spawn");
   const [isPlaying, setIsPlaying] =
+    useState(false);
+  const [presentationMode, setPresentationMode] =
+    useState(false);
+  const [savingTemplate, setSavingTemplate] =
     useState(false);
   const [selectedPlayerId, setSelectedPlayerId] =
     useState("");
@@ -2315,10 +2418,25 @@ export default function PlayerTactics() {
         const result =
           await apiRequest("list");
 
-        setTactics(
+        const entries =
           Array.isArray(result.tactics)
             ? result.tactics
-            : [],
+            : [];
+
+        setTactics(
+          entries.filter(
+            (entry) =>
+              entry.boardState
+                ?.isTemplate !== true,
+          ),
+        );
+
+        setTemplates(
+          entries.filter(
+            (entry) =>
+              entry.boardState
+                ?.isTemplate === true,
+          ),
         );
       } catch (requestError) {
         setError(
@@ -2698,6 +2816,7 @@ export default function PlayerTactics() {
       "spawn",
     );
     setIsPlaying(false);
+    setPresentationMode(false);
     setSelectedPlayerId("");
     setTool("select");
     setError("");
@@ -2762,6 +2881,174 @@ export default function PlayerTactics() {
     setError("");
     setNotice("");
     resetHistory();
+  }
+
+  function applyTemplate(
+    template,
+  ) {
+    const state =
+      template.boardState || {};
+
+    const templateStages =
+      Array.isArray(
+        template.stages,
+      )
+        ? cloneStages(
+            template.stages,
+          )
+        : Array.isArray(
+              state.stages,
+            ) &&
+            state.stages.length
+          ? cloneStages(
+              state.stages,
+            )
+          : cloneStages();
+
+    const templateItems =
+      Array.isArray(
+        state.items,
+      )
+        ? state.items.map(
+            (item) => ({
+              ...structuredClone(
+                item,
+              ),
+              id: makeId(),
+            }),
+          )
+        : [];
+
+    setActiveId("");
+    setTitle(
+      template.title || "",
+    );
+    setMapId(
+      template.mapId ||
+        mapId ||
+        "mirage",
+    );
+    setVisibility("team");
+    setLayer(
+      state.layer ||
+        "upper",
+    );
+    setStages(
+      templateStages,
+    );
+    setActiveStageId(
+      templateStages[0]?.id ||
+        "spawn",
+    );
+    setItems(
+      templateItems,
+    );
+    setIsPlaying(false);
+    setPresentationMode(false);
+    setSelectedId("");
+    setSelectedPlayerId("");
+    setTool("select");
+    resetHistory();
+    setError("");
+    setNotice(
+      c.templateApplied,
+    );
+  }
+
+  async function saveAsTemplate() {
+    if (!title.trim()) {
+      setError(c.titleRequired);
+      setNotice("");
+      return;
+    }
+
+    setSavingTemplate(true);
+    setError("");
+    setNotice("");
+
+    try {
+      await apiRequest(
+        "save",
+        {
+          method: "POST",
+          body: {
+            id: "",
+            title:
+              title.trim(),
+            mapId,
+            visibility:
+              "private",
+            boardState: {
+              items,
+              stages,
+              activeStageId,
+              layer,
+              isTemplate: true,
+              sourceTacticId:
+                activeId || "",
+            },
+          },
+        },
+      );
+
+      setNotice(
+        c.templateSaved,
+      );
+
+      await loadTactics();
+    } catch {
+      setError(
+        c.saveFailed,
+      );
+    } finally {
+      setSavingTemplate(false);
+    }
+  }
+
+  async function deleteTemplate(
+    template,
+  ) {
+    if (
+      !template?.id ||
+      !window.confirm(
+        `${c.deleteTemplate}: ${template.title}?`,
+      )
+    ) {
+      return;
+    }
+
+    setError("");
+    setNotice("");
+
+    try {
+      await apiRequest(
+        "delete",
+        {
+          method: "POST",
+          body: {
+            id: template.id,
+          },
+        },
+      );
+
+      await loadTactics();
+    } catch {
+      setError(
+        c.deleteFailed,
+      );
+    }
+  }
+
+  function enterPresentation() {
+    setSelectedId("");
+    setDraft(null);
+    setTool("select");
+    setPresentationMode(true);
+  }
+
+  function exitPresentation() {
+    setIsPlaying(false);
+    setPresentationMode(false);
   }
 
   async function saveTactic() {
@@ -3563,6 +3850,51 @@ export default function PlayerTactics() {
         tag === "TEXTAREA" ||
         tag === "SELECT";
 
+      if (
+        presentationMode &&
+        !isTyping
+      ) {
+        if (
+          event.key ===
+          "Escape"
+        ) {
+          event.preventDefault();
+          exitPresentation();
+          return;
+        }
+
+        if (
+          event.key ===
+          "ArrowLeft"
+        ) {
+          event.preventDefault();
+          setIsPlaying(false);
+          moveStage(-1);
+          return;
+        }
+
+        if (
+          event.key ===
+          "ArrowRight"
+        ) {
+          event.preventDefault();
+          setIsPlaying(false);
+          moveStage(1);
+          return;
+        }
+
+        if (
+          event.code === "Space"
+        ) {
+          event.preventDefault();
+          setIsPlaying(
+            (current) =>
+              !current,
+          );
+          return;
+        }
+      }
+
       if (!isTyping) {
         const shortcut =
           event.key.toLowerCase();
@@ -3753,8 +4085,55 @@ export default function PlayerTactics() {
     );
 
   return (
-    <section className="tactics-page tactics-page--v3">
+    <section
+      className={[
+        "tactics-page",
+        "tactics-page--v3",
+        presentationMode
+          ? "tactics-page--presentation"
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="tactics-shell tactics-shell--v3">
+        {presentationMode ? (
+          <div className="tactics-presentation-bar">
+            <div>
+              <strong>
+                {title.trim() ||
+                  currentMap.name}
+              </strong>
+              <span>
+                {currentMap.name}
+                {" · "}
+                {stages.find(
+                  (stage) =>
+                    stage.id ===
+                    activeStageId,
+                )?.name ||
+                  activeStageId}
+              </span>
+            </div>
+
+            <small>
+              {c.presentationHint}
+            </small>
+
+            <button
+              type="button"
+              onClick={
+                exitPresentation
+              }
+            >
+              ×
+              <span>
+                {c.exitPresentation}
+              </span>
+            </button>
+          </div>
+        ) : null}
+
         {(error || notice) ? (
           <div
             className={
@@ -3898,6 +4277,113 @@ export default function PlayerTactics() {
                 </div>
               )}
             </div>
+
+            <div className="tactics-template-section">
+              <div className="tactics-template-head">
+                <span>
+                  {c.templates}
+                </span>
+
+                <button
+                  type="button"
+                  disabled={
+                    savingTemplate
+                  }
+                  onClick={
+                    saveAsTemplate
+                  }
+                  title={
+                    c.saveAsTemplate
+                  }
+                >
+                  {savingTemplate
+                    ? "…"
+                    : "+"}
+                </button>
+              </div>
+
+              <small className="tactics-template-label">
+                {c.presetTemplates}
+              </small>
+
+              <div className="tactics-template-grid">
+                {PRESET_TEMPLATES.map(
+                  (template) => (
+                    <button
+                      type="button"
+                      key={
+                        template.id
+                      }
+                      onClick={() =>
+                        applyTemplate(
+                          template,
+                        )
+                      }
+                    >
+                      {template.title}
+                    </button>
+                  ),
+                )}
+              </div>
+
+              <small className="tactics-template-label">
+                {c.customTemplates}
+              </small>
+
+              <div className="tactics-custom-template-list">
+                {templates.length ? (
+                  templates.map(
+                    (template) => (
+                      <div
+                        key={
+                          template.id
+                        }
+                        className="tactics-custom-template-row"
+                      >
+                        <button
+                          type="button"
+                          className="tactics-custom-template-use"
+                          onClick={() =>
+                            applyTemplate(
+                              template,
+                            )
+                          }
+                        >
+                          <strong>
+                            {template.title}
+                          </strong>
+                          <small>
+                            {MAPS[
+                              template.mapId
+                            ]?.name ||
+                              template.mapId}
+                          </small>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="tactics-custom-template-delete"
+                          onClick={() =>
+                            deleteTemplate(
+                              template,
+                            )
+                          }
+                          title={
+                            c.deleteTemplate
+                          }
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ),
+                  )
+                ) : (
+                  <span className="tactics-template-empty">
+                    {c.noCustomTemplates}
+                  </span>
+                )}
+              </div>
+            </div>
           </aside>
 
           <main className="tactics-workspace tactics-workspace--v3">
@@ -3958,6 +4444,36 @@ export default function PlayerTactics() {
                   {downloading
                     ? c.downloading
                     : c.download}
+                </button>
+
+                <button
+                  type="button"
+                  className="tactics-export tactics-action-template"
+                  disabled={
+                    savingTemplate
+                  }
+                  onClick={
+                    saveAsTemplate
+                  }
+                  title={
+                    c.saveAsTemplate
+                  }
+                >
+                  <span aria-hidden="true">◇</span>
+                  {savingTemplate
+                    ? c.savingTemplate
+                    : c.saveAsTemplate}
+                </button>
+
+                <button
+                  type="button"
+                  className="tactics-export tactics-action-presentation"
+                  onClick={
+                    enterPresentation
+                  }
+                >
+                  <span aria-hidden="true">▶</span>
+                  {c.presentation}
                 </button>
 
                 {activeTactic ? (
