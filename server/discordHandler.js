@@ -1,6 +1,6 @@
 import { guardRequest } from "../api/lib/requestGuard.js";
 import { readJsonBody, readQueryString } from "../api/lib/requestBody.js";
-import { requireOwner } from "../api/lib/ownerRequest.js";
+import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 import { ISTE_COMMANDS } from "../presence-worker/commands.mjs";
 
@@ -84,7 +84,7 @@ async function discordRequest(path, { method = "GET", body = null } = {}) {
 }
 
 async function getOwner(request, response) {
-  const owner = await requireOwner(request, response);
+  const owner = await requireAdminOrOwner(request, response);
 
   if (!owner.ok) {
     sendError(response, owner.status, owner.error, owner.message);

@@ -1,7 +1,7 @@
 import { guardRequest } from "./lib/requestGuard.js";
 import {
   mapOwnerRpcError,
-  requireOwner,
+  requireAdminOrOwner,
 } from "./lib/ownerRequest.js";
 import {
   isUuid,
@@ -44,7 +44,7 @@ function sendError(response, status, error, message) {
 }
 
 async function getOwner(request, response) {
-  const owner = await requireOwner(request, response);
+  const owner = await requireAdminOrOwner(request, response);
 
   if (!owner.ok) {
     sendError(

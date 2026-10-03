@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { useAuth } from "./auth/AuthContext.jsx";
+import AdminRoute from "./auth/AdminRoute.jsx";
 import OwnerRoute from "./auth/OwnerRoute.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import RosterManagerRoute from "./auth/RosterManagerRoute.jsx";
@@ -13,6 +14,7 @@ import SiteIntro from "./components/layout/SiteIntro.jsx";
 import SeoManager from "./components/SeoManager.jsx";
 import FloatingSupportButton from "./components/support/FloatingSupportButton.jsx";
 import Account from "./pages/Account.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
 import AdminNews from "./pages/AdminNews.jsx";
 import AIPrivacy from "./pages/AIPrivacy.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
@@ -159,6 +161,15 @@ export default function App() {
           />
 
           <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
+          <Route
             path="/admin/news"
             element={
               <StaffRoute>
@@ -179,18 +190,18 @@ export default function App() {
           <Route
             path="/owner/users"
             element={
-              <OwnerRoute>
+              <AdminRoute>
                 <OwnerUsers />
-              </OwnerRoute>
+              </AdminRoute>
             }
           />
 
           <Route
             path="/owner/shop"
             element={
-              <OwnerRoute>
+              <AdminRoute>
                 <OwnerShop />
-              </OwnerRoute>
+              </AdminRoute>
             }
           />
 
@@ -224,9 +235,9 @@ export default function App() {
           <Route
             path="/owner/discord"
             element={
-              <OwnerRoute>
+              <AdminRoute>
                 <OwnerDiscord />
-              </OwnerRoute>
+              </AdminRoute>
             }
           />
 

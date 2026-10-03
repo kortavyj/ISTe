@@ -10,6 +10,12 @@ const ERROR_MESSAGES = Object.freeze({
     "Нужно повторно войти в аккаунт.",
   OWNER_REQUIRED:
   "Эта операция доступна только владельцу.",
+  ADMIN_OR_OWNER_REQUIRED:
+    "Эта операция доступна администратору или владельцу.",
+  ADMIN_CANNOT_MANAGE_PRIVILEGED:
+    "Администратор не может управлять владельцем, другим администратором или игровым менеджером.",
+  ADMIN_CANNOT_ASSIGN_ADMIN:
+    "Администратор может назначать только пользователя, игрока или редактора.",
 MFA_REQUIRED:
   "Для доступа владельца требуется подтверждение двухфакторной аутентификации.",
 ACCOUNT_BLOCKED:
@@ -58,6 +64,7 @@ export function mapOwnerRpcError(
       knownCode === "AUTH_REQUIRED"
         ? 401
         : knownCode === "OWNER_REQUIRED" ||
+      knownCode === "ADMIN_OR_OWNER_REQUIRED" ||
       knownCode === "MFA_REQUIRED" ||
       knownCode === "ACCOUNT_BLOCKED"
 
@@ -100,6 +107,185 @@ async function establishSession(
     data: null,
     error: new Error("AUTH_REQUIRED"),
   };
+}
+
+export async function requireAdminOrOwner(
+  request,
+  response,
+) {
+  response.setHeader(
+    "Cache-Control",
+    "no-store, private",
+  );
+
+  const {
+    accessToken,
+    refreshToken,
+  } = readAuthCookies(request);
+
+  if (!refreshToken) {
+    clearAuthCookies(response);
+
+    return {
+      ok: false,
+      status: 401,
+      error: "AUTH_REQUIRED",
+      message:
+        ERROR_MESSAGES.AUTH_REQUIRED,
+    };
+  }
+
+  try {
+    const supabase =
+      getSupabaseServerClient();
+
+    const {
+      data: sessionData,
+      error: sessionError,
+    } = await establishSession(
+      supabase,
+      accessToken,
+      refreshToken,
+    );
+
+    if (
+      sessionError ||
+      !sessionData?.session ||
+      !sessionData?.user
+    ) {
+      clearAuthCookies(response);
+
+      return {
+        ok: false,
+        status: 401,
+        error: "AUTH_REQUIRED",
+        message:
+          ERROR_MESSAGES.AUTH_REQUIRED,
+      };
+    }
+
+    setAuthCookies(
+      response,
+      sessionData.session,
+    );
+
+    const user =
+      sessionData.user;
+
+    const {
+      data: access,
+      error: accessError,
+    } = await supabase
+      .from("user_roles")
+      .select(
+        "role, is_blocked, blocked_reason",
+      )
+      .eq(
+        "user_id",
+        user.id,
+      )
+      .maybeSingle();
+
+    if (accessError) {
+      return {
+        ok: false,
+        status: 502,
+        error:
+          "ACCOUNT_CHECK_FAILED",
+        message:
+          "Не удалось проверить права аккаунта.",
+      };
+    }
+
+    if (
+      access?.is_blocked ===
+      true
+    ) {
+      return {
+        ok: false,
+        status: 403,
+        error:
+          "ACCOUNT_BLOCKED",
+        message:
+          access.blocked_reason
+            ?.trim() ||
+          ERROR_MESSAGES
+            .ACCOUNT_BLOCKED,
+      };
+    }
+
+    if (
+      access?.role !== "admin" &&
+      access?.role !== "owner"
+    ) {
+      return {
+        ok: false,
+        status: 403,
+        error:
+          "ADMIN_OR_OWNER_REQUIRED",
+        message:
+          ERROR_MESSAGES
+            .ADMIN_OR_OWNER_REQUIRED,
+      };
+    }
+
+    const {
+      data: assurance,
+      error: assuranceError,
+    } =
+      await supabase.auth.mfa
+        .getAuthenticatorAssuranceLevel(
+          sessionData.session
+            .access_token,
+        );
+
+    if (
+      assuranceError ||
+      assurance?.currentLevel !==
+        "aal2"
+    ) {
+      clearAuthCookies(response);
+
+      return {
+        ok: false,
+        status:
+          assuranceError
+            ? 502
+            : 403,
+        error:
+          assuranceError
+            ? "MFA_CHECK_FAILED"
+            : "MFA_REQUIRED",
+        message:
+          assuranceError
+            ? "Не удалось проверить двухфакторную аутентификацию."
+            : ERROR_MESSAGES
+                .MFA_REQUIRED,
+      };
+    }
+
+    return {
+      ok: true,
+      supabase,
+      user,
+      role:
+        access.role,
+    };
+  } catch (error) {
+    console.error(
+      "Unexpected admin access error:",
+      error,
+    );
+
+    return {
+      ok: false,
+      status: 500,
+      error:
+        "INTERNAL_SERVER_ERROR",
+      message:
+        "Не удалось проверить права администратора.",
+    };
+  }
 }
 
 export async function requireOwner(

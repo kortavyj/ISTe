@@ -151,6 +151,7 @@ export async function requireRosterAccess(
 
     if (
       access?.role !== "owner" &&
+      access?.role !== "admin" &&
       access?.role !==
         "game_manager"
     ) {

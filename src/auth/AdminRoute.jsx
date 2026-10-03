@@ -4,19 +4,16 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "./AuthContext.jsx";
-import { useLanguage } from "../i18n/LanguageContext.jsx";
 
-const ROSTER_MANAGER_ROLES = new Set([
-  "game_manager",
+const ADMIN_ROLES = new Set([
   "admin",
   "owner",
 ]);
 
-export default function RosterManagerRoute({
+export default function AdminRoute({
   children,
 }) {
   const location = useLocation();
-  const { t } = useLanguage();
 
   const {
     user,
@@ -33,9 +30,8 @@ export default function RosterManagerRoute({
             className="auth-loader"
             aria-hidden="true"
           />
-
           <p>
-            {t("rosterAccess.checking")}
+            Проверяем права доступа...
           </p>
         </div>
       </section>
@@ -61,7 +57,7 @@ export default function RosterManagerRoute({
     );
   }
 
-  if (!ROSTER_MANAGER_ROLES.has(role)) {
+  if (!ADMIN_ROLES.has(role)) {
     return (
       <Navigate
         to="/account"

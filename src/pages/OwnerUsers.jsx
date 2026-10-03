@@ -92,6 +92,8 @@ function getErrorMessage(error, t) {
   const codes = [
     "AUTH_REQUIRED",
     "OWNER_REQUIRED",
+    "ADMIN_OR_OWNER_REQUIRED",
+    "MFA_REQUIRED",
     "ACCOUNT_BLOCKED",
     "ACCOUNT_CHECK_FAILED",
     "TARGET_REQUIRED",
@@ -103,6 +105,8 @@ function getErrorMessage(error, t) {
     "USER_ROLE_NOT_FOUND",
     "CANNOT_BLOCK_SELF",
     "CANNOT_BLOCK_OWNER",
+    "ADMIN_CANNOT_MANAGE_PRIVILEGED",
+    "ADMIN_CANNOT_ASSIGN_ADMIN",
     "OWNER_OPERATION_FAILED",
     "INTERNAL_SERVER_ERROR",
     "INVALID_SERVER_RESPONSE",
@@ -186,8 +190,10 @@ function getAuditPerson(
 }
 
 export default function OwnerUsers() {
-  const { user: currentUser } =
-    useAuth();
+  const {
+    user: currentUser,
+    role: currentRole,
+  } = useAuth();
   const { language, t } = useLanguage();
 
   const roleNames = {
@@ -199,16 +205,46 @@ export default function OwnerUsers() {
     owner: t("roles.owner"),
   };
 
-  const roleOptions = [
-    { value: "user", label: roleNames.user },
-    { value: "player", label: roleNames.player },
-    { value: "editor", label: roleNames.editor },
-    {
-      value: "game_manager",
-      label: roleNames.game_manager,
-    },
-    { value: "admin", label: roleNames.admin },
-  ];
+  const roleOptions =
+    currentRole === "admin"
+      ? [
+          {
+            value: "user",
+            label: roleNames.user,
+          },
+          {
+            value: "player",
+            label: roleNames.player,
+          },
+          {
+            value: "editor",
+            label: roleNames.editor,
+          },
+        ]
+      : [
+          {
+            value: "user",
+            label: roleNames.user,
+          },
+          {
+            value: "player",
+            label: roleNames.player,
+          },
+          {
+            value: "editor",
+            label: roleNames.editor,
+          },
+          {
+            value: "game_manager",
+            label:
+              roleNames.game_manager,
+          },
+          {
+            value: "admin",
+            label:
+              roleNames.admin,
+          },
+        ];
 
   const actionNames = {
     role_changed: t("ownerUsers.actions.role_changed"),
@@ -779,8 +815,20 @@ export default function OwnerUsers() {
                     item.role ===
                     "owner";
 
+                  const adminProtected =
+                    currentRole === "admin" &&
+                    [
+                      "admin",
+                      "owner",
+                      "game_manager",
+                    ].includes(
+                      item.role,
+                    );
+
                   const controlsDisabled =
-                    isSelf || isOwner;
+                    isSelf ||
+                    isOwner ||
+                    adminProtected;
 
                   const busy =
                     actionUserId ===
@@ -984,7 +1032,9 @@ export default function OwnerUsers() {
                           <small>
                             {isSelf
                               ? t("ownerUsers.selfProtected")
-                              : t("ownerUsers.ownerProtected")}
+                              : adminProtected
+                                ? t("ownerUsers.adminProtected")
+                                : t("ownerUsers.ownerProtected")}
                           </small>
                         ) : null}
                       </div>

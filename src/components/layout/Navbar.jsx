@@ -311,78 +311,45 @@ function ProfileAction({
   );
 }
 
-function FounderMenu({ language, onNavigate }) {
-  const c = founderCopy[language] || founderCopy.uk;
+function FounderMenu({
+  language,
+  onNavigate,
+}) {
+  const c =
+    founderCopy[language] ||
+    founderCopy.uk;
 
   return (
-    <div className="navbar-founder-inline" aria-label={c.menuAria}>
+    <div
+      className="navbar-founder-inline"
+      aria-label={c.menuAria}
+    >
       <div className="navbar-founder-head">
-        <span className="navbar-founder-crown" aria-hidden="true">
+        <span
+          className="navbar-founder-crown"
+          aria-hidden="true"
+        >
           ♛
         </span>
         <div>
-          <strong>{c.dashboard}</strong>
+          <strong>
+            {c.dashboard}
+          </strong>
           <span>ISTe</span>
         </div>
       </div>
 
-      <NavLink to="/founder" className="navbar-founder-item" onClick={onNavigate}>
-        <strong>{c.dashboard}</strong>
-        <span>{c.dashboardText}</span>
-      </NavLink>
-
       <NavLink
-        to="/control/roster"
+        to="/founder"
         className="navbar-founder-item"
         onClick={onNavigate}
       >
-        <strong>{c.roster}</strong>
-        <span>{c.rosterText}</span>
-      </NavLink>
-
-      <NavLink
-        to="/player/tactics"
-        className="navbar-founder-item"
-        onClick={onNavigate}
-      >
-        <strong>{c.tactics}</strong>
-        <span>{c.tacticsText}</span>
-      </NavLink>
-
-      <NavLink
-        to="/owner/users"
-        className="navbar-founder-item"
-        onClick={onNavigate}
-      >
-        <strong>{c.users}</strong>
-        <span>{c.usersText}</span>
-      </NavLink>
-
-      <NavLink
-        to="/admin/news"
-        className="navbar-founder-item"
-        onClick={onNavigate}
-      >
-        <strong>{c.news}</strong>
-        <span>{c.newsText}</span>
-      </NavLink>
-
-      <NavLink
-        to="/owner/shop"
-        className="navbar-founder-item"
-        onClick={onNavigate}
-      >
-        <strong>{c.shop}</strong>
-        <span>{c.shopText}</span>
-      </NavLink>
-
-      <NavLink
-        to="/owner/discord"
-        className="navbar-founder-item"
-        onClick={onNavigate}
-      >
-        <strong>{c.discord}</strong>
-        <span>{c.discordText}</span>
+        <strong>
+          {c.dashboard}
+        </strong>
+        <span>
+          {c.dashboardText}
+        </span>
       </NavLink>
     </div>
   );
@@ -418,30 +385,16 @@ function AdminMenu({
       </div>
 
       <NavLink
-        to="/player/tactics"
+        to="/admin"
         className="navbar-admin-item"
         onClick={onNavigate}
       >
-        <strong>{c.tactics}</strong>
-        <span>{c.tacticsText}</span>
-      </NavLink>
-
-      <NavLink
-        to="/admin/news"
-        className="navbar-admin-item"
-        onClick={onNavigate}
-      >
-        <strong>{c.news}</strong>
-        <span>{c.newsText}</span>
-      </NavLink>
-
-      <NavLink
-        to="/users"
-        className="navbar-admin-item"
-        onClick={onNavigate}
-      >
-        <strong>{c.users}</strong>
-        <span>{c.usersText}</span>
+        <strong>
+          {c.dashboard}
+        </strong>
+        <span>
+          {c.dashboardText}
+        </span>
       </NavLink>
     </div>
   );
