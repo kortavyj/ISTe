@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import { guardRequest } from "../api/lib/requestGuard.js";
 import { readJsonBody, readQueryString } from "../api/lib/requestBody.js";
 import { requireRosterAccess } from "./lib/rosterRequest.js";
@@ -36,6 +38,12 @@ const ROSTER_COLUMNS = [
   "sort_order",
   "country",
   "faceit_url",
+  "portrait_url",
+  "socials",
+  "faceit_level_override",
+  "faceit_elo_override",
+  "faceit_win_rate_override",
+  "faceit_kd_override",
   "notes",
   "strengths",
   "public_visible",
@@ -99,12 +107,89 @@ function normalizePlayer(row) {
     sortOrder: Number(row.sort_order) || 0,
     country: row.country || "",
     faceitUrl: row.faceit_url || "",
+    portraitUrl: row.portrait_url || "",
+    socials: Array.isArray(row.socials) ? row.socials : [],
+    faceitLevelOverride:
+      Number.isFinite(row.faceit_level_override)
+        ? Number(row.faceit_level_override)
+        : null,
+    faceitEloOverride:
+      Number.isFinite(row.faceit_elo_override)
+        ? Number(row.faceit_elo_override)
+        : null,
+    faceitWinRateOverride:
+      Number.isFinite(row.faceit_win_rate_override)
+        ? Number(row.faceit_win_rate_override)
+        : null,
+    faceitKdOverride:
+      Number.isFinite(row.faceit_kd_override)
+        ? Number(row.faceit_kd_override)
+        : null,
     notes: row.notes || "",
     strengths: Array.isArray(row.strengths) ? row.strengths : [],
     publicVisible: row.public_visible !== false,
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null,
   };
+}
+
+function optionalNumber(value) {
+  if (
+    value === "" ||
+    value === null ||
+    value === undefined
+  ) {
+    return null;
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function isValidHttpsUrl(value) {
+  if (!value) return true;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function normalizeSocials(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const allowed = new Set([
+    "twitch",
+    "telegram",
+    "instagram",
+    "steam",
+    "tiktok",
+  ]);
+
+  return value
+    .map((item) => ({
+      type:
+        typeof item?.type === "string"
+          ? item.type.trim().toLowerCase()
+          : "",
+      url:
+        typeof item?.url === "string"
+          ? item.url.trim()
+          : "",
+    }))
+    .filter(
+      (item) =>
+        allowed.has(item.type) &&
+        item.url &&
+        isValidHttpsUrl(item.url),
+    )
+    .slice(0, 5);
 }
 
 function readPlayerInput(body) {
@@ -141,6 +226,28 @@ function readPlayerInput(body) {
     typeof body?.faceitUrl === "string"
       ? body.faceitUrl.trim()
       : "";
+  const portraitUrl =
+    typeof body?.portraitUrl === "string"
+      ? body.portraitUrl.trim()
+      : "";
+  const socials =
+    normalizeSocials(body?.socials);
+  const faceitLevelOverride =
+    optionalNumber(
+      body?.faceitLevelOverride,
+    );
+  const faceitEloOverride =
+    optionalNumber(
+      body?.faceitEloOverride,
+    );
+  const faceitWinRateOverride =
+    optionalNumber(
+      body?.faceitWinRateOverride,
+    );
+  const faceitKdOverride =
+    optionalNumber(
+      body?.faceitKdOverride,
+    );
   const notes =
     typeof body?.notes === "string" ? body.notes.trim() : "";
   const sortOrder = Number(body?.sortOrder ?? 100);
@@ -242,6 +349,80 @@ function readPlayerInput(body) {
     }
   }
 
+  if (
+    portraitUrl &&
+    !isValidHttpsUrl(portraitUrl)
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error: "INVALID_PORTRAIT_URL",
+      message: "Укажи корректную HTTPS-ссылку на фото.",
+    };
+  }
+
+  if (
+    faceitLevelOverride !== null &&
+    (
+      !Number.isInteger(faceitLevelOverride) ||
+      faceitLevelOverride < 1 ||
+      faceitLevelOverride > 10
+    )
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error: "INVALID_FACEIT_LEVEL",
+      message: "FACEIT level должен быть от 1 до 10.",
+    };
+  }
+
+  if (
+    faceitEloOverride !== null &&
+    (
+      !Number.isInteger(faceitEloOverride) ||
+      faceitEloOverride < 0 ||
+      faceitEloOverride > 10000
+    )
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error: "INVALID_FACEIT_ELO",
+      message: "Некорректный FACEIT ELO.",
+    };
+  }
+
+  if (
+    faceitWinRateOverride !== null &&
+    (
+      faceitWinRateOverride < 0 ||
+      faceitWinRateOverride > 100
+    )
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error: "INVALID_FACEIT_WIN_RATE",
+      message: "Winrate должен быть от 0 до 100.",
+    };
+  }
+
+  if (
+    faceitKdOverride !== null &&
+    (
+      faceitKdOverride < 0 ||
+      faceitKdOverride > 10
+    )
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error: "INVALID_FACEIT_KD",
+      message: "Некорректный K/D.",
+    };
+  }
+
   return {
     ok: true,
     player: {
@@ -258,6 +439,16 @@ function readPlayerInput(body) {
       sort_order: sortOrder,
       country,
       faceit_url: faceitUrl,
+      portrait_url: portraitUrl,
+      socials,
+      faceit_level_override:
+        faceitLevelOverride,
+      faceit_elo_override:
+        faceitEloOverride,
+      faceit_win_rate_override:
+        faceitWinRateOverride,
+      faceit_kd_override:
+        faceitKdOverride,
       notes,
       strengths,
       public_visible: publicVisible,
@@ -473,6 +664,24 @@ async function handleImportFaceit(request, response) {
         sort_order: 200 + index * 10,
         country: String(player?.country || "").trim().toLowerCase(),
         faceit_url: String(player?.faceitUrl || "").trim(),
+        portrait_url: String(player?.avatar || "").trim(),
+        socials: [],
+        faceit_level_override:
+          Number.isFinite(player?.level)
+            ? Number(player.level)
+            : null,
+        faceit_elo_override:
+          Number.isFinite(player?.elo)
+            ? Number(player.elo)
+            : null,
+        faceit_win_rate_override:
+          Number.isFinite(player?.winRate)
+            ? Number(player.winRate)
+            : null,
+        faceit_kd_override:
+          Number.isFinite(player?.kd)
+            ? Number(player.kd)
+            : null,
         notes: "Импортировано из текущих данных FACEIT.",
         strengths: [],
         public_visible: false,
@@ -539,6 +748,187 @@ async function handleImportFaceit(request, response) {
   }
 }
 
+async function handleUploadPhoto(
+  request,
+  response,
+) {
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 2_200_000,
+  });
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const access =
+    await getRosterAccess(
+      request,
+      response,
+    );
+
+  if (!access) return;
+
+  const body =
+    readJsonBody(request);
+
+  const mimeType =
+    typeof body?.mimeType === "string"
+      ? body.mimeType.trim().toLowerCase()
+      : "";
+
+  const data =
+    typeof body?.data === "string"
+      ? body.data.trim()
+      : "";
+
+  const fileName =
+    typeof body?.fileName === "string"
+      ? body.fileName.trim()
+      : "player";
+
+  const allowedMimeTypes =
+    new Set([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ]);
+
+  if (
+    !allowedMimeTypes.has(
+      mimeType,
+    ) ||
+    !data
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_ROSTER_IMAGE",
+      "Поддерживаются JPG, PNG и WEBP.",
+    );
+  }
+
+  let bytes;
+
+  try {
+    bytes =
+      Buffer.from(
+        data,
+        "base64",
+      );
+  } catch {
+    bytes = null;
+  }
+
+  if (
+    !bytes?.length ||
+    bytes.length >
+      1_572_864
+  ) {
+    return sendError(
+      response,
+      413,
+      "ROSTER_IMAGE_TOO_LARGE",
+      "Фото должно быть не больше 1.5 MB.",
+    );
+  }
+
+  const extension =
+    mimeType === "image/png"
+      ? "png"
+      : mimeType === "image/webp"
+        ? "webp"
+        : "jpg";
+
+  const safeBase =
+    fileName
+      .replace(
+        /\.[^.]+$/,
+        "",
+      )
+      .replace(
+        /[^a-zA-Z0-9_-]+/g,
+        "-",
+      )
+      .replace(
+        /^-+|-+$/g,
+        "",
+      )
+      .slice(0, 48) ||
+    "player";
+
+  const path =
+    `players/${Date.now()}-${randomBytes(6).toString("hex")}-${safeBase}.${extension}`;
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const {
+      error,
+    } = await supabase
+      .storage
+      .from("iste-roster")
+      .upload(
+        path,
+        bytes,
+        {
+          contentType:
+            mimeType,
+          cacheControl:
+            "31536000",
+          upsert: false,
+        },
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    const {
+      data: publicData,
+    } = supabase
+      .storage
+      .from("iste-roster")
+      .getPublicUrl(path);
+
+    const publicUrl =
+      publicData?.publicUrl ||
+      "";
+
+    if (!publicUrl) {
+      throw new Error(
+        "PUBLIC_URL_MISSING",
+      );
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        portraitUrl:
+          publicUrl,
+      });
+  } catch (error) {
+    console.error(
+      "Roster photo upload error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "ROSTER_IMAGE_UPLOAD_FAILED",
+      "Не удалось загрузить фото игрока.",
+    );
+  }
+}
+
 export default async function rosterHandler(request, response) {
   response.setHeader("Cache-Control", "no-store, private");
 
@@ -561,6 +951,13 @@ export default async function rosterHandler(request, response) {
 
   if (action === "import-faceit") {
     return handleImportFaceit(request, response);
+  }
+
+  if (action === "upload-photo") {
+    return handleUploadPhoto(
+      request,
+      response,
+    );
   }
 
   return sendError(

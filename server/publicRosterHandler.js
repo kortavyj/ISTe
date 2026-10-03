@@ -13,6 +13,12 @@ const PUBLIC_COLUMNS = [
   "sort_order",
   "country",
   "faceit_url",
+  "portrait_url",
+  "socials",
+  "faceit_level_override",
+  "faceit_elo_override",
+  "faceit_win_rate_override",
+  "faceit_kd_override",
   "strengths",
   "public_visible",
   "updated_at",
@@ -65,6 +71,28 @@ function normalize(row) {
       row.country || "",
     faceitUrl:
       row.faceit_url || "",
+    portraitUrl:
+      row.portrait_url || "",
+    socials:
+      Array.isArray(row.socials)
+        ? row.socials
+        : [],
+    faceitLevelOverride:
+      Number.isFinite(row.faceit_level_override)
+        ? Number(row.faceit_level_override)
+        : null,
+    faceitEloOverride:
+      Number.isFinite(row.faceit_elo_override)
+        ? Number(row.faceit_elo_override)
+        : null,
+    faceitWinRateOverride:
+      Number.isFinite(row.faceit_win_rate_override)
+        ? Number(row.faceit_win_rate_override)
+        : null,
+    faceitKdOverride:
+      Number.isFinite(row.faceit_kd_override)
+        ? Number(row.faceit_kd_override)
+        : null,
     strengths:
       Array.isArray(row.strengths)
         ? row.strengths

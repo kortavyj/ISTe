@@ -395,6 +395,20 @@ function formatDecimal(value, digits, language) {
 }
 
 function SocialIcon({ type }) {
+  if (type === "faceit") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M5 19 12 5l7 14-7-4-7 4Z"
+          fill="none"
+          stroke="currentColor"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+        />
+      </svg>
+    );
+  }
+
   if (type === "instagram") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -580,7 +594,7 @@ function PlayerProfile({ player, index, language, copy }) {
     },
   };
 
-  const profile =
+  const baseProfile =
     savedProfile || {
       nickname:
         player.displayName ||
@@ -589,10 +603,59 @@ function PlayerProfile({ player, index, language, copy }) {
         player.role ||
         "RIFLER",
       copy: fallbackCopy,
-      portrait: player.avatar || "",
-      portraitMode: "default",
+      portrait:
+        player.avatar || "",
+      portraitMode:
+        "default",
       socials: [],
     };
+
+  const officialSocials =
+    Array.isArray(
+      player.socials,
+    )
+      ? player.socials
+          .filter(
+            (item) =>
+              item?.url &&
+              item?.type,
+          )
+          .map(
+            (item) => ({
+              name:
+                String(
+                  item.type,
+                )
+                  .slice(0, 1)
+                  .toUpperCase() +
+                String(
+                  item.type,
+                ).slice(1),
+              url: item.url,
+              icon:
+                item.type,
+            }),
+          )
+      : [];
+
+  const profile = {
+    ...baseProfile,
+    portrait:
+      player.portraitUrl ||
+      baseProfile.portrait ||
+      player.avatar ||
+      "",
+    portraitMode:
+      player.portraitUrl
+        ? "default"
+        : baseProfile.portraitMode ||
+          "default",
+    socials:
+      officialSocials.length
+        ? officialSocials
+        : baseProfile.socials ||
+          [],
+  };
 
   const profileCopy = profile.copy[language] || profile.copy.uk;
   const localizedRealName =
@@ -660,8 +723,24 @@ function PlayerProfile({ player, index, language, copy }) {
           </div>
 
           <div className="team-profile__meta">
-            {flag ? <span title={player.country}>{flag}</span> : null}
-            <span>FACEIT</span>
+            {flag ? (
+              <span title={player.country}>
+                {flag}
+              </span>
+            ) : null}
+
+            {player.faceitUrl ? (
+              <a
+                href={player.faceitUrl}
+                target="_blank"
+                rel="noreferrer"
+                title="FACEIT"
+              >
+                FACEIT
+              </a>
+            ) : (
+              <span>FACEIT</span>
+            )}
           </div>
         </div>
 

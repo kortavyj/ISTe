@@ -352,3 +352,133 @@
     grid-column: auto;
   }
 }
+
+
+/* Roster Manager v2: portraits, stats and social links */
+.owner-roster-card__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+}
+
+.owner-roster-card__portrait {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(227, 6, 19, 0.34);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(227,6,19,.22), transparent 44%),
+    #0b0d11;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 950;
+}
+
+.owner-roster-card__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.owner-roster-extra {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 12px;
+  background: rgba(255,255,255,.016);
+}
+
+.owner-roster-extra__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.owner-roster-extra__head > div {
+  display: grid;
+  gap: 4px;
+}
+
+.owner-roster-extra__head strong {
+  color: #fff;
+  font-size: .72rem;
+}
+
+.owner-roster-extra__head span {
+  color: rgba(255,255,255,.38);
+  font-size: .6rem;
+  line-height: 1.45;
+}
+
+.owner-roster-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+}
+
+.owner-roster-photo-fields {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.owner-roster-upload {
+  position: relative;
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  padding: 0 14px;
+  overflow: hidden;
+  border: 1px solid rgba(227,6,19,.38);
+  border-radius: 9px;
+  background: rgba(227,6,19,.08);
+  color: #fff;
+  cursor: pointer;
+}
+
+.owner-roster-upload > span {
+  font-size: .66rem;
+  font-weight: 900;
+}
+
+.owner-roster-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.owner-roster-social-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .owner-roster-stats-grid,
+  .owner-roster-social-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .owner-roster-photo-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .owner-roster-card__identity {
+    align-items: flex-start;
+  }
+
+  .owner-roster-stats-grid,
+  .owner-roster-social-grid {
+    grid-template-columns: 1fr;
+  }
+}

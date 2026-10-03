@@ -56,6 +56,41 @@ function mergeOfficialPlayer(official, faceitRoster) {
       official.faceitUrl ||
       faceitPlayer?.faceitUrl ||
       "",
+    avatar:
+      official.portraitUrl ||
+      faceitPlayer?.avatar ||
+      "",
+    portraitUrl:
+      official.portraitUrl ||
+      "",
+    socials:
+      Array.isArray(official.socials)
+        ? official.socials
+        : [],
+    level:
+      Number.isFinite(faceitPlayer?.level)
+        ? faceitPlayer.level
+        : Number.isFinite(official.faceitLevelOverride)
+          ? official.faceitLevelOverride
+          : undefined,
+    elo:
+      Number.isFinite(faceitPlayer?.elo)
+        ? faceitPlayer.elo
+        : Number.isFinite(official.faceitEloOverride)
+          ? official.faceitEloOverride
+          : undefined,
+    winRate:
+      Number.isFinite(faceitPlayer?.winRate)
+        ? faceitPlayer.winRate
+        : Number.isFinite(official.faceitWinRateOverride)
+          ? official.faceitWinRateOverride
+          : undefined,
+    kd:
+      Number.isFinite(faceitPlayer?.kd)
+        ? faceitPlayer.kd
+        : Number.isFinite(official.faceitKdOverride)
+          ? official.faceitKdOverride
+          : undefined,
     strengths: Array.isArray(official.strengths)
       ? official.strengths
       : [],

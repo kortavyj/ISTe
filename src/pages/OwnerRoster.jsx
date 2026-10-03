@@ -56,6 +56,27 @@ const copy = {
     order: "Порядок",
     country: "Країна",
     faceit: "FACEIT URL",
+    faceitId: "FACEIT Player ID",
+    faceitStats: "Статистика FACEIT",
+    faceitStatsHint:
+      "Якщо гравець є в синхронізованих даних FACEIT, сайт бере актуальні значення автоматично. Поля нижче використовуються як резервні значення.",
+    level: "Level",
+    elo: "ELO",
+    winRate: "Winrate %",
+    kd: "K/D",
+    portrait: "Фото гравця",
+    portraitUrl: "URL фото",
+    uploadPhoto: "Завантажити фото",
+    uploadingPhoto: "Завантаження...",
+    photoHint: "JPG, PNG або WEBP до 1.5 MB.",
+    photoUploaded: "Фото завантажено. Збережіть картку гравця.",
+    photoUploadFailed: "Не вдалося завантажити фото.",
+    socials: "Соціальні мережі",
+    twitch: "Twitch",
+    telegram: "Telegram",
+    instagram: "Instagram",
+    steam: "Steam",
+    tiktok: "TikTok",
     strengths: "Сильні сторони",
     notes: "Опис / внутрішня інформація",
     empty: "Гравців поки немає.",
@@ -108,6 +129,27 @@ const copy = {
     order: "Order",
     country: "Country",
     faceit: "FACEIT URL",
+    faceitId: "FACEIT Player ID",
+    faceitStats: "FACEIT statistics",
+    faceitStatsHint:
+      "If the player exists in synchronized FACEIT data, the site uses live values automatically. The fields below are fallback values.",
+    level: "Level",
+    elo: "ELO",
+    winRate: "Winrate %",
+    kd: "K/D",
+    portrait: "Player photo",
+    portraitUrl: "Photo URL",
+    uploadPhoto: "Upload photo",
+    uploadingPhoto: "Uploading...",
+    photoHint: "JPG, PNG or WEBP up to 1.5 MB.",
+    photoUploaded: "Photo uploaded. Save the player card.",
+    photoUploadFailed: "Could not upload the photo.",
+    socials: "Social media",
+    twitch: "Twitch",
+    telegram: "Telegram",
+    instagram: "Instagram",
+    steam: "Steam",
+    tiktok: "TikTok",
     strengths: "Strengths",
     notes: "Description / internal notes",
     empty: "No players yet.",
@@ -145,6 +187,12 @@ function createDraft() {
     sortOrder: 100,
     country: "ua",
     faceitUrl: "",
+    portraitUrl: "",
+    socials: [],
+    faceitLevelOverride: "",
+    faceitEloOverride: "",
+    faceitWinRateOverride: "",
+    faceitKdOverride: "",
     notes: "",
     strengths: [],
     publicVisible: false,
@@ -166,6 +214,24 @@ function normalizeFaceitPreview(player, index, previewNote) {
     sortOrder: 200 + index * 10,
     country: player.country || "",
     faceitUrl: player.faceitUrl || "",
+    portraitUrl: player.avatar || "",
+    socials: [],
+    faceitLevelOverride:
+      Number.isFinite(player.level)
+        ? player.level
+        : "",
+    faceitEloOverride:
+      Number.isFinite(player.elo)
+        ? player.elo
+        : "",
+    faceitWinRateOverride:
+      Number.isFinite(player.winRate)
+        ? player.winRate
+        : "",
+    faceitKdOverride:
+      Number.isFinite(player.kd)
+        ? player.kd
+        : "",
     notes: previewNote,
     strengths: [],
     publicVisible: false,
@@ -192,7 +258,9 @@ function PlayerEditor({
   disabled,
   onChange,
   onSave,
+  onUploadPhoto,
   saving,
+  uploadingPhoto,
   c,
 }) {
   const strengthsText = Array.isArray(player.strengths)
@@ -206,6 +274,47 @@ function PlayerEditor({
     });
   }
 
+  function socialValue(type) {
+    return (
+      player.socials?.find(
+        (item) =>
+          item.type === type,
+      )?.url || ""
+    );
+  }
+
+  function patchSocial(
+    type,
+    url,
+  ) {
+    const next = [
+      ...(Array.isArray(
+        player.socials,
+      )
+        ? player.socials
+        : []
+      ).filter(
+        (item) =>
+          item.type !== type,
+      ),
+    ];
+
+    const normalized =
+      url.trim();
+
+    if (normalized) {
+      next.push({
+        type,
+        url: normalized,
+      });
+    }
+
+    patch(
+      "socials",
+      next,
+    );
+  }
+
   return (
     <article
       className={[
@@ -216,7 +325,27 @@ function PlayerEditor({
         .join(" ")}
     >
       <div className="owner-roster-card__top">
-        <div>
+        <div className="owner-roster-card__identity">
+          <div className="owner-roster-card__portrait">
+            {player.portraitUrl ? (
+              <img
+                src={
+                  player.portraitUrl
+                }
+                alt=""
+              />
+            ) : (
+              <span>
+                {(player.displayName ||
+                  player.nickname ||
+                  "?")
+                  .slice(0, 1)
+                  .toUpperCase()}
+              </span>
+            )}
+          </div>
+
+          <div>
           <span className="owner-roster-card__status">
             {c.statusLabels[player.status] || player.status}
           </span>
@@ -226,6 +355,7 @@ function PlayerEditor({
             {Number.isFinite(player.level) ? ` · LVL ${player.level}` : ""}
             {Number.isFinite(player.elo) ? ` · ${player.elo} ELO` : ""}
           </p>
+          </div>
         </div>
 
         <div className="owner-roster-card__flags">
@@ -256,6 +386,23 @@ function PlayerEditor({
       </div>
 
       <div className="owner-roster-grid">
+        <label>
+          <span>{c.faceitId}</span>
+          <input
+            value={
+              player.faceitPlayerId ||
+              ""
+            }
+            disabled={disabled}
+            onChange={(event) =>
+              patch(
+                "faceitPlayerId",
+                event.target.value,
+              )
+            }
+          />
+        </label>
+
         <label>
           <span>{c.nickname}</span>
           <input
@@ -355,6 +502,150 @@ function PlayerEditor({
           />
         </label>
 
+        <section className="owner-roster-extra owner-roster-grid__full">
+          <div className="owner-roster-extra__head">
+            <div>
+              <strong>{c.faceitStats}</strong>
+              <span>{c.faceitStatsHint}</span>
+            </div>
+          </div>
+
+          <div className="owner-roster-stats-grid">
+            {[
+              ["faceitLevelOverride", c.level, "1", "10", "1"],
+              ["faceitEloOverride", c.elo, "0", "10000", "1"],
+              ["faceitWinRateOverride", c.winRate, "0", "100", "0.01"],
+              ["faceitKdOverride", c.kd, "0", "10", "0.01"],
+            ].map(
+              ([
+                field,
+                label,
+                min,
+                max,
+                step,
+              ]) => (
+                <label key={field}>
+                  <span>{label}</span>
+                  <input
+                    type="number"
+                    min={min}
+                    max={max}
+                    step={step}
+                    value={
+                      player[field] ??
+                      ""
+                    }
+                    disabled={disabled}
+                    onChange={(event) =>
+                      patch(
+                        field,
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
+              ),
+            )}
+          </div>
+        </section>
+
+        <section className="owner-roster-extra owner-roster-grid__full">
+          <div className="owner-roster-extra__head">
+            <div>
+              <strong>{c.portrait}</strong>
+              <span>{c.photoHint}</span>
+            </div>
+          </div>
+
+          <div className="owner-roster-photo-fields">
+            <label>
+              <span>{c.portraitUrl}</span>
+              <input
+                value={
+                  player.portraitUrl ||
+                  ""
+                }
+                disabled={disabled}
+                onChange={(event) =>
+                  patch(
+                    "portraitUrl",
+                    event.target.value,
+                  )
+                }
+              />
+            </label>
+
+            <label className="owner-roster-upload">
+              <span>
+                {uploadingPhoto
+                  ? c.uploadingPhoto
+                  : c.uploadPhoto}
+              </span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={
+                  disabled ||
+                  uploadingPhoto
+                }
+                onChange={(event) => {
+                  const file =
+                    event.target
+                      .files?.[0];
+
+                  if (file) {
+                    onUploadPhoto(
+                      player,
+                      file,
+                    );
+                  }
+
+                  event.target.value =
+                    "";
+                }}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="owner-roster-extra owner-roster-grid__full">
+          <div className="owner-roster-extra__head">
+            <strong>{c.socials}</strong>
+          </div>
+
+          <div className="owner-roster-social-grid">
+            {[
+              ["twitch", c.twitch],
+              ["telegram", c.telegram],
+              ["instagram", c.instagram],
+              ["steam", c.steam],
+              ["tiktok", c.tiktok],
+            ].map(
+              ([type, label]) => (
+                <label key={type}>
+                  <span>{label}</span>
+                  <input
+                    type="url"
+                    placeholder="https://"
+                    value={
+                      socialValue(
+                        type,
+                      )
+                    }
+                    disabled={disabled}
+                    onChange={(event) =>
+                      patchSocial(
+                        type,
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
+              ),
+            )}
+          </div>
+        </section>
+
         <label className="owner-roster-grid__wide">
           <span>{c.strengths}</span>
           <input
@@ -408,6 +699,7 @@ export default function OwnerRoster() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState("");
   const [importing, setImporting] = useState(false);
+  const [uploadingPhotoId, setUploadingPhotoId] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -486,6 +778,123 @@ export default function OwnerRoster() {
         player.id === nextPlayer.id ? nextPlayer : player,
       ),
     );
+  }
+
+  async function fileToBase64(
+    file,
+  ) {
+    const buffer =
+      await file.arrayBuffer();
+
+    let binary = "";
+    const bytes =
+      new Uint8Array(
+        buffer,
+      );
+    const chunkSize =
+      0x8000;
+
+    for (
+      let offset = 0;
+      offset < bytes.length;
+      offset += chunkSize
+    ) {
+      binary +=
+        String.fromCharCode(
+          ...bytes.subarray(
+            offset,
+            offset +
+              chunkSize,
+          ),
+        );
+    }
+
+    return btoa(binary);
+  }
+
+  async function uploadPhoto(
+    player,
+    file,
+  ) {
+    if (
+      ![
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+      ].includes(file.type)
+    ) {
+      setError(
+        c.photoUploadFailed,
+      );
+      return;
+    }
+
+    if (
+      file.size >
+      1_572_864
+    ) {
+      setError(
+        c.photoHint,
+      );
+      return;
+    }
+
+    setUploadingPhotoId(
+      player.id,
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      const response =
+        await fetch(
+          "/api/owner?module=roster&action=upload-photo",
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              Accept:
+                "application/json",
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              fileName:
+                file.name,
+              mimeType:
+                file.type,
+              data:
+                await fileToBase64(
+                  file,
+                ),
+            }),
+          },
+        );
+
+      const result =
+        await readJson(
+          response,
+          c.photoUploadFailed,
+        );
+
+      updatePlayer({
+        ...player,
+        portraitUrl:
+          result.portraitUrl,
+      });
+
+      setNotice(
+        c.photoUploaded,
+      );
+    } catch {
+      setError(
+        c.photoUploadFailed,
+      );
+    } finally {
+      setUploadingPhotoId(
+        "",
+      );
+    }
   }
 
   async function savePlayer(player) {
@@ -617,7 +1026,12 @@ export default function OwnerRoster() {
               disabled={setupRequired || player.readOnly === true}
               onChange={updatePlayer}
               onSave={savePlayer}
+              onUploadPhoto={uploadPhoto}
               saving={savingId === player.id}
+              uploadingPhoto={
+                uploadingPhotoId ===
+                player.id
+              }
               c={c}
             />
           ))}
