@@ -826,6 +826,20 @@ const COPY = {
     searchPlaceholder: "Пошук тактик...",
     emptySaved: "Збережених тактик поки немає.",
     noSearchResults: "За цим запитом тактик не знайдено.",
+    openTactic: "Відкрити",
+    duplicateTactic: "Дублювати",
+    duplicatedOk: "Копію тактики створено.",
+    duplicateFailed: "Не вдалося дублювати тактику.",
+    makeTeam: "Зробити командною",
+    makePrivate: "Зробити приватною",
+    visibilityUpdated: "Доступ до тактики оновлено.",
+    visibilityUpdateFailed: "Не вдалося змінити доступ.",
+    adminTools: "Керування",
+    adminAll: "Усі",
+    adminTeam: "Командні",
+    adminPrivate: "Приватні",
+    adminMine: "Мої",
+    byAuthor: "Автор",
     updatedNow: "щойно",
     updatedMinutes: "{{count}} хв тому",
     updatedHours: "{{count}} год тому",
@@ -1009,6 +1023,20 @@ const COPY = {
     searchPlaceholder: "Search tactics...",
     emptySaved: "No saved tactics yet.",
     noSearchResults: "No tactics match this search.",
+    openTactic: "Open",
+    duplicateTactic: "Duplicate",
+    duplicatedOk: "Tactic copy created.",
+    duplicateFailed: "Could not duplicate the tactic.",
+    makeTeam: "Make team-visible",
+    makePrivate: "Make private",
+    visibilityUpdated: "Tactic visibility updated.",
+    visibilityUpdateFailed: "Could not update visibility.",
+    adminTools: "Management",
+    adminAll: "All",
+    adminTeam: "Team",
+    adminPrivate: "Private",
+    adminMine: "Mine",
+    byAuthor: "Author",
     updatedNow: "just now",
     updatedMinutes: "{{count}} min ago",
     updatedHours: "{{count}} hr ago",
@@ -2824,6 +2852,7 @@ export default function PlayerTactics() {
   const {
     user,
     profile,
+    role,
   } = useAuth();
 
   const c =
@@ -2855,6 +2884,12 @@ export default function PlayerTactics() {
   const [templates, setTemplates] =
     useState([]);
   const [searchQuery, setSearchQuery] =
+    useState("");
+  const [adminFilter, setAdminFilter] =
+    useState("all");
+  const [openMenuId, setOpenMenuId] =
+    useState("");
+  const [actionTacticId, setActionTacticId] =
     useState("");
   const [loading, setLoading] =
     useState(true);
@@ -2977,9 +3012,75 @@ export default function PlayerTactics() {
       : currentMap.radar;
 
 
+  const isTacticsManager =
+    [
+      "game_manager",
+      "admin",
+      "owner",
+    ].includes(role);
+
+  const canManageTactic =
+    (tactic) =>
+      Boolean(
+        tactic &&
+          (
+            tactic.authorId ===
+              user?.id ||
+            isTacticsManager
+          ),
+      );
+
   const liveEnabled =
     Boolean(activeId) &&
     visibility === "team";
+
+  useEffect(() => {
+    if (!openMenuId) {
+      return undefined;
+    }
+
+    function closeMenu(
+      event,
+    ) {
+      if (
+        event.type === "keydown" &&
+        event.key !== "Escape"
+      ) {
+        return;
+      }
+
+      if (
+        event.type === "pointerdown" &&
+        event.target.closest?.(
+          ".tactics-saved-menu-wrap",
+        )
+      ) {
+        return;
+      }
+
+      setOpenMenuId("");
+    }
+
+    document.addEventListener(
+      "pointerdown",
+      closeMenu,
+    );
+    document.addEventListener(
+      "keydown",
+      closeMenu,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "pointerdown",
+        closeMenu,
+      );
+      document.removeEventListener(
+        "keydown",
+        closeMenu,
+      );
+    };
+  }, [openMenuId]);
 
   useEffect(() => {
     if (!liveEnabled || !user?.id) {
@@ -4687,18 +4788,30 @@ export default function PlayerTactics() {
     }
   }
 
-  async function deleteTactic() {
-    if (!activeId) return;
-
+  async function deleteTacticById(
+    tactic,
+  ) {
     if (
-      !window.confirm(
-        c.confirmDelete,
+      !tactic?.id ||
+      !canManageTactic(
+        tactic,
       )
     ) {
       return;
     }
 
-    setDeleting(true);
+    if (
+      !window.confirm(
+        `${c.confirmDelete}\n\n${tactic.title}`,
+      )
+    ) {
+      return;
+    }
+
+    setActionTacticId(
+      tactic.id,
+    );
+    setOpenMenuId("");
     setError("");
     setNotice("");
 
@@ -4708,16 +4821,180 @@ export default function PlayerTactics() {
         {
           method: "POST",
           body: {
-            id: activeId,
+            id: tactic.id,
           },
         },
       );
 
-      createNew();
-      setNotice(c.deletedOk);
+      if (
+        activeId ===
+        tactic.id
+      ) {
+        createNew();
+      }
+
+      setNotice(
+        c.deletedOk,
+      );
+
       await loadTactics();
     } catch {
-      setError(c.deleteFailed);
+      setError(
+        c.deleteFailed,
+      );
+    } finally {
+      setActionTacticId(
+        "",
+      );
+    }
+  }
+
+  async function duplicateTactic(
+    tactic,
+  ) {
+    if (!tactic?.id) {
+      return;
+    }
+
+    setActionTacticId(
+      tactic.id,
+    );
+    setOpenMenuId("");
+    setError("");
+    setNotice("");
+
+    try {
+      const result =
+        await apiRequest(
+          "save",
+          {
+            method: "POST",
+            body: {
+              id: "",
+              title:
+                `${tactic.title} ${language === "en" ? "copy" : "копія"}`
+                  .slice(
+                    0,
+                    100,
+                  ),
+              mapId:
+                tactic.mapId,
+              visibility:
+                "private",
+              boardState:
+                structuredClone(
+                  tactic.boardState || {
+                    items: [],
+                    layer: "upper",
+                  },
+                ),
+            },
+          },
+        );
+
+      await loadTactics();
+
+      setNotice(
+        c.duplicatedOk,
+      );
+
+      if (
+        result?.tactic
+      ) {
+        openTactic(
+          result.tactic,
+        );
+      }
+    } catch {
+      setError(
+        c.duplicateFailed,
+      );
+    } finally {
+      setActionTacticId(
+        "",
+      );
+    }
+  }
+
+  async function quickSetVisibility(
+    tactic,
+    nextVisibility,
+  ) {
+    if (
+      !tactic?.id ||
+      !canManageTactic(
+        tactic,
+      )
+    ) {
+      return;
+    }
+
+    setActionTacticId(
+      tactic.id,
+    );
+    setOpenMenuId("");
+    setError("");
+    setNotice("");
+
+    try {
+      await apiRequest(
+        "save",
+        {
+          method: "POST",
+          body: {
+            id:
+              tactic.id,
+            title:
+              tactic.title,
+            mapId:
+              tactic.mapId,
+            visibility:
+              nextVisibility,
+            boardState:
+              tactic.boardState || {
+                items: [],
+                layer: "upper",
+              },
+          },
+        },
+      );
+
+      if (
+        activeId ===
+        tactic.id
+      ) {
+        setVisibility(
+          nextVisibility,
+        );
+      }
+
+      setNotice(
+        c.visibilityUpdated,
+      );
+
+      await loadTactics();
+    } catch {
+      setError(
+        c.visibilityUpdateFailed,
+      );
+    } finally {
+      setActionTacticId(
+        "",
+      );
+    }
+  }
+
+async function deleteTactic() {
+    if (!activeTactic) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await deleteTacticById(
+        activeTactic,
+      );
     } finally {
       setDeleting(false);
     }
@@ -5644,19 +5921,59 @@ export default function PlayerTactics() {
           .trim()
           .toLowerCase();
 
-      if (!query) {
-        return tactics;
-      }
-
       return tactics.filter(
         (tactic) => {
+          if (
+            isTacticsManager
+          ) {
+            if (
+              adminFilter ===
+                "team" &&
+              tactic.visibility !==
+                "team"
+            ) {
+              return false;
+            }
+
+            if (
+              adminFilter ===
+                "private" &&
+              tactic.visibility !==
+                "private"
+            ) {
+              return false;
+            }
+
+            if (
+              adminFilter ===
+                "mine" &&
+              tactic.authorId !==
+                user?.id
+            ) {
+              return false;
+            }
+          }
+
+          if (!query) {
+            return true;
+          }
+
           const mapName =
             MAPS[tactic.mapId]
               ?.name || "";
 
+          const authorName =
+            tactic.author
+              ?.displayName ||
+            tactic.author
+              ?.username ||
+            "";
+
           return [
             tactic.title,
             mapName,
+            authorName,
+            tactic.visibility,
           ].some((value) =>
             String(value || "")
               .toLowerCase()
@@ -5665,8 +5982,11 @@ export default function PlayerTactics() {
         },
       );
     }, [
+      adminFilter,
+      isTacticsManager,
       searchQuery,
       tactics,
+      user?.id,
     ]);
 
   const activeTactic =
@@ -5816,6 +6136,43 @@ export default function PlayerTactics() {
               />
             </label>
 
+            {isTacticsManager ? (
+              <div className="tactics-admin-filters">
+                <span>{c.adminTools}</span>
+                <div>
+                  {[
+                    ["all", c.adminAll],
+                    ["team", c.adminTeam],
+                    ["private", c.adminPrivate],
+                    ["mine", c.adminMine],
+                  ].map(
+                    ([
+                      value,
+                      label,
+                    ]) => (
+                      <button
+                        type="button"
+                        key={value}
+                        className={
+                          adminFilter ===
+                          value
+                            ? "active"
+                            : ""
+                        }
+                        onClick={() =>
+                          setAdminFilter(
+                            value,
+                          )
+                        }
+                      >
+                        {label}
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+            ) : null}
+
             <div className="tactics-saved-list tactics-saved-list--v3">
               {loading ? (
                 <div className="tactics-empty">
@@ -5823,49 +6180,207 @@ export default function PlayerTactics() {
                 </div>
               ) : filteredTactics.length ? (
                 filteredTactics.map(
-                  (tactic) => (
-                    <button
-                      type="button"
-                      key={tactic.id}
-                      className={
-                        tactic.id === activeId
-                          ? "tactics-saved-item tactics-saved-item--active tactics-saved-item--v3"
-                          : "tactics-saved-item tactics-saved-item--v3"
-                      }
-                      onClick={() =>
-                        openTactic(tactic)
-                      }
-                    >
-                      <span className="tactics-saved-icon">
-                        ↗
-                      </span>
+                  (tactic) => {
+                    const manageable =
+                      canManageTactic(
+                        tactic,
+                      );
 
-                      <span className="tactics-saved-copy">
-                        <strong>
-                          {tactic.title}
-                        </strong>
-                        <small>
-                          {MAPS[
-                            tactic.mapId
-                          ]?.name ||
-                            tactic.mapId}
-                          {formatTacticAge(
-                            tactic.updatedAt,
-                            c,
-                          )
-                            ? ` · ${formatTacticAge(
+                    const authorName =
+                      tactic.author
+                        ?.displayName ||
+                      tactic.author
+                        ?.username ||
+                      "";
+
+                    return (
+                      <div
+                        key={
+                          tactic.id
+                        }
+                        className="tactics-saved-row"
+                      >
+                        <button
+                          type="button"
+                          className={
+                            tactic.id === activeId
+                              ? "tactics-saved-item tactics-saved-item--active tactics-saved-item--v3"
+                              : "tactics-saved-item tactics-saved-item--v3"
+                          }
+                          onClick={() =>
+                            openTactic(
+                              tactic,
+                            )
+                          }
+                        >
+                          <span className="tactics-saved-icon">
+                            ↗
+                          </span>
+
+                          <span className="tactics-saved-copy">
+                            <strong>
+                              {tactic.title}
+                            </strong>
+
+                            <small>
+                              {MAPS[
+                                tactic.mapId
+                              ]?.name ||
+                                tactic.mapId}
+
+                              {formatTacticAge(
                                 tactic.updatedAt,
                                 c,
-                              )}`
-                            : ""}
-                        </small>
-                      </span>
+                              )
+                                ? ` · ${formatTacticAge(
+                                    tactic.updatedAt,
+                                    c,
+                                  )}`
+                                : ""}
+                            </small>
 
-                      <span className="tactics-saved-more">
-                        •••
-                      </span>
-                    </button>
-                  ),
+                            <span className="tactics-saved-meta">
+                              <i
+                                className={
+                                  tactic.visibility ===
+                                  "private"
+                                    ? "private"
+                                    : "team"
+                                }
+                              >
+                                {tactic.visibility ===
+                                "private"
+                                  ? c.private
+                                  : c.team}
+                              </i>
+
+                              {isTacticsManager &&
+                              authorName ? (
+                                <em>
+                                  {c.byAuthor}:{" "}
+                                  {authorName}
+                                </em>
+                              ) : null}
+                            </span>
+                          </span>
+                        </button>
+
+                        <div className="tactics-saved-menu-wrap">
+                          <button
+                            type="button"
+                            className="tactics-saved-more"
+                            aria-expanded={
+                              openMenuId ===
+                              tactic.id
+                            }
+                            aria-label={
+                              c.adminTools
+                            }
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setOpenMenuId(
+                                (current) =>
+                                  current ===
+                                  tactic.id
+                                    ? ""
+                                    : tactic.id,
+                              );
+                            }}
+                          >
+                            •••
+                          </button>
+
+                          {openMenuId ===
+                          tactic.id ? (
+                            <div
+                              className="tactics-saved-menu"
+                              role="menu"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenuId(
+                                    "",
+                                  );
+                                  openTactic(
+                                    tactic,
+                                  );
+                                }}
+                              >
+                                <span>↗</span>
+                                {c.openTactic}
+                              </button>
+
+                              <button
+                                type="button"
+                                disabled={
+                                  actionTacticId ===
+                                  tactic.id
+                                }
+                                onClick={() =>
+                                  duplicateTactic(
+                                    tactic,
+                                  )
+                                }
+                              >
+                                <span>⧉</span>
+                                {c.duplicateTactic}
+                              </button>
+
+                              {manageable ? (
+                                <button
+                                  type="button"
+                                  disabled={
+                                    actionTacticId ===
+                                    tactic.id
+                                  }
+                                  onClick={() =>
+                                    quickSetVisibility(
+                                      tactic,
+                                      tactic.visibility ===
+                                        "private"
+                                        ? "team"
+                                        : "private",
+                                    )
+                                  }
+                                >
+                                  <span>
+                                    {tactic.visibility ===
+                                    "private"
+                                      ? "◉"
+                                      : "◌"}
+                                  </span>
+                                  {tactic.visibility ===
+                                  "private"
+                                    ? c.makeTeam
+                                    : c.makePrivate}
+                                </button>
+                              ) : null}
+
+                              {manageable ? (
+                                <button
+                                  type="button"
+                                  className="danger"
+                                  disabled={
+                                    actionTacticId ===
+                                    tactic.id
+                                  }
+                                  onClick={() =>
+                                    deleteTacticById(
+                                      tactic,
+                                    )
+                                  }
+                                >
+                                  <span>×</span>
+                                  {c.delete}
+                                </button>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  },
                 )
               ) : (
                 <div className="tactics-empty">

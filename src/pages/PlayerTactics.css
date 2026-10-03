@@ -2696,3 +2696,184 @@
     flex: 1 1 calc(50% - 7px);
   }
 }
+
+
+/* Tactical Board v10: tactic context menu and manager controls */
+.tactics-saved-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.tactics-saved-row .tactics-saved-item--v3 {
+  width: 100%;
+  min-width: 0;
+}
+
+.tactics-saved-row .tactics-saved-more {
+  position: static;
+  display: grid;
+  width: 34px;
+  min-width: 34px;
+  height: 100%;
+  min-height: 52px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,.34);
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+
+.tactics-saved-row .tactics-saved-more:hover,
+.tactics-saved-row .tactics-saved-more[aria-expanded="true"] {
+  border-color: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.035);
+  color: #fff;
+}
+
+.tactics-saved-menu-wrap {
+  position: relative;
+  display: grid;
+}
+
+.tactics-saved-menu {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 5px);
+  right: 0;
+  display: grid;
+  width: 190px;
+  overflow: hidden;
+  padding: 5px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px;
+  background: rgba(10,13,18,.98);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,.5),
+    0 0 0 1px rgba(227,6,19,.035);
+  backdrop-filter: blur(14px);
+}
+
+.tactics-saved-menu button {
+  display: grid;
+  min-height: 34px;
+  grid-template-columns: 22px minmax(0,1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(255,255,255,.72);
+  font: inherit;
+  font-size: .58rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tactics-saved-menu button:hover {
+  background: rgba(255,255,255,.045);
+  color: #fff;
+}
+
+.tactics-saved-menu button.danger {
+  color: #ff6e79;
+}
+
+.tactics-saved-menu button.danger:hover {
+  background: rgba(227,6,19,.09);
+}
+
+.tactics-saved-menu button:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
+.tactics-saved-meta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.tactics-saved-meta i {
+  display: inline-flex;
+  min-height: 17px;
+  align-items: center;
+  padding: 0 5px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 999px;
+  color: rgba(255,255,255,.38);
+  font-size: .45rem;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tactics-saved-meta i.team {
+  border-color: rgba(95,199,133,.15);
+  color: rgba(117,218,153,.62);
+}
+
+.tactics-saved-meta i.private {
+  border-color: rgba(255,177,87,.14);
+  color: rgba(255,190,113,.62);
+}
+
+.tactics-saved-meta em {
+  overflow: hidden;
+  color: rgba(255,255,255,.27);
+  font-size: .45rem;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactics-admin-filters {
+  display: grid;
+  gap: 6px;
+  padding: 8px 0 2px;
+}
+
+.tactics-admin-filters > span {
+  color: rgba(255,255,255,.28);
+  font-size: .49rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.tactics-admin-filters > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tactics-admin-filters button {
+  min-height: 27px;
+  padding: 0 8px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 7px;
+  background: rgba(255,255,255,.018);
+  color: rgba(255,255,255,.42);
+  font: inherit;
+  font-size: .51rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.tactics-admin-filters button.active {
+  border-color: rgba(227,6,19,.38);
+  background: rgba(227,6,19,.09);
+  color: #fff;
+}

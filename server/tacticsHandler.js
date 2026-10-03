@@ -65,10 +65,30 @@ async function getAccess(
   return access;
 }
 
-function normalize(row) {
+const TACTICS_MANAGER_ROLES = new Set([
+  "game_manager",
+  "admin",
+  "owner",
+]);
+
+function normalize(
+  row,
+  author = null,
+) {
   return {
     id: row.id,
     authorId: row.author_id,
+    author: author
+      ? {
+          id: author.id,
+          username:
+            author.username || "",
+          displayName:
+            author.display_name || "",
+          avatarUrl:
+            author.avatar_url || "",
+        }
+      : null,
     title: row.title,
     mapId: row.map_id,
     visibility: row.visibility,
@@ -91,8 +111,9 @@ function canManage(
 ) {
   return (
     tactic.author_id === access.user.id ||
-    access.role === "owner" ||
-    access.role === "game_manager"
+    TACTICS_MANAGER_ROLES.has(
+      access.role,
+    )
   );
 }
 
@@ -226,29 +247,97 @@ async function handleList(
     const supabase =
       getSupabaseAdminClient();
 
-    const { data, error } =
-      await supabase
+    let query =
+      supabase
         .from("iste_tactics")
-        .select(COLUMNS)
-        .or(
-          `visibility.eq.team,author_id.eq.${access.user.id}`,
-        )
+        .select(COLUMNS);
+
+    if (
+      !TACTICS_MANAGER_ROLES.has(
+        access.role,
+      )
+    ) {
+      query = query.or(
+        `visibility.eq.team,author_id.eq.${access.user.id}`,
+      );
+    }
+
+    const { data, error } =
+      await query
         .order(
           "updated_at",
           { ascending: false },
         )
-        .limit(100);
+        .limit(200);
 
     if (error) throw error;
+
+    const rows =
+      Array.isArray(data)
+        ? data
+        : [];
+
+    const authorIds = [
+      ...new Set(
+        rows
+          .map(
+            (row) =>
+              row.author_id,
+          )
+          .filter(Boolean),
+      ),
+    ];
+
+    let authorById =
+      new Map();
+
+    if (authorIds.length) {
+      const {
+        data: authors,
+        error: authorError,
+      } = await supabase
+        .from("profiles")
+        .select(
+          "id, username, display_name, avatar_url",
+        )
+        .in(
+          "id",
+          authorIds,
+        );
+
+      if (authorError) {
+        throw authorError;
+      }
+
+      authorById =
+        new Map(
+          (authors || []).map(
+            (author) => [
+              author.id,
+              author,
+            ],
+          ),
+        );
+    }
 
     return response
       .status(200)
       .json({
         ok: true,
+        manager:
+          TACTICS_MANAGER_ROLES.has(
+            access.role,
+          ),
         tactics:
-          Array.isArray(data)
-            ? data.map(normalize)
-            : [],
+          rows.map(
+            (row) =>
+              normalize(
+                row,
+                authorById.get(
+                  row.author_id,
+                ) || null,
+              ),
+          ),
       });
   } catch (error) {
     console.error(

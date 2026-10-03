@@ -9,6 +9,7 @@ import { useLanguage } from "../i18n/LanguageContext.jsx";
 const ACCESS_ROLES = new Set([
   "player",
   "game_manager",
+  "admin",
   "owner",
 ]);
 

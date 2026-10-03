@@ -8,6 +8,7 @@ import { getSupabaseServerClient } from "../../api/lib/supabaseServer.js";
 const ACCESS_ROLES = new Set([
   "player",
   "game_manager",
+  "admin",
   "owner",
 ]);
 

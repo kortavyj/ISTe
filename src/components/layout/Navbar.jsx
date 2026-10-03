@@ -21,6 +21,7 @@ const NAVBAR_RELEASE = "2026-10-03-v4";
 const TACTICS_ACCESS_ROLES = new Set([
   "player",
   "game_manager",
+  "admin",
   "owner",
 ]);
 
