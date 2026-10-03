@@ -36,6 +36,7 @@ import PlayerTactics from "./pages/PlayerTactics.jsx";
 import Register from "./pages/Register.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Shop from "./pages/Shop.jsx";
+import SharedTactic from "./pages/SharedTactic.jsx";
 import Support from "./pages/Support.jsx";
 import Team from "./pages/Team.jsx";
 import UserSearch from "./pages/UserSearch.jsx";
@@ -129,6 +130,7 @@ export default function App() {
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/tactics/share/:token" element={<SharedTactic />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/privacy/ai" element={<AIPrivacy />} />
           <Route path="/terms" element={<Terms />} />

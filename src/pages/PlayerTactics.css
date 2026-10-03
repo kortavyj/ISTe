@@ -1728,3 +1728,348 @@
     width: min(calc(100vh - 210px), 96vw);
   }
 }
+
+
+/* Tactical Board v6: secure share links, local QR and printable PDF report */
+.tactics-share-backdrop {
+  position: fixed;
+  z-index: 12000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(2,4,7,.78);
+  backdrop-filter: blur(10px);
+}
+
+.tactics-share-dialog {
+  display: grid;
+  width: min(760px, 100%);
+  max-height: min(86vh, 780px);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 13px;
+  overflow: hidden;
+  padding: 15px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 10% 0, rgba(227,6,19,.08), transparent 30%),
+    #0d1116;
+  box-shadow: 0 30px 90px rgba(0,0,0,.55);
+}
+
+.tactics-share-dialog > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tactics-share-dialog > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.tactics-share-dialog > header span {
+  color: #ff6570;
+  font-size: .55rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.tactics-share-dialog h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.tactics-share-dialog > header > button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 8px;
+  background: rgba(255,255,255,.025);
+  color: rgba(255,255,255,.72);
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.tactics-share-create {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: end;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 10px;
+  background: rgba(255,255,255,.018);
+}
+
+.tactics-share-create label {
+  display: grid;
+  gap: 5px;
+}
+
+.tactics-share-create label > span {
+  color: rgba(255,255,255,.38);
+  font-size: .55rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tactics-share-create select {
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 8px;
+  outline: 0;
+  background: #090d12;
+  color: #fff;
+  font: inherit;
+  font-size: .66rem;
+}
+
+.tactics-share-create > button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,67,80,.45);
+  border-radius: 8px;
+  background: linear-gradient(180deg,#ff2638,#d90212);
+  color: #fff;
+  font: inherit;
+  font-size: .64rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tactics-share-list {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.tactics-share-card {
+  display: grid;
+  grid-template-columns: 150px minmax(0,1fr);
+  gap: 12px;
+  padding: 11px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 11px;
+  background: rgba(255,255,255,.018);
+}
+
+.tactics-share-card-qr {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.tactics-share-qr {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.tactics-share-card-main {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 7px;
+}
+
+.tactics-share-card-main > strong {
+  color: #fff;
+  font-size: .68rem;
+}
+
+.tactics-share-card-main code {
+  overflow: hidden;
+  padding: 7px 8px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 7px;
+  background: rgba(4,7,10,.72);
+  color: rgba(255,255,255,.7);
+  font-size: .56rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactics-share-card-main small {
+  color: rgba(255,255,255,.34);
+  font-size: .55rem;
+}
+
+.tactics-share-card-main > div {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tactics-share-card-main button {
+  min-height: 31px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 7px;
+  background: rgba(255,255,255,.025);
+  color: rgba(255,255,255,.78);
+  font: inherit;
+  font-size: .57rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tactics-share-card-main button.danger {
+  border-color: rgba(255,70,82,.2);
+  color: #ff7c86;
+}
+
+.tactics-share-empty {
+  padding: 22px 10px;
+  color: rgba(255,255,255,.34);
+  font-size: .62rem;
+  text-align: center;
+}
+
+.tactics-print-report {
+  display: none;
+}
+
+@media (max-width: 620px) {
+  .tactics-share-create,
+  .tactics-share-card {
+    grid-template-columns: 1fr;
+  }
+
+  .tactics-share-card-qr {
+    width: 160px;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .tactics-print-report,
+  .tactics-print-report * {
+    visibility: visible !important;
+  }
+
+  .tactics-print-report {
+    position: absolute;
+    inset: 0;
+    display: block !important;
+    width: 100%;
+    color: #111;
+    background: #fff;
+  }
+
+  .tactics-print-page {
+    min-height: 277mm;
+    break-after: page;
+    page-break-after: always;
+    padding: 4mm;
+    background: #fff;
+  }
+
+  .tactics-print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .tactics-print-page > header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12mm;
+    margin-bottom: 5mm;
+    padding-bottom: 3mm;
+    border-bottom: 1px solid #dadde1;
+  }
+
+  .tactics-print-page > header span {
+    color: #d90212;
+    font-size: 8pt;
+    font-weight: 900;
+    letter-spacing: .08em;
+  }
+
+  .tactics-print-page > header h1 {
+    margin: 1mm 0 0;
+    font-size: 18pt;
+  }
+
+  .tactics-print-page > header strong {
+    color: #444;
+    font-size: 10pt;
+  }
+
+  .tactics-print-board {
+    position: relative;
+    width: 174mm;
+    height: 174mm;
+    margin: 0 auto 6mm;
+    overflow: hidden;
+    border: 1px solid #d8dce1;
+    background: #0b0f14;
+  }
+
+  .tactics-print-board img,
+  .tactics-print-board svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .tactics-print-board img {
+    object-fit: contain;
+  }
+
+  .tactics-print-board svg {
+    z-index: 2;
+  }
+
+  .tactics-print-utility h2 {
+    margin: 0 0 2mm;
+    font-size: 10pt;
+  }
+
+  .tactics-print-utility table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7.5pt;
+  }
+
+  .tactics-print-utility th,
+  .tactics-print-utility td {
+    padding: 2mm;
+    border: 1px solid #d9dde2;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .tactics-print-utility th {
+    background: #f2f3f5;
+    font-weight: 900;
+  }
+}

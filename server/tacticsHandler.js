@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import { guardRequest } from "../api/lib/requestGuard.js";
 import { readJsonBody } from "../api/lib/requestBody.js";
 import { requireTacticsAccess } from "./lib/tacticsRequest.js";
@@ -93,6 +95,106 @@ function canManage(
     access.role === "game_manager"
   );
 }
+
+function normalizeShare(row) {
+  return {
+    id: row.id,
+    token: row.token,
+    expiresAt: row.expires_at,
+    revokedAt: row.revoked_at,
+    createdAt: row.created_at,
+  };
+}
+
+function readBodyId(request) {
+  const body =
+    readJsonBody(request);
+
+  return {
+    body,
+    id:
+      typeof body?.id === "string"
+        ? body.id.trim()
+        : "",
+  };
+}
+
+async function getManageableTactic(
+  supabase,
+  access,
+  id,
+) {
+  if (!id) {
+    return {
+      ok: false,
+      status: 400,
+      error: "TACTIC_ID_REQUIRED",
+    };
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("iste_tactics")
+    .select(COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) {
+    return {
+      ok: false,
+      status: 404,
+      error: "TACTIC_NOT_FOUND",
+    };
+  }
+
+  if (
+    !canManage(
+      access,
+      data,
+    )
+  ) {
+    return {
+      ok: false,
+      status: 403,
+      error: "TACTIC_EDIT_FORBIDDEN",
+    };
+  }
+
+  return {
+    ok: true,
+    tactic: data,
+  };
+}
+
+function expiryFromPreset(value) {
+  const preset =
+    typeof value === "string"
+      ? value.trim().toLowerCase()
+      : "7d";
+
+  if (preset === "never") {
+    return null;
+  }
+
+  const durations = {
+    "24h": 24 * 60 * 60 * 1000,
+    "7d": 7 * 24 * 60 * 60 * 1000,
+    "30d": 30 * 24 * 60 * 60 * 1000,
+  };
+
+  const duration =
+    durations[preset] ||
+    durations["7d"];
+
+  return new Date(
+    Date.now() + duration,
+  ).toISOString();
+}
+
 
 async function handleList(
   request,
@@ -493,6 +595,323 @@ async function handleDelete(
   }
 }
 
+
+async function handleShareList(
+  request,
+  response,
+) {
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 8 * 1024,
+  });
+
+  if (!guard.ok) {
+    return sendError(
+      response,
+      guard.status,
+      guard.error,
+    );
+  }
+
+  const access =
+    await getAccess(
+      request,
+      response,
+    );
+
+  if (!access) return;
+
+  const {
+    id,
+  } = readBodyId(request);
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const tactic =
+      await getManageableTactic(
+        supabase,
+        access,
+        id,
+      );
+
+    if (!tactic.ok) {
+      return sendError(
+        response,
+        tactic.status,
+        tactic.error,
+      );
+    }
+
+    const { data, error } =
+      await supabase
+        .from("iste_tactic_shares")
+        .select(
+          "id, token, expires_at, revoked_at, created_at",
+        )
+        .eq("tactic_id", id)
+        .is("revoked_at", null)
+        .order(
+          "created_at",
+          { ascending: false },
+        )
+        .limit(20);
+
+    if (error) throw error;
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        shares:
+          Array.isArray(data)
+            ? data.map(normalizeShare)
+            : [],
+      });
+  } catch (error) {
+    console.error(
+      "Tactics share list error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "TACTIC_SHARE_LIST_FAILED",
+    );
+  }
+}
+
+async function handleShareCreate(
+  request,
+  response,
+) {
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 8 * 1024,
+  });
+
+  if (!guard.ok) {
+    return sendError(
+      response,
+      guard.status,
+      guard.error,
+    );
+  }
+
+  const access =
+    await getAccess(
+      request,
+      response,
+    );
+
+  if (!access) return;
+
+  const {
+    body,
+    id,
+  } = readBodyId(request);
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const tactic =
+      await getManageableTactic(
+        supabase,
+        access,
+        id,
+      );
+
+    if (!tactic.ok) {
+      return sendError(
+        response,
+        tactic.status,
+        tactic.error,
+      );
+    }
+
+    if (
+      tactic.tactic.board_state
+        ?.isTemplate === true
+    ) {
+      return sendError(
+        response,
+        400,
+        "TEMPLATE_SHARE_FORBIDDEN",
+      );
+    }
+
+    const token =
+      randomBytes(24)
+        .toString("base64url");
+
+    const expiresAt =
+      expiryFromPreset(
+        body?.expiresIn,
+      );
+
+    const { data, error } =
+      await supabase
+        .from("iste_tactic_shares")
+        .insert({
+          tactic_id: id,
+          created_by:
+            access.user.id,
+          token,
+          expires_at:
+            expiresAt,
+        })
+        .select(
+          "id, token, expires_at, revoked_at, created_at",
+        )
+        .single();
+
+    if (error) throw error;
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        share:
+          normalizeShare(data),
+      });
+  } catch (error) {
+    console.error(
+      "Tactics share create error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "TACTIC_SHARE_CREATE_FAILED",
+    );
+  }
+}
+
+async function handleShareRevoke(
+  request,
+  response,
+) {
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 8 * 1024,
+  });
+
+  if (!guard.ok) {
+    return sendError(
+      response,
+      guard.status,
+      guard.error,
+    );
+  }
+
+  const access =
+    await getAccess(
+      request,
+      response,
+    );
+
+  if (!access) return;
+
+  const body =
+    readJsonBody(request);
+
+  const shareId =
+    typeof body?.shareId === "string"
+      ? body.shareId.trim()
+      : "";
+
+  if (!shareId) {
+    return sendError(
+      response,
+      400,
+      "TACTIC_SHARE_ID_REQUIRED",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const {
+      data: share,
+      error: shareError,
+    } = await supabase
+      .from("iste_tactic_shares")
+      .select(
+        "id, tactic_id, revoked_at",
+      )
+      .eq("id", shareId)
+      .maybeSingle();
+
+    if (shareError) throw shareError;
+
+    if (!share) {
+      return sendError(
+        response,
+        404,
+        "TACTIC_SHARE_NOT_FOUND",
+      );
+    }
+
+    const tactic =
+      await getManageableTactic(
+        supabase,
+        access,
+        share.tactic_id,
+      );
+
+    if (!tactic.ok) {
+      return sendError(
+        response,
+        tactic.status,
+        tactic.error,
+      );
+    }
+
+    const { error } =
+      await supabase
+        .from("iste_tactic_shares")
+        .update({
+          revoked_at:
+            new Date()
+              .toISOString(),
+        })
+        .eq(
+          "id",
+          shareId,
+        );
+
+    if (error) throw error;
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Tactics share revoke error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "TACTIC_SHARE_REVOKE_FAILED",
+    );
+  }
+}
+
 export default async function tacticsHandler(
   request,
   response,
@@ -530,6 +949,27 @@ export default async function tacticsHandler(
 
   if (action === "delete") {
     return handleDelete(
+      request,
+      response,
+    );
+  }
+
+  if (action === "share-list") {
+    return handleShareList(
+      request,
+      response,
+    );
+  }
+
+  if (action === "share-create") {
+    return handleShareCreate(
+      request,
+      response,
+    );
+  }
+
+  if (action === "share-revoke") {
+    return handleShareRevoke(
       request,
       response,
     );

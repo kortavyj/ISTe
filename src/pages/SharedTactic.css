@@ -1,0 +1,247 @@
+.shared-tactic-page {
+  min-height: 100vh;
+  padding: calc(var(--navbar-height) + 22px) 18px 40px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(227, 6, 19, 0.13), transparent 28%),
+    radial-gradient(circle at 84% 70%, rgba(227, 6, 19, 0.08), transparent 30%),
+    #080b0f;
+  color: #f7f9fc;
+}
+
+.shared-tactic-shell {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+}
+
+.shared-tactic-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 14px;
+  background: rgba(14,18,24,.94);
+}
+
+.shared-tactic-header > div {
+  display: grid;
+  gap: 5px;
+}
+
+.shared-tactic-header > div > span,
+.shared-tactic-section-title {
+  color: #ff6974;
+  font-size: .62rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.shared-tactic-header h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.3vw, 2rem);
+}
+
+.shared-tactic-header p {
+  margin: 0;
+  color: rgba(255,255,255,.4);
+  font-size: .72rem;
+}
+
+.shared-tactic-header > button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px;
+  background: rgba(255,255,255,.025);
+  color: #fff;
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.shared-tactic-header > button.active {
+  border-color: rgba(227,6,19,.48);
+  background: rgba(227,6,19,.11);
+}
+
+.shared-tactic-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 14px;
+}
+
+.shared-tactic-board-column,
+.shared-tactic-utility {
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 14px;
+  background: rgba(14,18,24,.94);
+}
+
+.shared-tactic-board-column {
+  overflow: hidden;
+}
+
+.shared-tactic-board {
+  position: relative;
+  width: min(100%, 930px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #090d12;
+}
+
+.shared-tactic-board img,
+.shared-tactic-board svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.shared-tactic-board img {
+  object-fit: contain;
+  filter: saturate(.8) brightness(.9) contrast(1.04);
+}
+
+.shared-tactic-board svg {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.shared-tactic-stages,
+.shared-tactic-utility {
+  padding: 13px;
+}
+
+.shared-tactic-stages {
+  display: grid;
+  gap: 9px;
+  border-top: 1px solid rgba(255,255,255,.065);
+}
+
+.shared-tactic-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.shared-tactic-stage-grid button {
+  display: grid;
+  min-height: 42px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 8px;
+  background: rgba(255,255,255,.02);
+  color: rgba(255,255,255,.55);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shared-tactic-stage-grid button.active {
+  border-color: rgba(227,6,19,.42);
+  background: rgba(227,6,19,.09);
+  color: #fff;
+}
+
+.shared-tactic-stage-grid span {
+  color: rgba(255,255,255,.25);
+  font-size: .52rem;
+  font-weight: 900;
+}
+
+.shared-tactic-stage-grid strong {
+  overflow: hidden;
+  font-size: .62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shared-tactic-utility {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.shared-tactic-table-wrap {
+  overflow-x: auto;
+}
+
+.shared-tactic-utility table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .62rem;
+}
+
+.shared-tactic-utility th,
+.shared-tactic-utility td {
+  padding: 8px 7px;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+  text-align: left;
+  vertical-align: top;
+}
+
+.shared-tactic-utility th {
+  color: rgba(255,255,255,.35);
+  font-size: .5rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.shared-tactic-utility td {
+  color: rgba(255,255,255,.74);
+}
+
+.shared-tactic-empty,
+.shared-tactic-state {
+  padding: 30px;
+  color: rgba(255,255,255,.46);
+  text-align: center;
+}
+
+.shared-tactic-state {
+  width: min(640px, calc(100% - 32px));
+  margin: calc(var(--navbar-height) + 70px) auto 0;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 14px;
+  background: rgba(14,18,24,.94);
+}
+
+.shared-tactic-state--error {
+  border-color: rgba(227,6,19,.22);
+  color: #ff98a0;
+}
+
+@media (max-width: 1080px) {
+  .shared-tactic-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .shared-tactic-page {
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+
+  .shared-tactic-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .shared-tactic-stage-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

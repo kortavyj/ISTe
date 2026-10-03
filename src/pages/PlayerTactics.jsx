@@ -9,6 +9,7 @@ import {
 import { useAuth } from "../auth/AuthContext.jsx";
 import useOfficialRoster from "../hooks/useOfficialRoster.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
+import { makeQrMatrix } from "../lib/qrCode.js";
 import { supabase } from "../lib/supabase.js";
 
 import "./PlayerTactics.css";
@@ -490,6 +491,29 @@ const COPY = {
     presentation: "Презентація",
     exitPresentation: "Вийти з презентації",
     presentationHint: "← → етапи · Space Play/Pause · Esc вихід",
+    share: "Поділитися",
+    shareTitle: "Приватне посилання",
+    shareSaveFirst: "Спочатку збережіть тактику, щоб створити посилання.",
+    shareExpiry: "Термін дії",
+    expiry24h: "24 години",
+    expiry7d: "7 днів",
+    expiry30d: "30 днів",
+    expiryNever: "Без обмеження",
+    createShare: "Створити посилання",
+    creatingShare: "Створення...",
+    copyShare: "Копіювати",
+    copiedShare: "Скопійовано",
+    revokeShare: "Відкликати",
+    noShares: "Активних посилань поки немає.",
+    shareLoadFailed: "Не вдалося завантажити посилання.",
+    shareCreateFailed: "Не вдалося створити посилання.",
+    shareRevokeFailed: "Не вдалося відкликати посилання.",
+    shareViewOnly: "Лише перегляд",
+    expires: "Діє до",
+    neverExpires: "Безстроково",
+    exportPdf: "PDF",
+    pdfHint: "Відкриється системне вікно друку. Оберіть «Зберегти як PDF».",
+    printUtility: "Гранати та таймінги",
     size: "Розмір",
     moveHint: "Перетягуйте вибраний об'єкт прямо по карті.",
     centerBoard: "Центрувати",
@@ -642,6 +666,29 @@ const COPY = {
     presentation: "Presentation",
     exitPresentation: "Exit presentation",
     presentationHint: "← → stages · Space Play/Pause · Esc exit",
+    share: "Share",
+    shareTitle: "Private share link",
+    shareSaveFirst: "Save the tactic first to create a share link.",
+    shareExpiry: "Expiry",
+    expiry24h: "24 hours",
+    expiry7d: "7 days",
+    expiry30d: "30 days",
+    expiryNever: "Never",
+    createShare: "Create link",
+    creatingShare: "Creating...",
+    copyShare: "Copy",
+    copiedShare: "Copied",
+    revokeShare: "Revoke",
+    noShares: "No active share links yet.",
+    shareLoadFailed: "Could not load share links.",
+    shareCreateFailed: "Could not create share link.",
+    shareRevokeFailed: "Could not revoke share link.",
+    shareViewOnly: "View only",
+    expires: "Expires",
+    neverExpires: "Never expires",
+    exportPdf: "PDF",
+    pdfHint: "The system print dialog will open. Choose “Save as PDF”.",
+    printUtility: "Utility and timings",
     size: "Size",
     moveHint: "Drag the selected object directly on the map.",
     centerBoard: "Center board",
@@ -2002,6 +2049,252 @@ async function apiRequest(
   return result;
 }
 
+function QrCode({
+  value,
+}) {
+  const path =
+    useMemo(() => {
+      if (!value) {
+        return "";
+      }
+
+      const matrix =
+        makeQrMatrix(
+          value,
+        );
+
+      const commands = [];
+
+      matrix.forEach(
+        (row, y) => {
+          row.forEach(
+            (dark, x) => {
+              if (!dark) {
+                return;
+              }
+
+              commands.push(
+                `M${x + 4} ${y + 4}h1v1h-1z`,
+              );
+            },
+          );
+        },
+      );
+
+      return commands.join("");
+    }, [value]);
+
+  return (
+    <svg
+      className="tactics-share-qr"
+      viewBox="0 0 45 45"
+      role="img"
+      aria-label="QR"
+      shapeRendering="crispEdges"
+    >
+      <rect
+        width="45"
+        height="45"
+        fill="#ffffff"
+      />
+      <path
+        d={path}
+        fill="#080b0f"
+      />
+    </svg>
+  );
+}
+
+function TacticPrintReport({
+  title,
+  mapName,
+  radarUrl,
+  stages,
+  items,
+  copy,
+}) {
+  return (
+    <div className="tactics-print-report">
+      {stages.map(
+        (stage, index) => {
+          const stageItems =
+            items.filter(
+              (item) =>
+                (
+                  item.stageId ||
+                  "setup"
+                ) ===
+                stage.id,
+            );
+
+          const utility =
+            stageItems.filter(
+              (item) =>
+                isEffectMarker(
+                  item,
+                ),
+            );
+
+          return (
+            <section
+              className="tactics-print-page"
+              key={
+                stage.id
+              }
+            >
+              <header>
+                <div>
+                  <span>
+                    ISTe ·{" "}
+                    {mapName}
+                  </span>
+                  <h1>
+                    {title ||
+                      mapName}
+                  </h1>
+                </div>
+
+                <strong>
+                  {String(
+                    index + 1,
+                  ).padStart(
+                    2,
+                    "0",
+                  )}
+                  {" · "}
+                  {stage.name}
+                </strong>
+              </header>
+
+              <div className="tactics-print-board">
+                <img
+                  src={radarUrl}
+                  alt={mapName}
+                />
+
+                <svg
+                  viewBox="0 0 1000 1000"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <filter id="tactics-smoke-soft" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="13" />
+                    </filter>
+                    <filter id="tactics-smoke-core" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="7" />
+                    </filter>
+                    <filter id="tactics-flash-soft" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="2.5" result="glow" />
+                      <feMerge>
+                        <feMergeNode in="glow" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                    <filter id="tactics-he-soft" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="1.6" result="glow" />
+                      <feMerge>
+                        <feMergeNode in="glow" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                    <filter id="tactics-molotov-soft" x="-90%" y="-90%" width="280%" height="280%">
+                      <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#e98769" floodOpacity="0.5" />
+                    </filter>
+                  </defs>
+
+                  {stageItems.map(
+                    (item) => (
+                      <BoardItem
+                        key={
+                          item.id
+                        }
+                        item={
+                          item
+                        }
+                        selected={
+                          false
+                        }
+                        onItemPointerDown={
+                          () => {}
+                        }
+                        copy={
+                          copy
+                        }
+                      />
+                    ),
+                  )}
+                </svg>
+              </div>
+
+              <div className="tactics-print-utility">
+                <h2>
+                  {copy.printUtility}
+                </h2>
+
+                {utility.length ? (
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>
+                          {copy.roster}
+                        </th>
+                        <th>
+                          {copy.timing}
+                        </th>
+                        <th>
+                          {copy.from}
+                        </th>
+                        <th>
+                          {copy.purpose}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {utility.map(
+                        (item) => (
+                          <tr
+                            key={
+                              item.id
+                            }
+                          >
+                            <td>
+                              {item.utilityLabel ||
+                                "—"}
+                            </td>
+                            <td>
+                              {item.playerName ||
+                                "—"}
+                            </td>
+                            <td>
+                              {item.timing ||
+                                "—"}
+                            </td>
+                            <td>
+                              {item.from ||
+                                "—"}
+                            </td>
+                            <td>
+                              {item.purpose ||
+                                "—"}
+                            </td>
+                          </tr>
+                        ),
+                      )}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p>—</p>
+                )}
+              </div>
+            </section>
+          );
+        },
+      )}
+    </div>
+  );
+}
+
 export default function PlayerTactics() {
   const { language } =
     useLanguage();
@@ -2067,6 +2360,18 @@ export default function PlayerTactics() {
     useState(false);
   const [savingTemplate, setSavingTemplate] =
     useState(false);
+  const [shareOpen, setShareOpen] =
+    useState(false);
+  const [shares, setShares] =
+    useState([]);
+  const [shareExpiry, setShareExpiry] =
+    useState("7d");
+  const [shareLoading, setShareLoading] =
+    useState(false);
+  const [shareCreating, setShareCreating] =
+    useState(false);
+  const [copiedShareId, setCopiedShareId] =
+    useState("");
   const [selectedPlayerId, setSelectedPlayerId] =
     useState("");
   const [past, setPast] =
@@ -2817,6 +3122,8 @@ export default function PlayerTactics() {
     );
     setIsPlaying(false);
     setPresentationMode(false);
+    setShareOpen(false);
+    setShares([]);
     setSelectedPlayerId("");
     setTool("select");
     setError("");
@@ -2874,6 +3181,8 @@ export default function PlayerTactics() {
             "spawn"),
     );
     setIsPlaying(false);
+    setShareOpen(false);
+    setShares([]);
     setItems(
       loadedItems,
     );
@@ -3049,6 +3358,172 @@ export default function PlayerTactics() {
   function exitPresentation() {
     setIsPlaying(false);
     setPresentationMode(false);
+  }
+
+  function shareUrl(
+    token,
+  ) {
+    return `${window.location.origin}/tactics/share/${token}`;
+  }
+
+  async function loadShares() {
+    if (!activeId) {
+      return;
+    }
+
+    setShareLoading(true);
+
+    try {
+      const result =
+        await apiRequest(
+          "share-list",
+          {
+            method: "POST",
+            body: {
+              id: activeId,
+            },
+          },
+        );
+
+      setShares(
+        Array.isArray(
+          result.shares,
+        )
+          ? result.shares
+          : [],
+      );
+    } catch {
+      setError(
+        c.shareLoadFailed,
+      );
+    } finally {
+      setShareLoading(false);
+    }
+  }
+
+  async function openShareDialog() {
+    if (!activeId) {
+      setError(
+        c.shareSaveFirst,
+      );
+      setNotice("");
+      return;
+    }
+
+    setError("");
+    setShareOpen(true);
+    await loadShares();
+  }
+
+  async function createShare() {
+    if (!activeId) {
+      return;
+    }
+
+    setShareCreating(true);
+    setError("");
+
+    try {
+      const result =
+        await apiRequest(
+          "share-create",
+          {
+            method: "POST",
+            body: {
+              id: activeId,
+              expiresIn:
+                shareExpiry,
+            },
+          },
+        );
+
+      setShares(
+        (current) => [
+          result.share,
+          ...current,
+        ],
+      );
+    } catch {
+      setError(
+        c.shareCreateFailed,
+      );
+    } finally {
+      setShareCreating(false);
+    }
+  }
+
+  async function revokeShare(
+    shareId,
+  ) {
+    try {
+      await apiRequest(
+        "share-revoke",
+        {
+          method: "POST",
+          body: {
+            shareId,
+          },
+        },
+      );
+
+      setShares(
+        (current) =>
+          current.filter(
+            (share) =>
+              share.id !==
+              shareId,
+          ),
+      );
+    } catch {
+      setError(
+        c.shareRevokeFailed,
+      );
+    }
+  }
+
+  async function copyShare(
+    share,
+  ) {
+    const url =
+      shareUrl(
+        share.token,
+      );
+
+    try {
+      await navigator
+        .clipboard
+        .writeText(url);
+
+      setCopiedShareId(
+        share.id,
+      );
+
+      window.setTimeout(
+        () => {
+          setCopiedShareId(
+            "",
+          );
+        },
+        1600,
+      );
+    } catch {
+      setError(
+        c.shareLoadFailed,
+      );
+    }
+  }
+
+  function exportPdf() {
+    setNotice(
+      c.pdfHint,
+    );
+
+    window.setTimeout(
+      () => {
+        window.print();
+      },
+      80,
+    );
   }
 
   async function saveTactic() {
@@ -4467,6 +4942,31 @@ export default function PlayerTactics() {
 
                 <button
                   type="button"
+                  className="tactics-export tactics-action-pdf"
+                  onClick={
+                    exportPdf
+                  }
+                  title={
+                    c.pdfHint
+                  }
+                >
+                  <span aria-hidden="true">▤</span>
+                  {c.exportPdf}
+                </button>
+
+                <button
+                  type="button"
+                  className="tactics-export tactics-action-share"
+                  onClick={
+                    openShareDialog
+                  }
+                >
+                  <span aria-hidden="true">⌁</span>
+                  {c.share}
+                </button>
+
+                <button
+                  type="button"
                   className="tactics-export tactics-action-presentation"
                   onClick={
                     enterPresentation
@@ -5339,6 +5839,213 @@ export default function PlayerTactics() {
             </section>
           </aside>
         </div>
+
+        {shareOpen ? (
+          <div
+            className="tactics-share-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (
+                event.target ===
+                event.currentTarget
+              ) {
+                setShareOpen(
+                  false,
+                );
+              }
+            }}
+          >
+            <section
+              className="tactics-share-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-label={
+                c.shareTitle
+              }
+            >
+              <header>
+                <div>
+                  <span>
+                    {c.shareViewOnly}
+                  </span>
+                  <h2>
+                    {c.shareTitle}
+                  </h2>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShareOpen(
+                      false,
+                    )
+                  }
+                  aria-label={
+                    c.exitPresentation
+                  }
+                >
+                  ×
+                </button>
+              </header>
+
+              <div className="tactics-share-create">
+                <label>
+                  <span>
+                    {c.shareExpiry}
+                  </span>
+                  <select
+                    value={
+                      shareExpiry
+                    }
+                    onChange={(event) =>
+                      setShareExpiry(
+                        event.target.value,
+                      )
+                    }
+                  >
+                    <option value="24h">
+                      {c.expiry24h}
+                    </option>
+                    <option value="7d">
+                      {c.expiry7d}
+                    </option>
+                    <option value="30d">
+                      {c.expiry30d}
+                    </option>
+                    <option value="never">
+                      {c.expiryNever}
+                    </option>
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  disabled={
+                    shareCreating
+                  }
+                  onClick={
+                    createShare
+                  }
+                >
+                  {shareCreating
+                    ? c.creatingShare
+                    : c.createShare}
+                </button>
+              </div>
+
+              <div className="tactics-share-list">
+                {shareLoading ? (
+                  <div className="tactics-share-empty">
+                    ...
+                  </div>
+                ) : shares.length ? (
+                  shares.map(
+                    (share) => {
+                      const url =
+                        shareUrl(
+                          share.token,
+                        );
+
+                      return (
+                        <article
+                          key={
+                            share.id
+                          }
+                          className="tactics-share-card"
+                        >
+                          <div className="tactics-share-card-qr">
+                            <QrCode
+                              value={
+                                url
+                              }
+                            />
+                          </div>
+
+                          <div className="tactics-share-card-main">
+                            <strong>
+                              {c.shareViewOnly}
+                            </strong>
+
+                            <code>
+                              {url}
+                            </code>
+
+                            <small>
+                              {c.expires}
+                              {": "}
+                              {share.expiresAt
+                                ? new Date(
+                                    share.expiresAt,
+                                  ).toLocaleString(
+                                    language === "en"
+                                      ? "en-US"
+                                      : "uk-UA",
+                                  )
+                                : c.neverExpires}
+                            </small>
+
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  copyShare(
+                                    share,
+                                  )
+                                }
+                              >
+                                {copiedShareId ===
+                                share.id
+                                  ? c.copiedShare
+                                  : c.copyShare}
+                              </button>
+
+                              <button
+                                type="button"
+                                className="danger"
+                                onClick={() =>
+                                  revokeShare(
+                                    share.id,
+                                  )
+                                }
+                              >
+                                {c.revokeShare}
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    },
+                  )
+                ) : (
+                  <div className="tactics-share-empty">
+                    {c.noShares}
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+        ) : null}
+
+        <TacticPrintReport
+          title={
+            title.trim()
+          }
+          mapName={
+            currentMap.name
+          }
+          radarUrl={
+            radarUrl
+          }
+          stages={
+            stages
+          }
+          items={
+            items
+          }
+          copy={
+            c
+          }
+        />
       </div>
     </section>
   );

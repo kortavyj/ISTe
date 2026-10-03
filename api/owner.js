@@ -12,6 +12,7 @@ import shopHandler from "../server/shopHandler.js";
 import discordHandler from "../server/discordHandler.js";
 import rosterHandler from "../server/rosterHandler.js";
 import publicRosterHandler from "../server/publicRosterHandler.js";
+import publicTacticShareHandler from "../server/publicTacticShareHandler.js";
 import tacticsHandler from "../server/tacticsHandler.js";
 
 const ALLOWED_ROLES = new Set([
@@ -378,6 +379,10 @@ export default async function handler(request, response) {
 
   if (moduleName === "tactics") {
     return tacticsHandler(request, response);
+  }
+
+  if (moduleName === "tactic-share") {
+    return publicTacticShareHandler(request, response);
   }
 
   const rawAction =
