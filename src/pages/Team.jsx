@@ -542,7 +542,7 @@ function PlayerPortrait({ player, profile, displayName }) {
     player.nickname?.charAt(0)?.toUpperCase() ||
     "?";
   const portrait = profile.portrait || player.avatar;
-  const isCutout = profile.portraitMode === "cutout";
+  const isCutout = false;
 
   return (
     <div
@@ -604,7 +604,7 @@ function PlayerProfile({ player, index, language, copy }) {
         "RIFLER",
       copy: fallbackCopy,
       portrait:
-        player.avatar || "",
+        sharedPlayerPortrait,
       portraitMode:
         "default",
       socials: [],
@@ -643,13 +643,9 @@ function PlayerProfile({ player, index, language, copy }) {
     portrait:
       player.portraitUrl ||
       baseProfile.portrait ||
-      player.avatar ||
-      "",
+      sharedPlayerPortrait,
     portraitMode:
-      player.portraitUrl
-        ? "default"
-        : baseProfile.portraitMode ||
-          "default",
+      "default",
     socials:
       officialSocials.length
         ? officialSocials
