@@ -88,6 +88,31 @@ const founderCopy = {
   },
 };
 
+const adminCopy = {
+  uk: {
+    menuAria: "Меню адміністратора ISTe",
+    dashboard: "Панель адміністратора",
+    dashboardText: "Інструменти керування ISTe",
+    tactics: "Тактична дошка",
+    tacticsText: "Керування командними тактиками",
+    news: "Новини",
+    newsText: "Чернетки та публікації",
+    users: "Користувачі",
+    usersText: "Пошук зареєстрованих користувачів",
+  },
+  en: {
+    menuAria: "ISTe administrator menu",
+    dashboard: "Administrator panel",
+    dashboardText: "ISTe management tools",
+    tactics: "Tactical Board",
+    tacticsText: "Manage team tactics",
+    news: "News",
+    newsText: "Drafts and publications",
+    users: "Users",
+    usersText: "Search registered users",
+  },
+};
+
 const navigationIcons = {
   home: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -363,6 +388,65 @@ function FounderMenu({ language, onNavigate }) {
   );
 }
 
+function AdminMenu({
+  language,
+  onNavigate,
+}) {
+  const c =
+    adminCopy[language] ||
+    adminCopy.uk;
+
+  return (
+    <div
+      className="navbar-admin-inline"
+      aria-label={c.menuAria}
+    >
+      <div className="navbar-admin-head">
+        <span
+          className="navbar-admin-badge"
+          aria-hidden="true"
+        >
+          A
+        </span>
+
+        <div>
+          <strong>
+            {c.dashboard}
+          </strong>
+          <span>ISTe</span>
+        </div>
+      </div>
+
+      <NavLink
+        to="/player/tactics"
+        className="navbar-admin-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.tactics}</strong>
+        <span>{c.tacticsText}</span>
+      </NavLink>
+
+      <NavLink
+        to="/admin/news"
+        className="navbar-admin-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.news}</strong>
+        <span>{c.newsText}</span>
+      </NavLink>
+
+      <NavLink
+        to="/users"
+        className="navbar-admin-item"
+        onClick={onNavigate}
+      >
+        <strong>{c.users}</strong>
+        <span>{c.usersText}</span>
+      </NavLink>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
@@ -398,6 +482,7 @@ export default function Navbar() {
     );
 
   const isFounder = role === "owner";
+  const isAdmin = role === "admin";
 
   const initials = useMemo(
     () => getInitials(profile, user),
@@ -642,7 +727,7 @@ export default function Navbar() {
                   onClick={closeAccountMenu}
                 />
 
-                {canUseTactics && !isFounder ? (
+                {canUseTactics && !isFounder && !isAdmin ? (
                   <ProfileAction
                     to="/player/tactics"
                     icon={icons.users}
@@ -678,7 +763,17 @@ export default function Navbar() {
                   </>
                 ) : null}
 
-                {canManageNews && !isFounder ? (
+                {isAdmin ? (
+                  <>
+                    <div className="navbar-profile-divider" />
+                    <AdminMenu
+                      language={language}
+                      onNavigate={closeAccountMenu}
+                    />
+                  </>
+                ) : null}
+
+                {canManageNews && !isFounder && !isAdmin ? (
                   <ProfileAction
                     to="/admin/news"
                     icon={icons.news}
