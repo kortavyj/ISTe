@@ -11,6 +11,9 @@ export const translations = {
       team: "Команда",
       news: "Новини",
       tactics: "Тактики",
+      bot: "ISTe Bot",
+      searchUsers: "Пошук користувачів",
+      notifications: "Сповіщення",
       partners: "Партнери",
     },
     auth: {
@@ -312,6 +315,9 @@ export const translations = {
       team: "Team",
       news: "News",
       tactics: "Tactics",
+      bot: "ISTe Bot",
+      searchUsers: "Search users",
+      notifications: "Notifications",
       partners: "Partners",
     },
     auth: {

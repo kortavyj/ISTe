@@ -16,6 +16,12 @@ import LanguageSwitcher from "../ui/LanguageSwitcher.jsx";
 import "./Navbar.css";
 import "./NavbarLanguage.css";
 
+const TACTICS_ACCESS_ROLES = new Set([
+  "player",
+  "game_manager",
+  "owner",
+]);
+
 const navigation = [
   {
     to: "/",
@@ -35,7 +41,7 @@ const navigation = [
   },
   {
     to: "/discord",
-    label: "ISTe Bot",
+    labelKey: "navigation.bot",
     icon: "bot",
   },
 ];
@@ -379,11 +385,12 @@ export default function Navbar() {
     "owner",
   ].includes(role);
 
-  const canUseTactics = [
-    "player",
-    "game_manager",
-    "owner",
-  ].includes(role);
+  const canUseTactics =
+    Boolean(user) &&
+    !loading &&
+    TACTICS_ACCESS_ROLES.has(
+      role,
+    );
 
   const isFounder = role === "owner";
 
@@ -451,7 +458,7 @@ export default function Navbar() {
           className="navbar-links"
           aria-label={t("navigation.ariaLabel")}
         >
-          {navigation.map(({ to, labelKey, label, end, icon }) => (
+          {navigation.map(({ to, labelKey, end, icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -465,7 +472,7 @@ export default function Navbar() {
               <span className="navbar-link-icon">
                 {navigationIcons[icon]}
               </span>
-              <span>{label || t(labelKey)}</span>
+              <span>{t(labelKey)}</span>
             </NavLink>
           ))}
 
@@ -488,16 +495,8 @@ export default function Navbar() {
           <button
             type="button"
             className="navbar-utility-button"
-            aria-label={
-              language === "en"
-                ? "Search users"
-                : "Пошук користувачів"
-            }
-            title={
-              language === "en"
-                ? "Search users"
-                : "Пошук користувачів"
-            }
+            aria-label={t("navigation.searchUsers")}
+            title={t("navigation.searchUsers")}
             onClick={() =>
               navigate("/users")
             }
@@ -508,16 +507,8 @@ export default function Navbar() {
           <span
             className="navbar-utility-button navbar-notification-indicator"
             role="img"
-            aria-label={
-              language === "en"
-                ? "Notifications"
-                : "Сповіщення"
-            }
-            title={
-              language === "en"
-                ? "Notifications"
-                : "Сповіщення"
-            }
+            aria-label={t("navigation.notifications")}
+            title={t("navigation.notifications")}
           >
             <BellIcon />
             <i aria-hidden="true" />

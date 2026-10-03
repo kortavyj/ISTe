@@ -846,3 +846,43 @@ button.navbar-utility-button:focus-visible {
     width: 26px;
   }
 }
+
+
+/* Navbar v3: stronger route icons + strict tactics visibility polish */
+.navbar-link-icon {
+  width: 17px;
+  height: 17px;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.navbar-link-icon svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+.navbar-link:hover .navbar-link-icon,
+.navbar-link:focus-visible .navbar-link-icon {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.navbar-link-active .navbar-link-icon {
+  color: #ef3340;
+  filter: drop-shadow(0 0 5px rgba(227, 6, 19, 0.28));
+}
+
+@media (max-width: 1080px) {
+  .navbar-link-icon,
+  .navbar-link-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+@media (max-width: 560px) {
+  .navbar-link-icon,
+  .navbar-link-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+}
