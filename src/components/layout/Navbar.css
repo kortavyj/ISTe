@@ -886,3 +886,50 @@ button.navbar-utility-button:focus-visible {
     height: 18px;
   }
 }
+
+
+/* Navbar v4: explicit icon rendering + cache-bust release */
+.navbar-link-icon {
+  display: inline-grid !important;
+  flex: 0 0 17px;
+  place-items: center;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.navbar-link-icon > svg {
+  display: block !important;
+  width: 17px !important;
+  height: 17px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.navbar-utility-button {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.navbar-utility-button > svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+  .navbar-notification-indicator {
+    display: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .navbar-link-icon {
+    flex-basis: 18px;
+  }
+
+  .navbar-link-icon > svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}

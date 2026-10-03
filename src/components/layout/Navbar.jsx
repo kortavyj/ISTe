@@ -16,6 +16,8 @@ import LanguageSwitcher from "../ui/LanguageSwitcher.jsx";
 import "./Navbar.css";
 import "./NavbarLanguage.css";
 
+const NAVBAR_RELEASE = "2026-10-03-v4";
+
 const TACTICS_ACCESS_ROLES = new Set([
   "player",
   "game_manager",
@@ -368,6 +370,7 @@ export default function Navbar() {
     profile,
     role,
     loading,
+    isBlocked,
     signOut,
   } = useAuth();
 
@@ -388,6 +391,7 @@ export default function Navbar() {
   const canUseTactics =
     Boolean(user) &&
     !loading &&
+    !isBlocked &&
     TACTICS_ACCESS_ROLES.has(
       role,
     );
@@ -444,7 +448,10 @@ export default function Navbar() {
   }
 
   return (
-    <header className="navbar">
+    <header
+      className="navbar"
+      data-navbar-release={NAVBAR_RELEASE}
+    >
       <div className="navbar-container">
         <NavLink
           className="navbar-logo"
