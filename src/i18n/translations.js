@@ -10,6 +10,7 @@ export const translations = {
       home: "Головна",
       team: "Команда",
       news: "Новини",
+      tactics: "Тактики",
       partners: "Партнери",
     },
     auth: {
@@ -310,6 +311,7 @@ export const translations = {
       home: "Home",
       team: "Team",
       news: "News",
+      tactics: "Tactics",
       partners: "Partners",
     },
     auth: {

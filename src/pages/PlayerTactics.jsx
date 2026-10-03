@@ -91,7 +91,13 @@ const COPY = {
       "Плани раундів, розстановки, гранати та командні нотатки на точних радарах CS2.",
     newTactic: "Нова тактика",
     saved: "Збережені тактики",
+    searchPlaceholder: "Пошук тактик...",
     emptySaved: "Збережених тактик поки немає.",
+    noSearchResults: "За цим запитом тактик не знайдено.",
+    updatedNow: "щойно",
+    updatedMinutes: "{{count}} хв тому",
+    updatedHours: "{{count}} год тому",
+    updatedDays: "{{count}} дн тому",
     titleLabel: "Назва тактики",
     titlePlaceholder: "Наприклад: Mirage T pistol B split",
     visibility: "Доступ",
@@ -194,7 +200,13 @@ const COPY = {
       "Round plans, setups, utility and team notes on accurate CS2 radars.",
     newTactic: "New tactic",
     saved: "Saved tactics",
+    searchPlaceholder: "Search tactics...",
     emptySaved: "No saved tactics yet.",
+    noSearchResults: "No tactics match this search.",
+    updatedNow: "just now",
+    updatedMinutes: "{{count}} min ago",
+    updatedHours: "{{count}} hr ago",
+    updatedDays: "{{count}} d ago",
     titleLabel: "Tactic title",
     titlePlaceholder: "Example: Mirage T pistol B split",
     visibility: "Visibility",
@@ -291,6 +303,55 @@ const COPY = {
     },
   },
 };
+
+function formatTacticAge(value, copy) {
+  if (!value) return "";
+
+  const timestamp =
+    new Date(value).getTime();
+
+  if (!Number.isFinite(timestamp)) {
+    return "";
+  }
+
+  const minutes =
+    Math.max(
+      0,
+      Math.floor(
+        (Date.now() - timestamp) /
+          60000,
+      ),
+    );
+
+  if (minutes < 1) {
+    return copy.updatedNow;
+  }
+
+  if (minutes < 60) {
+    return copy.updatedMinutes.replace(
+      "{{count}}",
+      String(minutes),
+    );
+  }
+
+  const hours =
+    Math.floor(minutes / 60);
+
+  if (hours < 24) {
+    return copy.updatedHours.replace(
+      "{{count}}",
+      String(hours),
+    );
+  }
+
+  const days =
+    Math.floor(hours / 24);
+
+  return copy.updatedDays.replace(
+    "{{count}}",
+    String(days),
+  );
+}
 
 function makeId() {
   return `item-${Date.now()}-${Math.random()
@@ -916,6 +977,8 @@ export default function PlayerTactics() {
 
   const [tactics, setTactics] =
     useState([]);
+  const [searchQuery, setSearchQuery] =
+    useState("");
   const [loading, setLoading] =
     useState(true);
   const [activeId, setActiveId] =
@@ -1983,6 +2046,38 @@ export default function PlayerTactics() {
         item.id === selectedId,
     ) || null;
 
+  const filteredTactics =
+    useMemo(() => {
+      const query =
+        searchQuery
+          .trim()
+          .toLowerCase();
+
+      if (!query) {
+        return tactics;
+      }
+
+      return tactics.filter(
+        (tactic) => {
+          const mapName =
+            MAPS[tactic.mapId]
+              ?.name || "";
+
+          return [
+            tactic.title,
+            mapName,
+          ].some((value) =>
+            String(value || "")
+              .toLowerCase()
+              .includes(query),
+          );
+        },
+      );
+    }, [
+      searchQuery,
+      tactics,
+    ]);
+
   const activeTactic =
     useMemo(
       () =>
@@ -1994,24 +2089,8 @@ export default function PlayerTactics() {
     );
 
   return (
-    <section className="tactics-page">
-      <div className="tactics-shell">
-        <header className="tactics-header">
-          <div>
-            <span>{c.eyebrow}</span>
-            <h1>{c.title}</h1>
-            <p>{c.intro}</p>
-          </div>
-
-          <button
-            type="button"
-            className="tactics-primary"
-            onClick={createNew}
-          >
-            {c.newTactic}
-          </button>
-        </header>
-
+    <section className="tactics-page tactics-page--v3">
+      <div className="tactics-shell tactics-shell--v3">
         {(error || notice) ? (
           <div
             className={
@@ -2024,7 +2103,7 @@ export default function PlayerTactics() {
           </div>
         ) : null}
 
-        <div className="tactics-livebar">
+        <div className="tactics-livebar tactics-livebar--v3">
           <div
             className={[
               "tactics-live-status",
@@ -2039,17 +2118,13 @@ export default function PlayerTactics() {
               className="tactics-live-dot"
               aria-hidden="true"
             />
-
             <strong>{c.live}</strong>
-
             <span>
               {!liveEnabled
                 ? c.liveSaveFirst
-                : liveStatus ===
-                    "connected"
+                : liveStatus === "connected"
                   ? c.liveConnected
-                  : liveStatus ===
-                      "connecting"
+                  : liveStatus === "connecting"
                     ? c.liveConnecting
                     : c.liveOffline}
             </span>
@@ -2068,71 +2143,107 @@ export default function PlayerTactics() {
           ) : null}
         </div>
 
-        <div className="tactics-layout">
-          <aside className="tactics-sidebar">
-            <div className="tactics-panel-heading">
-              <h2>{c.saved}</h2>
-              <span>{tactics.length}</span>
+        <div className="tactics-layout tactics-layout--v3">
+          <aside className="tactics-sidebar tactics-sidebar--v3">
+            <div className="tactics-sidebar-head">
+              <div>
+                <span>{c.saved}</span>
+                <strong>{tactics.length}</strong>
+              </div>
+
+              <button
+                type="button"
+                className="tactics-icon-button tactics-icon-button--new"
+                onClick={createNew}
+                aria-label={c.newTactic}
+                title={c.newTactic}
+              >
+                +
+              </button>
             </div>
 
-            <div className="tactics-saved-list">
+            <label className="tactics-search">
+              <span aria-hidden="true">⌕</span>
+              <input
+                value={searchQuery}
+                placeholder={c.searchPlaceholder}
+                onChange={(event) =>
+                  setSearchQuery(
+                    event.target.value,
+                  )
+                }
+              />
+            </label>
+
+            <div className="tactics-saved-list tactics-saved-list--v3">
               {loading ? (
                 <div className="tactics-empty">
                   ...
                 </div>
-              ) : tactics.length ? (
-                tactics.map(
+              ) : filteredTactics.length ? (
+                filteredTactics.map(
                   (tactic) => (
                     <button
                       type="button"
                       key={tactic.id}
                       className={
-                        tactic.id ===
-                        activeId
-                          ? "tactics-saved-item tactics-saved-item--active"
-                          : "tactics-saved-item"
+                        tactic.id === activeId
+                          ? "tactics-saved-item tactics-saved-item--active tactics-saved-item--v3"
+                          : "tactics-saved-item tactics-saved-item--v3"
                       }
                       onClick={() =>
-                        openTactic(
-                          tactic,
-                        )
+                        openTactic(tactic)
                       }
                     >
-                      <strong>
-                        {tactic.title}
-                      </strong>
-                      <span>
-                        {MAPS[
-                          tactic.mapId
-                        ]?.name ||
-                          tactic.mapId}
-                        {" · "}
-                        {tactic.visibility ===
-                        "private"
-                          ? c.private
-                          : c.team}
+                      <span className="tactics-saved-icon">
+                        ↗
+                      </span>
+
+                      <span className="tactics-saved-copy">
+                        <strong>
+                          {tactic.title}
+                        </strong>
+                        <small>
+                          {MAPS[
+                            tactic.mapId
+                          ]?.name ||
+                            tactic.mapId}
+                          {formatTacticAge(
+                            tactic.updatedAt,
+                            c,
+                          )
+                            ? ` · ${formatTacticAge(
+                                tactic.updatedAt,
+                                c,
+                              )}`
+                            : ""}
+                        </small>
+                      </span>
+
+                      <span className="tactics-saved-more">
+                        •••
                       </span>
                     </button>
                   ),
                 )
               ) : (
                 <div className="tactics-empty">
-                  {c.emptySaved}
+                  {searchQuery.trim()
+                    ? c.noSearchResults
+                    : c.emptySaved}
                 </div>
               )}
             </div>
           </aside>
 
-          <main className="tactics-workspace">
-            <div className="tactics-workspace-top">
-              <label>
+          <main className="tactics-workspace tactics-workspace--v3">
+            <div className="tactics-workspace-top tactics-workspace-top--v3">
+              <label className="tactics-title-field">
                 <span>{c.titleLabel}</span>
                 <input
                   value={title}
                   maxLength={100}
-                  placeholder={
-                    c.titlePlaceholder
-                  }
+                  placeholder={c.titlePlaceholder}
                   onChange={(event) =>
                     setTitle(
                       event.target.value,
@@ -2141,7 +2252,7 @@ export default function PlayerTactics() {
                 />
               </label>
 
-              <label>
+              <label className="tactics-access-field">
                 <span>{c.visibility}</span>
                 <select
                   value={visibility}
@@ -2160,13 +2271,14 @@ export default function PlayerTactics() {
                 </select>
               </label>
 
-              <div className="tactics-save-actions">
+              <div className="tactics-save-actions tactics-save-actions--v3">
                 <button
                   type="button"
-                  className="tactics-primary"
+                  className="tactics-primary tactics-action-save"
                   disabled={saving}
                   onClick={saveTactic}
                 >
+                  <span aria-hidden="true">▣</span>
                   {saving
                     ? c.saving
                     : c.save}
@@ -2174,10 +2286,11 @@ export default function PlayerTactics() {
 
                 <button
                   type="button"
-                  className="tactics-export"
+                  className="tactics-export tactics-action-export"
                   disabled={downloading}
                   onClick={downloadBoardPng}
                 >
+                  <span aria-hidden="true">▧</span>
                   {downloading
                     ? c.downloading
                     : c.download}
@@ -2186,10 +2299,11 @@ export default function PlayerTactics() {
                 {activeTactic ? (
                   <button
                     type="button"
-                    className="tactics-danger"
+                    className="tactics-danger tactics-action-delete"
                     disabled={deleting}
                     onClick={deleteTactic}
                   >
+                    <span aria-hidden="true">×</span>
                     {deleting
                       ? c.deleting
                       : c.delete}
@@ -2198,87 +2312,80 @@ export default function PlayerTactics() {
               </div>
             </div>
 
-            <div className="tactics-board-shell">
-              <img
-                className="tactics-radar"
-                src={radarUrl}
-                crossOrigin="anonymous"
-                alt={currentMap.name}
-                draggable="false"
-              />
+            <div className="tactics-board-stage">
+              <div className="tactics-board-glow" />
 
-              <svg
-                className="tactics-overlay"
-                viewBox="0 0 1000 1000"
-                preserveAspectRatio="none"
-                onPointerDown={
-                  handlePointerDown
-                }
-                onPointerMove={
-                  handlePointerMove
-                }
-                onPointerUp={
-                  handlePointerUp
-                }
-                onPointerCancel={
-                  handlePointerUp
-                }
-              >
-                {visibleItems.map(
-                  (item) => (
-                    <BoardItem
-                      key={item.id}
-                      item={item}
-                      selected={
-                        item.id ===
-                        selectedId
-                      }
-                      onSelect={
-                        setSelectedId
-                      }
-                      copy={c}
-                    />
-                  ),
-                )}
-              </svg>
+              <div className="tactics-board-shell tactics-board-shell--v3">
+                <img
+                  className="tactics-radar"
+                  src={radarUrl}
+                  crossOrigin="anonymous"
+                  alt={currentMap.name}
+                  draggable="false"
+                />
+
+                <svg
+                  className="tactics-overlay"
+                  viewBox="0 0 1000 1000"
+                  preserveAspectRatio="none"
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
+                >
+                  {visibleItems.map(
+                    (item) => (
+                      <BoardItem
+                        key={item.id}
+                        item={item}
+                        selected={
+                          item.id === selectedId
+                        }
+                        onSelect={setSelectedId}
+                        copy={c}
+                      />
+                    ),
+                  )}
+                </svg>
+              </div>
             </div>
           </main>
 
-          <aside className="tactics-tools">
-            <section className="tactics-tool-section">
-              <div className="tactics-section-heading">
-                <div>
-                  <h2>{c.map}</h2>
-                  <p>{c.mapHint}</p>
-                </div>
-                <span className="tactics-section-badge">
-                  {currentMap.name}
-                </span>
+          <aside className="tactics-tools tactics-tools--v3">
+            <section className="tactics-panel-card tactics-map-card">
+              <div className="tactics-panel-title">
+                <span aria-hidden="true">⌘</span>
+                <strong>{c.map}</strong>
               </div>
 
-              <select
-                className="tactics-map-select"
-                value={mapId}
-                onChange={(event) => {
-                  setMapId(
-                    event.target.value,
-                  );
-                  setLayer("upper");
+              <div
+                className="tactics-map-preview"
+                style={{
+                  backgroundImage:
+                    `linear-gradient(90deg, rgba(7,10,14,.08), rgba(7,10,14,.72)), url("${radarUrl}")`,
                 }}
               >
-                {Object.entries(
-                  MAPS,
-                ).map(
-                  ([id, map]) => (
-                    <option
-                      key={id}
-                      value={id}
-                    >
-                      {map.name}
-                    </option>
-                  ),
-                )}
-              </select>
+                <select
+                  value={mapId}
+                  onChange={(event) => {
+                    setMapId(
+                      event.target.value,
+                    );
+                    setLayer("upper");
+                  }}
+                >
+                  {Object.entries(MAPS).map(
+                    ([id, map]) => (
+                      <option
+                        key={id}
+                        value={id}
+                      >
+                        {map.name}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </div>
 
               {mapId === "nuke" ? (
                 <div className="tactics-segmented">
@@ -2312,139 +2419,72 @@ export default function PlayerTactics() {
               ) : null}
             </section>
 
-            <section className="tactics-tool-section">
-              <div className="tactics-section-heading">
-                <div>
-                  <h2>{c.tools}</h2>
-                  <p>{c.toolsHint}</p>
-                </div>
+            <section className="tactics-panel-card">
+              <div className="tactics-panel-title">
+                <span aria-hidden="true">▦</span>
+                <strong>{c.tools}</strong>
               </div>
 
-              <div className="tactics-tool-grid tactics-tool-grid--rich">
-                {tools.map(
-                  (item) => (
-                    <button
-                      type="button"
-                      key={item.id}
-                      className={
-                        tool === item.id
-                          ? "active"
-                          : ""
-                      }
-                      onClick={() =>
-                        setTool(item.id)
-                      }
-                      title={`${item.label} · ${item.shortcut}`}
-                    >
-                      <span className="tactics-tool-icon">
-                        {item.icon}
-                      </span>
-                      <span className="tactics-tool-label">
-                        {item.label}
-                      </span>
-                      <kbd>
-                        {item.shortcut}
-                      </kbd>
-                    </button>
-                  ),
-                )}
-              </div>
-            </section>
-
-            <section className="tactics-tool-section">
-              <div className="tactics-section-heading">
-                <div>
-                  <h2>{c.appearance}</h2>
-                  <p>{c.appearanceHint}</p>
-                </div>
-              </div>
-
-              <div className="tactics-field">
-                <span>{c.colors}</span>
-
-                <div className="tactics-colors">
-                  {COLORS.map(
-                    (value) => (
-                      <button
-                        type="button"
-                        key={value}
-                        aria-label={value}
-                        className={
-                          color === value
-                            ? "active"
-                            : ""
-                        }
-                        style={{
-                          background: value,
-                        }}
-                        onClick={() =>
-                          setColor(value)
-                        }
-                      />
-                    ),
-                  )}
-
-                  <label
-                    className="tactics-custom-color"
-                    title={c.customColor}
+              <div className="tactics-tool-grid tactics-tool-grid--compact">
+                {tools.map((item) => (
+                  <button
+                    type="button"
+                    key={item.id}
+                    className={
+                      tool === item.id
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setTool(item.id)
+                    }
+                    title={`${item.label} · ${item.shortcut}`}
                   >
-                    <input
-                      type="color"
-                      value={color}
-                      onChange={(event) =>
-                        setColor(
-                          event.target.value,
-                        )
-                      }
-                    />
-                    <span>+</span>
-                  </label>
-                </div>
+                    <span className="tactics-tool-icon">
+                      {item.icon}
+                    </span>
+                    <span>
+                      {item.label}
+                    </span>
+                    <kbd>{item.shortcut}</kbd>
+                  </button>
+                ))}
               </div>
 
               {tool !== "marker" ? (
-                <>
-                  <div className="tactics-field">
-                    <span>{c.stroke}</span>
-                    <div className="tactics-size-switch">
-                      {[
-                        ["thin", c.thin],
-                        ["medium", c.medium],
-                        ["thick", c.thick],
-                      ].map(
-                        ([id, label]) => (
-                          <button
-                            type="button"
-                            key={id}
-                            className={
-                              strokeSize === id
-                                ? "active"
-                                : ""
-                            }
-                            onClick={() =>
-                              setStrokeSize(id)
-                            }
-                          >
-                            <i
-                              style={{
-                                height:
-                                  STROKE_SIZES[id],
-                              }}
-                            />
-                            <span>{label}</span>
-                          </button>
-                        ),
-                      )}
-                    </div>
+                <div className="tactics-compact-settings">
+                  <div className="tactics-size-switch">
+                    {[
+                      ["thin", c.thin],
+                      ["medium", c.medium],
+                      ["thick", c.thick],
+                    ].map(([id, label]) => (
+                      <button
+                        type="button"
+                        key={id}
+                        className={
+                          strokeSize === id
+                            ? "active"
+                            : ""
+                        }
+                        onClick={() =>
+                          setStrokeSize(id)
+                        }
+                        title={label}
+                      >
+                        <i
+                          style={{
+                            height:
+                              STROKE_SIZES[id],
+                          }}
+                        />
+                      </button>
+                    ))}
                   </div>
 
-                  <div className="tactics-field">
-                    <div className="tactics-range-label">
-                      <span>{c.opacity}</span>
-                      <strong>{opacity}%</strong>
-                    </div>
+                  <label className="tactics-opacity-mini">
+                    <span>{opacity}%</span>
                     <input
-                      className="tactics-range"
                       type="range"
                       min="25"
                       max="100"
@@ -2458,175 +2498,144 @@ export default function PlayerTactics() {
                         )
                       }
                     />
-                  </div>
-                </>
-              ) : null}
-            </section>
-
-            {tool === "text" ? (
-              <section className="tactics-tool-section tactics-context-section">
-                <div className="tactics-section-heading">
-                  <div>
-                    <h2>{c.label}</h2>
-                  </div>
+                  </label>
                 </div>
+              ) : null}
+
+              {tool === "text" ? (
                 <input
+                  className="tactics-context-input"
                   value={labelText}
                   maxLength={60}
-                  placeholder={
-                    c.labelPlaceholder
-                  }
+                  placeholder={c.labelPlaceholder}
                   onChange={(event) =>
                     setLabelText(
                       event.target.value,
                     )
                   }
                 />
-              </section>
-            ) : null}
+              ) : null}
+            </section>
 
-            {tool === "marker" ? (
-              <section className="tactics-tool-section tactics-context-section">
-                <div className="tactics-section-heading">
-                  <div>
-                    <h2>{c.objects}</h2>
-                    <p>{c.objectLabel}</p>
-                  </div>
-                </div>
+            <section className="tactics-panel-card">
+              <div className="tactics-panel-title">
+                <span aria-hidden="true">◉</span>
+                <strong>{c.colors}</strong>
+              </div>
 
-                <div className="tactics-object-group">
-                  <span>{c.players}</span>
-                  <div className="tactics-marker-grid tactics-marker-grid--players">
-                    {["t", "ct"].map(
-                      (type) => (
-                        <button
-                          type="button"
-                          key={type}
-                          className={
-                            markerType ===
-                            type
-                              ? "active"
-                              : ""
-                          }
-                          onClick={() =>
-                            setMarkerType(
-                              type,
-                            )
-                          }
-                        >
-                          <span
-                            className="tactics-object-icon"
-                            style={{
-                              background:
-                                markerFill(
-                                  type,
-                                ),
-                            }}
-                          >
-                            {
-                              c.markerLabels[
-                                type
-                              ]
-                            }
-                          </span>
-                          <em>
-                            {
-                              c.markerNames[
-                                type
-                              ]
-                            }
-                          </em>
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </div>
+              <div className="tactics-colors tactics-colors--round">
+                {COLORS.map((value) => (
+                  <button
+                    type="button"
+                    key={value}
+                    aria-label={value}
+                    className={
+                      color === value
+                        ? "active"
+                        : ""
+                    }
+                    style={{
+                      background: value,
+                    }}
+                    onClick={() =>
+                      setColor(value)
+                    }
+                  />
+                ))}
 
-                <div className="tactics-object-group">
-                  <span>{c.utility}</span>
-                  <div className="tactics-marker-grid tactics-marker-grid--utility">
-                    {[
-                      "bomb",
-                      "smoke",
-                      "flash",
-                      "he",
-                      "molotov",
-                    ].map(
-                      (type) => (
-                        <button
-                          type="button"
-                          key={type}
-                          className={
-                            markerType ===
-                            type
-                              ? "active"
-                              : ""
-                          }
-                          onClick={() =>
-                            setMarkerType(
-                              type,
-                            )
-                          }
-                        >
-                          <span
-                            className="tactics-object-icon"
-                            style={{
-                              background:
-                                markerFill(
-                                  type,
-                                ),
-                            }}
-                          >
-                            {
-                              c.markerLabels[
-                                type
-                              ]
-                            }
-                          </span>
-                          <em>
-                            {
-                              c.markerNames[
-                                type
-                              ]
-                            }
-                          </em>
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </div>
+                <label
+                  className="tactics-custom-color tactics-custom-color--round"
+                  title={c.customColor}
+                >
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={(event) =>
+                      setColor(
+                        event.target.value,
+                      )
+                    }
+                  />
+                  <span>⌁</span>
+                </label>
+              </div>
+            </section>
 
-                <div className="tactics-field">
-                  <span>{c.markerSize}</span>
+            <section className="tactics-panel-card">
+              <div className="tactics-panel-title">
+                <span aria-hidden="true">◎</span>
+                <strong>{c.objects}</strong>
+              </div>
+
+              <div className="tactics-object-icons">
+                {MARKERS.map((type) => (
+                  <button
+                    type="button"
+                    key={type}
+                    className={
+                      tool === "marker" &&
+                      markerType === type
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() => {
+                      setMarkerType(type);
+                      setTool("marker");
+                    }}
+                    title={
+                      c.markerNames[type]
+                    }
+                  >
+                    <span
+                      className={
+                        `tactics-object-glyph tactics-object-glyph--${type}`
+                      }
+                    >
+                      {type === "t"
+                        ? "T"
+                        : type === "ct"
+                          ? "CT"
+                          : type === "bomb"
+                            ? "C4"
+                            : type === "smoke"
+                              ? "☁"
+                              : type === "flash"
+                                ? "✦"
+                                : type === "he"
+                                  ? "✹"
+                                  : "♨"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {tool === "marker" ? (
+                <div className="tactics-marker-settings">
                   <div className="tactics-size-switch tactics-size-switch--markers">
                     {[
                       ["small", c.small],
                       ["medium", c.medium],
                       ["large", c.large],
-                    ].map(
-                      ([id, label]) => (
-                        <button
-                          type="button"
-                          key={id}
-                          className={
-                            markerSize === id
-                              ? "active"
-                              : ""
-                          }
-                          onClick={() =>
-                            setMarkerSize(id)
-                          }
-                        >
-                          <span>{label}</span>
-                        </button>
-                      ),
-                    )}
+                    ].map(([id, label]) => (
+                      <button
+                        type="button"
+                        key={id}
+                        className={
+                          markerSize === id
+                            ? "active"
+                            : ""
+                        }
+                        onClick={() =>
+                          setMarkerSize(id)
+                        }
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
-                </div>
 
-                <label className="tactics-field">
-                  <span>{c.objectLabel}</span>
                   <input
+                    className="tactics-context-input"
                     value={objectLabel}
                     maxLength={12}
                     placeholder={
@@ -2638,53 +2647,17 @@ export default function PlayerTactics() {
                       )
                     }
                   />
-                </label>
-
-                <div className="tactics-field">
-                  <div className="tactics-range-label">
-                    <span>{c.opacity}</span>
-                    <strong>{opacity}%</strong>
-                  </div>
-                  <input
-                    className="tactics-range"
-                    type="range"
-                    min="25"
-                    max="100"
-                    step="5"
-                    value={opacity}
-                    onChange={(event) =>
-                      setOpacity(
-                        Number(
-                          event.target.value,
-                        ),
-                      )
-                    }
-                  />
                 </div>
-              </section>
-            ) : null}
+              ) : null}
+            </section>
 
-            <section className="tactics-tool-section tactics-history-section">
-              <div className="tactics-section-heading">
-                <div>
-                  <h2>{c.history}</h2>
-                  <p>{c.historyHint}</p>
-                </div>
+            <section className="tactics-panel-card">
+              <div className="tactics-panel-title">
+                <span aria-hidden="true">⌘</span>
+                <strong>{c.history}</strong>
               </div>
 
-              <div className="tactics-selection-card">
-                <span>{c.selected}</span>
-                <strong>
-                  {selectedItem
-                    ? c.itemTypes[
-                        selectedItem.type
-                      ] ||
-                      selectedItem.type
-                    : c.noSelection}
-                </strong>
-              </div>
-
-              <div className="tactics-history-actions">
+              <div className="tactics-quick-actions">
                 <button
                   type="button"
                   disabled={!past.length}
@@ -2693,6 +2666,7 @@ export default function PlayerTactics() {
                   <span>↶</span>
                   {c.undo}
                 </button>
+
                 <button
                   type="button"
                   disabled={!future.length}
@@ -2701,16 +2675,16 @@ export default function PlayerTactics() {
                   <span>↷</span>
                   {c.redo}
                 </button>
+
                 <button
                   type="button"
                   disabled={!selectedId}
-                  onClick={
-                    deleteSelected
-                  }
+                  onClick={deleteSelected}
                 >
                   <span>⌫</span>
                   {c.remove}
                 </button>
+
                 <button
                   type="button"
                   className="tactics-clear-button"
@@ -2724,7 +2698,7 @@ export default function PlayerTactics() {
                 </button>
               </div>
             </section>
-          </aside>          </aside>
+          </aside>
         </div>
       </div>
     </section>

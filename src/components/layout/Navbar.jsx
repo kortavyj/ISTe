@@ -379,6 +379,17 @@ export default function Navbar() {
               {label || t(labelKey)}
             </NavLink>
           ))}
+
+          {canUseTactics ? (
+            <NavLink
+              to="/player/tactics"
+              className={({ isActive }) =>
+                `navbar-link${isActive ? " navbar-link-active" : ""}`
+              }
+            >
+              {t("navigation.tactics")}
+            </NavLink>
+          ) : null}
         </nav>
 
         <div className="navbar-auth">
