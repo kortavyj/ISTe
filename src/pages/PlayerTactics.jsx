@@ -270,6 +270,250 @@ function normalizeTiming(value) {
     : "";
 }
 
+function timingToSeconds(value) {
+  const normalized =
+    normalizeTiming(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const [
+    minutes,
+    seconds,
+  ] = normalized
+    .split(":")
+    .map(Number);
+
+  return (
+    minutes * 60 +
+    seconds
+  );
+}
+
+function formatRoundClock(value) {
+  if (
+    !Number.isFinite(value)
+  ) {
+    return "";
+  }
+
+  const seconds =
+    Math.max(
+      0,
+      Math.round(value),
+    );
+
+  return `${Math.floor(
+    seconds / 60,
+  )}:${String(
+    seconds % 60,
+  ).padStart(2, "0")}`;
+}
+
+function routeMetrics(points) {
+  if (
+    !Array.isArray(points) ||
+    points.length < 2
+  ) {
+    return {
+      total: 0,
+      segments: [],
+    };
+  }
+
+  const segments = [];
+  let total = 0;
+
+  for (
+    let index = 1;
+    index < points.length;
+    index += 1
+  ) {
+    const start =
+      points[index - 1];
+    const end =
+      points[index];
+    const length =
+      Math.hypot(
+        end.x - start.x,
+        end.y - start.y,
+      );
+
+    segments.push({
+      start,
+      end,
+      length,
+      from: total,
+      to:
+        total + length,
+    });
+
+    total += length;
+  }
+
+  return {
+    total,
+    segments,
+  };
+}
+
+function routePointAtProgress(
+  points,
+  progress,
+) {
+  if (
+    !Array.isArray(points) ||
+    !points.length
+  ) {
+    return {
+      x: 0,
+      y: 0,
+    };
+  }
+
+  if (
+    points.length === 1
+  ) {
+    return points[0];
+  }
+
+  const {
+    total,
+    segments,
+  } = routeMetrics(points);
+
+  if (!total) {
+    return points[0];
+  }
+
+  const distance =
+    clamp(
+      progress,
+      0,
+      1,
+    ) * total;
+
+  const segment =
+    segments.find(
+      (entry) =>
+        distance <= entry.to,
+    ) ||
+    segments[
+      segments.length - 1
+    ];
+
+  const local =
+    segment.length
+      ? clamp(
+          (
+            distance -
+            segment.from
+          ) /
+            segment.length,
+          0,
+          1,
+        )
+      : 0;
+
+  return {
+    x:
+      segment.start.x +
+      (
+        segment.end.x -
+        segment.start.x
+      ) *
+        local,
+    y:
+      segment.start.y +
+      (
+        segment.end.y -
+        segment.start.y
+      ) *
+        local,
+  };
+}
+
+function routePointsAtProgress(
+  points,
+  progress,
+) {
+  if (
+    !Array.isArray(points) ||
+    points.length < 2
+  ) {
+    return points || [];
+  }
+
+  const {
+    total,
+    segments,
+  } = routeMetrics(points);
+
+  if (!total) {
+    return [
+      points[0],
+    ];
+  }
+
+  const distance =
+    clamp(
+      progress,
+      0,
+      1,
+    ) * total;
+
+  const result = [
+    points[0],
+  ];
+
+  for (
+    const segment of segments
+  ) {
+    if (
+      distance >= segment.to
+    ) {
+      result.push(
+        segment.end,
+      );
+      continue;
+    }
+
+    if (
+      distance >
+      segment.from
+    ) {
+      const local =
+        (
+          distance -
+          segment.from
+        ) /
+        segment.length;
+
+      result.push({
+        x:
+          segment.start.x +
+          (
+            segment.end.x -
+            segment.start.x
+          ) *
+            local,
+        y:
+          segment.start.y +
+          (
+            segment.end.y -
+            segment.start.y
+          ) *
+            local,
+      });
+    }
+
+    break;
+  }
+
+  return result;
+}
+
 function clamp(value, min, max) {
   return Math.min(
     max,
@@ -468,6 +712,9 @@ const COPY = {
     nextStage: "Наступний етап",
     play: "Відтворити",
     pause: "Пауза",
+    playbackSpeed: "Швидкість",
+    roundClock: "Таймер раунду",
+    stageProgress: "Прогрес етапу",
     route: "Маршрут",
     roster: "Гравець ISTe",
     noPlayer: "Без прив'язки",
@@ -643,6 +890,9 @@ const COPY = {
     nextStage: "Next stage",
     play: "Play",
     pause: "Pause",
+    playbackSpeed: "Speed",
+    roundClock: "Round timer",
+    stageProgress: "Stage progress",
     route: "Route",
     roster: "ISTe player",
     noPlayer: "Unassigned",
@@ -1154,7 +1404,13 @@ function BoardItem({
       .join(" · ");
 
     return (
-      <g>
+      <g
+        className={
+          item.playbackVisible
+            ? "tactics-playback-utility"
+            : undefined
+        }
+      >
         <title>{tooltip}</title>
 
         <EffectMarker
@@ -1201,33 +1457,89 @@ function BoardItem({
 
     const first =
       item.points[0];
-    const last =
-      item.points[
-        item.points.length - 1
-      ];
+
+    const routeProgress =
+      Number.isFinite(
+        item.playbackProgress,
+      )
+        ? clamp(
+            item.playbackProgress,
+            0,
+            1,
+          )
+        : 1;
+
+    const animated =
+      Number.isFinite(
+        item.playbackProgress,
+      );
+
+    const partialPoints =
+      routePointsAtProgress(
+        item.points,
+        routeProgress,
+      );
+
+    const movingPoint =
+      routePointAtProgress(
+        item.points,
+        routeProgress,
+      );
+
+    const labelPoint =
+      animated
+        ? movingPoint
+        : first;
+
+    const baseOpacity =
+      Number.isFinite(
+        item.opacity,
+      )
+        ? item.opacity
+        : 0.92;
 
     return (
       <g {...common}>
-        <polyline
-          points={item.points
-            .map(
-              (point) =>
-                `${point.x},${point.y}`,
-            )
-            .join(" ")}
-          fill="none"
-          stroke={item.color}
-          strokeWidth={
-            selected ? 11 : 8
-          }
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity={
-            Number.isFinite(item.opacity)
-              ? item.opacity
-              : 0.92
-          }
-        />
+        {animated ? (
+          <polyline
+            points={item.points
+              .map(
+                (point) =>
+                  `${point.x},${point.y}`,
+              )
+              .join(" ")}
+            fill="none"
+            stroke={item.color}
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray="13 10"
+            opacity={
+              baseOpacity * 0.2
+            }
+            pointerEvents="none"
+          />
+        ) : null}
+
+        {partialPoints.length >
+        1 ? (
+          <polyline
+            points={partialPoints
+              .map(
+                (point) =>
+                  `${point.x},${point.y}`,
+              )
+              .join(" ")}
+            fill="none"
+            stroke={item.color}
+            strokeWidth={
+              selected ? 11 : 8
+            }
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={baseOpacity}
+          />
+        ) : null}
 
         {item.points.map(
           (point, index) => (
@@ -1237,19 +1549,29 @@ function BoardItem({
               }
               cx={point.x}
               cy={point.y}
-              r={index === 0 ? 8 : 5}
+              r={index === 0 ? 7 : 4}
               fill={item.color}
               stroke="#101419"
               strokeWidth="3"
+              opacity={
+                animated
+                  ? 0.34
+                  : 1
+              }
               pointerEvents="none"
             />
           ),
         )}
 
         <circle
-          cx={last.x}
-          cy={last.y}
-          r="10"
+          className={
+            animated
+              ? "tactics-route-player"
+              : undefined
+          }
+          cx={movingPoint.x}
+          cy={movingPoint.y}
+          r={animated ? 12 : 10}
           fill={item.color}
           stroke="#ffffff"
           strokeWidth="3"
@@ -1259,7 +1581,7 @@ function BoardItem({
         {item.playerName ? (
           <g
             transform={
-              `translate(${first.x + 12} ${first.y - 14})`
+              `translate(${labelPoint.x + 15} ${labelPoint.y - 15})`
             }
             pointerEvents="none"
           >
@@ -1274,7 +1596,7 @@ function BoardItem({
               }
               height="25"
               rx="8"
-              fill="rgba(9,12,16,0.9)"
+              fill="rgba(9,12,16,0.92)"
               stroke={item.color}
               strokeWidth="2"
             />
@@ -2356,6 +2678,10 @@ export default function PlayerTactics() {
     useState("spawn");
   const [isPlaying, setIsPlaying] =
     useState(false);
+  const [playbackProgress, setPlaybackProgress] =
+    useState(0);
+  const [playbackSpeed, setPlaybackSpeed] =
+    useState(1);
   const [presentationMode, setPresentationMode] =
     useState(false);
   const [savingTemplate, setSavingTemplate] =
@@ -2431,6 +2757,10 @@ export default function PlayerTactics() {
     useRef(false);
   const broadcastTimerRef =
     useRef(null);
+  const playbackFrameRef =
+    useRef(null);
+  const playbackProgressRef =
+    useRef(0);
 
   const currentMap =
     MAPS[mapId] || MAPS.mirage;
@@ -2523,6 +2853,10 @@ export default function PlayerTactics() {
             setActiveStageId(
               payload.activeStageId,
             );
+            playbackProgressRef.current =
+              0;
+            setPlaybackProgress(0);
+            setIsPlaying(false);
           }
 
           if (
@@ -2976,6 +3310,42 @@ export default function PlayerTactics() {
       .requestFullscreen?.();
   }
 
+  function setStagePlaybackProgress(
+    value,
+  ) {
+    const next =
+      clamp(
+        Number(value) || 0,
+        0,
+        1,
+      );
+
+    playbackProgressRef.current =
+      next;
+
+    setPlaybackProgress(
+      next,
+    );
+  }
+
+  function togglePlayback() {
+    if (isPlaying) {
+      setIsPlaying(false);
+      return;
+    }
+
+    if (
+      playbackProgressRef.current >=
+      0.999
+    ) {
+      setStagePlaybackProgress(0);
+    }
+
+    setSelectedId("");
+    setDraft(null);
+    setIsPlaying(true);
+  }
+
   function selectStage(
     stageId,
   ) {
@@ -2989,6 +3359,8 @@ export default function PlayerTactics() {
     }
 
     setActiveStageId(stageId);
+    setIsPlaying(false);
+    setStagePlaybackProgress(0);
     setSelectedId("");
     setDraft(null);
     setPast([]);
@@ -3018,6 +3390,17 @@ export default function PlayerTactics() {
 
   useEffect(() => {
     if (!isPlaying) {
+      if (
+        playbackFrameRef.current
+      ) {
+        window.cancelAnimationFrame(
+          playbackFrameRef.current,
+        );
+
+        playbackFrameRef.current =
+          null;
+      }
+
       return undefined;
     }
 
@@ -3036,30 +3419,101 @@ export default function PlayerTactics() {
       return undefined;
     }
 
-    const timer =
-      window.setTimeout(
-        () => {
-          if (
-            index >=
-            stages.length - 1
-          ) {
-            setIsPlaying(false);
-            return;
-          }
-
-          setActiveStageId(
-            stages[index + 1].id,
-          );
-          setSelectedId("");
-        },
-        current.duration * 1000,
+    const durationMs =
+      Math.max(
+        500,
+        (
+          Math.max(
+            1,
+            Number(
+              current.duration,
+            ) || 3,
+          ) *
+          1000
+        ) /
+          playbackSpeed,
       );
 
-    return () =>
-      window.clearTimeout(timer);
+    const startProgress =
+      playbackProgressRef.current;
+
+    const startedAt =
+      performance.now();
+
+    function tick(now) {
+      const elapsed =
+        now - startedAt;
+
+      const next =
+        startProgress +
+        (
+          elapsed /
+          durationMs
+        ) *
+          (
+            1 -
+            startProgress
+          );
+
+      if (next >= 1) {
+        if (
+          index >=
+          stages.length - 1
+        ) {
+          setStagePlaybackProgress(
+            1,
+          );
+          setIsPlaying(false);
+          playbackFrameRef.current =
+            null;
+          return;
+        }
+
+        setStagePlaybackProgress(
+          0,
+        );
+        setActiveStageId(
+          stages[
+            index + 1
+          ].id,
+        );
+        setSelectedId("");
+        playbackFrameRef.current =
+          null;
+        return;
+      }
+
+      setStagePlaybackProgress(
+        next,
+      );
+
+      playbackFrameRef.current =
+        window.requestAnimationFrame(
+          tick,
+        );
+    }
+
+    playbackFrameRef.current =
+      window.requestAnimationFrame(
+        tick,
+      );
+
+    return () => {
+      if (
+        playbackFrameRef.current
+      ) {
+        window.cancelAnimationFrame(
+          playbackFrameRef.current,
+        );
+
+        playbackFrameRef.current =
+          null;
+      }
+    };
   }, [
     activeStageId,
     isPlaying,
+    playbackSpeed,
     stages,
   ]);
 
@@ -3121,6 +3575,7 @@ export default function PlayerTactics() {
       "spawn",
     );
     setIsPlaying(false);
+    setStagePlaybackProgress(0);
     setPresentationMode(false);
     setShareOpen(false);
     setShares([]);
@@ -3181,6 +3636,7 @@ export default function PlayerTactics() {
             "spawn"),
     );
     setIsPlaying(false);
+    setStagePlaybackProgress(0);
     setShareOpen(false);
     setShares([]);
     setItems(
@@ -3253,6 +3709,7 @@ export default function PlayerTactics() {
       templateItems,
     );
     setIsPlaying(false);
+    setStagePlaybackProgress(0);
     setPresentationMode(false);
     setSelectedId("");
     setSelectedPlayerId("");
@@ -3352,6 +3809,7 @@ export default function PlayerTactics() {
     setSelectedId("");
     setDraft(null);
     setTool("select");
+    setStagePlaybackProgress(0);
     setPresentationMode(true);
   }
 
@@ -4362,10 +4820,7 @@ export default function PlayerTactics() {
           event.code === "Space"
         ) {
           event.preventDefault();
-          setIsPlaying(
-            (current) =>
-              !current,
-          );
+          togglePlayback();
           return;
         }
       }
@@ -4453,10 +4908,187 @@ export default function PlayerTactics() {
         activeStageId,
     );
 
+  const stageTimingValues =
+    stageItems
+      .map(
+        (item) =>
+          timingToSeconds(
+            item.timing,
+          ),
+      )
+      .filter(
+        (value) =>
+          Number.isFinite(value),
+      );
+
+  const stageClockStart =
+    stageTimingValues.length
+      ? Math.min(
+          115,
+          Math.max(
+            ...stageTimingValues,
+          ) + 2,
+        )
+      : null;
+
+  const stageClockEnd =
+    stageTimingValues.length
+      ? Math.max(
+          0,
+          Math.min(
+            ...stageTimingValues,
+          ) - 2,
+        )
+      : null;
+
+  const playbackClockSeconds =
+    Number.isFinite(
+      stageClockStart,
+    ) &&
+    Number.isFinite(
+      stageClockEnd,
+    )
+      ? stageClockStart -
+        (
+          stageClockStart -
+          stageClockEnd
+        ) *
+          playbackProgress
+      : null;
+
+  const playbackPreview =
+    isPlaying ||
+    playbackProgress > 0;
+
+  const playbackItems =
+    stageItems
+      .filter((item) => {
+        if (!playbackPreview) {
+          return true;
+        }
+
+        if (
+          item.type ===
+          "route"
+        ) {
+          return true;
+        }
+
+        const timing =
+          timingToSeconds(
+            item.timing,
+          );
+
+        if (
+          !Number.isFinite(
+            timing,
+          ) ||
+          !Number.isFinite(
+            playbackClockSeconds,
+          )
+        ) {
+          return true;
+        }
+
+        return (
+          playbackClockSeconds <=
+          timing
+        );
+      })
+      .map((item) => {
+        if (
+          !playbackPreview
+        ) {
+          return item;
+        }
+
+        if (
+          item.type ===
+          "route"
+        ) {
+          const timing =
+            timingToSeconds(
+              item.timing,
+            );
+
+          let routeProgress =
+            playbackProgress;
+
+          if (
+            Number.isFinite(
+              timing,
+            ) &&
+            Number.isFinite(
+              stageClockStart,
+            ) &&
+            Number.isFinite(
+              stageClockEnd,
+            ) &&
+            stageClockStart !==
+              stageClockEnd
+          ) {
+            const trigger =
+              clamp(
+                (
+                  stageClockStart -
+                  timing
+                ) /
+                  (
+                    stageClockStart -
+                    stageClockEnd
+                  ),
+                0,
+                0.95,
+              );
+
+            routeProgress =
+              playbackProgress <=
+              trigger
+                ? 0
+                : clamp(
+                    (
+                      playbackProgress -
+                      trigger
+                    ) /
+                      (
+                        1 -
+                        trigger
+                      ),
+                    0,
+                    1,
+                  );
+          }
+
+          return {
+            ...item,
+            playbackProgress:
+              routeProgress,
+          };
+        }
+
+        if (
+          isEffectMarker(
+            item,
+          )
+        ) {
+          return {
+            ...item,
+            playbackVisible:
+              true,
+          };
+        }
+
+        return item;
+      });
+
   const visibleItems =
-    draft
-      ? [...stageItems, draft]
-      : stageItems;
+    draft &&
+    !playbackPreview
+      ? [
+          ...playbackItems,
+          draft,
+        ]
+      : playbackItems;
 
   const tools = [
     {
@@ -5151,11 +5783,8 @@ export default function PlayerTactics() {
                         ? "active"
                         : ""
                     }
-                    onClick={() =>
-                      setIsPlaying(
-                        (current) =>
-                          !current,
-                      )
+                    onClick={
+                      togglePlayback
                     }
                   >
                     {isPlaying
@@ -5187,6 +5816,88 @@ export default function PlayerTactics() {
                   >
                     →
                   </button>
+                </div>
+              </div>
+
+              <div className="tactics-playback-strip">
+                <div className="tactics-playback-clock">
+                  <span>
+                    {Number.isFinite(
+                      playbackClockSeconds,
+                    )
+                      ? c.roundClock
+                      : c.stageProgress}
+                  </span>
+                  <strong>
+                    {Number.isFinite(
+                      playbackClockSeconds,
+                    )
+                      ? formatRoundClock(
+                          playbackClockSeconds,
+                        )
+                      : `${Math.round(
+                          playbackProgress *
+                            100,
+                        )}%`}
+                  </strong>
+                </div>
+
+                <input
+                  className="tactics-playback-scrubber"
+                  type="range"
+                  min="0"
+                  max="1000"
+                  step="1"
+                  value={
+                    Math.round(
+                      playbackProgress *
+                        1000,
+                    )
+                  }
+                  onChange={(event) => {
+                    setIsPlaying(
+                      false,
+                    );
+                    setStagePlaybackProgress(
+                      Number(
+                        event.target.value,
+                      ) /
+                        1000,
+                    );
+                  }}
+                  aria-label={
+                    c.stageProgress
+                  }
+                />
+
+                <div className="tactics-playback-speed">
+                  <span>
+                    {c.playbackSpeed}
+                  </span>
+
+                  {[1, 2, 4].map(
+                    (speed) => (
+                      <button
+                        type="button"
+                        key={
+                          speed
+                        }
+                        className={
+                          playbackSpeed ===
+                          speed
+                            ? "active"
+                            : ""
+                        }
+                        onClick={() =>
+                          setPlaybackSpeed(
+                            speed,
+                          )
+                        }
+                      >
+                        {speed}×
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
 

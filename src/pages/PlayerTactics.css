@@ -2073,3 +2073,117 @@
     font-weight: 900;
   }
 }
+
+
+/* Tactical Board v7: smooth route playback + timing-aware utility */
+.tactics-playback-strip {
+  display: grid;
+  grid-template-columns: 112px minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.016);
+}
+
+.tactics-playback-clock {
+  display: grid;
+  gap: 1px;
+}
+
+.tactics-playback-clock span,
+.tactics-playback-speed > span {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.48rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tactics-playback-clock strong {
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+}
+
+.tactics-playback-scrubber {
+  width: 100%;
+  min-width: 0;
+  accent-color: #e30613;
+  cursor: pointer;
+}
+
+.tactics-playback-speed {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tactics-playback-speed > span {
+  margin-right: 3px;
+}
+
+.tactics-playback-speed button {
+  display: grid;
+  min-width: 31px;
+  height: 27px;
+  place-items: center;
+  padding: 0 6px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.018);
+  color: rgba(255, 255, 255, 0.48);
+  font: inherit;
+  font-size: 0.54rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tactics-playback-speed button.active {
+  border-color: rgba(227, 6, 19, 0.4);
+  background: rgba(227, 6, 19, 0.1);
+  color: #fff;
+}
+
+.tactics-route-player {
+  filter:
+    drop-shadow(0 0 7px rgba(255, 255, 255, 0.28));
+}
+
+.tactics-playback-utility {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    tacticsUtilityAppear 260ms
+    cubic-bezier(.2,.9,.25,1.2)
+    both;
+}
+
+@keyframes tacticsUtilityAppear {
+  0% {
+    opacity: 0;
+    transform: scale(.45);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 720px) {
+  .tactics-playback-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .tactics-playback-speed {
+    justify-content: flex-start;
+  }
+}
