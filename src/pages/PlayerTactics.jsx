@@ -200,6 +200,78 @@ const PRESET_TEMPLATES = Object.freeze([
   },
 ]);
 
+const LOCALIZED_PRESET_TITLES = {
+  uk: {
+    "preset-default": "Базовий",
+    "preset-fast-a": "Швидкий A",
+    "preset-b-execute": "Вихід B",
+    "preset-eco": "Еко",
+    "preset-anti-eco": "Анти-еко",
+    "preset-pistol": "Пістолетний",
+    "preset-retake": "Ретейк",
+  },
+  en: {
+    "preset-default": "Default",
+    "preset-fast-a": "Fast A",
+    "preset-b-execute": "B Execute",
+    "preset-eco": "Eco",
+    "preset-anti-eco": "Anti-eco",
+    "preset-pistol": "Pistol",
+    "preset-retake": "Retake",
+  },
+};
+
+const LOCALIZED_STAGE_NAMES = {
+  uk: {
+    Spawn: "Старт",
+    Setup: "Підготовка",
+    Execute: "Вихід",
+    "Post-plant": "Після встановлення",
+    Positions: "Позиції",
+    Retake: "Ретейк",
+    Defuse: "Розмінування",
+  },
+  en: {
+    Spawn: "Spawn",
+    Setup: "Setup",
+    Execute: "Execute",
+    "Post-plant": "Post-plant",
+    Positions: "Positions",
+    Retake: "Retake",
+    Defuse: "Defuse",
+  },
+};
+
+function localizedPresetTitle(
+  template,
+  language,
+) {
+  return (
+    LOCALIZED_PRESET_TITLES[
+      language
+    ]?.[template?.id] ||
+    template?.title ||
+    ""
+  );
+}
+
+function localizedStageName(
+  stage,
+  language,
+) {
+  const raw =
+    String(
+      stage?.name || "",
+    );
+
+  return (
+    LOCALIZED_STAGE_NAMES[
+      language
+    ]?.[raw] ||
+    raw
+  );
+}
+
 const PLAYER_COLORS = [
   "#82b7ff",
   "#f2d56b",
@@ -2558,6 +2630,7 @@ function TacticPrintReport({
   stages,
   items,
   copy,
+  language,
 }) {
   return (
     <div className="tactics-print-report">
@@ -2608,7 +2681,10 @@ function TacticPrintReport({
                     "0",
                   )}
                   {" · "}
-                  {stage.name}
+                  {localizedStageName(
+                    stage,
+                    language,
+                  )}
                 </strong>
               </header>
 
@@ -4050,7 +4126,10 @@ export default function PlayerTactics() {
 
     setActiveId("");
     setTitle(
-      template.title || "",
+      localizedPresetTitle(
+        template,
+        language,
+      ),
     );
     setMapId(
       template.mapId ||
@@ -5623,11 +5702,14 @@ export default function PlayerTactics() {
               <span>
                 {currentMap.name}
                 {" · "}
-                {stages.find(
-                  (stage) =>
-                    stage.id ===
-                    activeStageId,
-                )?.name ||
+                {localizedStageName(
+                  stages.find(
+                    (stage) =>
+                      stage.id ===
+                      activeStageId,
+                  ),
+                  language,
+                ) ||
                   activeStageId}
               </span>
             </div>
@@ -5836,7 +5918,10 @@ export default function PlayerTactics() {
                         )
                       }
                     >
-                      {template.title}
+                      {localizedPresetTitle(
+                        template,
+                        language,
+                      )}
                     </button>
                   ),
                 )}
@@ -6491,7 +6576,10 @@ export default function PlayerTactics() {
                           )}
                         </span>
                         <strong>
-                          {stage.name}
+                          {localizedStageName(
+                            stage,
+                            language,
+                          )}
                         </strong>
                         <small>
                           {count}
@@ -7306,6 +7394,9 @@ export default function PlayerTactics() {
           }
           copy={
             c
+          }
+          language={
+            language
           }
         />
       </div>
