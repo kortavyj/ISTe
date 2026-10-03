@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import { useAuth } from "../auth/AuthContext.jsx";
+import useOfficialRoster from "../hooks/useOfficialRoster.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import { supabase } from "../lib/supabase.js";
 
@@ -92,6 +93,109 @@ const EFFECT_MARKERS = new Set([
 
 const DEFAULT_EFFECT_SIZE = 30;
 
+const DEFAULT_STAGES = Object.freeze([
+  {
+    id: "spawn",
+    name: "Spawn",
+    duration: 3,
+  },
+  {
+    id: "setup",
+    name: "Setup",
+    duration: 3,
+  },
+  {
+    id: "execute",
+    name: "Execute",
+    duration: 3,
+  },
+  {
+    id: "postplant",
+    name: "Post-plant",
+    duration: 3,
+  },
+]);
+
+const PLAYER_COLORS = [
+  "#82b7ff",
+  "#f2d56b",
+  "#7ce094",
+  "#ef8795",
+  "#be82ff",
+];
+
+function cloneStages(
+  stages = DEFAULT_STAGES,
+) {
+  return stages.map((stage) => ({
+    id: String(stage.id),
+    name: String(stage.name),
+    duration:
+      Math.max(
+        1,
+        Number(stage.duration) || 3,
+      ),
+  }));
+}
+
+function utilityPrefix(type) {
+  if (type === "smoke") return "S";
+  if (type === "flash") return "F";
+  if (type === "he") return "HE";
+  if (type === "molotov") return "M";
+  return "";
+}
+
+function nextUtilityLabel(
+  items,
+  type,
+) {
+  const prefix =
+    utilityPrefix(type);
+
+  if (!prefix) return "";
+
+  const count =
+    items.filter(
+      (item) =>
+        item.type === "marker" &&
+        item.marker === type,
+    ).length + 1;
+
+  return `${prefix}${count}`;
+}
+
+function playerColor(
+  playerId,
+  roster,
+) {
+  const index =
+    Math.max(
+      0,
+      roster.findIndex(
+        (player) =>
+          player.playerId ===
+          playerId,
+      ),
+    );
+
+  return PLAYER_COLORS[
+    index % PLAYER_COLORS.length
+  ];
+}
+
+function normalizeTiming(value) {
+  const text =
+    String(value || "")
+      .trim();
+
+  if (!text) return "";
+
+  return /^\d:[0-5]\d$/.test(text)
+    ? text
+    : "";
+}
+
 function clamp(value, min, max) {
   return Math.min(
     max,
@@ -165,7 +269,10 @@ function translateItem(
     };
   }
 
-  if (item.type === "path") {
+  if (
+    item.type === "path" ||
+    item.type === "route"
+  ) {
     return {
       ...item,
       points: item.points.map(
@@ -282,6 +389,22 @@ const COPY = {
     paste: "Вставити",
     quickActions: "Швидкі дії",
     selectedObject: "Вибраний об'єкт",
+    stages: "Етапи раунду",
+    previousStage: "Попередній етап",
+    nextStage: "Наступний етап",
+    play: "Відтворити",
+    pause: "Пауза",
+    route: "Маршрут",
+    roster: "Гравець ISTe",
+    noPlayer: "Без прив'язки",
+    playerRole: "Роль",
+    timing: "Таймінг",
+    timingPlaceholder: "1:35",
+    from: "Звідки",
+    fromPlaceholder: "Наприклад: T Ramp",
+    purpose: "Завдання",
+    purposePlaceholder: "Наприклад: перекрити CT",
+    utilityNumber: "Номер гранати",
     size: "Розмір",
     moveHint: "Перетягуйте вибраний об'єкт прямо по карті.",
     centerBoard: "Центрувати",
@@ -326,6 +449,7 @@ const COPY = {
       text: "Текст",
       marker: "Об'єкт",
       area: "Область",
+      route: "Маршрут",
     },
   },
   en: {
@@ -405,6 +529,22 @@ const COPY = {
     paste: "Paste",
     quickActions: "Quick actions",
     selectedObject: "Selected object",
+    stages: "Round stages",
+    previousStage: "Previous stage",
+    nextStage: "Next stage",
+    play: "Play",
+    pause: "Pause",
+    route: "Route",
+    roster: "ISTe player",
+    noPlayer: "Unassigned",
+    playerRole: "Role",
+    timing: "Timing",
+    timingPlaceholder: "1:35",
+    from: "From",
+    fromPlaceholder: "Example: T Ramp",
+    purpose: "Purpose",
+    purposePlaceholder: "Example: block CT",
+    utilityNumber: "Utility number",
     size: "Size",
     moveHint: "Drag the selected object directly on the map.",
     centerBoard: "Center board",
@@ -449,6 +589,7 @@ const COPY = {
       text: "Text",
       marker: "Object",
       area: "Area",
+      route: "Route",
     },
   },
 };
@@ -858,12 +999,153 @@ function BoardItem({
   };
 
   if (isEffectMarker(item)) {
+    const tooltip = [
+      item.utilityLabel,
+      item.playerName,
+      item.timing,
+      item.from,
+      item.purpose,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
     return (
-      <EffectMarker
-        item={item}
-        selected={selected}
-        common={common}
-      />
+      <g>
+        <title>{tooltip}</title>
+
+        <EffectMarker
+          item={item}
+          selected={selected}
+          common={common}
+        />
+
+        {item.utilityLabel ? (
+          <g
+            transform={
+              `translate(${item.x + getEffectSize(item) * 0.48} ${item.y - getEffectSize(item) * 0.48})`
+            }
+            pointerEvents="none"
+          >
+            <circle
+              r="12"
+              fill="rgba(10,13,18,0.94)"
+              stroke="#ffffff"
+              strokeWidth="2"
+            />
+            <text
+              y="4"
+              textAnchor="middle"
+              fill="#ffffff"
+              fontSize="9"
+              fontWeight="1000"
+            >
+              {item.utilityLabel}
+            </text>
+          </g>
+        ) : null}
+      </g>
+    );
+  }
+
+  if (item.type === "route") {
+    if (
+      !Array.isArray(item.points) ||
+      item.points.length < 2
+    ) {
+      return null;
+    }
+
+    const first =
+      item.points[0];
+    const last =
+      item.points[
+        item.points.length - 1
+      ];
+
+    return (
+      <g {...common}>
+        <polyline
+          points={item.points
+            .map(
+              (point) =>
+                `${point.x},${point.y}`,
+            )
+            .join(" ")}
+          fill="none"
+          stroke={item.color}
+          strokeWidth={
+            selected ? 11 : 8
+          }
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={
+            Number.isFinite(item.opacity)
+              ? item.opacity
+              : 0.92
+          }
+        />
+
+        {item.points.map(
+          (point, index) => (
+            <circle
+              key={
+                `${item.id}-point-${index}`
+              }
+              cx={point.x}
+              cy={point.y}
+              r={index === 0 ? 8 : 5}
+              fill={item.color}
+              stroke="#101419"
+              strokeWidth="3"
+              pointerEvents="none"
+            />
+          ),
+        )}
+
+        <circle
+          cx={last.x}
+          cy={last.y}
+          r="10"
+          fill={item.color}
+          stroke="#ffffff"
+          strokeWidth="3"
+          pointerEvents="none"
+        />
+
+        {item.playerName ? (
+          <g
+            transform={
+              `translate(${first.x + 12} ${first.y - 14})`
+            }
+            pointerEvents="none"
+          >
+            <rect
+              x="0"
+              y="-17"
+              width={
+                Math.max(
+                  54,
+                  item.playerName.length * 8 + 18,
+                )
+              }
+              height="25"
+              rx="8"
+              fill="rgba(9,12,16,0.9)"
+              stroke={item.color}
+              strokeWidth="2"
+            />
+            <text
+              x="9"
+              y="0"
+              fill="#ffffff"
+              fontSize="13"
+              fontWeight="900"
+            >
+              {item.playerName}
+            </text>
+          </g>
+        ) : null}
+      </g>
     );
   }
 
@@ -1154,6 +1436,62 @@ function drawBoardItemOnCanvas(
   scale,
   copy,
 ) {
+  if (item.type === "route") {
+    if (
+      !Array.isArray(item.points) ||
+      item.points.length < 2
+    ) {
+      return;
+    }
+
+    context.globalAlpha =
+      Number.isFinite(item.opacity)
+        ? item.opacity
+        : 0.92;
+    context.strokeStyle =
+      item.color || "#82b7ff";
+    context.fillStyle =
+      item.color || "#82b7ff";
+    context.lineWidth =
+      8 * scale;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+
+    context.beginPath();
+    context.moveTo(
+      item.points[0].x * scale,
+      item.points[0].y * scale,
+    );
+
+    item.points
+      .slice(1)
+      .forEach((point) => {
+        context.lineTo(
+          point.x * scale,
+          point.y * scale,
+        );
+      });
+
+    context.stroke();
+
+    item.points.forEach(
+      (point, index) => {
+        context.beginPath();
+        context.arc(
+          point.x * scale,
+          point.y * scale,
+          (index === 0 ? 7 : 4) * scale,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      },
+    );
+
+    context.globalAlpha = 1;
+    return;
+  }
+
   if (item.type === "path") {
     if (
       !Array.isArray(item.points) ||
@@ -1579,6 +1917,27 @@ export default function PlayerTactics() {
   const c =
     COPY[language] || COPY.uk;
 
+  const {
+    stats: rosterStats,
+  } = useOfficialRoster();
+
+  const roster =
+    useMemo(
+      () =>
+        (Array.isArray(
+          rosterStats?.roster,
+        )
+          ? rosterStats.roster
+          : []
+        ).filter(
+          (player) =>
+            !player.rosterStatus ||
+            player.rosterStatus === "main" ||
+            player.rosterStatus === "substitute",
+        ),
+      [rosterStats?.roster],
+    );
+
   const [tactics, setTactics] =
     useState([]);
   const [searchQuery, setSearchQuery] =
@@ -1597,6 +1956,16 @@ export default function PlayerTactics() {
     useState("upper");
   const [items, setItems] =
     useState([]);
+  const [stages, setStages] =
+    useState(() =>
+      cloneStages(),
+    );
+  const [activeStageId, setActiveStageId] =
+    useState("spawn");
+  const [isPlaying, setIsPlaying] =
+    useState(false);
+  const [selectedPlayerId, setSelectedPlayerId] =
+    useState("");
   const [past, setPast] =
     useState([]);
   const [future, setFuture] =
@@ -1723,6 +2092,28 @@ export default function PlayerTactics() {
           ) {
             setItems(
               payload.items,
+            );
+          }
+
+          if (
+            Array.isArray(
+              payload.stages,
+            ) &&
+            payload.stages.length
+          ) {
+            setStages(
+              cloneStages(
+                payload.stages,
+              ),
+            );
+          }
+
+          if (
+            typeof payload.activeStageId ===
+              "string"
+          ) {
+            setActiveStageId(
+              payload.activeStageId,
             );
           }
 
@@ -1879,6 +2270,8 @@ export default function PlayerTactics() {
               senderId:
                 user?.id || "",
               items,
+              stages,
+              activeStageId,
               mapId,
               layer,
               sentAt:
@@ -1903,6 +2296,8 @@ export default function PlayerTactics() {
     };
   }, [
     items,
+    stages,
+    activeStageId,
     mapId,
     layer,
     liveEnabled,
@@ -2077,12 +2472,15 @@ export default function PlayerTactics() {
   function pasteClipboard() {
     if (!clipboardItem) return;
 
-    const clone =
-      cloneWithOffset(
+    const clone = {
+      ...cloneWithOffset(
         structuredClone(
           clipboardItem,
         ),
-      );
+      ),
+      stageId:
+        activeStageId,
+    };
 
     commitItems(
       [...items, clone],
@@ -2091,8 +2489,16 @@ export default function PlayerTactics() {
   }
 
   function clearBoard() {
+    const stageItems =
+      items.filter(
+        (item) =>
+          (item.stageId ||
+            "setup") ===
+          activeStageId,
+      );
+
     if (
-      !items.length ||
+      !stageItems.length ||
       !window.confirm(
         c.confirmClear,
       )
@@ -2100,7 +2506,14 @@ export default function PlayerTactics() {
       return;
     }
 
-    commitItems([]);
+    commitItems(
+      items.filter(
+        (item) =>
+          (item.stageId ||
+            "setup") !==
+          activeStageId,
+      ),
+    );
   }
 
   function zoomBoard(delta) {
@@ -2139,6 +2552,93 @@ export default function PlayerTactics() {
     await element
       .requestFullscreen?.();
   }
+
+  function selectStage(
+    stageId,
+  ) {
+    if (
+      !stages.some(
+        (stage) =>
+          stage.id === stageId,
+      )
+    ) {
+      return;
+    }
+
+    setActiveStageId(stageId);
+    setSelectedId("");
+    setDraft(null);
+    setPast([]);
+    setFuture([]);
+  }
+
+  function moveStage(direction) {
+    const index =
+      stages.findIndex(
+        (stage) =>
+          stage.id ===
+          activeStageId,
+      );
+
+    const nextIndex =
+      clamp(
+        index + direction,
+        0,
+        stages.length - 1,
+      );
+
+    selectStage(
+      stages[nextIndex]?.id ||
+        stages[0]?.id,
+    );
+  }
+
+  useEffect(() => {
+    if (!isPlaying) {
+      return undefined;
+    }
+
+    const index =
+      stages.findIndex(
+        (stage) =>
+          stage.id ===
+          activeStageId,
+      );
+
+    const current =
+      stages[index];
+
+    if (!current) {
+      setIsPlaying(false);
+      return undefined;
+    }
+
+    const timer =
+      window.setTimeout(
+        () => {
+          if (
+            index >=
+            stages.length - 1
+          ) {
+            setIsPlaying(false);
+            return;
+          }
+
+          setActiveStageId(
+            stages[index + 1].id,
+          );
+          setSelectedId("");
+        },
+        current.duration * 1000,
+      );
+
+    return () =>
+      window.clearTimeout(timer);
+  }, [
+    activeStageId,
+    isPlaying,
+    stages,
+  ]);
 
   function undo() {
     if (!past.length) return;
@@ -2191,6 +2691,14 @@ export default function PlayerTactics() {
     setVisibility("team");
     setLayer("upper");
     setItems([]);
+    setStages(
+      cloneStages(),
+    );
+    setActiveStageId(
+      "spawn",
+    );
+    setIsPlaying(false);
+    setSelectedPlayerId("");
     setTool("select");
     setError("");
     setNotice("");
@@ -2213,10 +2721,42 @@ export default function PlayerTactics() {
       state.layer || "upper",
     );
 
-    setItems(
+    const savedStages =
+      Array.isArray(state.stages) &&
+      state.stages.length
+        ? cloneStages(
+            state.stages,
+          )
+        : cloneStages();
+
+    const legacy =
+      !Array.isArray(
+        state.stages,
+      );
+
+    const loadedItems =
       Array.isArray(state.items)
-        ? state.items
-        : [],
+        ? state.items.map(
+            (item) => ({
+              ...item,
+              stageId:
+                item.stageId ||
+                "setup",
+            }),
+          )
+        : [];
+
+    setStages(savedStages);
+    setActiveStageId(
+      state.activeStageId ||
+        (legacy
+          ? "setup"
+          : savedStages[0]?.id ||
+            "spawn"),
+    );
+    setIsPlaying(false);
+    setItems(
+      loadedItems,
     );
 
     setError("");
@@ -2248,6 +2788,8 @@ export default function PlayerTactics() {
               visibility,
               boardState: {
                 items,
+                stages,
+                activeStageId,
                 layer,
               },
             },
@@ -2349,7 +2891,14 @@ export default function PlayerTactics() {
 
       context.filter = "none";
 
-      items.forEach((item) => {
+      items
+        .filter(
+          (item) =>
+            (item.stageId ||
+              "setup") ===
+            activeStageId,
+        )
+        .forEach((item) => {
         drawBoardItemOnCanvas(
           context,
           item,
@@ -2552,6 +3101,40 @@ export default function PlayerTactics() {
               : undefined,
           opacity:
             opacity / 100,
+          stageId:
+            activeStageId,
+          utilityLabel:
+            EFFECT_MARKERS.has(
+              markerType,
+            )
+              ? nextUtilityLabel(
+                  items,
+                  markerType,
+                )
+              : "",
+          playerId:
+            selectedPlayerId,
+          playerName:
+            roster.find(
+              (player) =>
+                player.playerId ===
+                selectedPlayerId,
+            )?.displayName ||
+            roster.find(
+              (player) =>
+                player.playerId ===
+                selectedPlayerId,
+            )?.nickname ||
+            "",
+          playerRole:
+            roster.find(
+              (player) =>
+                player.playerId ===
+                selectedPlayerId,
+            )?.role || "",
+          timing: "",
+          from: "",
+          purpose: "",
         },
       ],
       id,
@@ -2628,6 +3211,38 @@ export default function PlayerTactics() {
                 : undefined,
             opacity:
               opacity / 100,
+            stageId:
+              activeStageId,
+            utilityLabel:
+              EFFECT_MARKERS.has(type)
+                ? nextUtilityLabel(
+                    items,
+                    type,
+                  )
+                : "",
+            playerId:
+              selectedPlayerId,
+            playerName:
+              roster.find(
+                (player) =>
+                  player.playerId ===
+                  selectedPlayerId,
+              )?.displayName ||
+              roster.find(
+                (player) =>
+                  player.playerId ===
+                  selectedPlayerId,
+              )?.nickname ||
+              "",
+            playerRole:
+              roster.find(
+                (player) =>
+                  player.playerId ===
+                  selectedPlayerId,
+              )?.role || "",
+            timing: "",
+            from: "",
+            purpose: "",
           },
         ],
         id,
@@ -2661,6 +3276,8 @@ export default function PlayerTactics() {
               ],
             opacity:
               opacity / 100,
+            stageId:
+              activeStageId,
           },
         ],
         id,
@@ -2683,6 +3300,42 @@ export default function PlayerTactics() {
           STROKE_SIZES[strokeSize],
         opacity:
           opacity / 100,
+        stageId:
+          activeStageId,
+        points: [point],
+      });
+    }
+
+    if (tool === "route") {
+      const player =
+        roster.find(
+          (entry) =>
+            entry.playerId ===
+            selectedPlayerId,
+        );
+
+      setDraft({
+        id: makeId(),
+        type: "route",
+        color:
+          selectedPlayerId
+            ? playerColor(
+                selectedPlayerId,
+                roster,
+              )
+            : color,
+        opacity: 0.95,
+        stageId:
+          activeStageId,
+        playerId:
+          selectedPlayerId,
+        playerName:
+          player?.displayName ||
+          player?.nickname ||
+          "",
+        playerRole:
+          player?.role || "",
+        timing: "",
         points: [point],
       });
     }
@@ -2700,6 +3353,8 @@ export default function PlayerTactics() {
         y1: point.y,
         x2: point.x,
         y2: point.y,
+        stageId:
+          activeStageId,
       });
     }
 
@@ -2715,6 +3370,8 @@ export default function PlayerTactics() {
         cx: point.x,
         cy: point.y,
         r: 0,
+        stageId:
+          activeStageId,
       });
     }
 
@@ -2729,6 +3386,8 @@ export default function PlayerTactics() {
         y1: point.y,
         x2: point.x,
         y2: point.y,
+        stageId:
+          activeStageId,
       });
     }
   }
@@ -2771,7 +3430,10 @@ export default function PlayerTactics() {
     const point =
       boardPoint(event);
 
-    if (draft.type === "path") {
+    if (
+      draft.type === "path" ||
+      draft.type === "route"
+    ) {
       const last =
         draft.points[
           draft.points.length - 1
@@ -2851,7 +3513,8 @@ export default function PlayerTactics() {
     if (!draft) return;
 
     const valid =
-      draft.type === "path"
+      draft.type === "path" ||
+      draft.type === "route"
         ? draft.points.length > 1
         : draft.type === "arrow"
           ? Math.hypot(
@@ -2911,6 +3574,7 @@ export default function PlayerTactics() {
           t: "text",
           s: "smoke",
           r: "area",
+          m: "route",
           o: "marker",
         }[shortcut];
 
@@ -2974,10 +3638,18 @@ export default function PlayerTactics() {
       );
   });
 
+  const stageItems =
+    items.filter(
+      (item) =>
+        (item.stageId ||
+          "setup") ===
+        activeStageId,
+    );
+
   const visibleItems =
     draft
-      ? [...items, draft]
-      : items;
+      ? [...stageItems, draft]
+      : stageItems;
 
   const tools = [
     {
@@ -3017,12 +3689,25 @@ export default function PlayerTactics() {
       icon: "▧",
       shortcut: "R",
     },
+    {
+      id: "route",
+      label: c.route,
+      icon: "⌁",
+      shortcut: "M",
+    },
   ];
 
   const selectedItem =
     items.find(
       (item) =>
         item.id === selectedId,
+    ) || null;
+
+  const selectedRosterPlayer =
+    roster.find(
+      (player) =>
+        player.playerId ===
+        selectedPlayerId,
     ) || null;
 
   const filteredTactics =
@@ -3418,6 +4103,127 @@ export default function PlayerTactics() {
                 </svg>
               </div>
             </div>
+
+            <div className="tactics-timeline">
+              <div className="tactics-timeline-head">
+                <strong>{c.stages}</strong>
+
+                <div className="tactics-playback-controls">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      moveStage(-1)
+                    }
+                    disabled={
+                      stages.findIndex(
+                        (stage) =>
+                          stage.id ===
+                          activeStageId,
+                      ) <= 0
+                    }
+                    title={
+                      c.previousStage
+                    }
+                  >
+                    ←
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      isPlaying
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setIsPlaying(
+                        (current) =>
+                          !current,
+                      )
+                    }
+                  >
+                    {isPlaying
+                      ? "Ⅱ"
+                      : "▶"}
+                    <span>
+                      {isPlaying
+                        ? c.pause
+                        : c.play}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      moveStage(1)
+                    }
+                    disabled={
+                      stages.findIndex(
+                        (stage) =>
+                          stage.id ===
+                          activeStageId,
+                      ) >=
+                      stages.length - 1
+                    }
+                    title={
+                      c.nextStage
+                    }
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+
+              <div className="tactics-stage-track">
+                {stages.map(
+                  (stage, index) => {
+                    const count =
+                      items.filter(
+                        (item) =>
+                          (item.stageId ||
+                            "setup") ===
+                          stage.id,
+                      ).length;
+
+                    return (
+                      <button
+                        type="button"
+                        key={stage.id}
+                        className={
+                          stage.id ===
+                          activeStageId
+                            ? "active"
+                            : ""
+                        }
+                        onClick={() => {
+                          setIsPlaying(
+                            false,
+                          );
+                          selectStage(
+                            stage.id,
+                          );
+                        }}
+                      >
+                        <span>
+                          {String(
+                            index + 1,
+                          ).padStart(
+                            2,
+                            "0",
+                          )}
+                        </span>
+                        <strong>
+                          {stage.name}
+                        </strong>
+                        <small>
+                          {count}
+                        </small>
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+            </div>
           </main>
 
           <aside className="tactics-tools tactics-tools--v3">
@@ -3484,6 +4290,73 @@ export default function PlayerTactics() {
                   >
                     {c.lower}
                   </button>
+                </div>
+              ) : null}
+            </section>
+
+            <section className="tactics-panel-card tactics-roster-card">
+              <div className="tactics-panel-title">
+                <span aria-hidden="true">◉</span>
+                <strong>{c.roster}</strong>
+              </div>
+
+              <select
+                className="tactics-roster-select"
+                value={
+                  selectedPlayerId
+                }
+                onChange={(event) =>
+                  setSelectedPlayerId(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  {c.noPlayer}
+                </option>
+
+                {roster.map(
+                  (player) => (
+                    <option
+                      key={
+                        player.playerId
+                      }
+                      value={
+                        player.playerId
+                      }
+                    >
+                      {player.displayName ||
+                        player.nickname}
+                      {player.role
+                        ? ` · ${player.role}`
+                        : ""}
+                    </option>
+                  ),
+                )}
+              </select>
+
+              {selectedRosterPlayer ? (
+                <div className="tactics-roster-current">
+                  <span
+                    style={{
+                      background:
+                        playerColor(
+                          selectedRosterPlayer.playerId,
+                          roster,
+                        ),
+                    }}
+                  />
+                  <div>
+                    <strong>
+                      {selectedRosterPlayer.displayName ||
+                        selectedRosterPlayer.nickname}
+                    </strong>
+                    <small>
+                      {c.playerRole}:{" "}
+                      {selectedRosterPlayer.role ||
+                        "RIFLER"}
+                    </small>
+                  </div>
                 </div>
               ) : null}
             </section>
@@ -3687,6 +4560,171 @@ export default function PlayerTactics() {
                       }
                     />
                   </label>
+                ) : null}
+
+                {(selectedItem.type === "route" ||
+                  selectedItem.marker === "t" ||
+                  selectedItem.marker === "ct" ||
+                  isEffectMarker(selectedItem)) ? (
+                  <div className="tactics-object-meta">
+                    <label>
+                      <span>{c.roster}</span>
+                      <select
+                        value={
+                          selectedItem.playerId ||
+                          ""
+                        }
+                        onChange={(event) => {
+                          const player =
+                            roster.find(
+                              (entry) =>
+                                entry.playerId ===
+                                event.target.value,
+                            );
+
+                          patchSelectedItem({
+                            playerId:
+                              event.target.value,
+                            playerName:
+                              player?.displayName ||
+                              player?.nickname ||
+                              "",
+                            playerRole:
+                              player?.role ||
+                              "",
+                            ...(selectedItem.type ===
+                            "route"
+                              ? {
+                                  color:
+                                    event.target.value
+                                      ? playerColor(
+                                          event.target.value,
+                                          roster,
+                                        )
+                                      : selectedItem.color,
+                                }
+                              : {}),
+                          });
+                        }}
+                      >
+                        <option value="">
+                          {c.noPlayer}
+                        </option>
+                        {roster.map(
+                          (player) => (
+                            <option
+                              key={
+                                player.playerId
+                              }
+                              value={
+                                player.playerId
+                              }
+                            >
+                              {player.displayName ||
+                                player.nickname}
+                              {player.role
+                                ? ` · ${player.role}`
+                                : ""}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>{c.timing}</span>
+                      <input
+                        value={
+                          selectedItem.timing ||
+                          ""
+                        }
+                        placeholder={
+                          c.timingPlaceholder
+                        }
+                        maxLength="4"
+                        onChange={(event) =>
+                          patchSelectedItem({
+                            timing:
+                              event.target.value,
+                          })
+                        }
+                        onBlur={(event) =>
+                          patchSelectedItem({
+                            timing:
+                              normalizeTiming(
+                                event.target.value,
+                              ),
+                          })
+                        }
+                      />
+                    </label>
+
+                    {isEffectMarker(
+                      selectedItem,
+                    ) ? (
+                      <>
+                        <label>
+                          <span>
+                            {c.utilityNumber}
+                          </span>
+                          <input
+                            value={
+                              selectedItem.utilityLabel ||
+                              ""
+                            }
+                            readOnly
+                          />
+                        </label>
+
+                        <label>
+                          <span>{c.from}</span>
+                          <input
+                            value={
+                              selectedItem.from ||
+                              ""
+                            }
+                            placeholder={
+                              c.fromPlaceholder
+                            }
+                            onChange={(event) =>
+                              patchSelectedItem({
+                                from:
+                                  event.target.value.slice(
+                                    0,
+                                    60,
+                                  ),
+                              })
+                            }
+                          />
+                        </label>
+
+                        <label className="tactics-object-meta--full">
+                          <span>
+                            {c.purpose}
+                          </span>
+                          <textarea
+                            rows="2"
+                            value={
+                              selectedItem.purpose ||
+                              ""
+                            }
+                            placeholder={
+                              c.purposePlaceholder
+                            }
+                            onChange={(event) =>
+                              patchSelectedItem({
+                                purpose:
+                                  event.target.value.slice(
+                                    0,
+                                    140,
+                                  ),
+                              })
+                            }
+                          />
+                        </label>
+                      </>
+                    ) : null}
+                  </div>
                 ) : null}
 
                 <label className="tactics-selected-slider">
