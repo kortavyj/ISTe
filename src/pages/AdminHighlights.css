@@ -1,0 +1,419 @@
+.admin-highlights-page {
+  min-height: 100vh;
+  padding: calc(var(--navbar-height) + 44px) 20px 72px;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(227,6,19,.13), transparent 30%),
+    #07090c;
+  color: #fff;
+}
+
+.admin-highlights-shell {
+  width: min(1420px, 100%);
+  margin: 0 auto;
+}
+
+.admin-highlights-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.admin-highlights-header > div {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-highlights-header > div > span {
+  color: #e30613;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.admin-highlights-header h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 5vw, 4.6rem);
+  letter-spacing: -.05em;
+}
+
+.admin-highlights-header p {
+  max-width: 720px;
+  margin: 0;
+  color: rgba(255,255,255,.48);
+  line-height: 1.6;
+}
+
+.admin-highlights-header > button,
+.admin-highlights-actions button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px;
+  background: rgba(255,255,255,.025);
+  color: #fff;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-highlights-header > button,
+.admin-highlights-actions .primary {
+  border-color: rgba(227,6,19,.42);
+  background: rgba(227,6,19,.12);
+}
+
+.admin-highlights-message {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 9px;
+  font-size: .72rem;
+}
+
+.admin-highlights-message.error {
+  border-color: rgba(255,74,86,.22);
+  color: #ff8a93;
+}
+
+.admin-highlights-message.success {
+  border-color: rgba(80,211,135,.18);
+  color: #7fe4a7;
+}
+
+.admin-highlights-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.admin-highlights-editor,
+.admin-highlights-list {
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.015), transparent 24%),
+    #0e1217;
+}
+
+.admin-highlights-editor {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.admin-highlights-editor-title {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-highlights-editor-title span {
+  color: #ef3340;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.admin-highlights-editor-title strong {
+  font-size: 1rem;
+}
+
+.admin-highlights-preview {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(227,6,19,.18);
+  border-radius: 12px;
+  background: #080b0f;
+}
+
+.admin-highlights-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-highlights-preview > span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 58px;
+  aspect-ratio: 1;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #e30613;
+  box-shadow: 0 0 28px rgba(227,6,19,.42);
+}
+
+.admin-highlights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+}
+
+.admin-highlights-grid label,
+.admin-highlights-textarea,
+.admin-highlights-upload {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-highlights-grid label > span,
+.admin-highlights-textarea > span,
+.admin-highlights-upload > span {
+  color: rgba(255,255,255,.46);
+  font-size: .58rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.admin-highlights-grid input,
+.admin-highlights-grid select,
+.admin-highlights-textarea textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px;
+  outline: 0;
+  background: #090d12;
+  color: #fff;
+  font: inherit;
+  font-size: .7rem;
+}
+
+.admin-highlights-textarea textarea {
+  min-height: 92px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.admin-highlights-grid input:focus,
+.admin-highlights-grid select:focus,
+.admin-highlights-textarea textarea:focus {
+  border-color: rgba(227,6,19,.45);
+}
+
+.admin-highlights-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.admin-highlights-upload {
+  position: relative;
+  min-height: 65px;
+  align-content: center;
+  padding: 9px 11px;
+  overflow: hidden;
+  border: 1px dashed rgba(227,6,19,.32);
+  border-radius: 9px;
+  background: rgba(227,6,19,.04);
+  cursor: pointer;
+}
+
+.admin-highlights-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.admin-highlights-upload small {
+  color: rgba(255,255,255,.28);
+  font-size: .56rem;
+}
+
+.admin-highlights-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-highlights-toggles label {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 8px;
+  background: rgba(255,255,255,.018);
+  font-size: .65rem;
+  font-weight: 800;
+}
+
+.admin-highlights-toggles input {
+  accent-color: #e30613;
+}
+
+.admin-highlights-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-highlights-list {
+  align-self: start;
+  max-height: calc(100vh - var(--navbar-height) - 82px);
+  overflow: auto;
+  padding: 12px;
+}
+
+.admin-highlights-list > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 3px 12px;
+}
+
+.admin-highlights-list h2 {
+  margin: 0;
+  font-size: .9rem;
+}
+
+.admin-highlights-list > header span {
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(227,6,19,.25);
+  border-radius: 999px;
+  color: #ff6974;
+  font-size: .6rem;
+  font-weight: 900;
+}
+
+.admin-highlights-list article {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 34px;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 5px;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 10px;
+  background: rgba(255,255,255,.015);
+}
+
+.admin-highlights-list article.active {
+  border-color: rgba(227,6,19,.4);
+  background: rgba(227,6,19,.055);
+}
+
+.admin-highlights-list-main {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 78px minmax(0,1fr);
+  gap: 9px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-highlights-list-main img {
+  width: 78px;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 7px;
+}
+
+.admin-highlights-list-main > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.admin-highlights-list-main strong {
+  overflow: hidden;
+  font-size: .66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-highlights-list-main small {
+  overflow: hidden;
+  color: rgba(255,255,255,.34);
+  font-size: .54rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-highlights-list-main i {
+  width: max-content;
+  padding: 2px 5px;
+  border: 1px solid rgba(255,177,87,.16);
+  border-radius: 999px;
+  color: #d6a260;
+  font-size: .45rem;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-highlights-list-main i.published {
+  border-color: rgba(84,213,139,.16);
+  color: #73d99e;
+}
+
+.admin-highlights-delete {
+  display: grid;
+  width: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #ff6d77;
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.admin-highlights-delete:hover {
+  background: rgba(227,6,19,.09);
+}
+
+.admin-highlights-empty {
+  padding: 30px 10px;
+  color: rgba(255,255,255,.34);
+  font-size: .7rem;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .admin-highlights-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-highlights-list {
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-highlights-page {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .admin-highlights-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-highlights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-highlights-grid .wide {
+    grid-column: auto;
+  }
+}

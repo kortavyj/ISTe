@@ -1,0 +1,331 @@
+.highlights-page {
+  min-height: 100vh;
+  padding: calc(var(--navbar-height) + 54px) 20px 80px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(227,6,19,.15), transparent 28%),
+    linear-gradient(180deg, #07090c, #050505 68%);
+  color: #fff;
+}
+
+.highlights-shell {
+  width: min(1320px, 100%);
+  margin: 0 auto;
+}
+
+.highlights-hero {
+  max-width: 850px;
+  padding-bottom: 28px;
+}
+
+.highlights-hero > span {
+  color: #e30613;
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.highlights-hero h1 {
+  margin: 10px 0 0;
+  font-size: clamp(3rem, 7vw, 6.8rem);
+  line-height: .92;
+  letter-spacing: -.06em;
+}
+
+.highlights-hero p {
+  max-width: 690px;
+  margin: 18px 0 0;
+  color: rgba(255,255,255,.5);
+  line-height: 1.65;
+}
+
+.highlights-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 20px;
+}
+
+.highlights-filters button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,.018);
+  color: rgba(255,255,255,.48);
+  font: inherit;
+  font-size: .62rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.highlights-filters button.active {
+  border-color: rgba(227,6,19,.45);
+  background: rgba(227,6,19,.1);
+  color: #fff;
+}
+
+.highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 14px;
+}
+
+.highlight-card {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 14px;
+  background: #090c10;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 16px 38px rgba(0,0,0,.35);
+}
+
+.highlight-card.featured {
+  border-color: rgba(227,6,19,.42);
+  box-shadow:
+    0 16px 38px rgba(0,0,0,.38),
+    0 0 26px rgba(227,6,19,.08);
+}
+
+.highlight-card > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    transform 220ms ease,
+    filter 220ms ease;
+}
+
+.highlight-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.9)),
+    linear-gradient(90deg, rgba(111,0,10,.18), transparent 62%);
+}
+
+.highlight-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.highlight-card-top i {
+  display: inline-flex;
+  min-height: 25px;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid rgba(255,70,80,.36);
+  border-radius: 999px;
+  background: rgba(12,0,2,.72);
+  color: #ff5a66;
+  font-size: .52rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.highlight-card-top b {
+  display: grid;
+  width: 42px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: #e30613;
+  box-shadow: 0 0 22px rgba(227,6,19,.46);
+  font-size: .78rem;
+}
+
+.highlight-card-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.highlight-card-copy strong {
+  font-size: 1rem;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.highlight-card-copy small {
+  color: rgba(255,255,255,.5);
+  font-size: .62rem;
+}
+
+.highlight-card:hover > img {
+  transform: scale(1.045);
+  filter: brightness(1.08);
+}
+
+.highlights-empty {
+  padding: 70px 20px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  color: rgba(255,255,255,.38);
+  text-align: center;
+}
+
+.highlight-modal-backdrop {
+  position: fixed;
+  z-index: 15000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0,0,0,.82);
+  backdrop-filter: blur(12px);
+}
+
+.highlight-modal {
+  display: grid;
+  width: min(1080px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  border: 1px solid rgba(227,6,19,.32);
+  border-radius: 16px;
+  background: #0b0e13;
+  box-shadow: 0 30px 90px rgba(0,0,0,.62);
+}
+
+.highlight-modal > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px;
+}
+
+.highlight-modal > header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.highlight-modal > header span {
+  color: #ff5f6a;
+  font-size: .56rem;
+  font-weight: 900;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.highlight-modal > header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.highlight-modal > header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px;
+  background: rgba(255,255,255,.02);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.highlight-modal-player {
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.highlight-modal-player iframe,
+.highlight-modal-player video,
+.highlight-modal-external {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.highlight-modal-player video {
+  display: block;
+}
+
+.highlight-modal-external {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.highlight-modal-external img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(.42);
+}
+
+.highlight-modal-external a {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 15px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 9px;
+  background: #e30613;
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.highlight-modal-copy {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.highlight-modal-copy p {
+  margin: 0;
+  color: rgba(255,255,255,.64);
+  line-height: 1.6;
+}
+
+.highlight-modal-copy > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.highlight-modal-copy span {
+  color: rgba(255,255,255,.38);
+  font-size: .64rem;
+}
+
+.highlight-modal-copy strong {
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .highlights-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .highlights-page {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .highlights-grid {
+    grid-template-columns: 1fr;
+  }
+}

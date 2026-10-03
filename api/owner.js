@@ -10,6 +10,7 @@ import {
 } from "./lib/requestBody.js";
 import shopHandler from "../server/shopHandler.js";
 import discordHandler from "../server/discordHandler.js";
+import highlightsHandler from "../server/highlightsHandler.js";
 import rosterHandler from "../server/rosterHandler.js";
 import publicRosterHandler from "../server/publicRosterHandler.js";
 import publicTacticShareHandler from "../server/publicTacticShareHandler.js";
@@ -367,6 +368,10 @@ export default async function handler(request, response) {
 
   if (moduleName === "discord") {
     return discordHandler(request, response);
+  }
+
+  if (moduleName === "highlights") {
+    return highlightsHandler(request, response);
   }
 
   if (moduleName === "roster") {

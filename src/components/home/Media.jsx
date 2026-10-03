@@ -1,4 +1,16 @@
+import {
+  useEffect,
+  useState,
+} from "react";
+import {
+  Link,
+} from "react-router-dom";
+
 import isteLogo from "../../assets/logos/iste-logo.png";
+import {
+  getHighlightThumbnail,
+  localizeHighlight,
+} from "../../lib/highlights.js";
 import { useLanguage } from "../../i18n/LanguageContext.jsx";
 
 import "./Media.css";
@@ -29,7 +41,60 @@ const mediaItems = [
 ];
 
 export default function Media() {
-  const { t } = useLanguage();
+  const {
+    t,
+    language,
+  } = useLanguage();
+
+  const [
+    highlights,
+    setHighlights,
+  ] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetch(
+      "/api/owner?module=highlights&action=public&limit=2",
+      {
+        cache: "no-store",
+      },
+    )
+      .then((response) =>
+        response
+          .json()
+          .then((data) => ({
+            ok:
+              response.ok,
+            data,
+          })),
+      )
+      .then((result) => {
+        if (
+          cancelled ||
+          !result.ok ||
+          result.data?.ok !==
+            true
+        ) {
+          return;
+        }
+
+        setHighlights(
+          Array.isArray(
+            result.data
+              .highlights,
+          )
+            ? result.data
+                .highlights
+            : [],
+        );
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section
@@ -44,7 +109,93 @@ export default function Media() {
         <h2 className="section-title">
           {t("home.media.title")}
         </h2>
+
+        <p className="media-intro">
+          {t(
+            "home.media.highlightsDescription",
+          )}
+        </p>
       </header>
+
+      {highlights.length ? (
+        <div className="media-highlights-grid">
+          {highlights.map(
+            (highlight) => {
+              const item =
+                localizeHighlight(
+                  highlight,
+                  language,
+                );
+
+              return (
+                <Link
+                  className="media-card media-card-highlight"
+                  to={
+                    `/highlights?open=${encodeURIComponent(
+                      highlight.id,
+                    )}`
+                  }
+                  key={
+                    highlight.id
+                  }
+                >
+                  <img
+                    src={getHighlightThumbnail(
+                      highlight,
+                      isteLogo,
+                    )}
+                    alt=""
+                    loading="lazy"
+                  />
+
+                  <div className="media-overlay">
+                    <div className="media-meta">
+                      <span className="media-type">
+                        {String(
+                          highlight.highlightType ||
+                          "highlight",
+                        )
+                          .replace(
+                            "_",
+                            " ",
+                          )
+                          .toUpperCase()}
+                      </span>
+
+                      <span
+                        className="media-open"
+                        aria-hidden="true"
+                      >
+                        ▶
+                      </span>
+                    </div>
+
+                    <div className="media-copy">
+                      <h3>
+                        {item.title}
+                      </h3>
+
+                      <p>
+                        {[
+                          highlight.playerName,
+                          highlight.matchLabel,
+                        ]
+                          .filter(
+                            Boolean,
+                          )
+                          .join(
+                            " · ",
+                          ) ||
+                          item.description}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            },
+          )}
+        </div>
+      ) : null}
 
       <div className="media-grid">
         {mediaItems.map(
@@ -55,11 +206,7 @@ export default function Media() {
 
             return (
               <a
-                className={`media-card${
-                  item.isBrandCard
-                    ? " media-card-brand"
-                    : ""
-                }`}
+                className={`media-card${item.isBrandCard ? " media-card-brand" : ""}`}
                 href={item.href}
                 key={item.href}
                 target="_blank"
@@ -110,6 +257,17 @@ export default function Media() {
             );
           },
         )}
+      </div>
+
+      <div className="media-highlights-action">
+        <Link to="/highlights">
+          {t(
+            "home.media.viewHighlights",
+          )}
+          <span aria-hidden="true">
+            →
+          </span>
+        </Link>
       </div>
     </section>
   );

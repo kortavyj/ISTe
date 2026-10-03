@@ -21,6 +21,9 @@ const copy = {
     newsTitle: "Новини",
     newsText:
       "Чернетки, публікації та керування новинами ISTesport.",
+    highlightsTitle: "Хайлайти",
+    highlightsText:
+      "Кліпи, MVP, ACE, clutch та публікація медіаконтенту ISTe.",
     shopTitle: "ISTe Wear",
     shopText:
       "Товари, передзамовлення та керування магазином.",
@@ -50,6 +53,9 @@ const copy = {
     newsTitle: "News",
     newsText:
       "Drafts, publications and ISTesport news management.",
+    highlightsTitle: "Highlights",
+    highlightsText:
+      "Clips, MVPs, ACEs, clutches and publication of ISTe media content.",
     shopTitle: "ISTe Wear",
     shopText:
       "Products, pre-orders and shop management.",
@@ -69,10 +75,11 @@ const cards = [
   { key: "roster", to: "/control/roster", mark: "01" },
   { key: "users", to: "/owner/users", mark: "02" },
   { key: "news", to: "/admin/news", mark: "03" },
-  { key: "shop", to: "/owner/shop", mark: "04" },
-  { key: "discord", to: "/owner/discord", mark: "05" },
-  { key: "publicBot", to: "/discord", mark: "06" },
-  { key: "website", to: "/", mark: "07" },
+  { key: "highlights", to: "/admin/highlights", mark: "04" },
+  { key: "shop", to: "/owner/shop", mark: "05" },
+  { key: "discord", to: "/owner/discord", mark: "06" },
+  { key: "publicBot", to: "/discord", mark: "07" },
+  { key: "website", to: "/", mark: "08" },
 ];
 
 export default function FounderDashboard() {
@@ -83,6 +90,7 @@ export default function FounderDashboard() {
     roster: [c.rosterTitle, c.rosterText],
     users: [c.usersTitle, c.usersText],
     news: [c.newsTitle, c.newsText],
+    highlights: [c.highlightsTitle, c.highlightsText],
     shop: [c.shopTitle, c.shopText],
     discord: [c.discordTitle, c.discordText],
     publicBot: [c.publicBotTitle, c.publicBotText],

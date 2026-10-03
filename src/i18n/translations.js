@@ -236,7 +236,9 @@ export const translations = {
       },
       media: {
         tag: "ISTe ONLINE",
-        title: "МЕДІА ТА СПІЛЬНОТА",
+        title: "ХАЙЛАЙТИ ТА МЕДІА",
+        highlightsDescription: "Найкращі моменти матчів ISTe, кліпи гравців, стріми та спільнота.",
+        viewHighlights: "Усі хайлайти",
         twitchTitle: "Стріми KORTAVYJ",
         twitchDescription: "Прямі ефіри та записи трансляцій ISTe на Twitch",
         telegramTitle: "Новини ISTe",
@@ -545,7 +547,9 @@ export const translations = {
       },
       media: {
         tag: "ISTe ONLINE",
-        title: "MEDIA AND COMMUNITY",
+        title: "HIGHLIGHTS & MEDIA",
+        highlightsDescription: "ISTe match highlights, player clips, streams and community.",
+        viewHighlights: "All highlights",
         twitchTitle: "KORTAVYJ streams",
         twitchDescription: "Live broadcasts and ISTe stream recordings on Twitch",
         telegramTitle: "ISTe news",

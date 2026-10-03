@@ -15,6 +15,7 @@ import SeoManager from "./components/SeoManager.jsx";
 import FloatingSupportButton from "./components/support/FloatingSupportButton.jsx";
 import Account from "./pages/Account.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import AdminHighlights from "./pages/AdminHighlights.jsx";
 import AdminNews from "./pages/AdminNews.jsx";
 import AIPrivacy from "./pages/AIPrivacy.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
@@ -23,6 +24,7 @@ import DiscordBot from "./pages/DiscordBot.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import FounderDashboard from "./pages/FounderDashboard.jsx";
 import History from "./pages/History.jsx";
+import Highlights from "./pages/Highlights.jsx";
 import Home from "./pages/Home.jsx";
 import { Privacy, Terms } from "./pages/Legal.jsx";
 import Login from "./pages/Login.jsx";
@@ -129,6 +131,7 @@ export default function App() {
           <Route path="/partners" element={<Partners />} />
           <Route path="/discord" element={<DiscordBot />} />
           <Route path="/history" element={<History />} />
+          <Route path="/highlights" element={<Highlights />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/support" element={<Support />} />
@@ -165,6 +168,15 @@ export default function App() {
             element={
               <AdminRoute>
                 <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/highlights"
+            element={
+              <AdminRoute>
+                <AdminHighlights />
               </AdminRoute>
             }
           />

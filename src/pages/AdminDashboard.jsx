@@ -9,7 +9,7 @@ const copy = {
     eyebrow: "ISTe ADMIN CONTROL",
     title: "Панель адміністратора",
     intro:
-      "Центр керування ISTe для адміністратора. Тут зібрані склад, користувачі, тактики, новини, магазин та Discord Bot.",
+      "Центр керування ISTe для адміністратора. Тут зібрані склад, користувачі, тактики, новини, хайлайти, магазин та Discord Bot.",
     protected: "ADMIN",
     open: "Відкрити",
     rosterTitle: "Roster Manager",
@@ -24,6 +24,12 @@ const copy = {
     newsTitle: "Новини",
     newsText:
       "Чернетки, редагування та публікація новин ISTesport.",
+    highlightsTitle: "Хайлайти",
+    highlightsText:
+      "Кліпи, MVP, ACE, clutch, прев'ю та публікація найкращих моментів ISTe.",
+    highlightsTitle: "Highlights",
+    highlightsText:
+      "Clips, MVPs, ACEs, clutches, thumbnails and publication of ISTe best moments.",
     shopTitle: "ISTe Wear",
     shopText:
       "Товари, статуси, ціни, розміри та заявки на передзамовлення.",
@@ -35,7 +41,7 @@ const copy = {
     eyebrow: "ISTe ADMIN CONTROL",
     title: "Administrator panel",
     intro:
-      "ISTe management center for administrators. Roster, users, tactics, news, store and Discord Bot are collected here.",
+      "ISTe management center for administrators. Roster, users, tactics, news, highlights, store and Discord Bot are collected here.",
     protected: "ADMIN",
     open: "Open",
     rosterTitle: "Roster Manager",
@@ -81,14 +87,19 @@ const cards = [
     mark: "04",
   },
   {
+    key: "highlights",
+    to: "/admin/highlights",
+    mark: "05",
+  },
+  {
     key: "shop",
     to: "/owner/shop",
-    mark: "05",
+    mark: "06",
   },
   {
     key: "discord",
     to: "/owner/discord",
-    mark: "06",
+    mark: "07",
   },
 ];
 
@@ -117,6 +128,10 @@ export default function AdminDashboard() {
     news: [
       c.newsTitle,
       c.newsText,
+    ],
+    highlights: [
+      c.highlightsTitle,
+      c.highlightsText,
     ],
     shop: [
       c.shopTitle,
