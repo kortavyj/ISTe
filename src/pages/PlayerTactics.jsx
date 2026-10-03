@@ -83,6 +83,130 @@ const MARKER_SIZES = {
   large: 32,
 };
 
+const EFFECT_MARKERS = new Set([
+  "smoke",
+  "flash",
+  "he",
+  "molotov",
+]);
+
+const DEFAULT_EFFECT_SIZE = 62;
+
+function clamp(value, min, max) {
+  return Math.min(
+    max,
+    Math.max(min, value),
+  );
+}
+
+function isEffectMarker(item) {
+  return (
+    item?.type === "marker" &&
+    EFFECT_MARKERS.has(item.marker)
+  );
+}
+
+function getEffectSize(item) {
+  if (!isEffectMarker(item)) {
+    return 0;
+  }
+
+  return Number(item.effectSize) ||
+    Math.max(
+      DEFAULT_EFFECT_SIZE,
+      (Number(item.markerSize) || 24) * 2.4,
+    );
+}
+
+function translateItem(
+  item,
+  dx,
+  dy,
+) {
+  if (!item) return item;
+
+  if (item.type === "marker" ||
+      item.type === "text") {
+    return {
+      ...item,
+      x: clamp(
+        Number(item.x) + dx,
+        0,
+        1000,
+      ),
+      y: clamp(
+        Number(item.y) + dy,
+        0,
+        1000,
+      ),
+    };
+  }
+
+  if (item.type === "circle") {
+    return {
+      ...item,
+      cx: clamp(
+        Number(item.cx) + dx,
+        0,
+        1000,
+      ),
+      cy: clamp(
+        Number(item.cy) + dy,
+        0,
+        1000,
+      ),
+    };
+  }
+
+  if (item.type === "arrow") {
+    return {
+      ...item,
+      x1: item.x1 + dx,
+      y1: item.y1 + dy,
+      x2: item.x2 + dx,
+      y2: item.y2 + dy,
+    };
+  }
+
+  if (item.type === "path") {
+    return {
+      ...item,
+      points: item.points.map(
+        (point) => ({
+          x: point.x + dx,
+          y: point.y + dy,
+        }),
+      ),
+    };
+  }
+
+  if (item.type === "area") {
+    return {
+      ...item,
+      x1: item.x1 + dx,
+      y1: item.y1 + dy,
+      x2: item.x2 + dx,
+      y2: item.y2 + dy,
+    };
+  }
+
+  return item;
+}
+
+function cloneWithOffset(
+  item,
+  offset = 24,
+) {
+  return translateItem(
+    {
+      ...item,
+      id: makeId(),
+    },
+    offset,
+    offset,
+  );
+}
+
 const COPY = {
   uk: {
     eyebrow: "ISTe PLAYER HUB",
@@ -149,6 +273,7 @@ const COPY = {
     circle: "Коло",
     text: "Текст",
     marker: "Об'єкт",
+    area: "Область",
     label: "Текст мітки",
     labelPlaceholder: "Наприклад: execute",
     objects: "Об'єкти",
@@ -156,6 +281,18 @@ const COPY = {
     redo: "Повернути",
     remove: "Видалити вибране",
     clear: "Очистити карту",
+    copy: "Копіювати",
+    paste: "Вставити",
+    quickActions: "Швидкі дії",
+    selectedObject: "Вибраний об'єкт",
+    size: "Розмір",
+    moveHint: "Перетягуйте вибраний об'єкт прямо по карті.",
+    centerBoard: "Центрувати",
+    zoomIn: "Збільшити",
+    zoomOut: "Зменшити",
+    fullscreen: "На весь екран",
+    exitFullscreen: "Вийти з повного екрана",
+    confirmClear: "Очистити всі об'єкти на карті?",
     colors: "Кольори",
     selected: "Вибрано",
     noSelection: "Нічого",
@@ -191,6 +328,7 @@ const COPY = {
       circle: "Коло",
       text: "Текст",
       marker: "Об'єкт",
+      area: "Область",
     },
   },
   en: {
@@ -258,6 +396,7 @@ const COPY = {
     circle: "Circle",
     text: "Text",
     marker: "Object",
+    area: "Area",
     label: "Text label",
     labelPlaceholder: "Example: execute",
     objects: "Objects",
@@ -265,6 +404,18 @@ const COPY = {
     redo: "Redo",
     remove: "Delete selected",
     clear: "Clear board",
+    copy: "Copy",
+    paste: "Paste",
+    quickActions: "Quick actions",
+    selectedObject: "Selected object",
+    size: "Size",
+    moveHint: "Drag the selected object directly on the map.",
+    centerBoard: "Center board",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
+    fullscreen: "Fullscreen",
+    exitFullscreen: "Exit fullscreen",
+    confirmClear: "Clear all objects from the map?",
     colors: "Colors",
     selected: "Selected",
     noSelection: "Nothing",
@@ -300,6 +451,7 @@ const COPY = {
       circle: "Circle",
       text: "Text",
       marker: "Object",
+      area: "Area",
     },
   },
 };
@@ -400,7 +552,7 @@ function pointFromEvent(event) {
 function ArrowShape({
   item,
   selected,
-  onSelect,
+  onPointerDown,
 }) {
   const dx = item.x2 - item.x1;
   const dy = item.y2 - item.y1;
@@ -438,7 +590,7 @@ function ArrowShape({
     <g
       onPointerDown={(event) => {
         event.stopPropagation();
-        onSelect(item.id);
+        onPointerDown(event, item);
       }}
     >
       <line
@@ -464,18 +616,281 @@ function ArrowShape({
   );
 }
 
+function EffectMarker({
+  item,
+  selected,
+  common,
+}) {
+  const size =
+    getEffectSize(item);
+  const opacity =
+    Number.isFinite(item.opacity)
+      ? item.opacity
+      : 1;
+
+  const selection = selected ? (
+    <circle
+      r={size * 0.68}
+      fill="none"
+      stroke="#ff3345"
+      strokeWidth="5"
+      strokeDasharray="12 8"
+      opacity="0.95"
+      pointerEvents="none"
+    />
+  ) : null;
+
+  if (item.marker === "smoke") {
+    const cloud = [
+      [-0.32, -0.05, 0.36],
+      [-0.1, -0.24, 0.39],
+      [0.18, -0.18, 0.34],
+      [0.34, 0.04, 0.35],
+      [0.12, 0.2, 0.42],
+      [-0.18, 0.2, 0.4],
+      [0, 0, 0.46],
+    ];
+
+    return (
+      <g
+        {...common}
+        transform={
+          `translate(${item.x} ${item.y})`
+        }
+        opacity={opacity}
+        className={
+          selected
+            ? "tactics-effect tactics-effect--selected"
+            : "tactics-effect"
+        }
+      >
+        <circle
+          r={size * 0.7}
+          fill="transparent"
+          pointerEvents="all"
+        />
+
+        <g
+          filter="url(#tactics-smoke-blur)"
+          pointerEvents="none"
+        >
+          {cloud.map(
+            ([x, y, radius], index) => (
+              <circle
+                key={index}
+                cx={x * size}
+                cy={y * size}
+                r={radius * size}
+                fill={
+                  index % 2
+                    ? "#d9dde2"
+                    : "#bfc5cb"
+                }
+                opacity={
+                  index === 6
+                    ? 0.62
+                    : 0.48
+                }
+              />
+            ),
+          )}
+        </g>
+
+        <circle
+          r={size * 0.43}
+          fill="rgba(225,229,234,0.25)"
+          pointerEvents="none"
+        />
+
+        {selection}
+      </g>
+    );
+  }
+
+  if (item.marker === "flash") {
+    const rays =
+      Array.from(
+        { length: 8 },
+        (_, index) =>
+          index * 45,
+      );
+
+    return (
+      <g
+        {...common}
+        transform={
+          `translate(${item.x} ${item.y})`
+        }
+        opacity={opacity}
+        className="tactics-effect"
+      >
+        <circle
+          r={size * 0.62}
+          fill="transparent"
+          pointerEvents="all"
+        />
+
+        <g
+          filter="url(#tactics-flash-glow)"
+          pointerEvents="none"
+        >
+          <circle
+            r={size * 0.16}
+            fill="#ffffff"
+          />
+
+          {rays.map(
+            (angle) => (
+              <line
+                key={angle}
+                x1="0"
+                y1={-size * 0.25}
+                x2="0"
+                y2={-size * 0.58}
+                stroke="#ffffff"
+                strokeWidth={size * 0.08}
+                strokeLinecap="round"
+                transform={
+                  `rotate(${angle})`
+                }
+              />
+            ),
+          )}
+        </g>
+
+        {selection}
+      </g>
+    );
+  }
+
+  if (item.marker === "he") {
+    const rays =
+      Array.from(
+        { length: 12 },
+        (_, index) =>
+          index * 30,
+      );
+
+    return (
+      <g
+        {...common}
+        transform={
+          `translate(${item.x} ${item.y})`
+        }
+        opacity={opacity}
+        className="tactics-effect"
+      >
+        <circle
+          r={size * 0.65}
+          fill="transparent"
+          pointerEvents="all"
+        />
+
+        <g
+          filter="url(#tactics-he-glow)"
+          pointerEvents="none"
+        >
+          <circle
+            r={size * 0.16}
+            fill="rgba(255,45,65,0.28)"
+            stroke="#ff3345"
+            strokeWidth={size * 0.07}
+          />
+
+          {rays.map(
+            (angle, index) => (
+              <line
+                key={angle}
+                x1="0"
+                y1={-size * 0.28}
+                x2="0"
+                y2={
+                  -size *
+                  (index % 2
+                    ? 0.48
+                    : 0.6)
+                }
+                stroke="#ff3345"
+                strokeWidth={size * 0.065}
+                strokeLinecap="round"
+                transform={
+                  `rotate(${angle})`
+                }
+              />
+            ),
+          )}
+        </g>
+
+        {selection}
+      </g>
+    );
+  }
+
+  const scale =
+    size / 70;
+
+  return (
+    <g
+      {...common}
+      transform={
+        `translate(${item.x} ${item.y}) scale(${scale})`
+      }
+      opacity={opacity}
+      className="tactics-effect"
+    >
+      <path
+        d="M-31 8 -25-22 -8-34 5-24 18-30 30-9 23 13 7 27 -12 31 -30 19 Z"
+        fill="rgba(255,105,47,0.32)"
+        stroke="#ff7b3d"
+        strokeWidth="4"
+        filter="url(#tactics-molotov-glow)"
+        pointerEvents="all"
+      />
+      <path
+        d="M-20 10 -13-14 -2-22 6-11 15-18 20-2 12 14 0 21 -13 18 Z"
+        fill="rgba(255,139,63,0.24)"
+        pointerEvents="none"
+      />
+      {selected ? (
+        <circle
+          r="48"
+          fill="none"
+          stroke="#ff3345"
+          strokeWidth="5"
+          strokeDasharray="12 8"
+          vectorEffect="non-scaling-stroke"
+          pointerEvents="none"
+        />
+      ) : null}
+    </g>
+  );
+}
+
 function BoardItem({
   item,
   selected,
-  onSelect,
+  onItemPointerDown,
   copy,
 }) {
   const common = {
     onPointerDown: (event) => {
       event.stopPropagation();
-      onSelect(item.id);
+      onItemPointerDown(
+        event,
+        item,
+      );
     },
   };
+
+  if (isEffectMarker(item)) {
+    return (
+      <EffectMarker
+        item={item}
+        selected={selected}
+        common={common}
+      />
+    );
+  }
 
   if (item.type === "path") {
     return (
@@ -510,7 +925,9 @@ function BoardItem({
       <ArrowShape
         item={item}
         selected={selected}
-        onSelect={onSelect}
+        onPointerDown={
+          onItemPointerDown
+        }
       />
     );
   }
@@ -534,6 +951,39 @@ function BoardItem({
             ? item.opacity
             : 1
         }
+      />
+    );
+  }
+
+  if (item.type === "area") {
+    const x =
+      Math.min(item.x1, item.x2);
+    const y =
+      Math.min(item.y1, item.y2);
+    const width =
+      Math.abs(item.x2 - item.x1);
+    const height =
+      Math.abs(item.y2 - item.y1);
+
+    return (
+      <rect
+        {...common}
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        rx="14"
+        fill={item.color}
+        fillOpacity={
+          (Number.isFinite(item.opacity)
+            ? item.opacity
+            : 1) * 0.18
+        }
+        stroke={item.color}
+        strokeWidth={
+          selected ? 8 : 5
+        }
+        strokeDasharray="14 9"
       />
     );
   }
@@ -565,7 +1015,9 @@ function BoardItem({
     return (
       <g
         {...common}
-        transform={`translate(${item.x} ${item.y})`}
+        transform={
+          `translate(${item.x} ${item.y})`
+        }
       >
         <circle
           r={
@@ -597,6 +1049,7 @@ function BoardItem({
               : "14"
           }
           fontWeight="1000"
+          pointerEvents="none"
         >
           {item.label ||
             copy.markerLabels[item.marker]}
@@ -607,7 +1060,6 @@ function BoardItem({
 
   return null;
 }
-
 
 function sanitizeFileName(value) {
   return String(value || "iste-tactic")
@@ -835,18 +1287,320 @@ function drawBoardItemOnCanvas(
     return;
   }
 
-  if (item.type === "marker") {
+  if (item.type === "area") {
     const x =
-      item.x * scale;
+      Math.min(item.x1, item.x2) * scale;
     const y =
-      item.y * scale;
-    const radius =
-      (item.markerSize || 24) * scale;
+      Math.min(item.y1, item.y2) * scale;
+    const width =
+      Math.abs(item.x2 - item.x1) * scale;
+    const height =
+      Math.abs(item.y2 - item.y1) * scale;
 
     context.globalAlpha =
       Number.isFinite(item.opacity)
         ? item.opacity
         : 1;
+    context.fillStyle =
+      item.color;
+    context.strokeStyle =
+      item.color;
+    context.lineWidth =
+      5 * scale;
+    context.setLineDash([
+      14 * scale,
+      9 * scale,
+    ]);
+    context.fillRect(
+      x,
+      y,
+      width,
+      height,
+    );
+    context.globalAlpha *= 0.18;
+    context.fillRect(
+      x,
+      y,
+      width,
+      height,
+    );
+    context.globalAlpha =
+      Number.isFinite(item.opacity)
+        ? item.opacity
+        : 1;
+    context.strokeRect(
+      x,
+      y,
+      width,
+      height,
+    );
+    context.setLineDash([]);
+    context.globalAlpha = 1;
+    return;
+  }
+
+  if (item.type === "marker") {
+    const x =
+      item.x * scale;
+    const y =
+      item.y * scale;
+    const opacityValue =
+      Number.isFinite(item.opacity)
+        ? item.opacity
+        : 1;
+
+    if (isEffectMarker(item)) {
+      const size =
+        getEffectSize(item) *
+        scale;
+
+      context.save();
+      context.globalAlpha =
+        opacityValue;
+
+      if (item.marker === "smoke") {
+        const cloud = [
+          [-0.32, -0.05, 0.36],
+          [-0.1, -0.24, 0.39],
+          [0.18, -0.18, 0.34],
+          [0.34, 0.04, 0.35],
+          [0.12, 0.2, 0.42],
+          [-0.18, 0.2, 0.4],
+          [0, 0, 0.46],
+        ];
+
+        context.shadowColor =
+          "rgba(225,229,235,0.35)";
+        context.shadowBlur =
+          size * 0.24;
+
+        cloud.forEach(
+          ([dx, dy, radius], index) => {
+            const gradient =
+              context.createRadialGradient(
+                x + dx * size,
+                y + dy * size,
+                0,
+                x + dx * size,
+                y + dy * size,
+                radius * size,
+              );
+
+            gradient.addColorStop(
+              0,
+              index % 2
+                ? "rgba(235,238,242,0.72)"
+                : "rgba(205,210,216,0.68)",
+            );
+            gradient.addColorStop(
+              0.72,
+              "rgba(182,189,197,0.36)",
+            );
+            gradient.addColorStop(
+              1,
+              "rgba(165,172,180,0)",
+            );
+
+            context.fillStyle =
+              gradient;
+            context.beginPath();
+            context.arc(
+              x + dx * size,
+              y + dy * size,
+              radius * size,
+              0,
+              Math.PI * 2,
+            );
+            context.fill();
+          },
+        );
+      } else if (
+        item.marker === "flash"
+      ) {
+        const gradient =
+          context.createRadialGradient(
+            x,
+            y,
+            0,
+            x,
+            y,
+            size * 0.62,
+          );
+
+        gradient.addColorStop(
+          0,
+          "rgba(255,255,255,1)",
+        );
+        gradient.addColorStop(
+          0.2,
+          "rgba(255,255,255,0.94)",
+        );
+        gradient.addColorStop(
+          1,
+          "rgba(255,255,255,0)",
+        );
+
+        context.fillStyle =
+          gradient;
+        context.fillRect(
+          x - size,
+          y - size,
+          size * 2,
+          size * 2,
+        );
+
+        context.strokeStyle =
+          "#ffffff";
+        context.lineWidth =
+          size * 0.07;
+        context.lineCap = "round";
+
+        for (
+          let angle = 0;
+          angle < Math.PI * 2;
+          angle += Math.PI / 4
+        ) {
+          context.beginPath();
+          context.moveTo(
+            x +
+              Math.cos(angle) *
+                size *
+                0.24,
+            y +
+              Math.sin(angle) *
+                size *
+                0.24,
+          );
+          context.lineTo(
+            x +
+              Math.cos(angle) *
+                size *
+                0.58,
+            y +
+              Math.sin(angle) *
+                size *
+                0.58,
+          );
+          context.stroke();
+        }
+      } else if (
+        item.marker === "he"
+      ) {
+        context.strokeStyle =
+          "#ff3345";
+        context.fillStyle =
+          "rgba(255,51,69,0.2)";
+        context.lineWidth =
+          size * 0.065;
+        context.shadowColor =
+          "rgba(255,51,69,0.55)";
+        context.shadowBlur =
+          size * 0.18;
+
+        context.beginPath();
+        context.arc(
+          x,
+          y,
+          size * 0.16,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+        context.stroke();
+
+        for (
+          let index = 0;
+          index < 12;
+          index += 1
+        ) {
+          const angle =
+            index *
+            (Math.PI * 2 / 12);
+
+          context.beginPath();
+          context.moveTo(
+            x +
+              Math.cos(angle) *
+                size *
+                0.27,
+            y +
+              Math.sin(angle) *
+                size *
+                0.27,
+          );
+          context.lineTo(
+            x +
+              Math.cos(angle) *
+                size *
+                (index % 2
+                  ? 0.48
+                  : 0.6),
+            y +
+              Math.sin(angle) *
+                size *
+                (index % 2
+                  ? 0.48
+                  : 0.6),
+          );
+          context.stroke();
+        }
+      } else {
+        context.fillStyle =
+          "rgba(255,105,47,0.3)";
+        context.strokeStyle =
+          "#ff7b3d";
+        context.lineWidth =
+          size * 0.055;
+        context.shadowColor =
+          "rgba(255,123,61,0.52)";
+        context.shadowBlur =
+          size * 0.18;
+
+        context.beginPath();
+
+        const points = [
+          [-0.45, 0.12],
+          [-0.36, -0.32],
+          [-0.12, -0.48],
+          [0.08, -0.34],
+          [0.26, -0.44],
+          [0.44, -0.12],
+          [0.34, 0.2],
+          [0.1, 0.4],
+          [-0.18, 0.44],
+          [-0.44, 0.28],
+        ];
+
+        points.forEach(
+          ([dx, dy], index) => {
+            const px =
+              x + dx * size;
+            const py =
+              y + dy * size;
+
+            if (!index) {
+              context.moveTo(px, py);
+            } else {
+              context.lineTo(px, py);
+            }
+          },
+        );
+
+        context.closePath();
+        context.fill();
+        context.stroke();
+      }
+
+      context.restore();
+      return;
+    }
+
+    const radius =
+      (item.markerSize || 24) *
+      scale;
+
+    context.globalAlpha =
+      opacityValue;
     context.fillStyle =
       markerFill(
         item.marker,
@@ -1017,6 +1771,10 @@ export default function PlayerTactics() {
     useState(null);
   const [selectedId, setSelectedId] =
     useState("");
+  const [clipboardItem, setClipboardItem] =
+    useState(null);
+  const [zoom, setZoom] =
+    useState(1);
   const [saving, setSaving] =
     useState(false);
   const [deleting, setDeleting] =
@@ -1033,6 +1791,14 @@ export default function PlayerTactics() {
     useState(0);
 
   const liveChannelRef =
+    useRef(null);
+  const overlayRef =
+    useRef(null);
+  const boardStageRef =
+    useRef(null);
+  const dragRef =
+    useRef(null);
+  const inspectorHistoryRef =
     useRef(null);
   const applyingRemoteRef =
     useRef(false);
@@ -1325,14 +2091,203 @@ export default function PlayerTactics() {
     void loadTactics();
   }, [loadTactics]);
 
-  function commitItems(nextItems) {
+  function commitItems(
+    nextItems,
+    nextSelectedId = "",
+  ) {
     setPast((current) => [
       ...current,
       items,
     ]);
     setItems(nextItems);
     setFuture([]);
-    setSelectedId("");
+    setSelectedId(
+      nextSelectedId,
+    );
+  }
+
+  function boardPoint(
+    event,
+  ) {
+    const rect =
+      overlayRef.current
+        ?.getBoundingClientRect();
+
+    if (!rect) {
+      return {
+        x: 0,
+        y: 0,
+      };
+    }
+
+    return {
+      x: clamp(
+        ((event.clientX - rect.left) /
+          rect.width) *
+          1000,
+        0,
+        1000,
+      ),
+      y: clamp(
+        ((event.clientY - rect.top) /
+          rect.height) *
+          1000,
+        0,
+        1000,
+      ),
+    };
+  }
+
+  function beginItemDrag(
+    event,
+    item,
+  ) {
+    setSelectedId(item.id);
+
+    if (
+      tool !== "select" ||
+      event?.clientX === undefined
+    ) {
+      return;
+    }
+
+    event.preventDefault?.();
+
+    const start =
+      boardPoint(event);
+
+    dragRef.current = {
+      id: item.id,
+      start,
+      snapshot: items,
+    };
+
+    event.currentTarget
+      ?.setPointerCapture?.(
+        event.pointerId,
+      );
+  }
+
+  function beginInspectorEdit() {
+    if (
+      !inspectorHistoryRef.current
+    ) {
+      inspectorHistoryRef.current =
+        items;
+    }
+  }
+
+  function finishInspectorEdit() {
+    const snapshot =
+      inspectorHistoryRef.current;
+
+    if (!snapshot) return;
+
+    setPast((current) => [
+      ...current,
+      snapshot,
+    ]);
+
+    setFuture([]);
+    inspectorHistoryRef.current =
+      null;
+  }
+
+  function patchSelectedItem(
+    patch,
+  ) {
+    if (!selectedId) return;
+
+    setItems((current) =>
+      current.map((item) =>
+        item.id === selectedId
+          ? {
+              ...item,
+              ...patch,
+            }
+          : item,
+      ),
+    );
+  }
+
+  function copySelected() {
+    const selected =
+      items.find(
+        (item) =>
+          item.id === selectedId,
+      );
+
+    if (!selected) return;
+
+    setClipboardItem(
+      structuredClone(selected),
+    );
+  }
+
+  function pasteClipboard() {
+    if (!clipboardItem) return;
+
+    const clone =
+      cloneWithOffset(
+        structuredClone(
+          clipboardItem,
+        ),
+      );
+
+    commitItems(
+      [...items, clone],
+      clone.id,
+    );
+  }
+
+  function clearBoard() {
+    if (
+      !items.length ||
+      !window.confirm(
+        c.confirmClear,
+      )
+    ) {
+      return;
+    }
+
+    commitItems([]);
+  }
+
+  function zoomBoard(delta) {
+    setZoom((current) =>
+      clamp(
+        Number(
+          (
+            current + delta
+          ).toFixed(2),
+        ),
+        0.75,
+        1.75,
+      ),
+    );
+  }
+
+  function centerBoard() {
+    setZoom(1);
+  }
+
+  async function toggleFullscreen() {
+    const element =
+      boardStageRef.current;
+
+    if (!element) return;
+
+    if (
+      document.fullscreenElement
+    ) {
+      await document
+        .exitFullscreen?.();
+
+      return;
+    }
+
+    await element
+      .requestFullscreen?.();
   }
 
   function undo() {
@@ -1725,21 +2680,32 @@ export default function PlayerTactics() {
           ? `${c.markerLabels[markerType]}${count}`
           : c.markerLabels[markerType];
 
-    commitItems([
-      ...items,
-      {
-        id: makeId(),
-        type: "marker",
-        marker: markerType,
-        label,
-        x: point.x,
-        y: point.y,
-        markerSize:
-          MARKER_SIZES[markerSize],
-        opacity:
-          opacity / 100,
-      },
-    ]);
+    const id = makeId();
+
+    commitItems(
+      [
+        ...items,
+        {
+          id,
+          type: "marker",
+          marker: markerType,
+          label,
+          x: point.x,
+          y: point.y,
+          markerSize:
+            MARKER_SIZES[markerSize],
+          effectSize:
+            EFFECT_MARKERS.has(
+              markerType,
+            )
+              ? DEFAULT_EFFECT_SIZE
+              : undefined,
+          opacity:
+            opacity / 100,
+        },
+      ],
+      id,
+    );
   }
 
   function handlePointerDown(
@@ -1753,7 +2719,7 @@ export default function PlayerTactics() {
     }
 
     const point =
-      pointFromEvent(event);
+      boardPoint(event);
 
     setSelectedId("");
 
@@ -1761,8 +2727,62 @@ export default function PlayerTactics() {
       return;
     }
 
-    if (tool === "marker") {
-      addMarker(point);
+    if (
+      tool === "marker" ||
+      tool === "smoke"
+    ) {
+      if (tool === "smoke") {
+        setMarkerType("smoke");
+      }
+
+      const type =
+        tool === "smoke"
+          ? "smoke"
+          : markerType;
+
+      const count =
+        items.filter(
+          (item) =>
+            item.type === "marker" &&
+            item.marker === type,
+        ).length + 1;
+
+      const customLabel =
+        objectLabel.trim();
+
+      const label =
+        customLabel
+          ? customLabel.slice(0, 12)
+          : type === "t" ||
+              type === "ct"
+            ? `${c.markerLabels[type]}${count}`
+            : c.markerLabels[type];
+
+      const id = makeId();
+
+      commitItems(
+        [
+          ...items,
+          {
+            id,
+            type: "marker",
+            marker: type,
+            label,
+            x: point.x,
+            y: point.y,
+            markerSize:
+              MARKER_SIZES[markerSize],
+            effectSize:
+              EFFECT_MARKERS.has(type)
+                ? DEFAULT_EFFECT_SIZE
+                : undefined,
+            opacity:
+              opacity / 100,
+          },
+        ],
+        id,
+      );
+
       return;
     }
 
@@ -1772,21 +2792,29 @@ export default function PlayerTactics() {
 
       if (!value) return;
 
-      commitItems([
-        ...items,
-        {
-          id: makeId(),
-          type: "text",
-          text: value.slice(0, 60),
-          x: point.x,
-          y: point.y,
-          color,
-          fontSize:
-            FONT_SIZES[strokeSize],
-          opacity:
-            opacity / 100,
-        },
-      ]);
+      const id = makeId();
+
+      commitItems(
+        [
+          ...items,
+          {
+            id,
+            type: "text",
+            text:
+              value.slice(0, 60),
+            x: point.x,
+            y: point.y,
+            color,
+            fontSize:
+              FONT_SIZES[
+                strokeSize
+              ],
+            opacity:
+              opacity / 100,
+          },
+        ],
+        id,
+      );
 
       return;
     }
@@ -1839,15 +2867,59 @@ export default function PlayerTactics() {
         r: 0,
       });
     }
+
+    if (tool === "area") {
+      setDraft({
+        id: makeId(),
+        type: "area",
+        color,
+        opacity:
+          opacity / 100,
+        x1: point.x,
+        y1: point.y,
+        x2: point.x,
+        y2: point.y,
+      });
+    }
   }
 
   function handlePointerMove(
     event,
   ) {
+    if (dragRef.current) {
+      const current =
+        boardPoint(event);
+
+      const {
+        start,
+        snapshot,
+        id,
+      } = dragRef.current;
+
+      const dx =
+        current.x - start.x;
+      const dy =
+        current.y - start.y;
+
+      setItems(
+        snapshot.map((item) =>
+          item.id === id
+            ? translateItem(
+                item,
+                dx,
+                dy,
+              )
+            : item,
+        ),
+      );
+
+      return;
+    }
+
     if (!draft) return;
 
     const point =
-      pointFromEvent(event);
+      boardPoint(event);
 
     if (draft.type === "path") {
       const last =
@@ -1896,10 +2968,36 @@ export default function PlayerTactics() {
           ),
         ),
       }));
+
+      return;
+    }
+
+    if (draft.type === "area") {
+      setDraft((current) => ({
+        ...current,
+        x2: point.x,
+        y2: point.y,
+      }));
     }
   }
 
   function handlePointerUp() {
+    if (dragRef.current) {
+      const {
+        snapshot,
+      } = dragRef.current;
+
+      dragRef.current = null;
+
+      setPast((current) => [
+        ...current,
+        snapshot,
+      ]);
+
+      setFuture([]);
+      return;
+    }
+
     if (!draft) return;
 
     const valid =
@@ -1910,13 +3008,22 @@ export default function PlayerTactics() {
               draft.x2 - draft.x1,
               draft.y2 - draft.y1,
             ) > 8
-          : draft.r > 8;
+          : draft.type === "circle"
+            ? draft.r > 8
+            : Math.abs(
+                  draft.x2 -
+                    draft.x1,
+                ) > 8 &&
+              Math.abs(
+                draft.y2 -
+                  draft.y1,
+              ) > 8;
 
     if (valid) {
-      commitItems([
-        ...items,
-        draft,
-      ]);
+      commitItems(
+        [...items, draft],
+        draft.id,
+      );
     }
 
     setDraft(null);
@@ -1949,10 +3056,11 @@ export default function PlayerTactics() {
 
         const shortcutTool = {
           v: "select",
-          p: "draw",
           a: "arrow",
           c: "circle",
           t: "text",
+          s: "smoke",
+          r: "area",
           o: "marker",
         }[shortcut];
 
@@ -1967,6 +3075,26 @@ export default function PlayerTactics() {
         !isTyping
       ) {
         deleteSelected();
+      }
+
+      if (
+        (event.ctrlKey ||
+          event.metaKey) &&
+        event.key.toLowerCase() === "c" &&
+        !isTyping
+      ) {
+        event.preventDefault();
+        copySelected();
+      }
+
+      if (
+        (event.ctrlKey ||
+          event.metaKey) &&
+        event.key.toLowerCase() === "v" &&
+        !isTyping
+      ) {
+        event.preventDefault();
+        pasteClipboard();
       }
 
       if (
@@ -2009,12 +3137,6 @@ export default function PlayerTactics() {
       shortcut: "V",
     },
     {
-      id: "draw",
-      label: c.draw,
-      icon: "✎",
-      shortcut: "P",
-    },
-    {
       id: "arrow",
       label: c.arrow,
       icon: "↗",
@@ -2033,10 +3155,17 @@ export default function PlayerTactics() {
       shortcut: "T",
     },
     {
-      id: "marker",
-      label: c.marker,
-      icon: "●",
-      shortcut: "O",
+      id: "smoke",
+      label:
+        c.markerNames.smoke,
+      icon: "☁",
+      shortcut: "S",
+    },
+    {
+      id: "area",
+      label: c.area,
+      icon: "▧",
+      shortcut: "R",
     },
   ];
 
@@ -2312,10 +3441,71 @@ export default function PlayerTactics() {
               </div>
             </div>
 
-            <div className="tactics-board-stage">
+            <div
+              className="tactics-board-stage"
+              ref={boardStageRef}
+            >
               <div className="tactics-board-glow" />
 
-              <div className="tactics-board-shell tactics-board-shell--v3">
+              <div className="tactics-board-controls">
+                <button
+                  type="button"
+                  onClick={centerBoard}
+                  title={c.centerBoard}
+                  aria-label={c.centerBoard}
+                >
+                  ◎
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    zoomBoard(0.1)
+                  }
+                  title={c.zoomIn}
+                  aria-label={c.zoomIn}
+                >
+                  +
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    zoomBoard(-0.1)
+                  }
+                  title={c.zoomOut}
+                  aria-label={c.zoomOut}
+                >
+                  −
+                </button>
+
+                <button
+                  type="button"
+                  onClick={
+                    toggleFullscreen
+                  }
+                  title={
+                    document.fullscreenElement
+                      ? c.exitFullscreen
+                      : c.fullscreen
+                  }
+                  aria-label={
+                    document.fullscreenElement
+                      ? c.exitFullscreen
+                      : c.fullscreen
+                  }
+                >
+                  ⛶
+                </button>
+              </div>
+
+              <div
+                className="tactics-board-shell tactics-board-shell--v3"
+                style={{
+                  transform:
+                    `scale(${zoom})`,
+                }}
+              >
                 <img
                   className="tactics-radar"
                   src={radarUrl}
@@ -2325,6 +3515,7 @@ export default function PlayerTactics() {
                 />
 
                 <svg
+                  ref={overlayRef}
                   className="tactics-overlay"
                   viewBox="0 0 1000 1000"
                   preserveAspectRatio="none"
@@ -2333,6 +3524,70 @@ export default function PlayerTactics() {
                   onPointerUp={handlePointerUp}
                   onPointerCancel={handlePointerUp}
                 >
+                  <defs>
+                    <filter
+                      id="tactics-smoke-blur"
+                      x="-60%"
+                      y="-60%"
+                      width="220%"
+                      height="220%"
+                    >
+                      <feGaussianBlur
+                        stdDeviation="7"
+                      />
+                    </filter>
+
+                    <filter
+                      id="tactics-flash-glow"
+                      x="-80%"
+                      y="-80%"
+                      width="260%"
+                      height="260%"
+                    >
+                      <feGaussianBlur
+                        stdDeviation="5"
+                        result="blur"
+                      />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+
+                    <filter
+                      id="tactics-he-glow"
+                      x="-70%"
+                      y="-70%"
+                      width="240%"
+                      height="240%"
+                    >
+                      <feGaussianBlur
+                        stdDeviation="3"
+                        result="blur"
+                      />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+
+                    <filter
+                      id="tactics-molotov-glow"
+                      x="-70%"
+                      y="-70%"
+                      width="240%"
+                      height="240%"
+                    >
+                      <feDropShadow
+                        dx="0"
+                        dy="0"
+                        stdDeviation="6"
+                        floodColor="#ff6a2f"
+                        floodOpacity="0.65"
+                      />
+                    </filter>
+                  </defs>
+
                   {visibleItems.map(
                     (item) => (
                       <BoardItem
@@ -2341,7 +3596,9 @@ export default function PlayerTactics() {
                         selected={
                           item.id === selectedId
                         }
-                        onSelect={setSelectedId}
+                        onItemPointerDown={
+                          beginItemDrag
+                        }
                         copy={c}
                       />
                     ),
@@ -2451,57 +3708,6 @@ export default function PlayerTactics() {
                 ))}
               </div>
 
-              {tool !== "marker" ? (
-                <div className="tactics-compact-settings">
-                  <div className="tactics-size-switch">
-                    {[
-                      ["thin", c.thin],
-                      ["medium", c.medium],
-                      ["thick", c.thick],
-                    ].map(([id, label]) => (
-                      <button
-                        type="button"
-                        key={id}
-                        className={
-                          strokeSize === id
-                            ? "active"
-                            : ""
-                        }
-                        onClick={() =>
-                          setStrokeSize(id)
-                        }
-                        title={label}
-                      >
-                        <i
-                          style={{
-                            height:
-                              STROKE_SIZES[id],
-                          }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-
-                  <label className="tactics-opacity-mini">
-                    <span>{opacity}%</span>
-                    <input
-                      type="range"
-                      min="25"
-                      max="100"
-                      step="5"
-                      value={opacity}
-                      onChange={(event) =>
-                        setOpacity(
-                          Number(
-                            event.target.value,
-                          ),
-                        )
-                      }
-                    />
-                  </label>
-                </div>
-              ) : null}
-
               {tool === "text" ? (
                 <input
                   className="tactics-context-input"
@@ -2608,56 +3814,153 @@ export default function PlayerTactics() {
                   </button>
                 ))}
               </div>
+            </section>
 
-              {tool === "marker" ? (
-                <div className="tactics-marker-settings">
-                  <div className="tactics-size-switch tactics-size-switch--markers">
-                    {[
-                      ["small", c.small],
-                      ["medium", c.medium],
-                      ["large", c.large],
-                    ].map(([id, label]) => (
-                      <button
-                        type="button"
-                        key={id}
-                        className={
-                          markerSize === id
-                            ? "active"
-                            : ""
-                        }
-                        onClick={() =>
-                          setMarkerSize(id)
-                        }
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
+            {selectedItem ? (
+              <section className="tactics-panel-card tactics-selected-card">
+                <div className="tactics-panel-title">
+                  <span aria-hidden="true">◇</span>
+                  <strong>{c.selectedObject}</strong>
+                </div>
+
+                <div className="tactics-selected-summary">
+                  <span>
+                    {isEffectMarker(selectedItem)
+                      ? c.markerNames[selectedItem.marker]
+                      : c.itemTypes[selectedItem.type] ||
+                        c.markerNames[selectedItem.marker] ||
+                        selectedItem.type}
+                  </span>
+
+                  <small>{c.moveHint}</small>
+                </div>
+
+                {(isEffectMarker(selectedItem) ||
+                  selectedItem.type === "marker") ? (
+                  <label className="tactics-selected-slider">
+                    <span>
+                      {c.size}
+                      <strong>
+                        {Math.round(
+                          isEffectMarker(selectedItem)
+                            ? getEffectSize(selectedItem)
+                            : Number(selectedItem.markerSize) || 24,
+                        )}
+                      </strong>
+                    </span>
+
+                    <input
+                      type="range"
+                      min={
+                        isEffectMarker(selectedItem)
+                          ? "28"
+                          : "14"
+                      }
+                      max={
+                        isEffectMarker(selectedItem)
+                          ? "130"
+                          : "52"
+                      }
+                      step="1"
+                      value={
+                        isEffectMarker(selectedItem)
+                          ? getEffectSize(selectedItem)
+                          : Number(selectedItem.markerSize) || 24
+                      }
+                      onPointerDown={beginInspectorEdit}
+                      onPointerUp={finishInspectorEdit}
+                      onChange={(event) =>
+                        patchSelectedItem(
+                          isEffectMarker(selectedItem)
+                            ? {
+                                effectSize:
+                                  Number(event.target.value),
+                              }
+                            : {
+                                markerSize:
+                                  Number(event.target.value),
+                              },
+                        )
+                      }
+                    />
+                  </label>
+                ) : null}
+
+                <label className="tactics-selected-slider">
+                  <span>
+                    {c.opacity}
+                    <strong>
+                      {Math.round(
+                        (
+                          Number.isFinite(selectedItem.opacity)
+                            ? selectedItem.opacity
+                            : 1
+                        ) * 100,
+                      )}
+                      %
+                    </strong>
+                  </span>
 
                   <input
-                    className="tactics-context-input"
-                    value={objectLabel}
-                    maxLength={12}
-                    placeholder={
-                      c.objectLabelPlaceholder
+                    type="range"
+                    min="25"
+                    max="100"
+                    step="5"
+                    value={
+                      (
+                        Number.isFinite(selectedItem.opacity)
+                          ? selectedItem.opacity
+                          : 1
+                      ) * 100
                     }
+                    onPointerDown={beginInspectorEdit}
+                    onPointerUp={finishInspectorEdit}
                     onChange={(event) =>
-                      setObjectLabel(
-                        event.target.value,
-                      )
+                      patchSelectedItem({
+                        opacity:
+                          Number(event.target.value) / 100,
+                      })
                     }
                   />
-                </div>
-              ) : null}
-            </section>
+                </label>
+              </section>
+            ) : null}
 
             <section className="tactics-panel-card">
               <div className="tactics-panel-title">
                 <span aria-hidden="true">⌘</span>
-                <strong>{c.history}</strong>
+                <strong>{c.quickActions}</strong>
               </div>
 
               <div className="tactics-quick-actions">
+                <button
+                  type="button"
+                  disabled={!selectedItem}
+                  onClick={copySelected}
+                >
+                  <span>⧉</span>
+                  {c.copy}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!clipboardItem}
+                  onClick={pasteClipboard}
+                >
+                  <span>▣</span>
+                  {c.paste}
+                </button>
+
+                <button
+                  type="button"
+                  className="tactics-clear-button"
+                  disabled={!items.length}
+                  onClick={clearBoard}
+                >
+                  <span>×</span>
+                  {c.clear}
+                </button>
+
                 <button
                   type="button"
                   disabled={!past.length}
@@ -2674,27 +3977,6 @@ export default function PlayerTactics() {
                 >
                   <span>↷</span>
                   {c.redo}
-                </button>
-
-                <button
-                  type="button"
-                  disabled={!selectedId}
-                  onClick={deleteSelected}
-                >
-                  <span>⌫</span>
-                  {c.remove}
-                </button>
-
-                <button
-                  type="button"
-                  className="tactics-clear-button"
-                  disabled={!items.length}
-                  onClick={() =>
-                    commitItems([])
-                  }
-                >
-                  <span>×</span>
-                  {c.clear}
                 </button>
               </div>
             </section>
