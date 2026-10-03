@@ -616,13 +616,67 @@ function ArrowShape({
   );
 }
 
+function TacticalObjectIcon({ type }) {
+  if (type === "t" || type === "ct") {
+    return (
+      <span className={`tactics-team-icon tactics-team-icon--${type}`}>
+        {type === "t" ? "T" : "CT"}
+      </span>
+    );
+  }
+
+  if (type === "bomb") {
+    return (
+      <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="6" y="9" width="20" height="15" rx="2.8" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M10 9V6h12v3M11 15h3m4 0h3M11 19h10M8 24v2m16-2v2" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+      </svg>
+    );
+  }
+
+  if (type === "smoke") {
+    return (
+      <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M11 7h10l2 4v13a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3V11l2-4Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+        <path d="M12 7V4h8v3M11 13h10M13 17h6M13 21h6" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+      </svg>
+    );
+  }
+
+  if (type === "flash") {
+    return (
+      <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M12 5h8l2 4v16a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V9l2-4Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+        <path d="M13 5V3h6v2M12 12h8M13 16h6M13 20h6" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+        <circle cx="14" cy="9" r="1" fill="currentColor" />
+        <circle cx="18" cy="9" r="1" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (type === "he") {
+    return (
+      <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M13 6h6v4h2l3 5-2 10-6 3-6-3-2-10 3-5h2V6Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+        <path d="M13 6V3h7m0 0 3 2M11 14h10M10 18h12M12 11l-2 14m10-14 2 14" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M13 4h6l1 6 4 5-2 12H10L8 15l4-5 1-6Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+      <path d="M13 8h6M12 11h8M19 5c3-3 5-1 4 2 2 0 3 2 1 4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
 function EffectMarker({
   item,
   selected,
   common,
 }) {
-  const size =
-    getEffectSize(item);
+  const size = getEffectSize(item);
   const opacity =
     Number.isFinite(item.opacity)
       ? item.opacity
@@ -630,234 +684,127 @@ function EffectMarker({
 
   const selection = selected ? (
     <circle
-      r={size * 0.68}
+      r={size * 0.62}
       fill="none"
       stroke="#ff3345"
-      strokeWidth="5"
-      strokeDasharray="12 8"
-      opacity="0.95"
+      strokeWidth="4"
+      strokeDasharray="10 8"
+      opacity="0.92"
       pointerEvents="none"
     />
   ) : null;
 
   if (item.marker === "smoke") {
-    const cloud = [
-      [-0.32, -0.05, 0.36],
-      [-0.1, -0.24, 0.39],
-      [0.18, -0.18, 0.34],
-      [0.34, 0.04, 0.35],
-      [0.12, 0.2, 0.42],
-      [-0.18, 0.2, 0.4],
-      [0, 0, 0.46],
-    ];
-
     return (
       <g
         {...common}
-        transform={
-          `translate(${item.x} ${item.y})`
-        }
+        transform={`translate(${item.x} ${item.y})`}
         opacity={opacity}
-        className={
-          selected
-            ? "tactics-effect tactics-effect--selected"
-            : "tactics-effect"
-        }
+        className={selected ? "tactics-effect tactics-effect--selected" : "tactics-effect"}
       >
-        <circle
-          r={size * 0.7}
-          fill="transparent"
-          pointerEvents="all"
-        />
-
-        <g
-          filter="url(#tactics-smoke-blur)"
-          pointerEvents="none"
-        >
-          {cloud.map(
-            ([x, y, radius], index) => (
-              <circle
-                key={index}
-                cx={x * size}
-                cy={y * size}
-                r={radius * size}
-                fill={
-                  index % 2
-                    ? "#d9dde2"
-                    : "#bfc5cb"
-                }
-                opacity={
-                  index === 6
-                    ? 0.62
-                    : 0.48
-                }
-              />
-            ),
-          )}
-        </g>
-
-        <circle
-          r={size * 0.43}
-          fill="rgba(225,229,234,0.25)"
-          pointerEvents="none"
-        />
-
+        <circle r={size * 0.64} fill="transparent" pointerEvents="all" />
+        <circle r={size * 0.5} fill="rgba(218,223,228,0.34)" filter="url(#tactics-smoke-soft)" pointerEvents="none" />
+        <circle r={size * 0.36} fill="rgba(238,240,243,0.58)" filter="url(#tactics-smoke-core)" pointerEvents="none" />
+        <circle r={size * 0.21} fill="rgba(255,255,255,0.4)" filter="url(#tactics-smoke-core)" pointerEvents="none" />
         {selection}
       </g>
     );
   }
 
   if (item.marker === "flash") {
-    const rays =
-      Array.from(
-        { length: 8 },
-        (_, index) =>
-          index * 45,
-      );
+    const rays = Array.from({ length: 8 }, (_, index) => index * 45);
 
     return (
       <g
         {...common}
-        transform={
-          `translate(${item.x} ${item.y})`
-        }
+        transform={`translate(${item.x} ${item.y})`}
         opacity={opacity}
         className="tactics-effect"
       >
-        <circle
-          r={size * 0.62}
-          fill="transparent"
-          pointerEvents="all"
-        />
-
-        <g
-          filter="url(#tactics-flash-glow)"
-          pointerEvents="none"
-        >
-          <circle
-            r={size * 0.16}
-            fill="#ffffff"
-          />
-
-          {rays.map(
-            (angle) => (
-              <line
-                key={angle}
-                x1="0"
-                y1={-size * 0.25}
-                x2="0"
-                y2={-size * 0.58}
-                stroke="#ffffff"
-                strokeWidth={size * 0.08}
-                strokeLinecap="round"
-                transform={
-                  `rotate(${angle})`
-                }
-              />
-            ),
-          )}
+        <circle r={size * 0.64} fill="transparent" pointerEvents="all" />
+        <g filter="url(#tactics-flash-soft)" pointerEvents="none">
+          <circle r={size * 0.18} fill="#ffffff" />
+          {rays.map((angle, index) => (
+            <path
+              key={angle}
+              d={`M 0 ${-size * 0.16} L ${size * 0.07} ${-size * (index % 2 ? 0.4 : 0.54)} L 0 ${-size * 0.66} L ${-size * 0.07} ${-size * (index % 2 ? 0.4 : 0.54)} Z`}
+              fill="#ffffff"
+              opacity={index % 2 ? 0.72 : 0.96}
+              transform={`rotate(${angle})`}
+            />
+          ))}
         </g>
-
         {selection}
       </g>
     );
   }
 
   if (item.marker === "he") {
-    const rays =
-      Array.from(
-        { length: 12 },
-        (_, index) =>
-          index * 30,
-      );
+    const rays = Array.from({ length: 16 }, (_, index) => index * 22.5);
 
     return (
       <g
         {...common}
-        transform={
-          `translate(${item.x} ${item.y})`
-        }
+        transform={`translate(${item.x} ${item.y})`}
         opacity={opacity}
         className="tactics-effect"
       >
-        <circle
-          r={size * 0.65}
-          fill="transparent"
-          pointerEvents="all"
-        />
-
-        <g
-          filter="url(#tactics-he-glow)"
-          pointerEvents="none"
-        >
+        <circle r={size * 0.65} fill="transparent" pointerEvents="all" />
+        <g filter="url(#tactics-he-soft)" pointerEvents="none">
           <circle
-            r={size * 0.16}
-            fill="rgba(255,45,65,0.28)"
-            stroke="#ff3345"
-            strokeWidth={size * 0.07}
+            r={size * 0.11}
+            fill="rgba(239,45,71,0.08)"
+            stroke="#ef2d47"
+            strokeWidth={size * 0.045}
           />
-
-          {rays.map(
-            (angle, index) => (
-              <line
-                key={angle}
-                x1="0"
-                y1={-size * 0.28}
-                x2="0"
-                y2={
-                  -size *
-                  (index % 2
-                    ? 0.48
-                    : 0.6)
-                }
-                stroke="#ff3345"
-                strokeWidth={size * 0.065}
-                strokeLinecap="round"
-                transform={
-                  `rotate(${angle})`
-                }
-              />
-            ),
-          )}
+          {rays.map((angle, index) => (
+            <line
+              key={angle}
+              x1="0"
+              y1={-size * 0.23}
+              x2="0"
+              y2={-size * (index % 2 ? 0.41 : 0.57)}
+              stroke="#ef2d47"
+              strokeWidth={size * 0.045}
+              strokeLinecap="round"
+              transform={`rotate(${angle})`}
+            />
+          ))}
         </g>
-
         {selection}
       </g>
     );
   }
 
-  const scale =
-    size / 70;
+  const scale = size / 70;
 
   return (
     <g
       {...common}
-      transform={
-        `translate(${item.x} ${item.y}) scale(${scale})`
-      }
+      transform={`translate(${item.x} ${item.y}) scale(${scale})`}
       opacity={opacity}
       className="tactics-effect"
     >
       <path
-        d="M-31 8 -25-22 -8-34 5-24 18-30 30-9 23 13 7 27 -12 31 -30 19 Z"
-        fill="rgba(255,105,47,0.32)"
-        stroke="#ff7b3d"
-        strokeWidth="4"
-        filter="url(#tactics-molotov-glow)"
+        d="M-31 8 -26-20 -13-29 2-25 11-34 22-23 31-4 24 14 8 27 -13 31 -29 19 Z"
+        fill="rgba(232,104,68,0.24)"
+        stroke="#e98769"
+        strokeWidth="3"
+        filter="url(#tactics-molotov-soft)"
         pointerEvents="all"
       />
       <path
-        d="M-20 10 -13-14 -2-22 6-11 15-18 20-2 12 14 0 21 -13 18 Z"
-        fill="rgba(255,139,63,0.24)"
+        d="M-26 8 -21-15 -9-22 2-19 9-27 17-17 24-3 18 10 6 20 -10 23 -23 15 Z"
+        fill="rgba(232,118,82,0.13)"
         pointerEvents="none"
       />
       {selected ? (
         <circle
-          r="48"
+          r="44"
           fill="none"
           stroke="#ff3345"
-          strokeWidth="5"
-          strokeDasharray="12 8"
+          strokeWidth="4"
+          strokeDasharray="10 8"
           vectorEffect="non-scaling-stroke"
           pointerEvents="none"
         />
@@ -1359,64 +1306,28 @@ function drawBoardItemOnCanvas(
         opacityValue;
 
       if (item.marker === "smoke") {
-        const cloud = [
-          [-0.32, -0.05, 0.36],
-          [-0.1, -0.24, 0.39],
-          [0.18, -0.18, 0.34],
-          [0.34, 0.04, 0.35],
-          [0.12, 0.2, 0.42],
-          [-0.18, 0.2, 0.4],
-          [0, 0, 0.46],
-        ];
+        const gradient =
+          context.createRadialGradient(
+            x,
+            y,
+            size * 0.03,
+            x,
+            y,
+            size * 0.58,
+          );
 
-        context.shadowColor =
-          "rgba(225,229,235,0.35)";
-        context.shadowBlur =
-          size * 0.24;
+        gradient.addColorStop(0, "rgba(255,255,255,0.78)");
+        gradient.addColorStop(0.38, "rgba(238,240,243,0.64)");
+        gradient.addColorStop(0.72, "rgba(205,211,217,0.3)");
+        gradient.addColorStop(1, "rgba(180,187,195,0)");
 
-        cloud.forEach(
-          ([dx, dy, radius], index) => {
-            const gradient =
-              context.createRadialGradient(
-                x + dx * size,
-                y + dy * size,
-                0,
-                x + dx * size,
-                y + dy * size,
-                radius * size,
-              );
-
-            gradient.addColorStop(
-              0,
-              index % 2
-                ? "rgba(235,238,242,0.72)"
-                : "rgba(205,210,216,0.68)",
-            );
-            gradient.addColorStop(
-              0.72,
-              "rgba(182,189,197,0.36)",
-            );
-            gradient.addColorStop(
-              1,
-              "rgba(165,172,180,0)",
-            );
-
-            context.fillStyle =
-              gradient;
-            context.beginPath();
-            context.arc(
-              x + dx * size,
-              y + dy * size,
-              radius * size,
-              0,
-              Math.PI * 2,
-            );
-            context.fill();
-          },
-        );
-      } else if (
-        item.marker === "flash"
-      ) {
+        context.shadowColor = "rgba(238,241,244,0.55)";
+        context.shadowBlur = size * 0.28;
+        context.fillStyle = gradient;
+        context.beginPath();
+        context.arc(x, y, size * 0.6, 0, Math.PI * 2);
+        context.fill();
+      } else if (item.marker === "flash") {
         const gradient =
           context.createRadialGradient(
             x,
@@ -1424,168 +1335,79 @@ function drawBoardItemOnCanvas(
             0,
             x,
             y,
-            size * 0.62,
+            size * 0.5,
           );
 
-        gradient.addColorStop(
-          0,
-          "rgba(255,255,255,1)",
-        );
-        gradient.addColorStop(
-          0.2,
-          "rgba(255,255,255,0.94)",
-        );
-        gradient.addColorStop(
-          1,
-          "rgba(255,255,255,0)",
-        );
+        gradient.addColorStop(0, "rgba(255,255,255,1)");
+        gradient.addColorStop(0.24, "rgba(255,255,255,0.9)");
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
 
-        context.fillStyle =
-          gradient;
-        context.fillRect(
-          x - size,
-          y - size,
-          size * 2,
-          size * 2,
-        );
-
-        context.strokeStyle =
-          "#ffffff";
-        context.lineWidth =
-          size * 0.07;
+        context.fillStyle = gradient;
+        context.fillRect(x - size, y - size, size * 2, size * 2);
+        context.strokeStyle = "#ffffff";
+        context.lineWidth = size * 0.05;
         context.lineCap = "round";
+        context.shadowColor = "#ffffff";
+        context.shadowBlur = size * 0.1;
 
-        for (
-          let angle = 0;
-          angle < Math.PI * 2;
-          angle += Math.PI / 4
-        ) {
+        for (let index = 0; index < 8; index += 1) {
+          const angle = index * Math.PI / 4;
           context.beginPath();
           context.moveTo(
-            x +
-              Math.cos(angle) *
-                size *
-                0.24,
-            y +
-              Math.sin(angle) *
-                size *
-                0.24,
+            x + Math.cos(angle) * size * 0.18,
+            y + Math.sin(angle) * size * 0.18,
           );
           context.lineTo(
-            x +
-              Math.cos(angle) *
-                size *
-                0.58,
-            y +
-              Math.sin(angle) *
-                size *
-                0.58,
+            x + Math.cos(angle) * size * (index % 2 ? 0.42 : 0.61),
+            y + Math.sin(angle) * size * (index % 2 ? 0.42 : 0.61),
           );
           context.stroke();
         }
-      } else if (
-        item.marker === "he"
-      ) {
-        context.strokeStyle =
-          "#ff3345";
-        context.fillStyle =
-          "rgba(255,51,69,0.2)";
-        context.lineWidth =
-          size * 0.065;
-        context.shadowColor =
-          "rgba(255,51,69,0.55)";
-        context.shadowBlur =
-          size * 0.18;
+      } else if (item.marker === "he") {
+        context.strokeStyle = "#ef2d47";
+        context.lineWidth = size * 0.045;
+        context.lineCap = "round";
+        context.shadowColor = "rgba(239,45,71,0.5)";
+        context.shadowBlur = size * 0.08;
 
         context.beginPath();
-        context.arc(
-          x,
-          y,
-          size * 0.16,
-          0,
-          Math.PI * 2,
-        );
-        context.fill();
+        context.arc(x, y, size * 0.11, 0, Math.PI * 2);
         context.stroke();
 
-        for (
-          let index = 0;
-          index < 12;
-          index += 1
-        ) {
-          const angle =
-            index *
-            (Math.PI * 2 / 12);
-
+        for (let index = 0; index < 16; index += 1) {
+          const angle = index * Math.PI * 2 / 16;
           context.beginPath();
           context.moveTo(
-            x +
-              Math.cos(angle) *
-                size *
-                0.27,
-            y +
-              Math.sin(angle) *
-                size *
-                0.27,
+            x + Math.cos(angle) * size * 0.23,
+            y + Math.sin(angle) * size * 0.23,
           );
           context.lineTo(
-            x +
-              Math.cos(angle) *
-                size *
-                (index % 2
-                  ? 0.48
-                  : 0.6),
-            y +
-              Math.sin(angle) *
-                size *
-                (index % 2
-                  ? 0.48
-                  : 0.6),
+            x + Math.cos(angle) * size * (index % 2 ? 0.41 : 0.57),
+            y + Math.sin(angle) * size * (index % 2 ? 0.41 : 0.57),
           );
           context.stroke();
         }
       } else {
-        context.fillStyle =
-          "rgba(255,105,47,0.3)";
-        context.strokeStyle =
-          "#ff7b3d";
-        context.lineWidth =
-          size * 0.055;
-        context.shadowColor =
-          "rgba(255,123,61,0.52)";
-        context.shadowBlur =
-          size * 0.18;
-
-        context.beginPath();
+        context.fillStyle = "rgba(232,104,68,0.24)";
+        context.strokeStyle = "#e98769";
+        context.lineWidth = size * 0.043;
+        context.shadowColor = "rgba(233,135,105,0.45)";
+        context.shadowBlur = size * 0.08;
 
         const points = [
-          [-0.45, 0.12],
-          [-0.36, -0.32],
-          [-0.12, -0.48],
-          [0.08, -0.34],
-          [0.26, -0.44],
-          [0.44, -0.12],
-          [0.34, 0.2],
-          [0.1, 0.4],
-          [-0.18, 0.44],
-          [-0.44, 0.28],
+          [-0.44, 0.12], [-0.36, -0.28], [-0.18, -0.42],
+          [0.02, -0.36], [0.16, -0.48], [0.32, -0.31],
+          [0.44, -0.06], [0.34, 0.2], [0.12, 0.39],
+          [-0.18, 0.44], [-0.42, 0.27],
         ];
 
-        points.forEach(
-          ([dx, dy], index) => {
-            const px =
-              x + dx * size;
-            const py =
-              y + dy * size;
-
-            if (!index) {
-              context.moveTo(px, py);
-            } else {
-              context.lineTo(px, py);
-            }
-          },
-        );
-
+        context.beginPath();
+        points.forEach(([dx, dy], index) => {
+          const px = x + dx * size;
+          const py = y + dy * size;
+          if (!index) context.moveTo(px, py);
+          else context.lineTo(px, py);
+        });
         context.closePath();
         context.fill();
         context.stroke();
@@ -2145,13 +1967,13 @@ export default function PlayerTactics() {
     setSelectedId(item.id);
 
     if (
-      tool !== "select" ||
       event?.clientX === undefined
     ) {
       return;
     }
 
     event.preventDefault?.();
+    setTool("select");
 
     const start =
       boardPoint(event);
@@ -2162,7 +1984,7 @@ export default function PlayerTactics() {
       snapshot: items,
     };
 
-    event.currentTarget
+    overlayRef.current
       ?.setPointerCapture?.(
         event.pointerId,
       );
@@ -3525,66 +3347,28 @@ export default function PlayerTactics() {
                   onPointerCancel={handlePointerUp}
                 >
                   <defs>
-                    <filter
-                      id="tactics-smoke-blur"
-                      x="-60%"
-                      y="-60%"
-                      width="220%"
-                      height="220%"
-                    >
-                      <feGaussianBlur
-                        stdDeviation="7"
-                      />
+                    <filter id="tactics-smoke-soft" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="13" />
                     </filter>
-
-                    <filter
-                      id="tactics-flash-glow"
-                      x="-80%"
-                      y="-80%"
-                      width="260%"
-                      height="260%"
-                    >
-                      <feGaussianBlur
-                        stdDeviation="5"
-                        result="blur"
-                      />
+                    <filter id="tactics-smoke-core" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="7" />
+                    </filter>
+                    <filter id="tactics-flash-soft" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="2.5" result="glow" />
                       <feMerge>
-                        <feMergeNode in="blur" />
+                        <feMergeNode in="glow" />
                         <feMergeNode in="SourceGraphic" />
                       </feMerge>
                     </filter>
-
-                    <filter
-                      id="tactics-he-glow"
-                      x="-70%"
-                      y="-70%"
-                      width="240%"
-                      height="240%"
-                    >
-                      <feGaussianBlur
-                        stdDeviation="3"
-                        result="blur"
-                      />
+                    <filter id="tactics-he-soft" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="1.6" result="glow" />
                       <feMerge>
-                        <feMergeNode in="blur" />
+                        <feMergeNode in="glow" />
                         <feMergeNode in="SourceGraphic" />
                       </feMerge>
                     </filter>
-
-                    <filter
-                      id="tactics-molotov-glow"
-                      x="-70%"
-                      y="-70%"
-                      width="240%"
-                      height="240%"
-                    >
-                      <feDropShadow
-                        dx="0"
-                        dy="0"
-                        stdDeviation="6"
-                        floodColor="#ff6a2f"
-                        floodOpacity="0.65"
-                      />
+                    <filter id="tactics-molotov-soft" x="-90%" y="-90%" width="280%" height="280%">
+                      <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#e98769" floodOpacity="0.5" />
                     </filter>
                   </defs>
 
@@ -3797,19 +3581,7 @@ export default function PlayerTactics() {
                         `tactics-object-glyph tactics-object-glyph--${type}`
                       }
                     >
-                      {type === "t"
-                        ? "T"
-                        : type === "ct"
-                          ? "CT"
-                          : type === "bomb"
-                            ? "C4"
-                            : type === "smoke"
-                              ? "☁"
-                              : type === "flash"
-                                ? "✦"
-                                : type === "he"
-                                  ? "✹"
-                                  : "♨"}
+                      <TacticalObjectIcon type={type} />
                     </span>
                   </button>
                 ))}
