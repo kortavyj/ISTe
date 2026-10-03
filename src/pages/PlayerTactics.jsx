@@ -93,6 +93,16 @@ const EFFECT_MARKERS = new Set([
 ]);
 
 const DEFAULT_EFFECT_SIZE = 30;
+const ROUND_CLOCK_START = 115;
+const ROUND_CLOCK_END = 0;
+
+const ROUND_CLOCK_TICKS = [
+  115,
+  90,
+  60,
+  30,
+  0,
+];
 
 const DEFAULT_STAGES = Object.freeze([
   {
@@ -309,6 +319,110 @@ function formatRoundClock(value) {
   )}:${String(
     seconds % 60,
   ).padStart(2, "0")}`;
+}
+
+function roundClockToPercent(
+  seconds,
+) {
+  const clamped =
+    clamp(
+      Number(seconds),
+      ROUND_CLOCK_END,
+      ROUND_CLOCK_START,
+    );
+
+  return (
+    (
+      ROUND_CLOCK_START -
+      clamped
+    ) /
+      (
+        ROUND_CLOCK_START -
+        ROUND_CLOCK_END
+      )
+  ) * 100;
+}
+
+function percentToRoundClock(
+  percent,
+) {
+  const normalized =
+    clamp(
+      Number(percent) || 0,
+      0,
+      100,
+    ) / 100;
+
+  return Math.round(
+    ROUND_CLOCK_START -
+      (
+        ROUND_CLOCK_START -
+        ROUND_CLOCK_END
+      ) *
+        normalized,
+  );
+}
+
+function isTimingItem(
+  item,
+) {
+  return Boolean(
+    item &&
+      (
+        item.type === "route" ||
+        isEffectMarker(item) ||
+        (
+          item.type === "marker" &&
+          (
+            item.marker === "t" ||
+            item.marker === "ct"
+          )
+        )
+      ),
+  );
+}
+
+function timingItemLabel(
+  item,
+  copy,
+) {
+  if (!item) return "";
+
+  if (
+    isEffectMarker(item)
+  ) {
+    return (
+      item.utilityLabel ||
+      copy.markerNames[
+        item.marker
+      ] ||
+      item.marker
+    );
+  }
+
+  if (
+    item.type === "route"
+  ) {
+    return (
+      item.playerName ||
+      copy.route
+    );
+  }
+
+  if (
+    item.type === "marker"
+  ) {
+    return (
+      item.playerName ||
+      item.label ||
+      copy.markerLabels[
+        item.marker
+      ] ||
+      item.marker
+    );
+  }
+
+  return item.type;
 }
 
 function routeMetrics(points) {
@@ -715,6 +829,11 @@ const COPY = {
     playbackSpeed: "Швидкість",
     roundClock: "Таймер раунду",
     stageProgress: "Прогрес етапу",
+    timingEditor: "Таймлайн раунду",
+    timingEditorHint: "Перетягуйте події по шкалі 1:55 → 0:00. Виберіть маршрут, гравця або гранату й натисніть на шкалу, щоб призначити час.",
+    timingUntimed: "Без таймінгу",
+    timingSelectedHint: "Клік по шкалі призначить час вибраному об'єкту",
+    timingNoSelectionHint: "Виберіть об'єкт на карті або перетягніть подію",
     route: "Маршрут",
     roster: "Гравець ISTe",
     noPlayer: "Без прив'язки",
@@ -893,6 +1012,11 @@ const COPY = {
     playbackSpeed: "Speed",
     roundClock: "Round timer",
     stageProgress: "Stage progress",
+    timingEditor: "Round timeline",
+    timingEditorHint: "Drag events across the 1:55 → 0:00 ruler. Select a route, player or utility and click the ruler to assign its time.",
+    timingUntimed: "Untimed",
+    timingSelectedHint: "Click the ruler to assign time to the selected object",
+    timingNoSelectionHint: "Select an object on the map or drag an event",
     route: "Route",
     roster: "ISTe player",
     noPlayer: "Unassigned",
@@ -2761,6 +2885,10 @@ export default function PlayerTactics() {
     useRef(null);
   const playbackProgressRef =
     useRef(0);
+  const timingTrackRef =
+    useRef(null);
+  const timingDragRef =
+    useRef(null);
 
   const currentMap =
     MAPS[mapId] || MAPS.mirage;
@@ -3308,6 +3436,242 @@ export default function PlayerTactics() {
 
     await element
       .requestFullscreen?.();
+  }
+
+  function timingSecondsFromClientX(
+    clientX,
+  ) {
+    const rect =
+      timingTrackRef.current
+        ?.getBoundingClientRect();
+
+    if (
+      !rect ||
+      !rect.width
+    ) {
+      return null;
+    }
+
+    const percent =
+      clamp(
+        (
+          (
+            clientX -
+            rect.left
+          ) /
+            rect.width
+        ) *
+          100,
+        0,
+        100,
+      );
+
+    return percentToRoundClock(
+      percent,
+    );
+  }
+
+  function applyItemTiming(
+    itemId,
+    seconds,
+    snapshot = null,
+  ) {
+    if (
+      !itemId ||
+      !Number.isFinite(
+        seconds,
+      )
+    ) {
+      return;
+    }
+
+    const timing =
+      formatRoundClock(
+        seconds,
+      );
+
+    if (snapshot) {
+      setItems(
+        snapshot.map(
+          (item) =>
+            item.id === itemId
+              ? {
+                  ...item,
+                  timing,
+                }
+              : item,
+        ),
+      );
+
+      return;
+    }
+
+    commitItems(
+      items.map(
+        (item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                timing,
+              }
+            : item,
+      ),
+      itemId,
+    );
+  }
+
+  function handleTimingTrackPointerDown(
+    event,
+  ) {
+    if (
+      event.button !== undefined &&
+      event.button !== 0
+    ) {
+      return;
+    }
+
+    if (
+      event.target !==
+      event.currentTarget
+    ) {
+      return;
+    }
+
+    const seconds =
+      timingSecondsFromClientX(
+        event.clientX,
+      );
+
+    if (
+      !Number.isFinite(
+        seconds,
+      )
+    ) {
+      return;
+    }
+
+    setIsPlaying(false);
+
+    const selected =
+      items.find(
+        (item) =>
+          item.id ===
+          selectedId,
+      );
+
+    if (
+      selected &&
+      isTimingItem(
+        selected,
+      )
+    ) {
+      applyItemTiming(
+        selected.id,
+        seconds,
+      );
+
+      return;
+    }
+
+    setStagePlaybackProgress(
+      roundClockToPercent(
+        seconds,
+      ) / 100,
+    );
+  }
+
+  function beginTimingDrag(
+    event,
+    item,
+  ) {
+    if (
+      event.button !== undefined &&
+      event.button !== 0
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    setIsPlaying(false);
+    setSelectedId(
+      item.id,
+    );
+
+    timingDragRef.current = {
+      id: item.id,
+      snapshot: items,
+    };
+
+    event.currentTarget
+      .setPointerCapture?.(
+        event.pointerId,
+      );
+
+    const seconds =
+      timingSecondsFromClientX(
+        event.clientX,
+      );
+
+    if (
+      Number.isFinite(
+        seconds,
+      )
+    ) {
+      applyItemTiming(
+        item.id,
+        seconds,
+        items,
+      );
+    }
+  }
+
+  function moveTimingDrag(
+    event,
+  ) {
+    const drag =
+      timingDragRef.current;
+
+    if (!drag) return;
+
+    const seconds =
+      timingSecondsFromClientX(
+        event.clientX,
+      );
+
+    if (
+      !Number.isFinite(
+        seconds,
+      )
+    ) {
+      return;
+    }
+
+    applyItemTiming(
+      drag.id,
+      seconds,
+      drag.snapshot,
+    );
+  }
+
+  function finishTimingDrag() {
+    const drag =
+      timingDragRef.current;
+
+    if (!drag) return;
+
+    timingDragRef.current =
+      null;
+
+    setPast(
+      (current) => [
+        ...current,
+        drag.snapshot,
+      ],
+    );
+
+    setFuture([]);
   }
 
   function setStagePlaybackProgress(
@@ -4908,6 +5272,42 @@ export default function PlayerTactics() {
         activeStageId,
     );
 
+  const timingEligibleItems =
+    stageItems.filter(
+      isTimingItem,
+    );
+
+  const timingEvents =
+    timingEligibleItems
+      .map((item) => ({
+        item,
+        seconds:
+          timingToSeconds(
+            item.timing,
+          ),
+      }))
+      .filter(
+        (entry) =>
+          Number.isFinite(
+            entry.seconds,
+          ),
+      )
+      .sort(
+        (left, right) =>
+          right.seconds -
+          left.seconds,
+      );
+
+  const untimedItems =
+    timingEligibleItems.filter(
+      (item) =>
+        !Number.isFinite(
+          timingToSeconds(
+            item.timing,
+          ),
+        ),
+    );
+
   const stageTimingValues =
     stageItems
       .map(
@@ -4955,6 +5355,15 @@ export default function PlayerTactics() {
         ) *
           playbackProgress
       : null;
+
+  const timelinePlayheadPercent =
+    Number.isFinite(
+      playbackClockSeconds,
+    )
+      ? roundClockToPercent(
+          playbackClockSeconds,
+        )
+      : playbackProgress * 100;
 
   const playbackPreview =
     isPlaying ||
@@ -5895,6 +6304,148 @@ export default function PlayerTactics() {
                         }
                       >
                         {speed}×
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+
+              <div className="tactics-timing-editor">
+                <div className="tactics-timing-editor-head">
+                  <div>
+                    <strong>
+                      {c.timingEditor}
+                    </strong>
+                    <small>
+                      {c.timingEditorHint}
+                    </small>
+                  </div>
+
+                  <span>
+                    {untimedItems.length
+                      ? `${c.timingUntimed}: ${untimedItems.length}`
+                      : selectedItem &&
+                          isTimingItem(
+                            selectedItem,
+                          )
+                        ? c.timingSelectedHint
+                        : c.timingNoSelectionHint}
+                  </span>
+                </div>
+
+                <div className="tactics-timing-ruler">
+                  {ROUND_CLOCK_TICKS.map(
+                    (seconds) => (
+                      <span
+                        key={
+                          seconds
+                        }
+                        style={{
+                          left:
+                            `${roundClockToPercent(seconds)}%`,
+                        }}
+                      >
+                        {formatRoundClock(
+                          seconds,
+                        )}
+                      </span>
+                    ),
+                  )}
+                </div>
+
+                <div
+                  ref={
+                    timingTrackRef
+                  }
+                  className="tactics-timing-track"
+                  onPointerDown={
+                    handleTimingTrackPointerDown
+                  }
+                >
+                  {ROUND_CLOCK_TICKS.map(
+                    (seconds) => (
+                      <i
+                        key={
+                          seconds
+                        }
+                        className="tactics-timing-gridline"
+                        style={{
+                          left:
+                            `${roundClockToPercent(seconds)}%`,
+                        }}
+                        aria-hidden="true"
+                      />
+                    ),
+                  )}
+
+                  <i
+                    className="tactics-timing-playhead"
+                    style={{
+                      left:
+                        `${timelinePlayheadPercent}%`,
+                    }}
+                    aria-hidden="true"
+                  />
+
+                  {timingEvents.map(
+                    ({
+                      item,
+                      seconds,
+                    }) => (
+                      <button
+                        type="button"
+                        key={
+                          item.id
+                        }
+                        className={[
+                          "tactics-timing-event",
+                          selectedId ===
+                          item.id
+                            ? "active"
+                            : "",
+                          `tactics-timing-event--${item.marker || item.type}`,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        style={{
+                          left:
+                            `${roundClockToPercent(seconds)}%`,
+                        }}
+                        onPointerDown={(event) =>
+                          beginTimingDrag(
+                            event,
+                            item,
+                          )
+                        }
+                        onPointerMove={
+                          moveTimingDrag
+                        }
+                        onPointerUp={
+                          finishTimingDrag
+                        }
+                        onPointerCancel={
+                          finishTimingDrag
+                        }
+                        onDoubleClick={() =>
+                          setSelectedId(
+                            item.id,
+                          )
+                        }
+                        title={
+                          `${timingItemLabel(item, c)} · ${formatRoundClock(seconds)}`
+                        }
+                      >
+                        <strong>
+                          {timingItemLabel(
+                            item,
+                            c,
+                          )}
+                        </strong>
+                        <small>
+                          {formatRoundClock(
+                            seconds,
+                          )}
+                        </small>
                       </button>
                     ),
                   )}

@@ -2187,3 +2187,216 @@
     justify-content: flex-start;
   }
 }
+
+
+/* Tactical Board v8: visual round timing editor */
+.tactics-timing-editor {
+  display: grid;
+  gap: 7px;
+  padding: 8px 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 9px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.018), transparent),
+    rgba(5, 8, 12, 0.64);
+}
+
+.tactics-timing-editor-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tactics-timing-editor-head > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tactics-timing-editor-head strong {
+  color: rgba(255,255,255,.72);
+  font-size: .59rem;
+  font-weight: 900;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.tactics-timing-editor-head small {
+  max-width: 760px;
+  color: rgba(255,255,255,.28);
+  font-size: .5rem;
+  line-height: 1.35;
+}
+
+.tactics-timing-editor-head > span {
+  flex: 0 0 auto;
+  color: rgba(255,255,255,.34);
+  font-size: .5rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.tactics-timing-ruler {
+  position: relative;
+  height: 13px;
+  margin: 0 12px;
+}
+
+.tactics-timing-ruler > span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,.34);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .48rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tactics-timing-track {
+  position: relative;
+  min-height: 56px;
+  margin: 0 12px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.025), rgba(255,255,255,.012)),
+    rgba(3,6,9,.62);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.tactics-timing-gridline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,.055);
+  pointer-events: none;
+}
+
+.tactics-timing-playhead {
+  position: absolute;
+  z-index: 3;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #e30613;
+  box-shadow:
+    0 0 0 1px rgba(227,6,19,.18),
+    0 0 12px rgba(227,6,19,.7);
+  pointer-events: none;
+}
+
+.tactics-timing-playhead::before {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, -35%) rotate(45deg);
+  border-radius: 2px 2px 0 2px;
+  background: #e30613;
+  content: "";
+}
+
+.tactics-timing-event {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  display: grid;
+  min-width: 48px;
+  max-width: 108px;
+  gap: 1px;
+  padding: 5px 7px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 7px;
+  background: rgba(12,16,21,.96);
+  color: #fff;
+  font: inherit;
+  text-align: center;
+  cursor: grab;
+  box-shadow: 0 5px 14px rgba(0,0,0,.28);
+  touch-action: none;
+  user-select: none;
+}
+
+.tactics-timing-event:active {
+  cursor: grabbing;
+}
+
+.tactics-timing-event:hover,
+.tactics-timing-event.active {
+  z-index: 7;
+  border-color: rgba(227,6,19,.55);
+  box-shadow:
+    0 5px 16px rgba(0,0,0,.35),
+    0 0 13px rgba(227,6,19,.12);
+}
+
+.tactics-timing-event strong {
+  overflow: hidden;
+  font-size: .53rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactics-timing-event small {
+  color: rgba(255,255,255,.42);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .46rem;
+}
+
+.tactics-timing-event--smoke {
+  border-color: rgba(205,214,224,.34);
+}
+
+.tactics-timing-event--flash {
+  border-color: rgba(255,243,167,.42);
+}
+
+.tactics-timing-event--he {
+  border-color: rgba(239,45,71,.42);
+}
+
+.tactics-timing-event--molotov {
+  border-color: rgba(233,135,105,.46);
+}
+
+.tactics-timing-event--route {
+  border-color: rgba(130,183,255,.42);
+}
+
+.tactics-timing-event--t {
+  border-color: rgba(231,207,114,.45);
+}
+
+.tactics-timing-event--ct {
+  border-color: rgba(131,175,233,.45);
+}
+
+.tactics-page--presentation .tactics-timing-editor {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .tactics-timing-editor-head {
+    flex-direction: column;
+  }
+
+  .tactics-timing-editor-head > span {
+    text-align: left;
+  }
+
+  .tactics-timing-event {
+    min-width: 42px;
+    max-width: 78px;
+    padding: 4px 5px;
+  }
+}
