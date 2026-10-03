@@ -27,9 +27,6 @@ const copy = {
     highlightsTitle: "Хайлайти",
     highlightsText:
       "Кліпи, MVP, ACE, clutch, прев'ю та публікація найкращих моментів ISTe.",
-    highlightsTitle: "Highlights",
-    highlightsText:
-      "Clips, MVPs, ACEs, clutches, thumbnails and publication of ISTe best moments.",
     shopTitle: "ISTe Wear",
     shopText:
       "Товари, статуси, ціни, розміри та заявки на передзамовлення.",
@@ -56,6 +53,9 @@ const copy = {
     newsTitle: "News",
     newsText:
       "Draft, edit and publish ISTesport news.",
+    highlightsTitle: "Highlights",
+    highlightsText:
+      "Clips, MVPs, ACEs, clutches, thumbnails and publication of ISTe best moments.",
     shopTitle: "ISTe Wear",
     shopText:
       "Products, statuses, prices, sizes and pre-order requests.",
