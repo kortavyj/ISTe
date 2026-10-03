@@ -1123,3 +1123,96 @@
 .tactics-effect--selected {
   filter: drop-shadow(0 0 7px rgba(227, 6, 19, 0.26));
 }
+
+
+/* Scope-like compact applied-object picker from the approved reference */
+.tactics-object-icons {
+  grid-template-columns: repeat(4, 34px);
+  justify-content: start;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.tactics-object-icons .tactics-object-button {
+  width: 34px;
+  height: 34px;
+  aspect-ratio: auto;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.tactics-object-icons .tactics-object-button--he {
+  grid-column: 1;
+}
+
+.tactics-object-icons .tactics-object-button:hover {
+  border-color: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.tactics-object-icons .tactics-object-button.active {
+  border-color: rgba(227, 6, 19, 0.42);
+  background: rgba(227, 6, 19, 0.08);
+  box-shadow: 0 0 12px rgba(227, 6, 19, 0.08);
+}
+
+.tactics-object-icons .tactics-object-glyph {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #f5f6f8;
+  text-shadow: none;
+}
+
+.tactics-team-dot {
+  display: block;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.tactics-team-dot--ct {
+  background: #83afe9;
+}
+
+.tactics-team-dot--t {
+  background: #e7cf72;
+}
+
+.tactics-c4-icon {
+  display: grid;
+  min-width: 23px;
+  height: 13px;
+  place-items: center;
+  padding: 0 3px;
+  border-radius: 1px;
+  background: #e31d47;
+  color: #15181d;
+  font-size: 0.43rem;
+  font-weight: 1000;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.tactics-object-icons .tactics-grenade-icon {
+  width: 21px;
+  height: 21px;
+  overflow: visible;
+  color: #f2f3f5;
+  filter: none;
+}
+
+.tactics-object-icons .tactics-object-button:hover .tactics-grenade-icon,
+.tactics-object-icons .tactics-object-button.active .tactics-grenade-icon {
+  color: #ffffff;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.14));
+}

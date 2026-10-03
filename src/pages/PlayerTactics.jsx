@@ -56,13 +56,13 @@ const COLORS = [
 ];
 
 const MARKERS = [
-  "t",
   "ct",
+  "t",
   "bomb",
-  "smoke",
-  "flash",
   "he",
   "molotov",
+  "smoke",
+  "flash",
 ];
 
 const STROKE_SIZES = {
@@ -90,7 +90,7 @@ const EFFECT_MARKERS = new Set([
   "molotov",
 ]);
 
-const DEFAULT_EFFECT_SIZE = 62;
+const DEFAULT_EFFECT_SIZE = 30;
 
 function clamp(value, min, max) {
   return Math.min(
@@ -112,10 +112,7 @@ function getEffectSize(item) {
   }
 
   return Number(item.effectSize) ||
-    Math.max(
-      DEFAULT_EFFECT_SIZE,
-      (Number(item.markerSize) || 24) * 2.4,
-    );
+    DEFAULT_EFFECT_SIZE;
 }
 
 function translateItem(
@@ -617,56 +614,87 @@ function ArrowShape({
 }
 
 function TacticalObjectIcon({ type }) {
-  if (type === "t" || type === "ct") {
+  if (type === "ct" || type === "t") {
     return (
-      <span className={`tactics-team-icon tactics-team-icon--${type}`}>
-        {type === "t" ? "T" : "CT"}
-      </span>
+      <span
+        className={
+          `tactics-team-dot tactics-team-dot--${type}`
+        }
+        aria-hidden="true"
+      />
     );
   }
 
   if (type === "bomb") {
     return (
-      <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="6" y="9" width="20" height="15" rx="2.8" fill="none" stroke="currentColor" strokeWidth="2" />
-        <path d="M10 9V6h12v3M11 15h3m4 0h3M11 19h10M8 24v2m16-2v2" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+      <span
+        className="tactics-c4-icon"
+        aria-hidden="true"
+      >
+        C4
+      </span>
+    );
+  }
+
+  if (type === "he") {
+    return (
+      <svg
+        className="tactics-grenade-icon tactics-grenade-icon--he"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+      >
+        <path
+          fill="currentColor"
+          d="M13 3h7v4h2l3 5-1 10-4 6h-8l-4-6-1-10 3-5h3V3Zm2 2v4h3V5h-3Zm-3 8-2 2 1 7 2 3h6l2-3 1-7-2-2h-8Z"
+        />
+      </svg>
+    );
+  }
+
+  if (type === "molotov") {
+    return (
+      <svg
+        className="tactics-grenade-icon tactics-grenade-icon--molotov"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+      >
+        <path
+          fill="currentColor"
+          d="M13 2h7v5l2 3v3l4 5-2 11H9L7 18l5-6V9l1-2V2Zm2 3v4h3V5h-3Zm-2 8-3 6 1 7h11l1-7-4-6h-6Z"
+        />
+        <path
+          fill="currentColor"
+          d="M20 4c3-4 7-1 5 2 3 0 4 4 1 5 1-3-2-4-4-2 1-3-1-5-2-5Z"
+        />
       </svg>
     );
   }
 
   if (type === "smoke") {
     return (
-      <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M11 7h10l2 4v13a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3V11l2-4Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M12 7V4h8v3M11 13h10M13 17h6M13 21h6" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-      </svg>
-    );
-  }
-
-  if (type === "flash") {
-    return (
-      <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M12 5h8l2 4v16a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V9l2-4Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M13 5V3h6v2M12 12h8M13 16h6M13 20h6" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-        <circle cx="14" cy="9" r="1" fill="currentColor" />
-        <circle cx="18" cy="9" r="1" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  if (type === "he") {
-    return (
-      <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M13 6h6v4h2l3 5-2 10-6 3-6-3-2-10 3-5h2V6Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M13 6V3h7m0 0 3 2M11 14h10M10 18h12M12 11l-2 14m10-14 2 14" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+      <svg
+        className="tactics-grenade-icon tactics-grenade-icon--smoke"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+      >
+        <path
+          fill="currentColor"
+          d="M12 2h8v4l3 4v16a4 4 0 0 1-4 4h-6a4 4 0 0 1-4-4V10l3-4V2Zm2 3v3h4V5h-4Zm-2 7v3h8v-3h-8Zm0 6v3h8v-3h-8Z"
+        />
       </svg>
     );
   }
 
   return (
-    <svg className="tactics-grenade-icon" viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M13 4h6l1 6 4 5-2 12H10L8 15l4-5 1-6Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
-      <path d="M13 8h6M12 11h8M19 5c3-3 5-1 4 2 2 0 3 2 1 4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+    <svg
+      className="tactics-grenade-icon tactics-grenade-icon--flash"
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+    >
+      <path
+        fill="currentColor"
+        d="M13 2h7v4l3 4v17a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3V10l4-4V2Zm2 3v3h3V5h-3Zm-3 7v4h8v-4h-8Zm0 7v3h8v-3h-8Zm2 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm5 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+      />
     </svg>
   );
 }
@@ -3562,12 +3590,15 @@ export default function PlayerTactics() {
                   <button
                     type="button"
                     key={type}
-                    className={
+                    className={[
+                      `tactics-object-button tactics-object-button--${type}`,
                       tool === "marker" &&
                       markerType === type
                         ? "active"
-                        : ""
-                    }
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     onClick={() => {
                       setMarkerType(type);
                       setTool("marker");
@@ -3625,12 +3656,12 @@ export default function PlayerTactics() {
                       type="range"
                       min={
                         isEffectMarker(selectedItem)
-                          ? "28"
+                          ? "16"
                           : "14"
                       }
                       max={
                         isEffectMarker(selectedItem)
-                          ? "130"
+                          ? "90"
                           : "52"
                       }
                       step="1"
