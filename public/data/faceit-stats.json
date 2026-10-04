@@ -9,7 +9,7 @@
   "matches": 86,
   "wins": 70,
   "winRate": 81,
-  "players": 6,
+  "players": 7,
   "roster": [
     {
       "playerId": "9e200234-5d96-47ab-a21b-245a56f5a90e",
@@ -83,29 +83,45 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
-      "elo": 2528,
+      "elo": 2552,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.13
+      "kd": 1.14
     },
     {
       "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
       "nickname": "sssoo",
-      "avatar": "https://distribution.faceit-cdn.net/images/23563628-5522-4d8a-a58b-71fba31c90dd.jpg",
+      "avatar": "https://distribution.faceit-cdn.net/images/54cc62fe-a448-4681-8271-eb57b0b873d0.jpg",
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2021,
+      "elo": 2005,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.15
+      "kd": 1.16
+    },
+    {
+      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
+      "nickname": "Manocivnyk",
+      "avatar": null,
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "level": 10,
+      "elo": 2370,
+      "role": "SUPPORT",
+      "reason": "Лучший вклад гранатами и ассистами",
+      "confidence": 78,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 51,
+      "kd": 1.08
     }
   ],
   "teamMatches": [
@@ -3356,7 +3372,7 @@
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
-    "historyPlayersScanned": 7,
+    "historyPlayersScanned": 8,
     "historyMatchesFound": 5,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
@@ -3365,5 +3381,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-04T17:40:48.068Z"
+  "updatedAt": "2026-10-04T20:25:58.521Z"
 }
