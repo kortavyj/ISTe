@@ -83,13 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
-      "elo": 2552,
+      "elo": 2602,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.14
+      "kd": 1.12
     },
     {
       "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
@@ -99,13 +99,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2005,
+      "elo": 2021,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.16
+      "kd": 1.17
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -3381,5 +3381,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-04T20:25:58.521Z"
+  "updatedAt": "2026-10-04T23:22:57.109Z"
 }
