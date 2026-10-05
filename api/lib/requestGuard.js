@@ -129,6 +129,7 @@ export function guardRequest(
   }
 
   if (
+    requireOrigin &&
     sourceOrigin &&
     !allowedOrigins.has(sourceOrigin)
   ) {
@@ -144,7 +145,11 @@ export function guardRequest(
     "sec-fetch-site",
   ).toLowerCase();
 
-  if (fetchSite && fetchSite !== "same-origin") {
+  if (
+    requireOrigin &&
+    fetchSite &&
+    fetchSite !== "same-origin"
+  ) {
     return {
       ok: false,
       status: 403,
@@ -160,7 +165,11 @@ export function guardRequest(
     forwardedHost ||
     normalizeHost(getHeader(request, "host"));
 
-  if (sourceOrigin && requestHost) {
+  if (
+    requireOrigin &&
+    sourceOrigin &&
+    requestHost
+  ) {
     const sourceHost = normalizeHost(
       new URL(sourceOrigin).host,
     );
