@@ -10,6 +10,15 @@
 set -u
 
 BASE_SHA="${VERCEL_GIT_PREVIOUS_SHA:-}"
+HEAD_SHA="$(git rev-parse HEAD)"
+
+# A manual Vercel redeploy reuses the same Git commit. In that case there is
+# no code diff to inspect, but the redeploy may be required to pick up new
+# environment variables (for example DISCORD_CLIENT_SECRET). Never skip it.
+if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" = "$HEAD_SHA" ]; then
+  echo "Manual redeploy detected for the same commit. Continuing Vercel build."
+  exit 1
+fi
 
 if [ -z "$BASE_SHA" ] || ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
   if git rev-parse HEAD^ >/dev/null 2>&1; then
