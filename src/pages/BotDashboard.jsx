@@ -62,7 +62,16 @@ const copy = {
     autoRole: "Автоматична роль",
     autoRoleText:
       "Видавати роль новому учаснику цього Discord-сервера.",
-    memberRoleId: "Member Role ID",
+    memberRoleId: "Роль нового учасника",
+    chooseRole: "Не вибрано",
+    chooseChannel: "Не вибрано",
+    resourcesLoading: "Завантаження ролей і каналів…",
+    resourcesUnavailable:
+      "Не вдалося отримати ролі або канали. Перевірте, що ISTe Bot встановлено та має доступ.",
+    releaseLicense: "Звільнити ліцензію",
+    releaseConfirm:
+      "Звільнити ліцензію цього сервера? Налаштування сервера буде видалено, але сам бот залишиться у Discord.",
+    licenseReleased: "Ліцензію звільнено.",
     privateVoice: "Приватні голосові кімнати",
     privateVoiceText:
       "Автоматична система тимчасових приватних кімнат тільки для цього сервера.",
@@ -72,10 +81,10 @@ const copy = {
     welcome: "Welcome",
     moderation: "Moderation",
     tickets: "Tickets",
-    adminRoleId: "Admin Role ID",
-    moderatorRoleId: "Moderator Role ID",
-    logChannelId: "Log Channel ID",
-    welcomeChannelId: "Welcome Channel ID",
+    adminRoleId: "Роль адміністратора",
+    moderatorRoleId: "Роль модератора",
+    logChannelId: "Канал логів",
+    welcomeChannelId: "Welcome-канал",
     save: "Зберегти",
     saving: "Збереження...",
     saved: "Налаштування збережено.",
@@ -129,7 +138,16 @@ const copy = {
     autoRole: "Automatic role",
     autoRoleText:
       "Assign a role to new members of this Discord server.",
-    memberRoleId: "Member Role ID",
+    memberRoleId: "Member role",
+    chooseRole: "Not selected",
+    chooseChannel: "Not selected",
+    resourcesLoading: "Loading roles and channels…",
+    resourcesUnavailable:
+      "Could not load roles or channels. Make sure ISTe Bot is installed and has access.",
+    releaseLicense: "Release license",
+    releaseConfirm:
+      "Release this server license? Server settings will be deleted, but the bot will remain in Discord.",
+    licenseReleased: "License released.",
     privateVoice: "Private voice rooms",
     privateVoiceText:
       "Automatic temporary private-room system only for this server.",
@@ -139,10 +157,10 @@ const copy = {
     welcome: "Welcome",
     moderation: "Moderation",
     tickets: "Tickets",
-    adminRoleId: "Admin Role ID",
-    moderatorRoleId: "Moderator Role ID",
-    logChannelId: "Log Channel ID",
-    welcomeChannelId: "Welcome Channel ID",
+    adminRoleId: "Administrator role",
+    moderatorRoleId: "Moderator role",
+    logChannelId: "Log channel",
+    welcomeChannelId: "Welcome channel",
     save: "Save",
     saving: "Saving...",
     saved: "Settings saved.",
@@ -267,6 +285,19 @@ export default function BotDashboard() {
   );
 
   const [
+    resources,
+    setResources,
+  ] = useState({
+    roles: [],
+    channels: [],
+  });
+
+  const [
+    resourcesLoading,
+    setResourcesLoading,
+  ] = useState(false);
+
+  const [
     loading,
     setLoading,
   ] = useState(true);
@@ -377,7 +408,7 @@ export default function BotDashboard() {
     );
   }
 
-  function openSettings(
+  async function openSettings(
     guild,
   ) {
     setSelectedGuildId(
@@ -390,8 +421,49 @@ export default function BotDashboard() {
         {}),
     });
 
+    setResources({
+      roles: [],
+      channels: [],
+    });
+
+    setResourcesLoading(true);
     setNotice("");
     setError("");
+
+    try {
+      const result =
+        await api(
+          "guild-resources",
+          {
+            method: "POST",
+            body: {
+              guildId:
+                guild.guildId,
+            },
+          },
+        );
+
+      setResources({
+        roles:
+          Array.isArray(
+            result.roles,
+          )
+            ? result.roles
+            : [],
+        channels:
+          Array.isArray(
+            result.channels,
+          )
+            ? result.channels
+            : [],
+      });
+    } catch {
+      setError(
+        c.resourcesUnavailable,
+      );
+    } finally {
+      setResourcesLoading(false);
+    }
   }
 
   async function connectDiscord() {
@@ -484,6 +556,59 @@ export default function BotDashboard() {
               guild.guildId,
           },
         },
+      );
+
+      await load();
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+        c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function releaseLicense(
+    guild,
+  ) {
+    if (
+      !window.confirm(
+        c.releaseConfirm,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      `release:${guild.guildId}`,
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "release-license",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              guild.guildId,
+          },
+        },
+      );
+
+      if (
+        selectedGuildId ===
+        guild.guildId
+      ) {
+        setSelectedGuildId(
+          "",
+        );
+      }
+
+      setNotice(
+        c.licenseReleased,
       );
 
       await load();
@@ -817,23 +942,47 @@ export default function BotDashboard() {
                   <span>
                     {c.memberRoleId}
                   </span>
-                  <input
-                    inputMode="numeric"
-                    value={
-                      settings.memberRoleId
-                    }
-                    onChange={(
-                      event,
-                    ) =>
-                      patch(
-                        "memberRoleId",
-                        event
-                          .target
-                          .value,
-                      )
-                    }
-                    placeholder="123456789012345678"
-                  />
+
+                  {resourcesLoading ? (
+                    <small className="bot-dashboard-resource-loading">
+                      {c.resourcesLoading}
+                    </small>
+                  ) : (
+                    <select
+                      value={
+                        settings.memberRoleId
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        patch(
+                          "memberRoleId",
+                          event
+                            .target
+                            .value,
+                        )
+                      }
+                    >
+                      <option value="">
+                        {c.chooseRole}
+                      </option>
+
+                      {resources.roles.map(
+                        (role) => (
+                          <option
+                            key={
+                              role.id
+                            }
+                            value={
+                              role.id
+                            }
+                          >
+                            @{role.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  )}
                 </label>
               </section>
 
@@ -897,8 +1046,7 @@ export default function BotDashboard() {
                     <span>
                       {c.adminRoleId}
                     </span>
-                    <input
-                      inputMode="numeric"
+                    <select
                       value={
                         settings
                           .adminRoleId
@@ -913,15 +1061,32 @@ export default function BotDashboard() {
                             .value,
                         )
                       }
-                    />
+                    >
+                      <option value="">
+                        {c.chooseRole}
+                      </option>
+                      {resources.roles.map(
+                        (role) => (
+                          <option
+                            key={
+                              role.id
+                            }
+                            value={
+                              role.id
+                            }
+                          >
+                            @{role.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
                   </label>
 
                   <label>
                     <span>
                       {c.moderatorRoleId}
                     </span>
-                    <input
-                      inputMode="numeric"
+                    <select
                       value={
                         settings
                           .moderatorRoleId
@@ -936,15 +1101,32 @@ export default function BotDashboard() {
                             .value,
                         )
                       }
-                    />
+                    >
+                      <option value="">
+                        {c.chooseRole}
+                      </option>
+                      {resources.roles.map(
+                        (role) => (
+                          <option
+                            key={
+                              role.id
+                            }
+                            value={
+                              role.id
+                            }
+                          >
+                            @{role.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
                   </label>
 
                   <label>
                     <span>
                       {c.logChannelId}
                     </span>
-                    <input
-                      inputMode="numeric"
+                    <select
                       value={
                         settings
                           .logChannelId
@@ -959,15 +1141,32 @@ export default function BotDashboard() {
                             .value,
                         )
                       }
-                    />
+                    >
+                      <option value="">
+                        {c.chooseChannel}
+                      </option>
+                      {resources.channels.map(
+                        (channel) => (
+                          <option
+                            key={
+                              channel.id
+                            }
+                            value={
+                              channel.id
+                            }
+                          >
+                            #{channel.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
                   </label>
 
                   <label>
                     <span>
                       {c.welcomeChannelId}
                     </span>
-                    <input
-                      inputMode="numeric"
+                    <select
                       value={
                         settings
                           .welcomeChannelId
@@ -982,7 +1181,25 @@ export default function BotDashboard() {
                             .value,
                         )
                       }
-                    />
+                    >
+                      <option value="">
+                        {c.chooseChannel}
+                      </option>
+                      {resources.channels.map(
+                        (channel) => (
+                          <option
+                            key={
+                              channel.id
+                            }
+                            value={
+                              channel.id
+                            }
+                          >
+                            #{channel.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
                   </label>
                 </div>
               </section>
@@ -1159,6 +1376,25 @@ export default function BotDashboard() {
                               >
                                 {c.verify}
                               </button>
+
+                              {guild.guildId !==
+                              "1334264628695404556" ? (
+                                <button
+                                  type="button"
+                                  className="danger"
+                                  onClick={() =>
+                                    releaseLicense(
+                                      guild,
+                                    )
+                                  }
+                                  disabled={
+                                    busy ===
+                                    `release:${guild.guildId}`
+                                  }
+                                >
+                                  {c.releaseLicense}
+                                </button>
+                              ) : null}
                             </>
                           ) : (
                             <>
@@ -1187,6 +1423,25 @@ export default function BotDashboard() {
                               >
                                 {c.verify}
                               </button>
+
+                              {guild.guildId !==
+                              "1334264628695404556" ? (
+                                <button
+                                  type="button"
+                                  className="danger"
+                                  onClick={() =>
+                                    releaseLicense(
+                                      guild,
+                                    )
+                                  }
+                                  disabled={
+                                    busy ===
+                                    `release:${guild.guildId}`
+                                  }
+                                >
+                                  {c.releaseLicense}
+                                </button>
+                              ) : null}
                             </>
                           )}
                         </div>

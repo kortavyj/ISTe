@@ -422,3 +422,28 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Bot dashboard v2: real Discord resources and license controls */
+.bot-dashboard-server-actions button.danger {
+  border-color: rgba(255, 77, 88, 0.22);
+  background: rgba(255, 48, 60, 0.045);
+  color: #ff747e;
+}
+
+.bot-dashboard-server-actions button.danger:hover {
+  border-color: rgba(255, 77, 88, 0.42);
+  background: rgba(255, 48, 60, 0.09);
+}
+
+.bot-dashboard-resource-loading {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 8px;
+  background: #080c10;
+  color: rgba(255,255,255,.34);
+  font-size: .62rem;
+}

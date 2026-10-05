@@ -343,6 +343,7 @@ function subscriptionActive(
 async function ensureSubscription(
   supabase,
   userId,
+  role = "user",
 ) {
   const {
     data: existing,
@@ -360,6 +361,60 @@ async function ensureSubscription(
 
   if (readError) {
     throw readError;
+  }
+
+  if (role === "owner") {
+    if (
+      existing?.plan ===
+        "internal" &&
+      existing?.status ===
+        "internal" &&
+      !existing?.expires_at
+    ) {
+      return existing;
+    }
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from(
+        "discord_subscriptions",
+      )
+      .upsert(
+        {
+          user_id:
+            userId,
+          plan:
+            "internal",
+          status:
+            "internal",
+          starts_at:
+            existing
+              ?.starts_at ||
+            new Date()
+              .toISOString(),
+          expires_at: null,
+          max_guilds: 50,
+          subscriber_role_expires_at:
+            null,
+          updated_at:
+            new Date()
+              .toISOString(),
+        },
+        {
+          onConflict:
+            "user_id",
+        },
+      )
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
   }
 
   if (existing) {
@@ -625,6 +680,7 @@ async function handleStatus(
       await ensureSubscription(
         supabase,
         account.user.id,
+        account.role,
       );
 
     const [
@@ -1574,6 +1630,7 @@ async function handleActivateGuild(
       await ensureSubscription(
         supabase,
         account.user.id,
+        account.role,
       );
 
     if (
@@ -2188,6 +2245,436 @@ async function handleSaveSettings(
   }
 }
 
+async function handleGuildResources(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const account =
+    await requireAccount(
+      request,
+      response,
+    );
+
+  if (!account.ok) {
+    return sendError(
+      response,
+      account.status,
+      account.error,
+      account.message,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const [
+      accessResult,
+      owned,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "discord_customer_guilds",
+          )
+          .select(
+            "guild_id, can_manage",
+          )
+          .eq(
+            "user_id",
+            account.user.id,
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .eq(
+            "can_manage",
+            true,
+          )
+          .maybeSingle(),
+        readOwnedLicense(
+          supabase,
+          account.user.id,
+          guildId,
+        ),
+      ]);
+
+    if (
+      accessResult.error ||
+      !accessResult.data
+    ) {
+      return sendError(
+        response,
+        403,
+        "GUILD_MANAGE_REQUIRED",
+        "Discord не підтвердив право керування цим сервером.",
+      );
+    }
+
+    if (
+      !owned.ok ||
+      !owned.license
+    ) {
+      return sendError(
+        response,
+        403,
+        "GUILD_LICENSE_REQUIRED",
+        "Спочатку активуйте ліцензію для цього сервера.",
+      );
+    }
+
+    const config =
+      readConfig();
+
+    if (!config.botToken) {
+      return sendError(
+        response,
+        503,
+        "DISCORD_BOT_TOKEN_MISSING",
+        "ISTe Bot ще не налаштований на сервері застосунку.",
+      );
+    }
+
+    const [
+      roles,
+      channels,
+    ] =
+      await Promise.all([
+        discordRequest(
+          `/guilds/${guildId}/roles`,
+          {
+            token:
+              config.botToken,
+            authType: "Bot",
+          },
+        ),
+        discordRequest(
+          `/guilds/${guildId}/channels`,
+          {
+            token:
+              config.botToken,
+            authType: "Bot",
+          },
+        ),
+      ]);
+
+    const normalizedRoles =
+      (
+        Array.isArray(roles)
+          ? roles
+          : []
+      )
+        .filter(
+          (role) =>
+            role.id !==
+              guildId &&
+            role.managed !==
+              true,
+        )
+        .sort(
+          (left, right) =>
+            Number(
+              right.position ||
+              0,
+            ) -
+            Number(
+              left.position ||
+              0,
+            ),
+        )
+        .map(
+          (role) => ({
+            id:
+              String(role.id),
+            name:
+              String(
+                role.name ||
+                "Role",
+              ),
+            color:
+              Number(
+                role.color ||
+                0,
+              ),
+            position:
+              Number(
+                role.position ||
+                0,
+              ),
+          }),
+        );
+
+    const normalizedChannels =
+      (
+        Array.isArray(
+          channels,
+        )
+          ? channels
+          : []
+      )
+        .filter(
+          (channel) =>
+            [
+              0,
+              5,
+            ].includes(
+              Number(
+                channel.type,
+              ),
+            ),
+        )
+        .sort(
+          (left, right) =>
+            Number(
+              left.position ||
+              0,
+            ) -
+            Number(
+              right.position ||
+              0,
+            ),
+        )
+        .map(
+          (channel) => ({
+            id:
+              String(
+                channel.id,
+              ),
+            name:
+              String(
+                channel.name ||
+                "channel",
+              ),
+            type:
+              Number(
+                channel.type,
+              ),
+          }),
+        );
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        roles:
+          normalizedRoles,
+        channels:
+          normalizedChannels,
+      });
+  } catch (error) {
+    console.error(
+      "Guild resources error:",
+      error,
+    );
+
+    if (
+      error?.status ===
+        403 ||
+      error?.status ===
+        404
+    ) {
+      return sendError(
+        response,
+        409,
+        "BOT_NOT_IN_GUILD",
+        "ISTe Bot не знайдено на цьому сервері або йому бракує прав.",
+      );
+    }
+
+    return sendError(
+      response,
+      502,
+      "GUILD_RESOURCES_FAILED",
+      "Не вдалося завантажити ролі та канали Discord.",
+    );
+  }
+}
+
+async function handleReleaseLicense(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const account =
+    await requireAccount(
+      request,
+      response,
+    );
+
+  if (!account.ok) {
+    return sendError(
+      response,
+      account.status,
+      account.error,
+      account.message,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  if (
+    guildId ===
+    INTERNAL_GUILD_ID
+  ) {
+    return sendError(
+      response,
+      403,
+      "INTERNAL_GUILD_PROTECTED",
+      "Внутрішню ліцензію ISTe не можна від'єднати.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const owned =
+      await readOwnedLicense(
+        supabase,
+        account.user.id,
+        guildId,
+      );
+
+    if (
+      !owned.ok ||
+      !owned.license
+    ) {
+      return sendError(
+        response,
+        404,
+        "GUILD_LICENSE_NOT_FOUND",
+        "Ліцензію для цього сервера не знайдено.",
+      );
+    }
+
+    const {
+      error: settingsError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .delete()
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "owner_user_id",
+        account.user.id,
+      );
+
+    if (settingsError) {
+      throw settingsError;
+    }
+
+    const {
+      error: licenseError,
+    } = await supabase
+      .from(
+        "discord_guild_licenses",
+      )
+      .delete()
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "user_id",
+        account.user.id,
+      );
+
+    if (licenseError) {
+      throw licenseError;
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+      });
+  } catch (error) {
+    console.error(
+      "Release guild license error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "GUILD_LICENSE_RELEASE_FAILED",
+      "Не вдалося звільнити ліцензію.",
+    );
+  }
+}
+
 async function handleWorkerConfig(
   request,
   response,
@@ -2451,6 +2938,26 @@ export default async function botPortalHandler(
     "save-settings"
   ) {
     return handleSaveSettings(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "guild-resources"
+  ) {
+    return handleGuildResources(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "release-license"
+  ) {
+    return handleReleaseLicense(
       request,
       response,
     );
