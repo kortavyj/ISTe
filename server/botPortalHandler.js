@@ -841,6 +841,12 @@ async function handleStatus(
             subscriptionActive(
               subscription,
             ),
+          unlimited:
+            subscription.plan ===
+              "internal",
+          fullAccess:
+            subscription.plan ===
+              "internal",
           startsAt:
             subscription
               .starts_at,
@@ -848,8 +854,11 @@ async function handleStatus(
             subscription
               .expires_at,
           maxGuilds:
-            subscription
-              .max_guilds,
+            subscription.plan ===
+              "internal"
+              ? null
+              : subscription
+                  .max_guilds,
           usedGuilds:
             licenses.filter(
               (license) =>
@@ -1581,7 +1590,9 @@ async function handleActivateGuild(
     }
 
     if (
-      !owned.license
+      !owned.license &&
+      subscription.plan !==
+        "internal"
     ) {
       const {
         count,

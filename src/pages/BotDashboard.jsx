@@ -85,6 +85,10 @@ const copy = {
     oauthError: "Не вдалося підключити Discord.",
     freeHint:
       "На етапі запуску Free дозволяє один Discord-сервер. Платні місячні тарифи та автоматична роль Subscriber будуть підключені до цієї ж системи ліцензій.",
+    internalHint:
+      "Внутрішній акаунт власника ISTe: повний доступ до всіх функцій, безлімітні Discord-сервери та безстрокова підписка.",
+    fullAccess: "Повний доступ",
+    unlimitedLicenses: "∞",
   },
   en: {
     eyebrow: "ISTe BOT CONTROL",
@@ -148,6 +152,10 @@ const copy = {
     oauthError: "Could not connect Discord.",
     freeHint:
       "During launch, Free supports one Discord server. Paid monthly plans and automatic Subscriber role sync will use this same license system.",
+    internalHint:
+      "ISTe owner internal account: full feature access, unlimited Discord servers and a non-expiring subscription.",
+    fullAccess: "Full access",
+    unlimitedLicenses: "∞",
   },
 };
 
@@ -616,11 +624,10 @@ export default function BotDashboard() {
               ).toUpperCase()}
             </strong>
             <small>
-              {c.active}:{" "}
               {subscription
-                ?.active
-                ? "✓"
-                : "×"}
+                ?.fullAccess
+                ? `${c.fullAccess} ✓`
+                : `${c.active}: ${subscription?.active ? "✓" : "×"}`}
             </small>
           </article>
 
@@ -630,12 +637,9 @@ export default function BotDashboard() {
             </span>
             <strong>
               {subscription
-                ?.usedGuilds ||
-                0}{" "}
-              /{" "}
-              {subscription
-                ?.maxGuilds ||
-                1}
+                ?.unlimited
+                ? c.unlimitedLicenses
+                : `${subscription?.usedGuilds || 0} / ${subscription?.maxGuilds || 1}`}
             </strong>
             <small>
               {c.expires}:{" "}
@@ -673,7 +677,10 @@ export default function BotDashboard() {
         </div>
 
         <p className="bot-dashboard-plan-note">
-          {c.freeHint}
+          {subscription
+            ?.unlimited
+            ? c.internalHint
+            : c.freeHint}
         </p>
 
         {selectedGuild ? (
