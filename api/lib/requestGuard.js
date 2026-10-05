@@ -30,18 +30,22 @@ function normalizeHost(value) {
 }
 
 function getAllowedOrigins() {
- const candidates = [
-  process.env.APP_ORIGIN,
-  process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : null,
-  process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : null,
-  process.env.VERCEL_BRANCH_URL
-    ? `https://${process.env.VERCEL_BRANCH_URL}`
-    : null,
-];
+  const candidates = [
+    process.env.APP_ORIGIN,
+    process.env.PUBLIC_SITE_URL,
+    process.env.ISTE_SITE_URL,
+    "https://www.istesport.com",
+    "https://istesport.com",
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : null,
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : null,
+    process.env.VERCEL_BRANCH_URL
+      ? `https://${process.env.VERCEL_BRANCH_URL}`
+      : null,
+  ];
 
   return new Set(
     candidates
