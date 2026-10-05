@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+
+import { useAuth } from "../auth/AuthContext.jsx";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 import "./DiscordBot.css";
@@ -13,6 +16,7 @@ const copy = {
       "Корисний бот для будь-якого Discord-сервера: інформація про сервер і користувачів, аватари, опитування, приватні голосові кімнати, базова модерація та інтеграції ISTe.",
     add: "Додати ISTe Bot",
     site: "На сайт ISTe",
+    dashboard: "Керувати ботом",
     note:
       "Встановлення проходить через офіційне вікно Discord. Для модераційних команд і приватних кімнат сервер сам контролює права доступу.",
     commandsTitle: "Команди ISTe Bot",
@@ -143,6 +147,7 @@ const copy = {
       "A useful bot for any Discord server: server and member information, avatars, polls, temporary private voice rooms, basic moderation and ISTe integrations.",
     add: "Add ISTe Bot",
     site: "Go to ISTe",
+    dashboard: "Manage bot",
     note:
       "Installation uses Discord's official authorization screen. Discord permissions control moderation commands and private voice rooms.",
     commandsTitle: "ISTe Bot commands",
@@ -237,6 +242,7 @@ const commandGroups = [
 
 export default function DiscordBot() {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const c = copy[language] || copy.uk;
 
   return (
@@ -257,9 +263,18 @@ export default function DiscordBot() {
                 {c.add}
               </a>
 
-              <a className="discord-bot-secondary" href="/">
-                {c.site}
-              </a>
+              {user ? (
+                <Link
+                  className="discord-bot-secondary discord-bot-dashboard-link"
+                  to="/bot/dashboard"
+                >
+                  {c.dashboard || "Dashboard"}
+                </Link>
+              ) : (
+                <a className="discord-bot-secondary" href="/">
+                  {c.site}
+                </a>
+              )}
             </div>
 
             <p className="discord-bot-note">{c.note}</p>

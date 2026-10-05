@@ -31,6 +31,14 @@ const AUTO_ROLE_GUILD_ID = String(
   process.env.DISCORD_AUTO_ROLE_GUILD_ID || "",
 ).trim();
 
+const INTERNAL_GUILD_ID = String(
+  process.env.ISTE_INTERNAL_GUILD_ID ||
+    "1334264628695404556",
+).trim();
+
+const BOT_CONFIG_CACHE_MS = 60_000;
+const guildRuntimeConfigCache = new Map();
+
 const PRIVATE_CATEGORY_NAME = "🔒 ПРИВАТНІ КІМНАТИ";
 const PRIVATE_LOBBY_NAME = "➕ Створити приватний";
 const PRIVATE_ROOM_PREFIX = "🔒・";
@@ -233,25 +241,205 @@ function log(event, data = {}) {
   );
 }
 
+function defaultGuildRuntimeConfig(guildId) {
+  const internal =
+    guildId ===
+    INTERNAL_GUILD_ID;
+
+  return {
+    active: internal,
+    plan:
+      internal
+        ? "internal"
+        : "none",
+    settings: {
+      locale: "uk",
+      memberRoleId: "",
+      autoRolesEnabled:
+        internal,
+      privateVoiceEnabled:
+        internal,
+      welcomeEnabled: false,
+      moderationEnabled: false,
+      ticketsEnabled: false,
+    },
+  };
+}
+
+async function fetchGuildRuntimeConfig(
+  guildId,
+  {
+    force = false,
+  } = {},
+) {
+  const cached =
+    guildRuntimeConfigCache.get(
+      guildId,
+    );
+
+  if (
+    !force &&
+    cached &&
+    Date.now() -
+      cached.loadedAt <
+      BOT_CONFIG_CACHE_MS
+  ) {
+    return cached.value;
+  }
+
+  const fallback =
+    defaultGuildRuntimeConfig(
+      guildId,
+    );
+
+  try {
+    const url =
+      new URL(
+        `${siteUrl}/api/owner`,
+      );
+
+    url.searchParams.set(
+      "module",
+      "bot-portal",
+    );
+
+    url.searchParams.set(
+      "action",
+      "worker-config",
+    );
+
+    url.searchParams.set(
+      "guildId",
+      guildId,
+    );
+
+    const response =
+      await fetch(
+        url,
+        {
+          cache: "no-store",
+          headers: {
+            Accept:
+              "application/json",
+            Authorization:
+              `Bot ${token}`,
+            "User-Agent":
+              "ISTesport-Discord-Worker/2.1",
+          },
+          signal:
+            AbortSignal.timeout(
+              FETCH_TIMEOUT_MS,
+            ),
+        },
+      );
+
+    const result =
+      await response
+        .json()
+        .catch(
+          () => null,
+        );
+
+    if (
+      !response.ok ||
+      result?.ok !==
+        true
+    ) {
+      throw new Error(
+        result?.message ||
+        `Bot config returned ${response.status}`,
+      );
+    }
+
+    const value = {
+      active:
+        result.active ===
+        true,
+      plan:
+        result.plan ||
+        "none",
+      settings: {
+        ...fallback.settings,
+        ...(result.settings ||
+          {}),
+      },
+    };
+
+    guildRuntimeConfigCache.set(
+      guildId,
+      {
+        loadedAt:
+          Date.now(),
+        value,
+      },
+    );
+
+    return value;
+  } catch (error) {
+    log(
+      "guild_config_fetch_failed",
+      {
+        guildId,
+        message:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+    );
+
+    guildRuntimeConfigCache.set(
+      guildId,
+      {
+        loadedAt:
+          Date.now(),
+        value: fallback,
+      },
+    );
+
+    return fallback;
+  }
+}
+
 async function assignAutoRoles(member) {
   if (!member || member.user?.bot) {
     return;
   }
 
-  if (AUTO_ROLE_IDS.length === 0) {
+  const runtime =
+    await fetchGuildRuntimeConfig(
+      member.guild.id,
+    );
+
+  if (!runtime.active) {
     return;
   }
 
-  if (AUTO_ROLE_IDS.length !== 2) {
-    log("auto_roles_invalid_config", {
-      guildId: member.guild.id,
-      configuredRoleCount: AUTO_ROLE_IDS.length,
-      message: "DISCORD_AUTO_ROLE_IDS must contain exactly 2 comma-separated role IDs",
-    });
-    return;
+  let roleIds = [];
+
+  if (
+    member.guild.id ===
+      AUTO_ROLE_GUILD_ID ||
+    (
+      member.guild.id ===
+        INTERNAL_GUILD_ID &&
+      AUTO_ROLE_IDS.length
+    )
+  ) {
+    roleIds =
+      AUTO_ROLE_IDS;
+  } else if (
+    runtime.settings
+      ?.autoRolesEnabled &&
+    runtime.settings
+      ?.memberRoleId
+  ) {
+    roleIds = [
+      runtime.settings
+        .memberRoleId,
+    ];
   }
 
-  if (AUTO_ROLE_GUILD_ID && member.guild.id !== AUTO_ROLE_GUILD_ID) {
+  if (!roleIds.length) {
     return;
   }
 
@@ -266,11 +454,11 @@ async function assignAutoRoles(member) {
       throw new Error("ISTesport Bot needs Manage Roles permission");
     }
 
-    const roles = AUTO_ROLE_IDS.map((roleId) =>
+    const roles = roleIds.map((roleId) =>
       member.guild.roles.cache.get(roleId),
     );
 
-    const missingRoleIds = AUTO_ROLE_IDS.filter(
+    const missingRoleIds = roleIds.filter(
       (_, index) => !roles[index],
     );
 
@@ -294,22 +482,19 @@ async function assignAutoRoles(member) {
       .map((role) => role.id);
 
     if (roleIdsToAdd.length === 0) {
-      log("auto_roles_already_present", {
-        guildId: member.guild.id,
-        userId: member.id,
-      });
       return;
     }
 
-    await member.roles.add(
+    await member.guild.roles.add(
       roleIdsToAdd,
-      "ISTesport automatic roles on server join",
+      "ISTesport automatic role for this Discord guild",
     );
 
     log("auto_roles_assigned", {
       guildId: member.guild.id,
       userId: member.id,
       roleIds: roleIdsToAdd,
+      plan: runtime.plan,
     });
   } catch (error) {
     log("auto_roles_failed", {
@@ -891,6 +1076,31 @@ async function cleanupEmptyPrivateRooms(guild, config) {
 async function initializePrivateVoice() {
   for (const guild of client.guilds.cache.values()) {
     try {
+      const runtime =
+        await fetchGuildRuntimeConfig(
+          guild.id,
+          {
+            force: true,
+          },
+        );
+
+      if (
+        !runtime.active ||
+        !runtime.settings
+          ?.privateVoiceEnabled
+      ) {
+        log(
+          "private_voice_skipped",
+          {
+            guildId:
+              guild.id,
+            plan:
+              runtime.plan,
+          },
+        );
+        continue;
+      }
+
       const config = await ensurePrivateVoiceSetup(guild);
       await cleanupEmptyPrivateRooms(guild, config);
 
@@ -915,6 +1125,19 @@ async function handlePrivateVoiceState(oldState, newState) {
   const guild = newState.guild || oldState.guild;
 
   if (!guild) {
+    return;
+  }
+
+  const runtime =
+    await fetchGuildRuntimeConfig(
+      guild.id,
+    );
+
+  if (
+    !runtime.active ||
+    !runtime.settings
+      ?.privateVoiceEnabled
+  ) {
     return;
   }
 
@@ -1094,6 +1317,31 @@ client.on(
 client.on(Events.GuildCreate, (guild) => {
   void (async () => {
     try {
+      const runtime =
+        await fetchGuildRuntimeConfig(
+          guild.id,
+          {
+            force: true,
+          },
+        );
+
+      if (
+        !runtime.active ||
+        !runtime.settings
+          ?.privateVoiceEnabled
+      ) {
+        log(
+          "guild_connected_without_private_voice",
+          {
+            guildId:
+              guild.id,
+            plan:
+              runtime.plan,
+          },
+        );
+        return;
+      }
+
       const config = await ensurePrivateVoiceSetup(guild);
       await cleanupEmptyPrivateRooms(guild, config);
     } catch (error) {

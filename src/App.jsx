@@ -19,6 +19,7 @@ import AdminHighlights from "./pages/AdminHighlights.jsx";
 import AdminNews from "./pages/AdminNews.jsx";
 import AIPrivacy from "./pages/AIPrivacy.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
+import BotDashboard from "./pages/BotDashboard.jsx";
 import Contacts from "./pages/Contacts.jsx";
 import DiscordBot from "./pages/DiscordBot.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
@@ -144,6 +145,15 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/blocked" element={<BlockedAccount />} />
+
+          <Route
+            path="/bot/dashboard"
+            element={
+              <ProtectedRoute>
+                <BotDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/account"

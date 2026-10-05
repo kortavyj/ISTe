@@ -227,3 +227,9 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.discord-bot-dashboard-link {
+  border-color: rgba(227, 6, 19, 0.34);
+  background: rgba(227, 6, 19, 0.06);
+}

@@ -237,6 +237,20 @@ const icons = {
       />
     </svg>
   ),
+  botDashboard: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M8 8 5 5M16 8l3-3M9 7h6a4 4 0 0 1 4 4v5a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-5a4 4 0 0 1 4-4Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <circle cx="9.5" cy="13" r="1" fill="currentColor" />
+      <circle cx="14.5" cy="13" r="1" fill="currentColor" />
+    </svg>
+  ),
   logout: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
@@ -676,6 +690,15 @@ export default function Navbar() {
                   icon={icons.search}
                   title={t("account.findUserTitle")}
                   description={t("account.findUserDescription")}
+                  menuOpen={menuOpen}
+                  onClick={closeAccountMenu}
+                />
+
+                <ProfileAction
+                  to="/bot/dashboard"
+                  icon={icons.botDashboard}
+                  title={t("account.botDashboardTitle")}
+                  description={t("account.botDashboardDescription")}
                   menuOpen={menuOpen}
                   onClick={closeAccountMenu}
                 />
