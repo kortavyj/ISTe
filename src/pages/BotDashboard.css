@@ -447,3 +447,130 @@
   color: rgba(255,255,255,.34);
   font-size: .62rem;
 }
+
+
+/* Bot dashboard v3: public pricing and plan entitlements */
+.bot-dashboard-plans {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(227,6,19,.045), transparent 50%),
+    #0d1116;
+}
+
+.bot-dashboard-plans > header span {
+  color: #e30613;
+  font-size: .6rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+
+.bot-dashboard-plans > header h2 {
+  margin: 5px 0 0;
+  font-size: 1.25rem;
+}
+
+.bot-dashboard-plans > header p,
+.bot-dashboard-payment-note {
+  margin: 7px 0 0;
+  color: rgba(255,255,255,.38);
+  font-size: .65rem;
+  line-height: 1.55;
+}
+
+.bot-dashboard-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.bot-dashboard-plan-grid article {
+  display: grid;
+  gap: 8px;
+  min-height: 152px;
+  align-content: start;
+  padding: 13px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 10px;
+  background: #090d12;
+}
+
+.bot-dashboard-plan-grid article.current {
+  border-color: rgba(227,6,19,.42);
+  box-shadow: inset 0 0 0 1px rgba(227,6,19,.06);
+}
+
+.bot-dashboard-plan-grid article > span {
+  color: rgba(255,255,255,.52);
+  font-size: .58rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bot-dashboard-plan-grid article > strong {
+  font-size: 1.3rem;
+}
+
+.bot-dashboard-plan-grid article > strong small {
+  margin-left: 4px;
+  color: rgba(255,255,255,.32);
+  font-size: .55rem;
+  font-weight: 700;
+}
+
+.bot-dashboard-plan-grid article p {
+  margin: 0;
+  color: rgba(255,255,255,.38);
+  font-size: .6rem;
+  line-height: 1.5;
+}
+
+.bot-dashboard-plan-grid article b {
+  width: max-content;
+  margin-top: auto;
+  padding: 4px 7px;
+  border: 1px solid rgba(227,6,19,.28);
+  border-radius: 999px;
+  color: #ff6873;
+  font-size: .5rem;
+  text-transform: uppercase;
+}
+
+.bot-dashboard-module-pills label {
+  display: inline-flex;
+  min-height: 32px;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 999px;
+  color: rgba(255,255,255,.55);
+  font-size: .55rem;
+  font-weight: 850;
+}
+
+.bot-dashboard-module-pills label input {
+  width: 14px;
+  height: 14px;
+}
+
+.bot-dashboard-settings input[type="checkbox"]:disabled {
+  opacity: .32;
+  cursor: not-allowed;
+}
+
+@media (max-width: 980px) {
+  .bot-dashboard-plan-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .bot-dashboard-plan-grid {
+    grid-template-columns: 1fr;
+  }
+}

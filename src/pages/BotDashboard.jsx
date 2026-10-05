@@ -98,6 +98,22 @@ const copy = {
       "Внутрішній акаунт власника ISTe: повний доступ до всіх функцій, безлімітні Discord-сервери та безстрокова підписка.",
     fullAccess: "Повний доступ",
     unlimitedLicenses: "∞",
+    plansTitle: "Тарифи ISTe Bot",
+    plansText:
+      "Місячна підписка діє 30 днів. Максимальний тариф коштує $6.99.",
+    perMonth: "/ міс",
+    currentPlan: "Поточний тариф",
+    freePlan: "Free",
+    starterPlan: "Starter",
+    proPlan: "Pro",
+    maxPlan: "Max",
+    freeFeatures: "1 сервер · базові команди",
+    starterFeatures: "1 сервер · Auto Role · Welcome · Moderation · Logs",
+    proFeatures: "3 сервери · Starter + Private Voice · Tickets · FACEIT · Team",
+    maxFeatures: "10 серверів · усі модулі · Highlights · Analytics",
+    paymentSoon:
+      "Оплата буде підключена окремим платіжним модулем. Тарифна система вже активна.",
+    requiresPlan: "Потрібен вищий тариф",
   },
   en: {
     eyebrow: "ISTe BOT CONTROL",
@@ -174,6 +190,22 @@ const copy = {
       "ISTe owner internal account: full feature access, unlimited Discord servers and a non-expiring subscription.",
     fullAccess: "Full access",
     unlimitedLicenses: "∞",
+    plansTitle: "ISTe Bot plans",
+    plansText:
+      "A monthly subscription lasts 30 days. The highest plan costs $6.99.",
+    perMonth: "/ mo",
+    currentPlan: "Current plan",
+    freePlan: "Free",
+    starterPlan: "Starter",
+    proPlan: "Pro",
+    maxPlan: "Max",
+    freeFeatures: "1 server · basic commands",
+    starterFeatures: "1 server · Auto Role · Welcome · Moderation · Logs",
+    proFeatures: "3 servers · Starter + Private Voice · Tickets · FACEIT · Team",
+    maxFeatures: "10 servers · all modules · Highlights · Analytics",
+    paymentSoon:
+      "Checkout will be connected through a payment provider. The plan system is already active.",
+    requiresPlan: "Higher plan required",
   },
 };
 
@@ -684,6 +716,55 @@ export default function BotDashboard() {
   const subscription =
     data?.subscription;
 
+  const entitlements =
+    new Set(
+      subscription
+        ?.features ||
+      [],
+    );
+
+  const hasFeature =
+    (feature) =>
+      subscription
+        ?.fullAccess ===
+        true ||
+      entitlements.has("*") ||
+      entitlements.has(
+        feature,
+      );
+
+  const planCards = [
+    {
+      plan: "free",
+      title: c.freePlan,
+      price: 0,
+      description:
+        c.freeFeatures,
+    },
+    {
+      plan: "starter",
+      title:
+        c.starterPlan,
+      price: 2.99,
+      description:
+        c.starterFeatures,
+    },
+    {
+      plan: "pro",
+      title: c.proPlan,
+      price: 4.99,
+      description:
+        c.proFeatures,
+    },
+    {
+      plan: "max",
+      title: c.maxPlan,
+      price: 6.99,
+      description:
+        c.maxFeatures,
+    },
+  ];
+
   return (
     <section className="bot-dashboard-page">
       <div className="bot-dashboard-shell">
@@ -808,6 +889,75 @@ export default function BotDashboard() {
             : c.freeHint}
         </p>
 
+        {!subscription?.unlimited ? (
+          <section className="bot-dashboard-plans">
+            <header>
+              <div>
+                <span>
+                  ISTe BOT
+                </span>
+                <h2>
+                  {c.plansTitle}
+                </h2>
+                <p>
+                  {c.plansText}
+                </p>
+              </div>
+            </header>
+
+            <div className="bot-dashboard-plan-grid">
+              {planCards.map(
+                (plan) => (
+                  <article
+                    key={
+                      plan.plan
+                    }
+                    className={
+                      subscription?.plan ===
+                      plan.plan
+                        ? "current"
+                        : ""
+                    }
+                  >
+                    <span>
+                      {plan.title}
+                    </span>
+
+                    <strong>
+                      {"$"}
+                      {plan.price.toFixed(
+                        2,
+                      )}
+                      <small>
+                        {plan.price > 0
+                          ? c.perMonth
+                          : ""}
+                      </small>
+                    </strong>
+
+                    <p>
+                      {
+                        plan.description
+                      }
+                    </p>
+
+                    {subscription?.plan ===
+                    plan.plan ? (
+                      <b>
+                        {c.currentPlan}
+                      </b>
+                    ) : null}
+                  </article>
+                ),
+              )}
+            </div>
+
+            <p className="bot-dashboard-payment-note">
+              {c.paymentSoon}
+            </p>
+          </section>
+        ) : null}
+
         {selectedGuild ? (
           <div className="bot-dashboard-settings-view">
             <button
@@ -925,6 +1075,11 @@ export default function BotDashboard() {
                       settings
                         .autoRolesEnabled
                     }
+                    disabled={
+                      !hasFeature(
+                        "auto_roles",
+                      )
+                    }
                     onChange={(
                       event,
                     ) =>
@@ -1003,6 +1158,11 @@ export default function BotDashboard() {
                       settings
                         .privateVoiceEnabled
                     }
+                    disabled={
+                      !hasFeature(
+                        "private_voice",
+                      )
+                    }
                     onChange={(
                       event,
                     ) =>
@@ -1030,15 +1190,89 @@ export default function BotDashboard() {
                 </header>
 
                 <div className="bot-dashboard-module-pills">
-                  <span>
-                    {c.welcome}
-                  </span>
-                  <span>
-                    {c.moderation}
-                  </span>
-                  <span>
-                    {c.tickets}
-                  </span>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={
+                        settings
+                          .welcomeEnabled
+                      }
+                      disabled={
+                        !hasFeature(
+                          "welcome",
+                        )
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        patch(
+                          "welcomeEnabled",
+                          event
+                            .target
+                            .checked,
+                        )
+                      }
+                    />
+                    <span>
+                      {c.welcome}
+                    </span>
+                  </label>
+
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={
+                        settings
+                          .moderationEnabled
+                      }
+                      disabled={
+                        !hasFeature(
+                          "moderation",
+                        )
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        patch(
+                          "moderationEnabled",
+                          event
+                            .target
+                            .checked,
+                        )
+                      }
+                    />
+                    <span>
+                      {c.moderation}
+                    </span>
+                  </label>
+
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={
+                        settings
+                          .ticketsEnabled
+                      }
+                      disabled={
+                        !hasFeature(
+                          "tickets",
+                        )
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        patch(
+                          "ticketsEnabled",
+                          event
+                            .target
+                            .checked,
+                        )
+                      }
+                    />
+                    <span>
+                      {c.tickets}
+                    </span>
+                  </label>
                 </div>
 
                 <div className="bot-dashboard-field-grid">

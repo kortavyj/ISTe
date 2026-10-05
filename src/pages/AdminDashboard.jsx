@@ -33,6 +33,9 @@ const copy = {
     discordTitle: "Discord Bot",
     discordText:
       "Сервери, перевірка підключення та керування ISTe Bot.",
+    subscriptionsTitle: "Підписки бота",
+    subscriptionsText:
+      "Starter, Pro і Max, 30-денні періоди, продовження та Subscriber Role.",
   },
   en: {
     eyebrow: "ISTe ADMIN CONTROL",
@@ -62,6 +65,9 @@ const copy = {
     discordTitle: "Discord Bot",
     discordText:
       "Servers, connection verification and ISTe Bot management.",
+    subscriptionsTitle: "Bot subscriptions",
+    subscriptionsText:
+      "Starter, Pro and Max, 30-day periods, extensions and Subscriber Role.",
   },
 };
 
@@ -100,6 +106,11 @@ const cards = [
     key: "discord",
     to: "/owner/discord",
     mark: "07",
+  },
+  {
+    key: "subscriptions",
+    to: "/admin/bot-subscriptions",
+    mark: "08",
   },
 ];
 
@@ -140,6 +151,10 @@ export default function AdminDashboard() {
     discord: [
       c.discordTitle,
       c.discordText,
+    ],
+    subscriptions: [
+      c.subscriptionsTitle,
+      c.subscriptionsText,
     ],
   };
 

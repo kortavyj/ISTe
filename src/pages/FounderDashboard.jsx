@@ -30,6 +30,9 @@ const copy = {
     discordTitle: "Discord Bot",
     discordText:
       "Сервери, перевірка підключення та глобальні slash-команди.",
+    subscriptionsTitle: "Підписки ISTe Bot",
+    subscriptionsText:
+      "Керування тарифами Starter, Pro, Max, термінами та Discord Subscriber Role.",
     publicBotTitle: "Публічна сторінка бота",
     publicBotText:
       "Перегляд сторінки, через яку користувачі додають ISTe Bot на свої сервери.",
@@ -62,6 +65,9 @@ const copy = {
     discordTitle: "Discord Bot",
     discordText:
       "Servers, connection verification and global slash commands.",
+    subscriptionsTitle: "ISTe Bot subscriptions",
+    subscriptionsText:
+      "Manage Starter, Pro and Max plans, billing periods and Discord Subscriber Role.",
     publicBotTitle: "Public bot page",
     publicBotText:
       "Preview the page users use to add ISTe Bot to their own servers.",
@@ -78,8 +84,9 @@ const cards = [
   { key: "highlights", to: "/admin/highlights", mark: "04" },
   { key: "shop", to: "/owner/shop", mark: "05" },
   { key: "discord", to: "/owner/discord", mark: "06" },
-  { key: "publicBot", to: "/discord", mark: "07" },
-  { key: "website", to: "/", mark: "08" },
+  { key: "subscriptions", to: "/admin/bot-subscriptions", mark: "07" },
+  { key: "publicBot", to: "/discord", mark: "08" },
+  { key: "website", to: "/", mark: "09" },
 ];
 
 export default function FounderDashboard() {
@@ -93,6 +100,7 @@ export default function FounderDashboard() {
     highlights: [c.highlightsTitle, c.highlightsText],
     shop: [c.shopTitle, c.shopText],
     discord: [c.discordTitle, c.discordText],
+    subscriptions: [c.subscriptionsTitle, c.subscriptionsText],
     publicBot: [c.publicBotTitle, c.publicBotText],
     website: [c.websiteTitle, c.websiteText],
   };

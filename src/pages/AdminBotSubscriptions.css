@@ -1,0 +1,237 @@
+.admin-bot-subscriptions-page {
+  min-height: 100vh;
+  padding: calc(var(--navbar-height) + 48px) 20px 78px;
+  background:
+    radial-gradient(circle at 8% 2%, rgba(227,6,19,.14), transparent 28%),
+    #07090c;
+  color: #fff;
+}
+
+.admin-bot-subscriptions-shell {
+  width: min(1360px, 100%);
+  margin: 0 auto;
+}
+
+.admin-bot-subscriptions-header {
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.admin-bot-subscriptions-header span {
+  color: #e30613;
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.admin-bot-subscriptions-header h1 {
+  margin: 8px 0 0;
+  font-size: clamp(2.6rem, 6vw, 5.4rem);
+  letter-spacing: -.055em;
+}
+
+.admin-bot-subscriptions-header p {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: rgba(255,255,255,.46);
+  line-height: 1.6;
+}
+
+.admin-bot-subscriptions-message {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 9px;
+  font-size: .68rem;
+}
+
+.admin-bot-subscriptions-message.success {
+  color: #7fe4a7;
+}
+
+.admin-bot-subscriptions-message.error {
+  color: #ff8a93;
+}
+
+.admin-bot-subscriptions-search {
+  display: grid;
+  grid-template-columns: 28px minmax(0,1fr);
+  align-items: center;
+  width: min(520px, 100%);
+  margin: 20px 0 14px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  background: #0c1015;
+}
+
+.admin-bot-subscriptions-search > span {
+  color: rgba(255,255,255,.3);
+}
+
+.admin-bot-subscriptions-search input {
+  min-height: 42px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+}
+
+.admin-bot-subscriptions-list {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-bot-subscriptions-list article {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.25fr) minmax(280px, 1.4fr) minmax(300px, 1.5fr);
+  gap: 14px;
+  align-items: center;
+  padding: 13px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 12px;
+  background: #0d1116;
+}
+
+.admin-bot-subscriptions-user {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-bot-subscriptions-avatar {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(227,6,19,.24);
+  border-radius: 12px;
+  background: #10151b;
+  font-size: .68rem;
+  font-weight: 900;
+}
+
+.admin-bot-subscriptions-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-bot-subscriptions-user > div:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.admin-bot-subscriptions-user strong,
+.admin-bot-subscriptions-user small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-bot-subscriptions-user small {
+  color: rgba(255,255,255,.35);
+  font-size: .55rem;
+}
+
+.admin-bot-subscriptions-state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-bot-subscriptions-state span {
+  padding: 5px 7px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 999px;
+  color: rgba(255,255,255,.36);
+  font-size: .52rem;
+}
+
+.admin-bot-subscriptions-state b {
+  color: rgba(255,255,255,.78);
+}
+
+.admin-bot-subscriptions-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.admin-bot-subscriptions-actions select,
+.admin-bot-subscriptions-actions button {
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 7px;
+  background: #090d12;
+  color: #fff;
+  font: inherit;
+  font-size: .57rem;
+  font-weight: 800;
+}
+
+.admin-bot-subscriptions-actions button {
+  border-color: rgba(227,6,19,.28);
+  background: rgba(227,6,19,.07);
+  cursor: pointer;
+}
+
+.admin-bot-subscriptions-actions button.secondary {
+  border-color: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.025);
+}
+
+.admin-bot-subscriptions-actions button.danger {
+  border-color: rgba(255,72,84,.22);
+  color: #ff7c85;
+}
+
+.admin-bot-subscriptions-actions button:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
+.admin-bot-subscriptions-limit {
+  align-self: center;
+  color: rgba(255,255,255,.28);
+  font-size: .52rem;
+}
+
+.admin-bot-subscriptions-protected {
+  justify-self: end;
+  padding: 7px 9px;
+  border: 1px solid rgba(227,6,19,.22);
+  border-radius: 999px;
+  color: #ff6873;
+  font-size: .55rem;
+  font-weight: 900;
+}
+
+.admin-bot-subscriptions-empty {
+  padding: 60px 20px;
+  border: 1px dashed rgba(255,255,255,.07);
+  border-radius: 12px;
+  color: rgba(255,255,255,.34);
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .admin-bot-subscriptions-list article {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-bot-subscriptions-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-bot-subscriptions-protected {
+    justify-self: start;
+  }
+}

@@ -13,6 +13,7 @@ import {
   readJsonBody,
   readQueryString,
 } from "../api/lib/requestBody.js";
+import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
 import { getSupabaseServerClient } from "../api/lib/supabaseServer.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 
@@ -36,6 +37,207 @@ const ADMINISTRATOR =
 
 const INTERNAL_GUILD_ID =
   "1334264628695404556";
+
+const SUBSCRIBER_ROLE_NAME =
+  "ISTe Bot Subscriber";
+
+const PLAN_CATALOG =
+  Object.freeze({
+    free: {
+      priceUsd: 0,
+      maxGuilds: 1,
+      features: [],
+    },
+    starter: {
+      priceUsd: 2.99,
+      maxGuilds: 1,
+      features: [
+        "auto_roles",
+        "welcome",
+        "moderation",
+        "logs",
+      ],
+    },
+    pro: {
+      priceUsd: 4.99,
+      maxGuilds: 3,
+      features: [
+        "auto_roles",
+        "welcome",
+        "moderation",
+        "logs",
+        "private_voice",
+        "tickets",
+        "applications",
+        "faceit",
+        "team",
+      ],
+    },
+    max: {
+      priceUsd: 6.99,
+      maxGuilds: 10,
+      features: [
+        "auto_roles",
+        "welcome",
+        "moderation",
+        "logs",
+        "private_voice",
+        "tickets",
+        "applications",
+        "faceit",
+        "team",
+        "giveaways",
+        "highlights",
+        "analytics",
+      ],
+    },
+    internal: {
+      priceUsd: 0,
+      maxGuilds: null,
+      features: ["*"],
+    },
+  });
+
+const PAID_PLANS =
+  new Set([
+    "starter",
+    "pro",
+    "max",
+  ]);
+
+function normalizePlan(value) {
+  const plan =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  if (
+    plan ===
+    "organization"
+  ) {
+    return "max";
+  }
+
+  return PLAN_CATALOG[plan]
+    ? plan
+    : "free";
+}
+
+function getPlanConfig(value) {
+  const plan =
+    normalizePlan(value);
+
+  return {
+    plan,
+    ...PLAN_CATALOG[plan],
+  };
+}
+
+function hasPlanFeature(
+  plan,
+  feature,
+) {
+  const config =
+    getPlanConfig(plan);
+
+  return (
+    config.features.includes(
+      "*",
+    ) ||
+    config.features.includes(
+      feature,
+    )
+  );
+}
+
+function licenseActive(
+  license,
+) {
+  if (!license) {
+    return false;
+  }
+
+  if (
+    ![
+      "active",
+      "internal",
+    ].includes(
+      license.status,
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    !license.expires_at
+  ) {
+    return true;
+  }
+
+  return (
+    new Date(
+      license.expires_at,
+    ).getTime() >
+    Date.now()
+  );
+}
+
+function sanitizeSettingsForPlan(
+  settings,
+  plan,
+) {
+  const source =
+    settings || {};
+
+  return {
+    ...source,
+    autoRolesEnabled:
+      hasPlanFeature(
+        plan,
+        "auto_roles",
+      )
+        ? source
+            .autoRolesEnabled ===
+          true
+        : false,
+    privateVoiceEnabled:
+      hasPlanFeature(
+        plan,
+        "private_voice",
+      )
+        ? source
+            .privateVoiceEnabled ===
+          true
+        : false,
+    welcomeEnabled:
+      hasPlanFeature(
+        plan,
+        "welcome",
+      )
+        ? source
+            .welcomeEnabled ===
+          true
+        : false,
+    moderationEnabled:
+      hasPlanFeature(
+        plan,
+        "moderation",
+      )
+        ? source
+            .moderationEnabled ===
+          true
+        : false,
+    ticketsEnabled:
+      hasPlanFeature(
+        plan,
+        "tickets",
+      )
+        ? source
+            .ticketsEnabled ===
+          true
+        : false,
+  };
+}
 
 function sendError(
   response,
@@ -104,6 +306,11 @@ function readConfig() {
         .DISCORD_PERMISSIONS
         ?.trim() ||
       DEFAULT_PERMISSIONS,
+    subscriberRoleId:
+      process.env
+        .DISCORD_SUBSCRIBER_ROLE_ID
+        ?.trim() ||
+      "",
     siteUrl,
     redirectUri:
       process.env
@@ -445,6 +652,377 @@ async function ensureSubscription(
   return data;
 }
 
+async function expireSubscriptionIfNeeded(
+  supabase,
+  subscription,
+) {
+  if (
+    !subscription ||
+    !PAID_PLANS.has(
+      normalizePlan(
+        subscription.plan,
+      ),
+    ) ||
+    subscription.status !==
+      "active" ||
+    !subscription.expires_at ||
+    new Date(
+      subscription.expires_at,
+    ).getTime() >
+      Date.now()
+  ) {
+    return subscription;
+  }
+
+  const now =
+    new Date()
+      .toISOString();
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .from(
+      "discord_subscriptions",
+    )
+    .update({
+      status: "expired",
+      updated_at: now,
+    })
+    .eq(
+      "user_id",
+      subscription.user_id,
+    )
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  await supabase
+    .from(
+      "discord_guild_licenses",
+    )
+    .update({
+      status: "expired",
+      updated_at: now,
+    })
+    .eq(
+      "user_id",
+      subscription.user_id,
+    )
+    .neq(
+      "status",
+      "internal",
+    );
+
+  return data;
+}
+
+async function getSubscriberRoleId(
+  config,
+) {
+  if (
+    config.subscriberRoleId
+  ) {
+    return config
+      .subscriberRoleId;
+  }
+
+  const roles =
+    await discordRequest(
+      `/guilds/${INTERNAL_GUILD_ID}/roles`,
+      {
+        token:
+          config.botToken,
+        authType: "Bot",
+      },
+    );
+
+  const existing =
+    (
+      Array.isArray(roles)
+        ? roles
+        : []
+    ).find(
+      (role) =>
+        role.name ===
+        SUBSCRIBER_ROLE_NAME,
+    );
+
+  if (existing?.id) {
+    return String(
+      existing.id,
+    );
+  }
+
+  const created =
+    await discordRequest(
+      `/guilds/${INTERNAL_GUILD_ID}/roles`,
+      {
+        method: "POST",
+        token:
+          config.botToken,
+        authType: "Bot",
+        body: {
+          name:
+            SUBSCRIBER_ROLE_NAME,
+          color:
+            14878227,
+          hoist: false,
+          mentionable: false,
+          reason:
+            "ISTe Bot paid subscriber role",
+        },
+      },
+    );
+
+  return String(
+    created?.id || "",
+  );
+}
+
+async function syncSubscriberRole(
+  supabase,
+  subscription,
+  discordAccount,
+) {
+  const plan =
+    normalizePlan(
+      subscription?.plan,
+    );
+
+  if (
+    !subscription ||
+    plan === "internal" ||
+    !discordAccount
+      ?.discord_user_id
+  ) {
+    return {
+      synced:
+        subscription
+          ?.subscriber_role_synced ===
+        true,
+      skipped: true,
+    };
+  }
+
+  const config =
+    readConfig();
+
+  if (!config.botToken) {
+    return {
+      synced: false,
+      skipped: true,
+      reason:
+        "DISCORD_BOT_TOKEN_MISSING",
+    };
+  }
+
+  const paidActive =
+    PAID_PLANS.has(
+      plan,
+    ) &&
+    subscriptionActive(
+      subscription,
+    );
+
+  try {
+    await discordRequest(
+      `/guilds/${INTERNAL_GUILD_ID}/members/${discordAccount.discord_user_id}`,
+      {
+        token:
+          config.botToken,
+        authType: "Bot",
+      },
+    );
+
+    const roleId =
+      await getSubscriberRoleId(
+        config,
+      );
+
+    if (!roleId) {
+      throw new Error(
+        "SUBSCRIBER_ROLE_NOT_FOUND",
+      );
+    }
+
+    if (paidActive) {
+      await discordRequest(
+        `/guilds/${INTERNAL_GUILD_ID}/members/${discordAccount.discord_user_id}/roles/${roleId}`,
+        {
+          method: "PUT",
+          token:
+            config.botToken,
+          authType: "Bot",
+        },
+      );
+    } else if (
+      subscription
+        .subscriber_role_synced
+    ) {
+      await discordRequest(
+        `/guilds/${INTERNAL_GUILD_ID}/members/${discordAccount.discord_user_id}/roles/${roleId}`,
+        {
+          method: "DELETE",
+          token:
+            config.botToken,
+          authType: "Bot",
+        },
+      );
+    }
+
+    const synced =
+      paidActive;
+
+    const {
+      error,
+    } = await supabase
+      .from(
+        "discord_subscriptions",
+      )
+      .update({
+        subscriber_role_synced:
+          synced,
+        subscriber_role_expires_at:
+          paidActive
+            ? subscription
+                .expires_at
+            : null,
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "user_id",
+        subscription.user_id,
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      synced,
+      skipped: false,
+    };
+  } catch (error) {
+    console.error(
+      "Subscriber role sync error:",
+      {
+        userId:
+          subscription.user_id,
+        discordUserId:
+          discordAccount
+            .discord_user_id,
+        message:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+    );
+
+    return {
+      synced: false,
+      skipped: false,
+      reason:
+        "ROLE_SYNC_FAILED",
+    };
+  }
+}
+
+async function reconcileGuildLicenses(
+  supabase,
+  userId,
+  plan,
+  expiresAt,
+) {
+  const config =
+    getPlanConfig(plan);
+
+  const {
+    data: licenses,
+    error,
+  } = await supabase
+    .from(
+      "discord_guild_licenses",
+    )
+    .select("*")
+    .eq(
+      "user_id",
+      userId,
+    )
+    .order(
+      "activated_at",
+      {
+        ascending: true,
+      },
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  const rows =
+    Array.isArray(
+      licenses,
+    )
+      ? licenses
+      : [];
+
+  const limit =
+    config.maxGuilds;
+
+  for (
+    let index = 0;
+    index < rows.length;
+    index += 1
+  ) {
+    const license =
+      rows[index];
+
+    const active =
+      limit === null ||
+      index < limit;
+
+    const {
+      error: updateError,
+    } = await supabase
+      .from(
+        "discord_guild_licenses",
+      )
+      .update({
+        plan:
+          config.plan,
+        status:
+          config.plan ===
+            "internal"
+            ? "internal"
+            : active
+              ? "active"
+              : "suspended",
+        expires_at:
+          config.plan ===
+            "internal"
+            ? null
+            : expiresAt,
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "guild_id",
+        license.guild_id,
+      );
+
+    if (updateError) {
+      throw updateError;
+    }
+  }
+}
+
 function normalizeSettings(
   row,
 ) {
@@ -676,11 +1254,17 @@ async function handleStatus(
     const supabase =
       getSupabaseAdminClient();
 
-    const subscription =
+    let subscription =
       await ensureSubscription(
         supabase,
         account.user.id,
         account.role,
+      );
+
+    subscription =
+      await expireSubscriptionIfNeeded(
+        supabase,
+        subscription,
       );
 
     const [
@@ -773,6 +1357,14 @@ async function handleStatus(
       )
         ? settingsResult.data
         : [];
+
+    const roleSync =
+      await syncSubscriberRole(
+        supabase,
+        subscription,
+        discordAccountResult
+          .data,
+      );
 
     const guildIds =
       [
@@ -888,9 +1480,34 @@ async function handleStatus(
                     .last_synced_at,
               }
             : null,
+        planCatalog:
+          Object.entries(
+            PLAN_CATALOG,
+          )
+            .filter(
+              ([plan]) =>
+                plan !==
+                "internal",
+            )
+            .map(
+              ([
+                plan,
+                config,
+              ]) => ({
+                plan,
+                priceUsd:
+                  config.priceUsd,
+                maxGuilds:
+                  config.maxGuilds,
+                features:
+                  config.features,
+              }),
+            ),
         subscription: {
           plan:
-            subscription.plan,
+            normalizePlan(
+              subscription.plan,
+            ),
           status:
             subscription.status,
           active:
@@ -925,9 +1542,12 @@ async function handleStatus(
                   license.status,
                 ),
             ).length,
+          features:
+            getPlanConfig(
+              subscription.plan,
+            ).features,
           subscriberRoleSynced:
-            subscription
-              .subscriber_role_synced ===
+            roleSync.synced ===
             true,
           subscriberRoleExpiresAt:
             subscription
@@ -2138,13 +2758,74 @@ async function handleSaveSettings(
 
     if (
       !owned.ok ||
-      !owned.license
+      !owned.license ||
+      !licenseActive(
+        owned.license,
+      )
     ) {
       return sendError(
         response,
         403,
         "GUILD_LICENSE_REQUIRED",
         "Немає активної ліцензії для цього сервера.",
+      );
+    }
+
+    let subscription =
+      await ensureSubscription(
+        supabase,
+        account.user.id,
+        account.role,
+      );
+
+    subscription =
+      await expireSubscriptionIfNeeded(
+        supabase,
+        subscription,
+      );
+
+    const featureChecks = [
+      [
+        body.autoRolesEnabled,
+        "auto_roles",
+      ],
+      [
+        body.privateVoiceEnabled,
+        "private_voice",
+      ],
+      [
+        body.welcomeEnabled,
+        "welcome",
+      ],
+      [
+        body.moderationEnabled,
+        "moderation",
+      ],
+      [
+        body.ticketsEnabled,
+        "tickets",
+      ],
+    ];
+
+    const lockedFeature =
+      featureChecks.find(
+        ([
+          enabled,
+          feature,
+        ]) =>
+          enabled === true &&
+          !hasPlanFeature(
+            subscription.plan,
+            feature,
+          ),
+      );
+
+    if (lockedFeature) {
+      return sendError(
+        response,
+        402,
+        "FEATURE_REQUIRES_PLAN",
+        "Ця функція недоступна на поточному тарифі ISTe Bot.",
       );
     }
 
@@ -2815,7 +3496,7 @@ async function handleWorkerConfig(
         );
     }
 
-    const settings =
+    const rawSettings =
       settingsResult.data
         ? normalizeSettings(
             settingsResult.data,
@@ -2832,6 +3513,15 @@ async function handleWorkerConfig(
             moderationEnabled: false,
             ticketsEnabled: false,
           };
+
+    const settings =
+      sanitizeSettingsForPlan(
+        rawSettings,
+        fallbackInternal
+          ? "internal"
+          : license?.plan ||
+            "free",
+      );
 
     return response
       .status(200)
@@ -2857,6 +3547,768 @@ async function handleWorkerConfig(
       500,
       "BOT_CONFIG_FAILED",
       "Could not load bot guild configuration.",
+    );
+  }
+}
+
+async function requireSubscriptionManager(
+  request,
+  response,
+) {
+  const access =
+    await requireAdminOrOwner(
+      request,
+      response,
+    );
+
+  if (!access.ok) {
+    sendError(
+      response,
+      access.status,
+      access.error,
+      access.message,
+    );
+
+    return null;
+  }
+
+  return access;
+}
+
+async function handleAdminSubscriptions(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["GET"],
+        requireJson: false,
+        requireOrigin: false,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const manager =
+    await requireSubscriptionManager(
+      request,
+      response,
+    );
+
+  if (!manager) return;
+
+  const search =
+    readQueryString(
+      request.query?.search,
+      100,
+    )
+      .trim()
+      .toLowerCase();
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const {
+      data: accounts,
+      error: accountError,
+    } = await supabase
+      .from(
+        "discord_customer_accounts",
+      )
+      .select("*")
+      .order(
+        "last_synced_at",
+        {
+          ascending: false,
+        },
+      )
+      .limit(300);
+
+    if (accountError) {
+      throw accountError;
+    }
+
+    const userIds =
+      (
+        accounts || []
+      ).map(
+        (item) =>
+          item.user_id,
+      );
+
+    const [
+      subscriptionResult,
+      profileResult,
+      roleResult,
+    ] =
+      userIds.length
+        ? await Promise.all([
+            supabase
+              .from(
+                "discord_subscriptions",
+              )
+              .select("*")
+              .in(
+                "user_id",
+                userIds,
+              ),
+            supabase
+              .from("profiles")
+              .select(
+                "id, username, display_name, avatar_url",
+              )
+              .in(
+                "id",
+                userIds,
+              ),
+            supabase
+              .from(
+                "user_roles",
+              )
+              .select(
+                "user_id, role",
+              )
+              .in(
+                "user_id",
+                userIds,
+              ),
+          ])
+        : [
+            {
+              data: [],
+              error: null,
+            },
+            {
+              data: [],
+              error: null,
+            },
+            {
+              data: [],
+              error: null,
+            },
+          ];
+
+    for (
+      const result
+      of [
+        subscriptionResult,
+        profileResult,
+        roleResult,
+      ]
+    ) {
+      if (result.error) {
+        throw result.error;
+      }
+    }
+
+    const subscriptionMap =
+      new Map(
+        (
+          subscriptionResult
+            .data || []
+        ).map(
+          (item) => [
+            item.user_id,
+            item,
+          ],
+        ),
+      );
+
+    const profileMap =
+      new Map(
+        (
+          profileResult
+            .data || []
+        ).map(
+          (item) => [
+            item.id,
+            item,
+          ],
+        ),
+      );
+
+    const roleMap =
+      new Map(
+        (
+          roleResult.data ||
+          []
+        ).map(
+          (item) => [
+            item.user_id,
+            item.role,
+          ],
+        ),
+      );
+
+    const rows =
+      (accounts || [])
+        .map(
+          (account) => {
+            const sub =
+              subscriptionMap.get(
+                account.user_id,
+              );
+
+            const profile =
+              profileMap.get(
+                account.user_id,
+              );
+
+            const role =
+              roleMap.get(
+                account.user_id,
+              ) || "user";
+
+            return {
+              userId:
+                account.user_id,
+              siteRole:
+                role,
+              username:
+                profile?.username ||
+                "",
+              displayName:
+                profile
+                  ?.display_name ||
+                "",
+              avatarUrl:
+                profile?.avatar_url ||
+                "",
+              discordUserId:
+                account
+                  .discord_user_id,
+              discordUsername:
+                account
+                  .discord_username,
+              discordGlobalName:
+                account
+                  .discord_global_name,
+              discordAvatar:
+                account
+                  .discord_avatar,
+              plan:
+                normalizePlan(
+                  sub?.plan ||
+                  "free",
+                ),
+              status:
+                sub?.status ||
+                "free",
+              startsAt:
+                sub?.starts_at ||
+                null,
+              expiresAt:
+                sub?.expires_at ||
+                null,
+              maxGuilds:
+                normalizePlan(
+                  sub?.plan,
+                ) ===
+                  "internal"
+                  ? null
+                  : sub?.max_guilds ??
+                    1,
+              subscriberRoleSynced:
+                sub
+                  ?.subscriber_role_synced ===
+                true,
+            };
+          },
+        )
+        .filter(
+          (row) => {
+            if (!search) {
+              return true;
+            }
+
+            return [
+              row.username,
+              row.displayName,
+              row.discordUsername,
+              row.discordGlobalName,
+              row.discordUserId,
+            ].some(
+              (value) =>
+                String(
+                  value || "",
+                )
+                  .toLowerCase()
+                  .includes(
+                    search,
+                  ),
+            );
+          },
+        );
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        plans:
+          ["starter", "pro", "max"].map(
+            (plan) => ({
+              plan,
+              ...PLAN_CATALOG[
+                plan
+              ],
+            }),
+          ),
+        subscriptions:
+          rows,
+      });
+  } catch (error) {
+    console.error(
+      "Subscription manager list error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "SUBSCRIPTIONS_LOAD_FAILED",
+      "Не вдалося завантажити підписки ISTe Bot.",
+    );
+  }
+}
+
+async function handleAdminSetSubscription(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 8192,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const manager =
+    await requireSubscriptionManager(
+      request,
+      response,
+    );
+
+  if (!manager) return;
+
+  const body =
+    readJsonBody(request) ||
+    {};
+
+  const userId =
+    String(
+      body.userId || "",
+    ).trim();
+
+  const mode =
+    String(
+      body.mode || "",
+    )
+      .trim()
+      .toLowerCase();
+
+  const requestedPlan =
+    normalizePlan(
+      body.plan,
+    );
+
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      userId,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_USER_ID",
+      "Некоректний ID користувача.",
+    );
+  }
+
+  if (
+    ![
+      "activate",
+      "extend",
+      "revoke",
+    ].includes(
+      mode,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_SUBSCRIPTION_ACTION",
+      "Некоректна дія підписки.",
+    );
+  }
+
+  if (
+    mode !== "revoke" &&
+    !PAID_PLANS.has(
+      requestedPlan,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_SUBSCRIPTION_PLAN",
+      "Оберіть Starter, Pro або Max.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const {
+      data: targetRole,
+      error: targetRoleError,
+    } = await supabase
+      .from(
+        "user_roles",
+      )
+      .select(
+        "role",
+      )
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle();
+
+    if (
+      targetRoleError ||
+      !targetRole
+    ) {
+      return sendError(
+        response,
+        404,
+        "SUBSCRIPTION_USER_NOT_FOUND",
+        "Користувача не знайдено.",
+      );
+    }
+
+    if (
+      targetRole.role ===
+      "owner"
+    ) {
+      return sendError(
+        response,
+        403,
+        "OWNER_SUBSCRIPTION_PROTECTED",
+        "Внутрішня підписка власника ISTe захищена.",
+      );
+    }
+
+    const {
+      data: existing,
+      error: existingError,
+    } = await supabase
+      .from(
+        "discord_subscriptions",
+      )
+      .select("*")
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle();
+
+    if (existingError) {
+      throw existingError;
+    }
+
+    const now =
+      new Date();
+
+    if (
+      mode === "revoke"
+    ) {
+      const nowIso =
+        now.toISOString();
+
+      const {
+        data: subscription,
+        error,
+      } = await supabase
+        .from(
+          "discord_subscriptions",
+        )
+        .upsert(
+          {
+            user_id:
+              userId,
+            plan: "free",
+            status: "free",
+            starts_at:
+              existing
+                ?.starts_at ||
+              nowIso,
+            expires_at: null,
+            max_guilds: 1,
+            subscriber_role_expires_at:
+              null,
+            updated_at:
+              nowIso,
+          },
+          {
+            onConflict:
+              "user_id",
+          },
+        )
+        .select("*")
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      await reconcileGuildLicenses(
+        supabase,
+        userId,
+        "free",
+        null,
+      );
+
+      const {
+        data: discordAccount,
+      } = await supabase
+        .from(
+          "discord_customer_accounts",
+        )
+        .select("*")
+        .eq(
+          "user_id",
+          userId,
+        )
+        .maybeSingle();
+
+      await syncSubscriberRole(
+        supabase,
+        subscription,
+        discordAccount,
+      );
+
+      await supabase
+        .from(
+          "discord_subscription_events",
+        )
+        .insert({
+          user_id:
+            userId,
+          actor_user_id:
+            manager.user.id,
+          event_type:
+            "revoked",
+          plan: "free",
+          starts_at:
+            subscription
+              .starts_at,
+          expires_at: null,
+        });
+
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          subscription: {
+            plan: "free",
+            status: "free",
+            expiresAt: null,
+          },
+        });
+    }
+
+    const planConfig =
+      getPlanConfig(
+        requestedPlan,
+      );
+
+    const existingExpiry =
+      existing
+        ?.expires_at
+        ? new Date(
+            existing.expires_at,
+          )
+        : null;
+
+    const baseDate =
+      mode === "extend" &&
+      existingExpiry &&
+      existingExpiry.getTime() >
+        now.getTime()
+        ? existingExpiry
+        : now;
+
+    const expiresAt =
+      new Date(
+        baseDate.getTime() +
+        30 *
+          24 *
+          60 *
+          60 *
+          1000,
+      );
+
+    const startsAt =
+      mode === "extend" &&
+      existing
+        ?.starts_at
+        ? existing.starts_at
+        : now.toISOString();
+
+    const {
+      data: subscription,
+      error,
+    } = await supabase
+      .from(
+        "discord_subscriptions",
+      )
+      .upsert(
+        {
+          user_id:
+            userId,
+          plan:
+            planConfig.plan,
+          status: "active",
+          starts_at:
+            startsAt,
+          expires_at:
+            expiresAt
+              .toISOString(),
+          max_guilds:
+            planConfig
+              .maxGuilds,
+          subscriber_role_synced:
+            false,
+          subscriber_role_expires_at:
+            expiresAt
+              .toISOString(),
+          provider:
+            existing?.provider ||
+            "manual",
+          updated_at:
+            now.toISOString(),
+        },
+        {
+          onConflict:
+            "user_id",
+        },
+      )
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    await reconcileGuildLicenses(
+      supabase,
+      userId,
+      planConfig.plan,
+      expiresAt
+        .toISOString(),
+    );
+
+    const {
+      data: discordAccount,
+    } = await supabase
+      .from(
+        "discord_customer_accounts",
+      )
+      .select("*")
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle();
+
+    const roleSync =
+      await syncSubscriberRole(
+        supabase,
+        subscription,
+        discordAccount,
+      );
+
+    await supabase
+      .from(
+        "discord_subscription_events",
+      )
+      .insert({
+        user_id:
+          userId,
+        actor_user_id:
+          manager.user.id,
+        event_type:
+          mode === "extend"
+            ? "extended"
+            : "activated",
+        plan:
+          planConfig.plan,
+        starts_at:
+          startsAt,
+        expires_at:
+          expiresAt
+            .toISOString(),
+        metadata: {
+          priceUsd:
+            planConfig
+              .priceUsd,
+          roleSynced:
+            roleSync.synced ===
+            true,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        subscription: {
+          plan:
+            planConfig.plan,
+          status: "active",
+          startsAt,
+          expiresAt:
+            expiresAt
+              .toISOString(),
+          maxGuilds:
+            planConfig
+              .maxGuilds,
+          subscriberRoleSynced:
+            roleSync.synced ===
+            true,
+        },
+      });
+  } catch (error) {
+    console.error(
+      "Subscription manager update error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "SUBSCRIPTION_UPDATE_FAILED",
+      "Не вдалося змінити підписку ISTe Bot.",
     );
   }
 }
@@ -2889,6 +4341,26 @@ export default async function botPortalHandler(
     action === "status"
   ) {
     return handleStatus(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "admin-subscriptions"
+  ) {
+    return handleAdminSubscriptions(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "admin-set-subscription"
+  ) {
+    return handleAdminSetSubscription(
       request,
       response,
     );
