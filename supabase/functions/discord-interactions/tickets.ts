@@ -570,20 +570,24 @@ async function writeAudit(
 ) {
   if (!db) return;
 
-  await db
-    .from(
-      "discord_bot_audit",
-    )
-    .insert({
-      guild_id:
-        guildId,
-      event_type:
-        eventType,
-      payload,
-    })
-    .catch(
-      () => null,
+  try {
+    await db
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          eventType,
+        payload,
+      });
+  } catch (error) {
+    console.error(
+      "ticket audit failed",
+      error,
     );
+  }
 }
 
 async function sendLog(
