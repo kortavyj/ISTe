@@ -201,7 +201,7 @@ const siteUrl = cleanText(
   DEFAULT_SITE_URL,
 );
 
-const matchAnnouncementChannelId = cleanText(
+const fallbackMatchAnnouncementChannelId = cleanText(
   process.env.DISCORD_MATCH_CHANNEL_ID,
 );
 
@@ -246,13 +246,132 @@ function log(event, data = {}) {
   );
 }
 
-const matchAnnouncer = createMatchAnnouncer({
-  client,
-  channelId: matchAnnouncementChannelId,
-  internalGuildId: INTERNAL_GUILD_ID,
-  siteUrl,
-  log,
-});
+const matchAnnouncers = new Map();
+
+function matchAnnouncerForGuild(
+  guildId,
+  channelId,
+) {
+  const current =
+    matchAnnouncers.get(
+      guildId,
+    );
+
+  if (
+    current?.channelId ===
+      channelId &&
+    current?.announcer
+  ) {
+    return current.announcer;
+  }
+
+  const announcer =
+    createMatchAnnouncer({
+      client,
+      channelId,
+      internalGuildId:
+        guildId,
+      siteUrl,
+      log,
+    });
+
+  matchAnnouncers.set(
+    guildId,
+    {
+      channelId,
+      announcer,
+    },
+  );
+
+  return announcer;
+}
+
+async function syncMatchAnnouncements(
+  payload,
+) {
+  for (
+    const guild
+    of client.guilds.cache.values()
+  ) {
+    try {
+      const runtime =
+        await fetchGuildRuntimeConfig(
+          guild.id,
+        );
+
+      if (!runtime.active) {
+        matchAnnouncers.delete(
+          guild.id,
+        );
+        continue;
+      }
+
+      const configuredChannelId =
+        cleanText(
+          runtime.settings
+            ?.matchChannelId,
+        );
+
+      const channelId =
+        configuredChannelId ||
+        (
+          guild.id ===
+            INTERNAL_GUILD_ID
+            ? fallbackMatchAnnouncementChannelId
+            : ""
+        );
+
+      if (!channelId) {
+        matchAnnouncers.delete(
+          guild.id,
+        );
+        continue;
+      }
+
+      const announcer =
+        matchAnnouncerForGuild(
+          guild.id,
+          channelId,
+        );
+
+      await announcer.sync(
+        payload,
+      );
+    } catch (error) {
+      log(
+        "match_announcer_guild_failed",
+        {
+          guildId:
+            guild.id,
+          message:
+            error instanceof Error
+              ? error.message
+              : String(error),
+        },
+      );
+    }
+  }
+}
+
+function matchAnnouncementsHealth() {
+  return {
+    configuredGuilds:
+      matchAnnouncers.size,
+    guilds:
+      Array.from(
+        matchAnnouncers.entries(),
+      ).map(
+        ([
+          guildId,
+          entry,
+        ]) => ({
+          guildId,
+          ...entry.announcer
+            .health(),
+        }),
+      ),
+  };
+}
 
 function defaultGuildRuntimeConfig(guildId) {
   const internal =
@@ -268,6 +387,7 @@ function defaultGuildRuntimeConfig(guildId) {
     settings: {
       locale: "uk",
       memberRoleId: "",
+      matchChannelId: "",
       autoRolesEnabled:
         internal,
       privateVoiceEnabled:
@@ -1265,7 +1385,9 @@ async function refreshPresence() {
     lastSuccessfulFetchAt = new Date().toISOString();
     lastError = null;
     await applyPresence(payload);
-    await matchAnnouncer.sync(payload);
+    await syncMatchAnnouncements(
+      payload,
+    );
   } catch (error) {
     lastError =
       error instanceof Error ? error.message : String(error);
@@ -1296,8 +1418,10 @@ client.once(Events.ClientReady, async (readyClient) => {
     autoRolesEnabled: AUTO_ROLE_IDS.length === 2,
     autoRoleIds: AUTO_ROLE_IDS,
     autoRoleGuildId: AUTO_ROLE_GUILD_ID || null,
-    matchAnnouncementsEnabled: Boolean(matchAnnouncementChannelId),
-    matchAnnouncementChannelId: matchAnnouncementChannelId || null,
+    matchAnnouncementsFallbackConfigured:
+      Boolean(
+        fallbackMatchAnnouncementChannelId,
+      ),
   });
 
   try {
@@ -1415,7 +1539,8 @@ const healthServer = createServer((request, response) => {
       lastSuccessfulFetchAt,
       lastError,
       privateVoice: privateVoiceHealth(),
-      matchAnnouncements: matchAnnouncer.health(),
+      matchAnnouncements:
+        matchAnnouncementsHealth(),
       uptimeSeconds: Math.round(process.uptime()),
     }),
   );

@@ -15,6 +15,7 @@ const EMPTY_SETTINGS = {
   memberRoleId: "",
   logChannelId: "",
   welcomeChannelId: "",
+  matchChannelId: "",
   welcomeEnabled: false,
   moderationEnabled: false,
   ticketsEnabled: false,
@@ -85,6 +86,7 @@ const copy = {
     moderatorRoleId: "Роль модератора",
     logChannelId: "Канал логів",
     welcomeChannelId: "Welcome-канал",
+    matchChannelId: "Канал LIVE-матчів ISTe",
     save: "Зберегти",
     saving: "Збереження...",
     saved: "Налаштування збережено.",
@@ -177,6 +179,7 @@ const copy = {
     moderatorRoleId: "Moderator role",
     logChannelId: "Log channel",
     welcomeChannelId: "Welcome channel",
+    matchChannelId: "ISTe LIVE match channel",
     save: "Save",
     saving: "Saving...",
     saved: "Settings saved.",
@@ -1410,6 +1413,46 @@ export default function BotDashboard() {
                       ) =>
                         patch(
                           "welcomeChannelId",
+                          event
+                            .target
+                            .value,
+                        )
+                      }
+                    >
+                      <option value="">
+                        {c.chooseChannel}
+                      </option>
+                      {resources.channels.map(
+                        (channel) => (
+                          <option
+                            key={
+                              channel.id
+                            }
+                            value={
+                              channel.id
+                            }
+                          >
+                            #{channel.name}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>
+                      {c.matchChannelId}
+                    </span>
+                    <select
+                      value={
+                        settings
+                          .matchChannelId
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        patch(
+                          "matchChannelId",
                           event
                             .target
                             .value,

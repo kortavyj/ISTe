@@ -1044,6 +1044,16 @@ function normalizeSettings(
       row
         ?.welcome_channel_id ||
       "",
+    matchChannelId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .matchChannelId ||
+            "",
+          )
+        : "",
     welcomeEnabled:
       row?.welcome_enabled ===
       true,
@@ -2727,6 +2737,10 @@ async function handleSaveSettings(
       readSnowflakeOrEmpty(
         body.welcomeChannelId,
       ),
+    matchChannelId:
+      readSnowflakeOrEmpty(
+        body.matchChannelId,
+      ),
   };
 
   if (
@@ -2829,6 +2843,46 @@ async function handleSaveSettings(
       );
     }
 
+    const {
+      data:
+        existingSettings,
+      error:
+        existingSettingsError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .select("config")
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .maybeSingle();
+
+    if (
+      existingSettingsError
+    ) {
+      throw existingSettingsError;
+    }
+
+    const existingConfig =
+      existingSettings
+        ?.config &&
+      typeof existingSettings
+        .config ===
+        "object"
+        ? existingSettings
+            .config
+        : {};
+
+    const nextConfig = {
+      ...existingConfig,
+      matchChannelId:
+        fields
+          .matchChannelId
+          .value,
+    };
+
     const now =
       new Date()
         .toISOString();
@@ -2867,6 +2921,8 @@ async function handleSaveSettings(
             fields
               .welcomeChannelId
               .value,
+          config:
+            nextConfig,
           welcome_enabled:
             body
               .welcomeEnabled ===
@@ -3505,6 +3561,7 @@ async function handleWorkerConfig(
             guildId,
             locale: "uk",
             memberRoleId: "",
+            matchChannelId: "",
             privateVoiceEnabled:
               fallbackInternal,
             autoRolesEnabled:
