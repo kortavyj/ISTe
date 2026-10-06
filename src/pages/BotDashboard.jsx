@@ -492,9 +492,10 @@ export default function BotDashboard() {
             ? result.channels
             : [],
       });
-    } catch {
+    } catch (resourcesError) {
       setError(
-        c.resourcesUnavailable,
+        resourcesError?.message ||
+          c.resourcesUnavailable,
       );
     } finally {
       setResourcesLoading(false);
