@@ -236,6 +236,9 @@ let privateRoomsCreated = 0;
 let privateRoomsDeleted = 0;
 let privateVoiceLastError = null;
 
+let welcomeMessagesSent = 0;
+let welcomeLastError = null;
+
 function log(event, data = {}) {
   console.log(
     JSON.stringify({
@@ -637,6 +640,201 @@ async function assignAutoRoles(member) {
     });
   }
 }
+
+async function sendWelcomeMessage(member) {
+  if (
+    !member ||
+    member.user?.bot
+  ) {
+    return;
+  }
+
+  const runtime =
+    await fetchGuildRuntimeConfig(
+      member.guild.id,
+    );
+
+  const channelId =
+    cleanText(
+      runtime.settings
+        ?.welcomeChannelId,
+    );
+
+  if (
+    !runtime.active ||
+    !runtime.settings
+      ?.welcomeEnabled ||
+    !channelId
+  ) {
+    return;
+  }
+
+  try {
+    const channel =
+      member.guild.channels.cache.get(
+        channelId,
+      ) ||
+      (
+        await member.guild.channels
+          .fetch(
+            channelId,
+          )
+          .catch(
+            () => null,
+          )
+      );
+
+    if (
+      !channel ||
+      typeof channel.send !==
+        "function" ||
+      (
+        typeof channel
+          .isTextBased ===
+          "function" &&
+        !channel.isTextBased()
+      )
+    ) {
+      throw new Error(
+        "Configured welcome channel is unavailable or is not text based",
+      );
+    }
+
+    const english =
+      runtime.settings
+        ?.locale ===
+      "en";
+
+    const displayName =
+      cleanText(
+        member.displayName ||
+          member.user
+            ?.globalName ||
+          member.user
+            ?.username,
+        english
+          ? "member"
+          : "учасник",
+      );
+
+    const memberCount =
+      Number.isFinite(
+        member.guild
+          .memberCount,
+      )
+        ? member.guild
+            .memberCount
+        : null;
+
+    const avatarUrl =
+      member.user
+        ?.displayAvatarURL?.({
+          size: 256,
+        }) ||
+      "";
+
+    const embed = {
+      title: english
+        ? `Welcome to ${member.guild.name}!`
+        : `Ласкаво просимо до ${member.guild.name}!`,
+      description: english
+        ? `**${displayName}**, welcome to the community. Please read the server rules and make yourself at home.`
+        : `**${displayName}**, вітаємо у спільноті. Ознайомся з правилами сервера та почувайся як удома.`,
+      color: 0xe30613,
+      fields:
+        memberCount
+          ? [
+              {
+                name: english
+                  ? "Members"
+                  : "Учасників",
+                value:
+                  String(
+                    memberCount,
+                  ),
+                inline: true,
+              },
+            ]
+          : [],
+      footer: {
+        text:
+          "ISTe Bot • istesport.com",
+      },
+      timestamp:
+        new Date()
+          .toISOString(),
+      ...(
+        avatarUrl
+          ? {
+              thumbnail: {
+                url:
+                  avatarUrl,
+              },
+            }
+          : {}
+      ),
+    };
+
+    await channel.send({
+      content:
+        `<@${member.id}>`,
+      embeds: [embed],
+      allowedMentions: {
+        parse: [],
+        users: [
+          member.id,
+        ],
+      },
+    });
+
+    welcomeMessagesSent += 1;
+    welcomeLastError = null;
+
+    log(
+      "welcome_message_sent",
+      {
+        guildId:
+          member.guild.id,
+        channelId,
+        userId:
+          member.id,
+        locale:
+          english
+            ? "en"
+            : "uk",
+      },
+    );
+  } catch (error) {
+    welcomeLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "welcome_message_failed",
+      {
+        guildId:
+          member.guild?.id ??
+          null,
+        channelId,
+        userId:
+          member.id,
+        message:
+          welcomeLastError,
+      },
+    );
+  }
+}
+
+function welcomeHealth() {
+  return {
+    messagesSent:
+      welcomeMessagesSent,
+    lastError:
+      welcomeLastError,
+  };
+}
+
 function sanitizeRoomName(value) {
   return String(value ?? "")
     .replace(/[\u0000-\u001f\u007f]/g, "")
@@ -1444,7 +1642,14 @@ client.once(Events.ClientReady, async (readyClient) => {
 });
 
 client.on(Events.GuildMemberAdd, (member) => {
-  void assignAutoRoles(member);
+  void (async () => {
+    await assignAutoRoles(
+      member,
+    );
+    await sendWelcomeMessage(
+      member,
+    );
+  })();
 });
 
 client.on(
@@ -1539,6 +1744,8 @@ const healthServer = createServer((request, response) => {
       lastSuccessfulFetchAt,
       lastError,
       privateVoice: privateVoiceHealth(),
+      welcome:
+        welcomeHealth(),
       matchAnnouncements:
         matchAnnouncementsHealth(),
       uptimeSeconds: Math.round(process.uptime()),
