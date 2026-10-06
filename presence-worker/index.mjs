@@ -10,6 +10,7 @@ import {
 } from "discord.js";
 
 import { syncDiscordCommands } from "./commands.mjs";
+import { createMatchAnnouncer } from "./matchAnnouncer.mjs";
 
 const DEFAULT_MATCH_DATA_URL =
   "https://istesport.com/data/faceit-stats.json";
@@ -200,6 +201,10 @@ const siteUrl = cleanText(
   DEFAULT_SITE_URL,
 );
 
+const matchAnnouncementChannelId = cleanText(
+  process.env.DISCORD_MATCH_CHANNEL_ID,
+);
+
 const refreshMs = clampNumber(
   process.env.PRESENCE_REFRESH_MS,
   DEFAULT_REFRESH_MS,
@@ -240,6 +245,14 @@ function log(event, data = {}) {
     }),
   );
 }
+
+const matchAnnouncer = createMatchAnnouncer({
+  client,
+  channelId: matchAnnouncementChannelId,
+  internalGuildId: INTERNAL_GUILD_ID,
+  siteUrl,
+  log,
+});
 
 function defaultGuildRuntimeConfig(guildId) {
   const internal =
@@ -1252,6 +1265,7 @@ async function refreshPresence() {
     lastSuccessfulFetchAt = new Date().toISOString();
     lastError = null;
     await applyPresence(payload);
+    await matchAnnouncer.sync(payload);
   } catch (error) {
     lastError =
       error instanceof Error ? error.message : String(error);
@@ -1282,6 +1296,8 @@ client.once(Events.ClientReady, async (readyClient) => {
     autoRolesEnabled: AUTO_ROLE_IDS.length === 2,
     autoRoleIds: AUTO_ROLE_IDS,
     autoRoleGuildId: AUTO_ROLE_GUILD_ID || null,
+    matchAnnouncementsEnabled: Boolean(matchAnnouncementChannelId),
+    matchAnnouncementChannelId: matchAnnouncementChannelId || null,
   });
 
   try {
@@ -1399,6 +1415,7 @@ const healthServer = createServer((request, response) => {
       lastSuccessfulFetchAt,
       lastError,
       privateVoice: privateVoiceHealth(),
+      matchAnnouncements: matchAnnouncer.health(),
       uptimeSeconds: Math.round(process.uptime()),
     }),
   );
