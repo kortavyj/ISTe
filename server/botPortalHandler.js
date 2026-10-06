@@ -3557,6 +3557,370 @@ async function handleGuildResources(
   }
 }
 
+async function handleModerationHistory(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const account =
+    await requireAccount(
+      request,
+      response,
+    );
+
+  if (!account.ok) {
+    return sendError(
+      response,
+      account.status,
+      account.error,
+      account.message,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const targetUserId =
+    String(
+      body.targetUserId ||
+      "",
+    ).trim();
+  const action =
+    String(
+      body.action ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+  const allowedActions =
+    new Set([
+      "",
+      "warn",
+      "unwarn",
+      "timeout",
+      "kick",
+      "ban",
+      "unban",
+    ]);
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  if (
+    targetUserId &&
+    !isSnowflake(
+      targetUserId,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_TARGET_USER_ID",
+      "Discord User ID має містити 17–20 цифр.",
+    );
+  }
+
+  if (
+    !allowedActions.has(
+      action,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_MODERATION_ACTION",
+      "Некоректний тип moderation case.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const [
+      accessResult,
+      owned,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "discord_customer_guilds",
+          )
+          .select(
+            "guild_id, can_manage",
+          )
+          .eq(
+            "user_id",
+            account.user.id,
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .eq(
+            "can_manage",
+            true,
+          )
+          .maybeSingle(),
+        readOwnedLicense(
+          supabase,
+          account.user.id,
+          guildId,
+        ),
+      ]);
+
+    if (
+      accessResult.error ||
+      !accessResult.data
+    ) {
+      return sendError(
+        response,
+        403,
+        "GUILD_MANAGE_REQUIRED",
+        "Discord не підтвердив право керування цим сервером.",
+      );
+    }
+
+    if (
+      !owned.ok ||
+      !owned.license
+    ) {
+      return sendError(
+        response,
+        403,
+        "GUILD_LICENSE_REQUIRED",
+        "Немає доступу до налаштувань цього сервера.",
+      );
+    }
+
+    let caseQuery =
+      supabase
+        .from(
+          "discord_moderation_cases",
+        )
+        .select("*")
+        .eq(
+          "guild_id",
+          guildId,
+        )
+        .order(
+          "created_at",
+          {
+            ascending:
+              false,
+          },
+        )
+        .limit(60);
+
+    if (targetUserId) {
+      caseQuery =
+        caseQuery.eq(
+          "target_user_id",
+          targetUserId,
+        );
+    }
+
+    if (action) {
+      caseQuery =
+        caseQuery.eq(
+          "action",
+          action,
+        );
+    }
+
+    let warningCountQuery =
+      supabase
+        .from(
+          "discord_moderation_cases",
+        )
+        .select(
+          "id",
+          {
+            count: "exact",
+            head: true,
+          },
+        )
+        .eq(
+          "guild_id",
+          guildId,
+        )
+        .eq(
+          "action",
+          "warn",
+        )
+        .eq(
+          "status",
+          "active",
+        );
+
+    if (targetUserId) {
+      warningCountQuery =
+        warningCountQuery.eq(
+          "target_user_id",
+          targetUserId,
+        );
+    }
+
+    const since24h =
+      new Date(
+        Date.now() -
+          24 * 60 * 60 *
+            1000,
+      ).toISOString();
+
+    const [
+      casesResult,
+      auditResult,
+      totalCountResult,
+      warningCountResult,
+      recentCountResult,
+    ] =
+      await Promise.all([
+        caseQuery,
+        supabase
+          .from(
+            "discord_bot_audit",
+          )
+          .select(
+            "id, event_type, payload, created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(60),
+        supabase
+          .from(
+            "discord_moderation_cases",
+          )
+          .select(
+            "id",
+            {
+              count: "exact",
+              head: true,
+            },
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          ),
+        warningCountQuery,
+        supabase
+          .from(
+            "discord_moderation_cases",
+          )
+          .select(
+            "id",
+            {
+              count: "exact",
+              head: true,
+            },
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since24h,
+          ),
+      ]);
+
+    for (
+      const result
+      of [
+        casesResult,
+        auditResult,
+        totalCountResult,
+        warningCountResult,
+        recentCountResult,
+      ]
+    ) {
+      if (result.error) {
+        throw result.error;
+      }
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        filters: {
+          targetUserId,
+          action,
+        },
+        summary: {
+          totalCases:
+            totalCountResult
+              .count ||
+            0,
+          activeWarnings:
+            warningCountResult
+              .count ||
+            0,
+          last24h:
+            recentCountResult
+              .count ||
+            0,
+        },
+        cases:
+          casesResult.data ||
+          [],
+        audit:
+          auditResult.data ||
+          [],
+      });
+  } catch (error) {
+    console.error(
+      "Moderation history error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "MODERATION_HISTORY_FAILED",
+      "Не вдалося завантажити журнал модерації.",
+    );
+  }
+}
+
 async function handlePublishTicketPanel(
   request,
   response,
@@ -5177,6 +5541,16 @@ export default async function botPortalHandler(
     "guild-resources"
   ) {
     return handleGuildResources(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "moderation-history"
+  ) {
+    return handleModerationHistory(
       request,
       response,
     );

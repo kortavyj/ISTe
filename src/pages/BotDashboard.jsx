@@ -107,6 +107,29 @@ const copy = {
       "Керує командами модерації, ролями доступу та журналом дій.",
     moderationClear: "Дозволити /clear",
     moderationTimeout: "Дозволити /timeout",
+    moderationCenter: "Moderation Center",
+    moderationCenterText:
+      "Історія покарань, активні попередження та технічний журнал дій цього Discord-сервера.",
+    totalCases: "Усього кейсів",
+    activeWarnings: "Активні warn",
+    last24h: "За 24 години",
+    targetUserId: "Discord User ID",
+    allActions: "Усі дії",
+    refreshHistory: "Оновити журнал",
+    historyLoading: "Завантаження журналу…",
+    noModerationCases: "Кейсів за цим фільтром немає.",
+    moderationCases: "Moderation cases",
+    auditLog: "Audit log",
+    caseTarget: "Користувач",
+    caseModerator: "Модератор",
+    caseReason: "Причина",
+    caseStatus: "Статус",
+    caseDuration: "Тривалість",
+    caseMinutes: "хв",
+    filterByUser: "Показати історію цього користувача",
+    clearFilter: "Скинути фільтр",
+    moderationHistoryFailed:
+      "Не вдалося завантажити журнал модерації.",
     tickets: "Tickets",
     ticketsText:
       "Приватні канали підтримки з керуванням доступом, закриттям, повторним відкриттям і логами.",
@@ -235,6 +258,29 @@ const copy = {
       "Controls moderation commands, access roles and action logging.",
     moderationClear: "Allow /clear",
     moderationTimeout: "Allow /timeout",
+    moderationCenter: "Moderation Center",
+    moderationCenterText:
+      "Punishment history, active warnings and technical action log for this Discord server.",
+    totalCases: "Total cases",
+    activeWarnings: "Active warnings",
+    last24h: "Last 24 hours",
+    targetUserId: "Discord User ID",
+    allActions: "All actions",
+    refreshHistory: "Refresh log",
+    historyLoading: "Loading moderation history…",
+    noModerationCases: "No cases match this filter.",
+    moderationCases: "Moderation cases",
+    auditLog: "Audit log",
+    caseTarget: "User",
+    caseModerator: "Moderator",
+    caseReason: "Reason",
+    caseStatus: "Status",
+    caseDuration: "Duration",
+    caseMinutes: "min",
+    filterByUser: "Show this user's history",
+    clearFilter: "Clear filter",
+    moderationHistoryFailed:
+      "Could not load moderation history.",
     tickets: "Tickets",
     ticketsText:
       "Private support channels with access control, closing, reopening and logs.",
@@ -376,6 +422,37 @@ function formatDate(
   ).format(date);
 }
 
+function formatDateTime(
+  value,
+  language,
+) {
+  if (!value) return "—";
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat(
+    language === "en"
+      ? "en-GB"
+      : "uk-UA",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  ).format(date);
+}
+
 export default function BotDashboard() {
   const {
     language,
@@ -415,6 +492,39 @@ export default function BotDashboard() {
     resourcesLoading,
     setResourcesLoading,
   ] = useState(false);
+
+  const [
+    moderationHistory,
+    setModerationHistory,
+  ] = useState({
+    summary: {
+      totalCases: 0,
+      activeWarnings: 0,
+      last24h: 0,
+    },
+    cases: [],
+    audit: [],
+  });
+
+  const [
+    moderationLoading,
+    setModerationLoading,
+  ] = useState(false);
+
+  const [
+    moderationTarget,
+    setModerationTarget,
+  ] = useState("");
+
+  const [
+    moderationAction,
+    setModerationAction,
+  ] = useState("");
+
+  const [
+    moderationError,
+    setModerationError,
+  ] = useState("");
 
   const [
     loading,
@@ -527,6 +637,85 @@ export default function BotDashboard() {
     );
   }
 
+  async function loadModerationHistory(
+    guildId =
+      selectedGuildId,
+    targetUserId =
+      moderationTarget,
+    action =
+      moderationAction,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setModerationLoading(
+      true,
+    );
+    setModerationError("");
+
+    try {
+      const result =
+        await api(
+          "moderation-history",
+          {
+            method: "POST",
+            body: {
+              guildId,
+              targetUserId:
+                String(
+                  targetUserId ||
+                  "",
+                ).trim(),
+              action:
+                String(
+                  action ||
+                  "",
+                ).trim(),
+            },
+          },
+        );
+
+      setModerationHistory({
+        summary: {
+          totalCases:
+            result.summary
+              ?.totalCases ||
+            0,
+          activeWarnings:
+            result.summary
+              ?.activeWarnings ||
+            0,
+          last24h:
+            result.summary
+              ?.last24h ||
+            0,
+        },
+        cases:
+          Array.isArray(
+            result.cases,
+          )
+            ? result.cases
+            : [],
+        audit:
+          Array.isArray(
+            result.audit,
+          )
+            ? result.audit
+            : [],
+      });
+    } catch (historyError) {
+      setModerationError(
+        historyError?.message ||
+          c.moderationHistoryFailed,
+      );
+    } finally {
+      setModerationLoading(
+        false,
+      );
+    }
+  }
+
   async function openSettings(
     guild,
   ) {
@@ -547,8 +736,26 @@ export default function BotDashboard() {
     });
 
     setResourcesLoading(true);
+    setModerationTarget("");
+    setModerationAction("");
+    setModerationHistory({
+      summary: {
+        totalCases: 0,
+        activeWarnings: 0,
+        last24h: 0,
+      },
+      cases: [],
+      audit: [],
+    });
+    setModerationError("");
     setNotice("");
     setError("");
+
+    void loadModerationHistory(
+      guild.guildId,
+      "",
+      "",
+    );
 
     try {
       const result =
@@ -2135,6 +2342,398 @@ export default function BotDashboard() {
                   : c.save}
               </button>
             </form>
+
+            <section className="bot-dashboard-moderation-center">
+              <header className="bot-dashboard-moderation-head">
+                <div>
+                  <span>
+                    MODERATION
+                  </span>
+                  <h3>
+                    {c.moderationCenter}
+                  </h3>
+                  <p>
+                    {c.moderationCenterText}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void loadModerationHistory()
+                  }
+                  disabled={
+                    moderationLoading
+                  }
+                >
+                  {moderationLoading
+                    ? c.historyLoading
+                    : c.refreshHistory}
+                </button>
+              </header>
+
+              {moderationError ? (
+                <div className="bot-dashboard-alert error">
+                  {moderationError}
+                </div>
+              ) : null}
+
+              <div className="bot-dashboard-moderation-summary">
+                <article>
+                  <span>
+                    {c.totalCases}
+                  </span>
+                  <strong>
+                    {
+                      moderationHistory
+                        .summary
+                        .totalCases
+                    }
+                  </strong>
+                </article>
+                <article>
+                  <span>
+                    {c.activeWarnings}
+                  </span>
+                  <strong>
+                    {
+                      moderationHistory
+                        .summary
+                        .activeWarnings
+                    }
+                  </strong>
+                </article>
+                <article>
+                  <span>
+                    {c.last24h}
+                  </span>
+                  <strong>
+                    {
+                      moderationHistory
+                        .summary
+                        .last24h
+                    }
+                  </strong>
+                </article>
+              </div>
+
+              <div className="bot-dashboard-moderation-filters">
+                <label>
+                  <span>
+                    {c.targetUserId}
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={20}
+                    value={
+                      moderationTarget
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setModerationTarget(
+                        event
+                          .target
+                          .value
+                          .replace(
+                            /\D/g,
+                            "",
+                          ),
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  <span>
+                    ACTION
+                  </span>
+                  <select
+                    value={
+                      moderationAction
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setModerationAction(
+                        event
+                          .target
+                          .value,
+                      )
+                    }
+                  >
+                    <option value="">
+                      {c.allActions}
+                    </option>
+                    <option value="warn">
+                      WARN
+                    </option>
+                    <option value="unwarn">
+                      UNWARN
+                    </option>
+                    <option value="timeout">
+                      TIMEOUT
+                    </option>
+                    <option value="kick">
+                      KICK
+                    </option>
+                    <option value="ban">
+                      BAN
+                    </option>
+                    <option value="unban">
+                      UNBAN
+                    </option>
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void loadModerationHistory()
+                  }
+                  disabled={
+                    moderationLoading
+                  }
+                >
+                  {c.refreshHistory}
+                </button>
+
+                {(moderationTarget ||
+                  moderationAction) ? (
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => {
+                      setModerationTarget(
+                        "",
+                      );
+                      setModerationAction(
+                        "",
+                      );
+                      void loadModerationHistory(
+                        selectedGuild
+                          .guildId,
+                        "",
+                        "",
+                      );
+                    }}
+                  >
+                    {c.clearFilter}
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="bot-dashboard-moderation-columns">
+                <article className="bot-dashboard-log-panel">
+                  <header>
+                    <strong>
+                      {c.moderationCases}
+                    </strong>
+                    <span>
+                      {
+                        moderationHistory
+                          .cases
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  {moderationLoading &&
+                  !moderationHistory
+                    .cases.length ? (
+                    <p className="bot-dashboard-log-empty">
+                      {c.historyLoading}
+                    </p>
+                  ) : moderationHistory
+                      .cases
+                      .length ? (
+                    <div className="bot-dashboard-case-list">
+                      {moderationHistory.cases.map(
+                        (item) => {
+                          const targetName =
+                            item.metadata
+                              ?.target_name ||
+                            item
+                              .target_user_id;
+                          const moderatorName =
+                            item.metadata
+                              ?.moderator_name ||
+                            item
+                              .moderator_user_id;
+
+                          return (
+                            <article
+                              key={
+                                item.id
+                              }
+                              className="bot-dashboard-case"
+                            >
+                              <header>
+                                <div>
+                                  <b>
+                                    #
+                                    {
+                                      item.id
+                                    }
+                                  </b>
+                                  <span
+                                    className={
+                                      `action ${item.action}`
+                                    }
+                                  >
+                                    {String(
+                                      item.action ||
+                                        "",
+                                    ).toUpperCase()}
+                                  </span>
+                                  <span
+                                    className={
+                                      `status ${item.status}`
+                                    }
+                                  >
+                                    {String(
+                                      item.status ||
+                                        "",
+                                    ).toUpperCase()}
+                                  </span>
+                                </div>
+                                <time>
+                                  {formatDateTime(
+                                    item
+                                      .created_at,
+                                    language,
+                                  )}
+                                </time>
+                              </header>
+
+                              <div className="bot-dashboard-case-data">
+                                <span>
+                                  {c.caseTarget}
+                                </span>
+                                <button
+                                  type="button"
+                                  title={
+                                    c.filterByUser
+                                  }
+                                  onClick={() => {
+                                    setModerationTarget(
+                                      item
+                                        .target_user_id,
+                                    );
+                                    void loadModerationHistory(
+                                      selectedGuild
+                                        .guildId,
+                                      item
+                                        .target_user_id,
+                                      moderationAction,
+                                    );
+                                  }}
+                                >
+                                  {targetName} ·{" "}
+                                  {
+                                    item
+                                      .target_user_id
+                                  }
+                                </button>
+
+                                <span>
+                                  {c.caseModerator}
+                                </span>
+                                <strong>
+                                  {moderatorName ||
+                                    "—"}
+                                </strong>
+
+                                <span>
+                                  {c.caseReason}
+                                </span>
+                                <strong>
+                                  {item.reason ||
+                                    "—"}
+                                </strong>
+
+                                {item
+                                  .duration_minutes ? (
+                                  <>
+                                    <span>
+                                      {c.caseDuration}
+                                    </span>
+                                    <strong>
+                                      {
+                                        item
+                                          .duration_minutes
+                                      }{" "}
+                                      {c.caseMinutes}
+                                    </strong>
+                                  </>
+                                ) : null}
+                              </div>
+                            </article>
+                          );
+                        },
+                      )}
+                    </div>
+                  ) : (
+                    <p className="bot-dashboard-log-empty">
+                      {c.noModerationCases}
+                    </p>
+                  )}
+                </article>
+
+                <article className="bot-dashboard-log-panel">
+                  <header>
+                    <strong>
+                      {c.auditLog}
+                    </strong>
+                    <span>
+                      {
+                        moderationHistory
+                          .audit
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="bot-dashboard-audit-list">
+                    {moderationHistory.audit.map(
+                      (item) => (
+                        <article
+                          key={
+                            item.id
+                          }
+                        >
+                          <div>
+                            <b>
+                              {
+                                item
+                                  .event_type
+                              }
+                            </b>
+                            <time>
+                              {formatDateTime(
+                                item
+                                  .created_at,
+                                language,
+                              )}
+                            </time>
+                          </div>
+                          <code>
+                            {JSON.stringify(
+                              item.payload ||
+                                {},
+                            ).slice(
+                              0,
+                              500,
+                            )}
+                          </code>
+                        </article>
+                      ),
+                    )}
+                  </div>
+                </article>
+              </div>
+            </section>
           </div>
         ) : (
           <div className="bot-dashboard-servers">

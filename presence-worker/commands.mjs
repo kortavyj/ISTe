@@ -3,6 +3,9 @@ const DISCORD_API = "https://discord.com/api/v10";
 const GUILD_INSTALL = [0];
 const GUILD_CONTEXT = [0];
 
+const KICK_MEMBERS = "2";
+const BAN_MEMBERS = "4";
+const MANAGE_CHANNELS = "16";
 const MANAGE_MESSAGES = "8192";
 const MODERATE_MEMBERS = "1099511627776";
 
@@ -564,6 +567,222 @@ export const ISTE_COMMANDS = [
         ukName: "закрити",
         ruDescription: "Удалить вашу приватную комнату",
         ukDescription: "Видалити вашу приватну кімнату",
+      }),
+    ],
+  }),
+
+  command({
+    name: "warn",
+    description: "Warn a Discord member",
+    ruName: "варн",
+    ukName: "варн",
+    ruDescription: "Выдать предупреждение участнику",
+    ukDescription: "Видати попередження учаснику",
+    defaultMemberPermissions: MODERATE_MEMBERS,
+    options: [
+      userOption({
+        name: "member",
+        description: "Member to warn",
+        ruName: "участник",
+        ukName: "учасник",
+        ruDescription: "Участник для предупреждения",
+        ukDescription: "Учасник для попередження",
+        required: true,
+      }),
+      stringOption({
+        name: "reason",
+        description: "Warning reason",
+        ruName: "причина",
+        ukName: "причина",
+        ruDescription: "Причина предупреждения",
+        ukDescription: "Причина попередження",
+        maxLength: 256,
+      }),
+    ],
+  }),
+
+  command({
+    name: "warnings",
+    description: "Show active warnings for a member",
+    ruName: "варны",
+    ukName: "варни",
+    ruDescription: "Показать активные предупреждения участника",
+    ukDescription: "Показати активні попередження учасника",
+    defaultMemberPermissions: MODERATE_MEMBERS,
+    options: [
+      userOption({
+        name: "member",
+        description: "Member whose warnings will be shown",
+        ruName: "участник",
+        ukName: "учасник",
+        ruDescription: "Участник для просмотра предупреждений",
+        ukDescription: "Учасник для перегляду попереджень",
+        required: true,
+      }),
+    ],
+  }),
+
+  command({
+    name: "unwarn",
+    description: "Revoke an active warning by case number",
+    ruName: "снять_варн",
+    ukName: "зняти_варн",
+    ruDescription: "Снять предупреждение по номеру кейса",
+    ukDescription: "Зняти попередження за номером кейса",
+    defaultMemberPermissions: MODERATE_MEMBERS,
+    options: [
+      integerOption({
+        name: "case",
+        description: "Moderation case number",
+        ruName: "кейс",
+        ukName: "кейс",
+        ruDescription: "Номер кейса предупреждения",
+        ukDescription: "Номер кейса попередження",
+        required: true,
+        minValue: 1,
+        maxValue: 2147483647,
+      }),
+      stringOption({
+        name: "reason",
+        description: "Reason for revoking the warning",
+        ruName: "причина",
+        ukName: "причина",
+        ruDescription: "Причина снятия предупреждения",
+        ukDescription: "Причина зняття попередження",
+        maxLength: 256,
+      }),
+    ],
+  }),
+
+  command({
+    name: "kick",
+    description: "Kick a Discord member",
+    ruName: "кик",
+    ukName: "кік",
+    ruDescription: "Выгнать участника с сервера",
+    ukDescription: "Вигнати учасника із сервера",
+    defaultMemberPermissions: KICK_MEMBERS,
+    options: [
+      userOption({
+        name: "member",
+        description: "Member to kick",
+        ruName: "участник",
+        ukName: "учасник",
+        ruDescription: "Участник для исключения",
+        ukDescription: "Учасник для виключення",
+        required: true,
+      }),
+      stringOption({
+        name: "reason",
+        description: "Kick reason",
+        ruName: "причина",
+        ukName: "причина",
+        ruDescription: "Причина исключения",
+        ukDescription: "Причина виключення",
+        maxLength: 256,
+      }),
+    ],
+  }),
+
+  command({
+    name: "ban",
+    description: "Ban a Discord member",
+    ruName: "бан",
+    ukName: "бан",
+    ruDescription: "Заблокировать участника на сервере",
+    ukDescription: "Заблокувати учасника на сервері",
+    defaultMemberPermissions: BAN_MEMBERS,
+    options: [
+      userOption({
+        name: "member",
+        description: "Member to ban",
+        ruName: "участник",
+        ukName: "учасник",
+        ruDescription: "Участник для блокировки",
+        ukDescription: "Учасник для блокування",
+        required: true,
+      }),
+      integerOption({
+        name: "delete_days",
+        description: "Delete messages from the last N days",
+        ruName: "удалить_дней",
+        ukName: "видалити_днів",
+        ruDescription: "Удалить сообщения за последние N дней",
+        ukDescription: "Видалити повідомлення за останні N днів",
+        minValue: 0,
+        maxValue: 7,
+      }),
+      stringOption({
+        name: "reason",
+        description: "Ban reason",
+        ruName: "причина",
+        ukName: "причина",
+        ruDescription: "Причина блокировки",
+        ukDescription: "Причина блокування",
+        maxLength: 256,
+      }),
+    ],
+  }),
+
+  command({
+    name: "unban",
+    description: "Unban a Discord user by ID",
+    ruName: "разбан",
+    ukName: "розбан",
+    ruDescription: "Разблокировать пользователя по Discord ID",
+    ukDescription: "Розблокувати користувача за Discord ID",
+    defaultMemberPermissions: BAN_MEMBERS,
+    options: [
+      stringOption({
+        name: "user_id",
+        description: "Discord user ID",
+        ruName: "id",
+        ukName: "id",
+        ruDescription: "Discord ID пользователя",
+        ukDescription: "Discord ID користувача",
+        required: true,
+        minLength: 17,
+        maxLength: 20,
+      }),
+      stringOption({
+        name: "reason",
+        description: "Unban reason",
+        ruName: "причина",
+        ukName: "причина",
+        ruDescription: "Причина разблокировки",
+        ukDescription: "Причина розблокування",
+        maxLength: 256,
+      }),
+    ],
+  }),
+
+  command({
+    name: "slowmode",
+    description: "Set slowmode for a text channel",
+    ruName: "слоумод",
+    ukName: "слоумод",
+    ruDescription: "Установить задержку сообщений в канале",
+    ukDescription: "Встановити затримку повідомлень у каналі",
+    defaultMemberPermissions: MANAGE_CHANNELS,
+    options: [
+      integerOption({
+        name: "seconds",
+        description: "Delay in seconds, 0 disables slowmode",
+        ruName: "секунды",
+        ukName: "секунди",
+        ruDescription: "Задержка в секундах, 0 отключает",
+        ukDescription: "Затримка в секундах, 0 вимикає",
+        required: true,
+        minValue: 0,
+        maxValue: 21600,
+      }),
+      channelOption({
+        name: "channel",
+        description: "Channel to update, current channel by default",
+        ruName: "канал",
+        ukName: "канал",
+        ruDescription: "Канал, по умолчанию текущий",
+        ukDescription: "Канал, за замовчуванням поточний",
       }),
     ],
   }),

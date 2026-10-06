@@ -28,10 +28,13 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const DISCORD_API = "https://discord.com/api/v10";
 const BRAND_COLOR = 0xe30613;
-const BOT_VERSION = "2.2.0";
+const BOT_VERSION = "2.3.0";
 
 const PERMISSIONS = {
+  KICK_MEMBERS: 1n << 1n,
+  BAN_MEMBERS: 1n << 2n,
   ADMINISTRATOR: 1n << 3n,
+  MANAGE_CHANNELS: 1n << 4n,
   MANAGE_MESSAGES: 1n << 13n,
   MODERATE_MEMBERS: 1n << 40n,
   SEND_POLLS: 1n << 49n,
@@ -112,7 +115,7 @@ const copy = {
     helpText:
       "**Утиліти**\n`/ping` `/server` `/user` `/avatar` `/bot` `/invite`\n\n" +
       "**Спільнота**\n`/poll` `/room`\n\n" +
-      "**Модерація**\n`/clear` `/timeout`\n\n" +
+      "**Модерація**\n`/warn` `/warnings` `/unwarn` `/timeout` `/kick` `/ban` `/unban` `/clear` `/slowmode`\n\n" +
       "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news`\n\n" +
       "`/help` — ця довідка",
     pingTitle: "ISTe Bot онлайн",
@@ -170,6 +173,38 @@ const copy = {
       "Команду /timeout вимкнено в налаштуваннях цього сервера.",
     moderatorRoleRequired:
       "Для цієї дії потрібна налаштована роль модератора або адміністратора ISTe.",
+    moderationBotPermission:
+      "ISTe Bot не має потрібного Discord-дозволу для цієї дії.",
+    moderationInvalidTarget:
+      "Не можна застосувати цю дію до самого себе.",
+    warnDone:
+      "Попередження видано. Кейс **#{{caseId}}** для <@{{userId}}>.",
+    warningsNone:
+      "У <@{{userId}}> немає активних попереджень.",
+    unwarnMissing:
+      "Активний warn-кейс з таким номером не знайдено.",
+    unwarnDone:
+      "Попередження **#{{caseId}}** знято.",
+    kickDone:
+      "<@{{userId}}> виключено із сервера. Кейс **#{{caseId}}**.",
+    kickFailed:
+      "Не вдалося виключити учасника. Перевірте ієрархію ролей і права ISTe Bot.",
+    banDone:
+      "<@{{userId}}> заблоковано. Кейс **#{{caseId}}**.",
+    banFailed:
+      "Не вдалося заблокувати учасника. Перевірте ієрархію ролей і права ISTe Bot.",
+    unbanDone:
+      "Користувача **{{userId}}** розблоковано. Кейс **#{{caseId}}**.",
+    unbanFailed:
+      "Не вдалося розблокувати користувача.",
+    invalidUserId:
+      "Вкажіть коректний Discord User ID.",
+    slowmodeDone:
+      "Slowmode для <#{{channelId}}> встановлено на **{{seconds}} с**.",
+    slowmodeFailed:
+      "Не вдалося змінити slowmode цього каналу.",
+    moderationHistoryFailed:
+      "Не вдалося завантажити історію модерації.",
     genericError: "Під час виконання команди сталася помилка.",
   },
 
@@ -191,7 +226,7 @@ const copy = {
     helpText:
       "**Утилиты**\n`/ping` `/server` `/user` `/avatar` `/bot` `/invite`\n\n" +
       "**Сообщество**\n`/poll` `/room`\n\n" +
-      "**Модерация**\n`/clear` `/timeout`\n\n" +
+      "**Модерация**\n`/warn` `/warnings` `/unwarn` `/timeout` `/kick` `/ban` `/unban` `/clear` `/slowmode`\n\n" +
       "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news`\n\n" +
       "`/help` — эта справка",
     pingTitle: "ISTe Bot онлайн",
@@ -249,6 +284,38 @@ const copy = {
       "Команда /timeout выключена в настройках этого сервера.",
     moderatorRoleRequired:
       "Для этого действия нужна настроенная роль модератора или администратора ISTe.",
+    moderationBotPermission:
+      "У ISTe Bot нет нужного Discord-разрешения для этого действия.",
+    moderationInvalidTarget:
+      "Нельзя применить это действие к самому себе.",
+    warnDone:
+      "Предупреждение выдано. Кейс **#{{caseId}}** для <@{{userId}}>.",
+    warningsNone:
+      "У <@{{userId}}> нет активных предупреждений.",
+    unwarnMissing:
+      "Активный warn-кейс с таким номером не найден.",
+    unwarnDone:
+      "Предупреждение **#{{caseId}}** снято.",
+    kickDone:
+      "<@{{userId}}> исключён с сервера. Кейс **#{{caseId}}**.",
+    kickFailed:
+      "Не удалось исключить участника. Проверьте иерархию ролей и права ISTe Bot.",
+    banDone:
+      "<@{{userId}}> заблокирован. Кейс **#{{caseId}}**.",
+    banFailed:
+      "Не удалось заблокировать участника. Проверьте иерархию ролей и права ISTe Bot.",
+    unbanDone:
+      "Пользователь **{{userId}}** разблокирован. Кейс **#{{caseId}}**.",
+    unbanFailed:
+      "Не удалось разблокировать пользователя.",
+    invalidUserId:
+      "Укажите корректный Discord User ID.",
+    slowmodeDone:
+      "Slowmode для <#{{channelId}}> установлен на **{{seconds}} с**.",
+    slowmodeFailed:
+      "Не удалось изменить slowmode этого канала.",
+    moderationHistoryFailed:
+      "Не удалось загрузить историю модерации.",
     genericError: "Во время выполнения команды произошла ошибка.",
   },
 
@@ -270,7 +337,7 @@ const copy = {
     helpText:
       "**Utilities**\n`/ping` `/server` `/user` `/avatar` `/bot` `/invite`\n\n" +
       "**Community**\n`/poll` `/room`\n\n" +
-      "**Moderation**\n`/clear` `/timeout`\n\n" +
+      "**Moderation**\n`/warn` `/warnings` `/unwarn` `/timeout` `/kick` `/ban` `/unban` `/clear` `/slowmode`\n\n" +
       "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news`\n\n" +
       "`/help` — this help page",
     pingTitle: "ISTe Bot is online",
@@ -328,6 +395,38 @@ const copy = {
       "The /timeout command is disabled for this server.",
     moderatorRoleRequired:
       "This action requires the configured ISTe moderator or administrator role.",
+    moderationBotPermission:
+      "ISTe Bot is missing the Discord permission required for this action.",
+    moderationInvalidTarget:
+      "You cannot apply this action to yourself.",
+    warnDone:
+      "Warning issued. Case **#{{caseId}}** for <@{{userId}}>.",
+    warningsNone:
+      "<@{{userId}}> has no active warnings.",
+    unwarnMissing:
+      "No active warning case with that number was found.",
+    unwarnDone:
+      "Warning **#{{caseId}}** revoked.",
+    kickDone:
+      "<@{{userId}}> was kicked. Case **#{{caseId}}**.",
+    kickFailed:
+      "Could not kick that member. Check role hierarchy and ISTe Bot permissions.",
+    banDone:
+      "<@{{userId}}> was banned. Case **#{{caseId}}**.",
+    banFailed:
+      "Could not ban that member. Check role hierarchy and ISTe Bot permissions.",
+    unbanDone:
+      "User **{{userId}}** was unbanned. Case **#{{caseId}}**.",
+    unbanFailed:
+      "Could not unban that user.",
+    invalidUserId:
+      "Enter a valid Discord User ID.",
+    slowmodeDone:
+      "Slowmode for <#{{channelId}}> is now **{{seconds}} s**.",
+    slowmodeFailed:
+      "Could not change slowmode for that channel.",
+    moderationHistoryFailed:
+      "Could not load moderation history.",
     genericError: "An error occurred while running this command.",
   },
 };
@@ -759,6 +858,1121 @@ async function sendModerationLog(
     console.error(
       "moderation log send failed",
       error,
+    );
+  }
+}
+
+function moderationDisplayName(
+  target: any,
+) {
+  return String(
+    target?.member?.nick ||
+      target?.user?.global_name ||
+      target?.user?.username ||
+      target?.global_name ||
+      target?.username ||
+      "",
+  ).slice(0, 100);
+}
+
+async function createModerationCase({
+  guildId,
+  targetUserId,
+  moderatorUserId,
+  action,
+  reason = "",
+  durationMinutes = null,
+  status = "completed",
+  relatedCaseId = null,
+  metadata = {},
+}: {
+  guildId: string;
+  targetUserId: string;
+  moderatorUserId: string;
+  action:
+    | "warn"
+    | "unwarn"
+    | "timeout"
+    | "kick"
+    | "ban"
+    | "unban";
+  reason?: string;
+  durationMinutes?: number | null;
+  status?: "active" | "completed" | "revoked";
+  relatedCaseId?: number | null;
+  metadata?: Record<string, unknown>;
+}) {
+  if (!adminDb) {
+    throw new Error(
+      "Moderation database unavailable",
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await adminDb
+    .from(
+      "discord_moderation_cases",
+    )
+    .insert({
+      guild_id:
+        guildId,
+      target_user_id:
+        targetUserId,
+      moderator_user_id:
+        moderatorUserId,
+      action,
+      reason:
+        reason
+          .trim()
+          .slice(0, 256),
+      duration_minutes:
+        durationMinutes,
+      status,
+      related_case_id:
+        relatedCaseId,
+      metadata,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+async function moderationAccess(
+  interaction: any,
+  lang: Language,
+  memberPermission: bigint,
+  botPermission: bigint | null = null,
+) {
+  const t =
+    copy[lang];
+  const guildId =
+    String(
+      interaction?.guild_id ||
+      "",
+    );
+  const settings =
+    await loadModerationSettings(
+      guildId,
+    );
+
+  if (!settings.enabled) {
+    return {
+      response:
+        ephemeralText(
+          t.moderationDisabled,
+        ),
+    };
+  }
+
+  if (
+    !moderationActorAllowed(
+      interaction,
+      settings,
+      memberPermission,
+    )
+  ) {
+    return {
+      response:
+        ephemeralText(
+          t.moderatorRoleRequired,
+        ),
+    };
+  }
+
+  if (
+    botPermission &&
+    !hasPermission(
+      interaction
+        ?.app_permissions,
+      botPermission,
+    )
+  ) {
+    return {
+      response:
+        ephemeralText(
+          t.moderationBotPermission,
+        ),
+    };
+  }
+
+  return {
+    response: null,
+    guildId,
+    settings,
+    actor:
+      getActor(
+        interaction,
+      ),
+    options:
+      getOptions(
+        interaction,
+      ),
+  };
+}
+
+async function warnCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const access =
+    await moderationAccess(
+      interaction,
+      lang,
+      PERMISSIONS
+        .MODERATE_MEMBERS,
+    );
+
+  if (access.response) {
+    return access.response;
+  }
+
+  const target =
+    getResolvedUser(
+      interaction,
+    );
+  const actorId =
+    String(
+      access.actor?.id ||
+      "",
+    );
+  const reason =
+    String(
+      access.options?.reason ||
+      "",
+    )
+      .trim()
+      .slice(0, 256);
+
+  if (!target?.id) {
+    return ephemeralText(
+      t.genericError,
+    );
+  }
+
+  if (
+    target.id ===
+    actorId
+  ) {
+    return ephemeralText(
+      t.moderationInvalidTarget,
+    );
+  }
+
+  const moderationCase =
+    await createModerationCase({
+      guildId:
+        access.guildId,
+      targetUserId:
+        target.id,
+      moderatorUserId:
+        actorId,
+      action: "warn",
+      reason,
+      status: "active",
+      metadata: {
+        target_name:
+          moderationDisplayName(
+            target,
+          ),
+        moderator_name:
+          moderationDisplayName(
+            access.actor,
+          ),
+      },
+    });
+
+  await writeAudit(
+    access.guildId,
+    "command.warn",
+    {
+      case_id:
+        moderationCase.id,
+      actor_id:
+        actorId,
+      target_id:
+        target.id,
+      reason:
+        reason || null,
+    },
+  );
+
+  await sendModerationLog(
+    access.settings,
+    {
+      title:
+        `⚠️ /warn • Case #${moderationCase.id}`,
+      actorId,
+      targetId:
+        target.id,
+      details:
+        reason ||
+        "No reason",
+    },
+  );
+
+  return ephemeralText(
+    interpolate(
+      t.warnDone,
+      {
+        caseId:
+          moderationCase.id,
+        userId:
+          target.id,
+      },
+    ),
+  );
+}
+
+async function warningsCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const access =
+    await moderationAccess(
+      interaction,
+      lang,
+      PERMISSIONS
+        .MODERATE_MEMBERS,
+    );
+
+  if (access.response) {
+    return access.response;
+  }
+
+  const target =
+    getResolvedUser(
+      interaction,
+    );
+
+  if (
+    !target?.id ||
+    !adminDb
+  ) {
+    return ephemeralText(
+      t.genericError,
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await adminDb
+    .from(
+      "discord_moderation_cases",
+    )
+    .select(
+      "id, reason, created_at",
+    )
+    .eq(
+      "guild_id",
+      access.guildId,
+    )
+    .eq(
+      "target_user_id",
+      target.id,
+    )
+    .eq(
+      "action",
+      "warn",
+    )
+    .eq(
+      "status",
+      "active",
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      },
+    )
+    .limit(10);
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.length) {
+    return ephemeralText(
+      interpolate(
+        t.warningsNone,
+        {
+          userId:
+            target.id,
+        },
+      ),
+    );
+  }
+
+  const lines =
+    data.map(
+      (item: any) =>
+        `**#${item.id}** · ${new Date(item.created_at).toISOString().slice(0, 10)} · ${String(item.reason || "No reason").slice(0, 120)}`,
+    );
+
+  return ephemeralText(
+    `⚠️ <@${target.id}> · **${data.length}**\n${lines.join("\n")}`
+      .slice(
+        0,
+        1950,
+      ),
+  );
+}
+
+async function unwarnCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const access =
+    await moderationAccess(
+      interaction,
+      lang,
+      PERMISSIONS
+        .MODERATE_MEMBERS,
+    );
+
+  if (access.response) {
+    return access.response;
+  }
+
+  if (!adminDb) {
+    return ephemeralText(
+      t.genericError,
+    );
+  }
+
+  const caseId =
+    Number(
+      access.options?.case ||
+      0,
+    );
+  const reason =
+    String(
+      access.options?.reason ||
+      "",
+    )
+      .trim()
+      .slice(0, 256);
+
+  const {
+    data:
+      original,
+    error,
+  } = await adminDb
+    .from(
+      "discord_moderation_cases",
+    )
+    .select("*")
+    .eq(
+      "id",
+      caseId,
+    )
+    .eq(
+      "guild_id",
+      access.guildId,
+    )
+    .eq(
+      "action",
+      "warn",
+    )
+    .eq(
+      "status",
+      "active",
+    )
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!original) {
+    return ephemeralText(
+      t.unwarnMissing,
+    );
+  }
+
+  const now =
+    new Date()
+      .toISOString();
+
+  const {
+    error:
+      revokeError,
+  } = await adminDb
+    .from(
+      "discord_moderation_cases",
+    )
+    .update({
+      status:
+        "revoked",
+      revoked_at:
+        now,
+      updated_at:
+        now,
+    })
+    .eq(
+      "id",
+      original.id,
+    );
+
+  if (revokeError) {
+    throw revokeError;
+  }
+
+  const actorId =
+    String(
+      access.actor?.id ||
+      "",
+    );
+
+  const revokeCase =
+    await createModerationCase({
+      guildId:
+        access.guildId,
+      targetUserId:
+        String(
+          original
+            .target_user_id,
+        ),
+      moderatorUserId:
+        actorId,
+      action:
+        "unwarn",
+      reason,
+      status:
+        "completed",
+      relatedCaseId:
+        Number(
+          original.id,
+        ),
+      metadata: {
+        target_name:
+          original
+            .metadata
+            ?.target_name ||
+          "",
+        moderator_name:
+          moderationDisplayName(
+            access.actor,
+          ),
+      },
+    });
+
+  await writeAudit(
+    access.guildId,
+    "command.unwarn",
+    {
+      case_id:
+        revokeCase.id,
+      related_case_id:
+        original.id,
+      actor_id:
+        actorId,
+      target_id:
+        original
+          .target_user_id,
+      reason:
+        reason || null,
+    },
+  );
+
+  await sendModerationLog(
+    access.settings,
+    {
+      title:
+        `✅ /unwarn • Case #${original.id}`,
+      actorId,
+      targetId:
+        String(
+          original
+            .target_user_id,
+        ),
+      details:
+        reason ||
+        "Warning revoked",
+    },
+  );
+
+  return ephemeralText(
+    interpolate(
+      t.unwarnDone,
+      {
+        caseId:
+          original.id,
+      },
+    ),
+  );
+}
+
+async function kickCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const access =
+    await moderationAccess(
+      interaction,
+      lang,
+      PERMISSIONS
+        .KICK_MEMBERS,
+      PERMISSIONS
+        .KICK_MEMBERS,
+    );
+
+  if (access.response) {
+    return access.response;
+  }
+
+  const target =
+    getResolvedUser(
+      interaction,
+    );
+  const actorId =
+    String(
+      access.actor?.id ||
+      "",
+    );
+  const reason =
+    String(
+      access.options?.reason ||
+      "",
+    )
+      .trim()
+      .slice(0, 256);
+
+  if (!target?.id) {
+    return ephemeralText(
+      t.genericError,
+    );
+  }
+
+  if (
+    target.id ===
+    actorId
+  ) {
+    return ephemeralText(
+      t.moderationInvalidTarget,
+    );
+  }
+
+  try {
+    await discordApi(
+      `/guilds/${access.guildId}/members/${target.id}`,
+      {
+        method:
+          "DELETE",
+        reason:
+          reason ||
+          `ISTe /kick by ${access.actor?.username || actorId}`,
+      },
+    );
+
+    const moderationCase =
+      await createModerationCase({
+        guildId:
+          access.guildId,
+        targetUserId:
+          target.id,
+        moderatorUserId:
+          actorId,
+        action: "kick",
+        reason,
+        metadata: {
+          target_name:
+            moderationDisplayName(
+              target,
+            ),
+          moderator_name:
+            moderationDisplayName(
+              access.actor,
+            ),
+        },
+      });
+
+    await writeAudit(
+      access.guildId,
+      "command.kick",
+      {
+        case_id:
+          moderationCase.id,
+        actor_id:
+          actorId,
+        target_id:
+          target.id,
+        reason:
+          reason || null,
+      },
+    );
+
+    await sendModerationLog(
+      access.settings,
+      {
+        title:
+          `👢 /kick • Case #${moderationCase.id}`,
+        actorId,
+        targetId:
+          target.id,
+        details:
+          reason ||
+          "No reason",
+      },
+    );
+
+    return ephemeralText(
+      interpolate(
+        t.kickDone,
+        {
+          caseId:
+            moderationCase.id,
+          userId:
+            target.id,
+        },
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "kick command failed",
+      error,
+    );
+
+    return ephemeralText(
+      t.kickFailed,
+    );
+  }
+}
+
+async function banCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const access =
+    await moderationAccess(
+      interaction,
+      lang,
+      PERMISSIONS
+        .BAN_MEMBERS,
+      PERMISSIONS
+        .BAN_MEMBERS,
+    );
+
+  if (access.response) {
+    return access.response;
+  }
+
+  const target =
+    getResolvedUser(
+      interaction,
+    );
+  const actorId =
+    String(
+      access.actor?.id ||
+      "",
+    );
+  const reason =
+    String(
+      access.options?.reason ||
+      "",
+    )
+      .trim()
+      .slice(0, 256);
+  const deleteDays =
+    Math.max(
+      0,
+      Math.min(
+        7,
+        Number(
+          access.options
+            ?.delete_days ||
+          0,
+        ) ||
+        0,
+      ),
+    );
+
+  if (!target?.id) {
+    return ephemeralText(
+      t.genericError,
+    );
+  }
+
+  if (
+    target.id ===
+    actorId
+  ) {
+    return ephemeralText(
+      t.moderationInvalidTarget,
+    );
+  }
+
+  try {
+    await discordApi(
+      `/guilds/${access.guildId}/bans/${target.id}`,
+      {
+        method:
+          "PUT",
+        body: {
+          delete_message_seconds:
+            deleteDays *
+            86400,
+        },
+        reason:
+          reason ||
+          `ISTe /ban by ${access.actor?.username || actorId}`,
+      },
+    );
+
+    const moderationCase =
+      await createModerationCase({
+        guildId:
+          access.guildId,
+        targetUserId:
+          target.id,
+        moderatorUserId:
+          actorId,
+        action: "ban",
+        reason,
+        metadata: {
+          target_name:
+            moderationDisplayName(
+              target,
+            ),
+          moderator_name:
+            moderationDisplayName(
+              access.actor,
+            ),
+          delete_days:
+            deleteDays,
+        },
+      });
+
+    await writeAudit(
+      access.guildId,
+      "command.ban",
+      {
+        case_id:
+          moderationCase.id,
+        actor_id:
+          actorId,
+        target_id:
+          target.id,
+        reason:
+          reason || null,
+        delete_days:
+          deleteDays,
+      },
+    );
+
+    await sendModerationLog(
+      access.settings,
+      {
+        title:
+          `🔨 /ban • Case #${moderationCase.id}`,
+        actorId,
+        targetId:
+          target.id,
+        details:
+          [
+            reason ||
+              "No reason",
+            deleteDays
+              ? `Deleted history: ${deleteDays} day(s)`
+              : "",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+      },
+    );
+
+    return ephemeralText(
+      interpolate(
+        t.banDone,
+        {
+          caseId:
+            moderationCase.id,
+          userId:
+            target.id,
+        },
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "ban command failed",
+      error,
+    );
+
+    return ephemeralText(
+      t.banFailed,
+    );
+  }
+}
+
+async function unbanCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const access =
+    await moderationAccess(
+      interaction,
+      lang,
+      PERMISSIONS
+        .BAN_MEMBERS,
+      PERMISSIONS
+        .BAN_MEMBERS,
+    );
+
+  if (access.response) {
+    return access.response;
+  }
+
+  const userId =
+    String(
+      access.options
+        ?.user_id ||
+      "",
+    ).trim();
+  const reason =
+    String(
+      access.options?.reason ||
+      "",
+    )
+      .trim()
+      .slice(0, 256);
+
+  if (
+    !/^\d{17,20}$/.test(
+      userId,
+    )
+  ) {
+    return ephemeralText(
+      t.invalidUserId,
+    );
+  }
+
+  try {
+    const user =
+      await discordApi(
+        `/users/${userId}`,
+      ).catch(
+        () => null,
+      );
+
+    await discordApi(
+      `/guilds/${access.guildId}/bans/${userId}`,
+      {
+        method:
+          "DELETE",
+        reason:
+          reason ||
+          `ISTe /unban by ${access.actor?.username || access.actor?.id || "moderator"}`,
+      },
+    );
+
+    const actorId =
+      String(
+        access.actor?.id ||
+        "",
+      );
+
+    const moderationCase =
+      await createModerationCase({
+        guildId:
+          access.guildId,
+        targetUserId:
+          userId,
+        moderatorUserId:
+          actorId,
+        action: "unban",
+        reason,
+        metadata: {
+          target_name:
+            moderationDisplayName(
+              user,
+            ),
+          moderator_name:
+            moderationDisplayName(
+              access.actor,
+            ),
+        },
+      });
+
+    await writeAudit(
+      access.guildId,
+      "command.unban",
+      {
+        case_id:
+          moderationCase.id,
+        actor_id:
+          actorId,
+        target_id:
+          userId,
+        reason:
+          reason || null,
+      },
+    );
+
+    await sendModerationLog(
+      access.settings,
+      {
+        title:
+          `🔓 /unban • Case #${moderationCase.id}`,
+        actorId,
+        targetId:
+          userId,
+        details:
+          reason ||
+          "No reason",
+      },
+    );
+
+    return ephemeralText(
+      interpolate(
+        t.unbanDone,
+        {
+          caseId:
+            moderationCase.id,
+          userId,
+        },
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "unban command failed",
+      error,
+    );
+
+    return ephemeralText(
+      t.unbanFailed,
+    );
+  }
+}
+
+async function slowmodeCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const access =
+    await moderationAccess(
+      interaction,
+      lang,
+      PERMISSIONS
+        .MANAGE_CHANNELS,
+      PERMISSIONS
+        .MANAGE_CHANNELS,
+    );
+
+  if (access.response) {
+    return access.response;
+  }
+
+  const seconds =
+    Math.max(
+      0,
+      Math.min(
+        21600,
+        Number(
+          access.options
+            ?.seconds ||
+          0,
+        ) ||
+        0,
+      ),
+    );
+  const channelId =
+    String(
+      access.options
+        ?.channel ||
+      interaction?.channel_id ||
+      "",
+    );
+
+  if (!channelId) {
+    return ephemeralText(
+      t.slowmodeFailed,
+    );
+  }
+
+  try {
+    await discordApi(
+      `/channels/${channelId}`,
+      {
+        method:
+          "PATCH",
+        body: {
+          rate_limit_per_user:
+            seconds,
+        },
+        reason:
+          `ISTe /slowmode by ${access.actor?.username || access.actor?.id || "moderator"}`,
+      },
+    );
+
+    const actorId =
+      String(
+        access.actor?.id ||
+        "",
+      );
+
+    await writeAudit(
+      access.guildId,
+      "command.slowmode",
+      {
+        actor_id:
+          actorId,
+        channel_id:
+          channelId,
+        seconds,
+      },
+    );
+
+    await sendModerationLog(
+      access.settings,
+      {
+        title:
+          "🐢 /slowmode",
+        actorId,
+        channelId,
+        details:
+          `Delay: ${seconds}s`,
+      },
+    );
+
+    return ephemeralText(
+      interpolate(
+        t.slowmodeDone,
+        {
+          channelId,
+          seconds,
+        },
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "slowmode command failed",
+      error,
+    );
+
+    return ephemeralText(
+      t.slowmodeFailed,
     );
   }
 }
@@ -1432,6 +2646,46 @@ async function timeoutCommand(
       reason: reason || null,
     });
 
+    const timeoutCase =
+      await createModerationCase({
+        guildId,
+        targetUserId:
+          target.id,
+        moderatorUserId:
+          String(
+            actor?.id ||
+            "",
+          ),
+        action:
+          "timeout",
+        reason,
+        durationMinutes:
+          minutes,
+        metadata: {
+          target_name:
+            moderationDisplayName(
+              target,
+            ),
+          moderator_name:
+            moderationDisplayName(
+              actor,
+            ),
+        },
+      });
+
+    await writeAudit(
+      guildId,
+      "moderation.case",
+      {
+        case_id:
+          timeoutCase.id,
+        action:
+          "timeout",
+        target_id:
+          target.id,
+      },
+    );
+
     await sendModerationLog(
       moderation,
       {
@@ -1540,6 +2794,34 @@ async function handleCommand(
 
   if (command === "poll") {
     return pollCommand(interaction, lang);
+  }
+
+  if (command === "warn") {
+    return await warnCommand(interaction, lang);
+  }
+
+  if (command === "warnings") {
+    return await warningsCommand(interaction, lang);
+  }
+
+  if (command === "unwarn") {
+    return await unwarnCommand(interaction, lang);
+  }
+
+  if (command === "kick") {
+    return await kickCommand(interaction, lang);
+  }
+
+  if (command === "ban") {
+    return await banCommand(interaction, lang);
+  }
+
+  if (command === "unban") {
+    return await unbanCommand(interaction, lang);
+  }
+
+  if (command === "slowmode") {
+    return await slowmodeCommand(interaction, lang);
   }
 
   if (command === "clear") {
