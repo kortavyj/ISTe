@@ -391,6 +391,15 @@ function defaultGuildRuntimeConfig(guildId) {
       locale: "uk",
       memberRoleId: "",
       matchChannelId: "",
+      welcomeTitle: "",
+      welcomeMessage: "",
+      welcomeMention: true,
+      welcomeShowMemberCount:
+        true,
+      moderationClearEnabled:
+        true,
+      moderationTimeoutEnabled:
+        true,
       autoRolesEnabled:
         internal,
       privateVoiceEnabled:
@@ -705,6 +714,16 @@ async function sendWelcomeMessage(member) {
         ?.locale ===
       "en";
 
+    const mentionEnabled =
+      runtime.settings
+        ?.welcomeMention !==
+      false;
+
+    const showMemberCount =
+      runtime.settings
+        ?.welcomeShowMemberCount !==
+      false;
+
     const displayName =
       cleanText(
         member.displayName ||
@@ -733,15 +752,64 @@ async function sendWelcomeMessage(member) {
         }) ||
       "";
 
+    const renderWelcomeTemplate =
+      (
+        value,
+        fallback,
+      ) => {
+        const template =
+          cleanText(
+            value,
+            fallback,
+          );
+
+        return template
+          .replaceAll(
+            "{{user}}",
+            displayName,
+          )
+          .replaceAll(
+            "{{server}}",
+            member.guild.name,
+          )
+          .replaceAll(
+            "{{count}}",
+            memberCount == null
+              ? "—"
+              : String(
+                  memberCount,
+                ),
+          );
+      };
+
+    const welcomeTitle =
+      renderWelcomeTemplate(
+        runtime.settings
+          ?.welcomeTitle,
+        english
+          ? "Welcome to {{server}}!"
+          : "Ласкаво просимо до {{server}}!",
+      )
+        .slice(0, 256);
+
+    const welcomeMessage =
+      renderWelcomeTemplate(
+        runtime.settings
+          ?.welcomeMessage,
+        english
+          ? "**{{user}}**, welcome to the community. Please read the server rules and make yourself at home."
+          : "**{{user}}**, вітаємо у спільноті. Ознайомся з правилами сервера та почувайся як удома.",
+      )
+        .slice(0, 4096);
+
     const embed = {
-      title: english
-        ? `Welcome to ${member.guild.name}!`
-        : `Ласкаво просимо до ${member.guild.name}!`,
-      description: english
-        ? `**${displayName}**, welcome to the community. Please read the server rules and make yourself at home.`
-        : `**${displayName}**, вітаємо у спільноті. Ознайомся з правилами сервера та почувайся як удома.`,
+      title:
+        welcomeTitle,
+      description:
+        welcomeMessage,
       color: 0xe30613,
       fields:
+        showMemberCount &&
         memberCount
           ? [
               {
@@ -776,14 +844,23 @@ async function sendWelcomeMessage(member) {
     };
 
     await channel.send({
-      content:
-        `<@${member.id}>`,
+      ...(
+        mentionEnabled
+          ? {
+              content:
+                `<@${member.id}>`,
+            }
+          : {}
+      ),
       embeds: [embed],
       allowedMentions: {
         parse: [],
-        users: [
-          member.id,
-        ],
+        users:
+          mentionEnabled
+            ? [
+                member.id,
+              ]
+            : [],
       },
     });
 

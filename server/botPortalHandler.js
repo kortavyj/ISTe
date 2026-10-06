@@ -1054,6 +1054,58 @@ function normalizeSettings(
             "",
           )
         : "",
+    welcomeTitle:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .welcomeTitle ||
+            "",
+          )
+        : "",
+    welcomeMessage:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .welcomeMessage ||
+            "",
+          )
+        : "",
+    welcomeMention:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .welcomeMention !==
+          false
+        : true,
+    welcomeShowMemberCount:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .welcomeShowMemberCount !==
+          false
+        : true,
+    moderationClearEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .moderationClearEnabled !==
+          false
+        : true,
+    moderationTimeoutEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .moderationTimeoutEnabled !==
+          false
+        : true,
     welcomeEnabled:
       row?.welcome_enabled ===
       true,
@@ -2716,6 +2768,22 @@ async function handleSaveSettings(
       ? "en"
       : "uk";
 
+  const welcomeTitle =
+    String(
+      body.welcomeTitle ||
+      "",
+    )
+      .trim()
+      .slice(0, 80);
+
+  const welcomeMessage =
+    String(
+      body.welcomeMessage ||
+      "",
+    )
+      .trim()
+      .slice(0, 500);
+
   const fields = {
     adminRoleId:
       readSnowflakeOrEmpty(
@@ -2881,6 +2949,23 @@ async function handleSaveSettings(
         fields
           .matchChannelId
           .value,
+      welcomeTitle,
+      welcomeMessage,
+      welcomeMention:
+        body.welcomeMention !==
+        false,
+      welcomeShowMemberCount:
+        body
+          .welcomeShowMemberCount !==
+        false,
+      moderationClearEnabled:
+        body
+          .moderationClearEnabled !==
+        false,
+      moderationTimeoutEnabled:
+        body
+          .moderationTimeoutEnabled !==
+        false,
     };
 
     const now =
@@ -3587,6 +3672,15 @@ async function handleWorkerConfig(
             locale: "uk",
             memberRoleId: "",
             matchChannelId: "",
+            welcomeTitle: "",
+            welcomeMessage: "",
+            welcomeMention: true,
+            welcomeShowMemberCount:
+              true,
+            moderationClearEnabled:
+              true,
+            moderationTimeoutEnabled:
+              true,
             privateVoiceEnabled:
               fallbackInternal,
             autoRolesEnabled:

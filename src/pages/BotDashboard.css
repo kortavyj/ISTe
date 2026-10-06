@@ -574,3 +574,150 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Bot dashboard v4: module management */
+.bot-dashboard-modules {
+  gap: 16px !important;
+}
+
+.bot-dashboard-module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bot-dashboard-module-card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: 15px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 11px;
+  background: #090d12;
+  transition:
+    border-color .18s ease,
+    background .18s ease;
+}
+
+.bot-dashboard-module-card.active {
+  border-color: rgba(227,6,19,.28);
+  background:
+    linear-gradient(135deg, rgba(227,6,19,.055), transparent 52%),
+    #090d12;
+}
+
+.bot-dashboard-module-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.bot-dashboard-module-card > header > div {
+  display: grid;
+  gap: 5px;
+}
+
+.bot-dashboard-module-card > header strong {
+  font-size: .76rem;
+}
+
+.bot-dashboard-module-card > header small {
+  max-width: 520px;
+  color: rgba(255,255,255,.34);
+  font-size: .58rem;
+  line-height: 1.5;
+}
+
+.bot-dashboard-switch {
+  display: inline-flex !important;
+  grid-template-columns: auto auto !important;
+  align-items: center;
+  gap: 7px !important;
+  min-width: max-content;
+  padding: 6px 8px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 999px;
+  background: rgba(255,255,255,.018);
+}
+
+.bot-dashboard-switch > span {
+  color: rgba(255,255,255,.48) !important;
+  font-size: .52rem !important;
+  text-transform: none !important;
+}
+
+.bot-dashboard-module-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+
+.bot-dashboard-module-fields > .full {
+  grid-column: 1 / -1;
+}
+
+.bot-dashboard-settings textarea {
+  width: 100%;
+  min-height: 92px;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px;
+  outline: 0;
+  background: #080c10;
+  color: #fff;
+  font: inherit;
+  font-size: .68rem;
+  line-height: 1.5;
+}
+
+.bot-dashboard-settings textarea:focus {
+  border-color: rgba(227,6,19,.42);
+}
+
+.bot-dashboard-inline-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bot-dashboard-inline-options label {
+  display: inline-flex;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 8px;
+  background: rgba(255,255,255,.015);
+}
+
+.bot-dashboard-inline-options label > span {
+  color: rgba(255,255,255,.52);
+  font-size: .56rem;
+  text-transform: none;
+}
+
+.bot-dashboard-module-next {
+  padding: 5px 8px;
+  border: 1px solid rgba(255,180,70,.2);
+  border-radius: 999px;
+  color: #e5b76b;
+  font-size: .5rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .bot-dashboard-module-grid,
+  .bot-dashboard-module-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .bot-dashboard-module-fields > .full {
+    grid-column: auto;
+  }
+}

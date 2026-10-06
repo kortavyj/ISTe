@@ -16,6 +16,12 @@ const EMPTY_SETTINGS = {
   logChannelId: "",
   welcomeChannelId: "",
   matchChannelId: "",
+  welcomeTitle: "",
+  welcomeMessage: "",
+  welcomeMention: true,
+  welcomeShowMemberCount: true,
+  moderationClearEnabled: true,
+  moderationTimeoutEnabled: true,
   welcomeEnabled: false,
   moderationEnabled: false,
   ticketsEnabled: false,
@@ -76,12 +82,33 @@ const copy = {
     privateVoice: "Приватні голосові кімнати",
     privateVoiceText:
       "Автоматична система тимчасових приватних кімнат тільки для цього сервера.",
-    advanced: "Підготовлені модулі",
+    advanced: "Керування модулями",
     advancedText:
-      "Welcome, Moderation і Tickets уже мають окремі налаштування в базі. Їх runtime-функції підключимо наступним етапом.",
+      "Кожен модуль має окремі параметри для цього Discord-сервера.",
     welcome: "Welcome",
+    welcomeText:
+      "Автоматичне привітання нового учасника з власним текстом та оформленням.",
+    welcomeTitle: "Заголовок привітання",
+    welcomeMessage: "Текст привітання",
+    welcomeTitlePlaceholder: "Ласкаво просимо до {{server}}!",
+    welcomeMessagePlaceholder:
+      "**{{user}}**, вітаємо у спільноті. Ознайомся з правилами сервера.",
+    welcomeMention: "Згадувати нового учасника",
+    welcomeShowMemberCount: "Показувати кількість учасників",
     moderation: "Moderation",
+    moderationText:
+      "Керує командами модерації, ролями доступу та журналом дій.",
+    moderationClear: "Дозволити /clear",
+    moderationTimeout: "Дозволити /timeout",
     tickets: "Tickets",
+    ticketsText:
+      "Повний ticket runtime з приватними каналами підключимо наступним блоком.",
+    comingNext: "Наступний модуль",
+    serverControls: "Керування сервером",
+    serverControlsText:
+      "Службові ролі та інтеграції ISTe для цього Discord-сервера.",
+    moduleOn: "Увімкнено",
+    moduleOff: "Вимкнено",
     adminRoleId: "Роль адміністратора",
     moderatorRoleId: "Роль модератора",
     logChannelId: "Канал логів",
@@ -169,12 +196,33 @@ const copy = {
     privateVoice: "Private voice rooms",
     privateVoiceText:
       "Automatic temporary private-room system only for this server.",
-    advanced: "Prepared modules",
+    advanced: "Module management",
     advancedText:
-      "Welcome, Moderation and Tickets already have isolated settings in the database. Their runtime features come in the next step.",
+      "Each module has independent settings for this Discord server.",
     welcome: "Welcome",
+    welcomeText:
+      "Automatically greet new members with custom text and presentation.",
+    welcomeTitle: "Welcome title",
+    welcomeMessage: "Welcome message",
+    welcomeTitlePlaceholder: "Welcome to {{server}}!",
+    welcomeMessagePlaceholder:
+      "**{{user}}**, welcome to the community. Please read the server rules.",
+    welcomeMention: "Mention the new member",
+    welcomeShowMemberCount: "Show member count",
     moderation: "Moderation",
+    moderationText:
+      "Controls moderation commands, access roles and action logging.",
+    moderationClear: "Allow /clear",
+    moderationTimeout: "Allow /timeout",
     tickets: "Tickets",
+    ticketsText:
+      "The full private-channel ticket runtime will be connected in the next block.",
+    comingNext: "Next module",
+    serverControls: "Server management",
+    serverControlsText:
+      "Service roles and ISTe integrations for this Discord server.",
+    moduleOn: "Enabled",
+    moduleOff: "Disabled",
     adminRoleId: "Administrator role",
     moderatorRoleId: "Moderator role",
     logChannelId: "Log channel",
@@ -1181,7 +1229,7 @@ export default function BotDashboard() {
                 </header>
               </section>
 
-              <section className="bot-dashboard-prepared">
+              <section className="bot-dashboard-modules">
                 <header>
                   <div>
                     <strong>
@@ -1193,292 +1241,486 @@ export default function BotDashboard() {
                   </div>
                 </header>
 
-                <div className="bot-dashboard-module-pills">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={
-                        settings
-                          .welcomeEnabled
-                      }
-                      disabled={
-                        !hasFeature(
-                          "welcome",
-                        )
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        patch(
-                          "welcomeEnabled",
-                          event
-                            .target
-                            .checked,
-                        )
-                      }
-                    />
-                    <span>
-                      {c.welcome}
-                    </span>
-                  </label>
+                <div className="bot-dashboard-module-grid">
+                  <article
+                    className={
+                      `bot-dashboard-module-card${settings.welcomeEnabled ? " active" : ""}`
+                    }
+                  >
+                    <header>
+                      <div>
+                        <strong>
+                          {c.welcome}
+                        </strong>
+                        <small>
+                          {c.welcomeText}
+                        </small>
+                      </div>
 
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={
-                        settings
-                          .moderationEnabled
-                      }
-                      disabled={
-                        !hasFeature(
-                          "moderation",
-                        )
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        patch(
-                          "moderationEnabled",
-                          event
-                            .target
-                            .checked,
-                        )
-                      }
-                    />
-                    <span>
-                      {c.moderation}
-                    </span>
-                  </label>
+                      <label className="bot-dashboard-switch">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .welcomeEnabled
+                          }
+                          disabled={
+                            !hasFeature(
+                              "welcome",
+                            )
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "welcomeEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {settings.welcomeEnabled
+                            ? c.moduleOn
+                            : c.moduleOff}
+                        </span>
+                      </label>
+                    </header>
 
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={
-                        settings
-                          .ticketsEnabled
-                      }
-                      disabled={
-                        !hasFeature(
-                          "tickets",
-                        )
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        patch(
-                          "ticketsEnabled",
-                          event
-                            .target
-                            .checked,
-                        )
-                      }
-                    />
-                    <span>
-                      {c.tickets}
-                    </span>
-                  </label>
-                </div>
-
-                <div className="bot-dashboard-field-grid">
-                  <label>
-                    <span>
-                      {c.adminRoleId}
-                    </span>
-                    <select
-                      value={
-                        settings
-                          .adminRoleId
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        patch(
-                          "adminRoleId",
-                          event
-                            .target
-                            .value,
-                        )
-                      }
-                    >
-                      <option value="">
-                        {c.chooseRole}
-                      </option>
-                      {resources.roles.map(
-                        (role) => (
-                          <option
-                            key={
-                              role.id
-                            }
-                            value={
-                              role.id
-                            }
-                          >
-                            @{role.name}
+                    <div className="bot-dashboard-module-fields">
+                      <label>
+                        <span>
+                          {c.welcomeChannelId}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .welcomeChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "welcomeChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
                           </option>
-                        ),
-                      )}
-                    </select>
-                  </label>
+                          {resources.channels.map(
+                            (channel) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #{channel.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
 
-                  <label>
-                    <span>
-                      {c.moderatorRoleId}
-                    </span>
-                    <select
-                      value={
-                        settings
-                          .moderatorRoleId
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        patch(
-                          "moderatorRoleId",
-                          event
-                            .target
-                            .value,
-                        )
-                      }
-                    >
-                      <option value="">
-                        {c.chooseRole}
-                      </option>
-                      {resources.roles.map(
-                        (role) => (
-                          <option
-                            key={
-                              role.id
-                            }
-                            value={
-                              role.id
-                            }
-                          >
-                            @{role.name}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                  </label>
+                      <label>
+                        <span>
+                          {c.welcomeTitle}
+                        </span>
+                        <input
+                          type="text"
+                          maxLength={80}
+                          placeholder={
+                            c.welcomeTitlePlaceholder
+                          }
+                          value={
+                            settings
+                              .welcomeTitle
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "welcomeTitle",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
 
-                  <label>
-                    <span>
-                      {c.logChannelId}
-                    </span>
-                    <select
-                      value={
-                        settings
-                          .logChannelId
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        patch(
-                          "logChannelId",
-                          event
-                            .target
-                            .value,
-                        )
-                      }
-                    >
-                      <option value="">
-                        {c.chooseChannel}
-                      </option>
-                      {resources.channels.map(
-                        (channel) => (
-                          <option
-                            key={
-                              channel.id
-                            }
-                            value={
-                              channel.id
-                            }
-                          >
-                            #{channel.name}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                  </label>
+                      <label className="full">
+                        <span>
+                          {c.welcomeMessage}
+                        </span>
+                        <textarea
+                          rows={4}
+                          maxLength={500}
+                          placeholder={
+                            c.welcomeMessagePlaceholder
+                          }
+                          value={
+                            settings
+                              .welcomeMessage
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "welcomeMessage",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
 
-                  <label>
-                    <span>
-                      {c.welcomeChannelId}
-                    </span>
-                    <select
-                      value={
-                        settings
-                          .welcomeChannelId
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        patch(
-                          "welcomeChannelId",
-                          event
-                            .target
-                            .value,
-                        )
-                      }
-                    >
-                      <option value="">
-                        {c.chooseChannel}
-                      </option>
-                      {resources.channels.map(
-                        (channel) => (
-                          <option
-                            key={
-                              channel.id
+                      <div className="bot-dashboard-inline-options full">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={
+                              settings
+                                .welcomeMention
                             }
-                            value={
-                              channel.id
+                            onChange={(
+                              event,
+                            ) =>
+                              patch(
+                                "welcomeMention",
+                                event
+                                  .target
+                                  .checked,
+                              )
                             }
-                          >
-                            #{channel.name}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                  </label>
+                          />
+                          <span>
+                            {c.welcomeMention}
+                          </span>
+                        </label>
 
-                  <label>
-                    <span>
-                      {c.matchChannelId}
-                    </span>
-                    <select
-                      value={
-                        settings
-                          .matchChannelId
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        patch(
-                          "matchChannelId",
-                          event
-                            .target
-                            .value,
-                        )
-                      }
-                    >
-                      <option value="">
-                        {c.chooseChannel}
-                      </option>
-                      {resources.channels.map(
-                        (channel) => (
-                          <option
-                            key={
-                              channel.id
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={
+                              settings
+                                .welcomeShowMemberCount
                             }
-                            value={
-                              channel.id
+                            onChange={(
+                              event,
+                            ) =>
+                              patch(
+                                "welcomeShowMemberCount",
+                                event
+                                  .target
+                                  .checked,
+                              )
                             }
-                          >
-                            #{channel.name}
+                          />
+                          <span>
+                            {c.welcomeShowMemberCount}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article
+                    className={
+                      `bot-dashboard-module-card${settings.moderationEnabled ? " active" : ""}`
+                    }
+                  >
+                    <header>
+                      <div>
+                        <strong>
+                          {c.moderation}
+                        </strong>
+                        <small>
+                          {c.moderationText}
+                        </small>
+                      </div>
+
+                      <label className="bot-dashboard-switch">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .moderationEnabled
+                          }
+                          disabled={
+                            !hasFeature(
+                              "moderation",
+                            )
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "moderationEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {settings.moderationEnabled
+                            ? c.moduleOn
+                            : c.moduleOff}
+                        </span>
+                      </label>
+                    </header>
+
+                    <div className="bot-dashboard-module-fields">
+                      <label>
+                        <span>
+                          {c.moderatorRoleId}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .moderatorRoleId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "moderatorRoleId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseRole}
                           </option>
-                        ),
-                      )}
-                    </select>
-                  </label>
+                          {resources.roles.map(
+                            (role) => (
+                              <option
+                                key={
+                                  role.id
+                                }
+                                value={
+                                  role.id
+                                }
+                              >
+                                @{role.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.logChannelId}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .logChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "logChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
+                          </option>
+                          {resources.channels.map(
+                            (channel) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #{channel.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <div className="bot-dashboard-inline-options full">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={
+                              settings
+                                .moderationClearEnabled
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              patch(
+                                "moderationClearEnabled",
+                                event
+                                  .target
+                                  .checked,
+                              )
+                            }
+                          />
+                          <span>
+                            {c.moderationClear}
+                          </span>
+                        </label>
+
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={
+                              settings
+                                .moderationTimeoutEnabled
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              patch(
+                                "moderationTimeoutEnabled",
+                                event
+                                  .target
+                                  .checked,
+                              )
+                            }
+                          />
+                          <span>
+                            {c.moderationTimeout}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article className="bot-dashboard-module-card">
+                    <header>
+                      <div>
+                        <strong>
+                          {c.tickets}
+                        </strong>
+                        <small>
+                          {c.ticketsText}
+                        </small>
+                      </div>
+
+                      <span className="bot-dashboard-module-next">
+                        {c.comingNext}
+                      </span>
+                    </header>
+                  </article>
+
+                  <article className="bot-dashboard-module-card">
+                    <header>
+                      <div>
+                        <strong>
+                          {c.serverControls}
+                        </strong>
+                        <small>
+                          {c.serverControlsText}
+                        </small>
+                      </div>
+                    </header>
+
+                    <div className="bot-dashboard-module-fields">
+                      <label>
+                        <span>
+                          {c.adminRoleId}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .adminRoleId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "adminRoleId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseRole}
+                          </option>
+                          {resources.roles.map(
+                            (role) => (
+                              <option
+                                key={
+                                  role.id
+                                }
+                                value={
+                                  role.id
+                                }
+                              >
+                                @{role.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.matchChannelId}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .matchChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "matchChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
+                          </option>
+                          {resources.channels.map(
+                            (channel) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #{channel.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+                    </div>
+                  </article>
                 </div>
               </section>
 

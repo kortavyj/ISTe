@@ -158,6 +158,14 @@ const copy = {
       "<@{{userId}}> отримав тайм-аут на **{{minutes}} хв**.",
     timeoutFailed:
       "Не вдалося видати тайм-аут. Перевірте роль ISTe Bot і її права.",
+    moderationDisabled:
+      "Модуль Moderation вимкнено в панелі ISTe Bot.",
+    clearDisabled:
+      "Команду /clear вимкнено в налаштуваннях цього сервера.",
+    timeoutDisabled:
+      "Команду /timeout вимкнено в налаштуваннях цього сервера.",
+    moderatorRoleRequired:
+      "Для цієї дії потрібна налаштована роль модератора або адміністратора ISTe.",
     genericError: "Під час виконання команди сталася помилка.",
   },
 
@@ -229,6 +237,14 @@ const copy = {
       "<@{{userId}}> получил тайм-аут на **{{minutes}} мин**.",
     timeoutFailed:
       "Не удалось выдать тайм-аут. Проверьте роль ISTe Bot и её права.",
+    moderationDisabled:
+      "Модуль Moderation выключен в панели ISTe Bot.",
+    clearDisabled:
+      "Команда /clear выключена в настройках этого сервера.",
+    timeoutDisabled:
+      "Команда /timeout выключена в настройках этого сервера.",
+    moderatorRoleRequired:
+      "Для этого действия нужна настроенная роль модератора или администратора ISTe.",
     genericError: "Во время выполнения команды произошла ошибка.",
   },
 
@@ -300,6 +316,14 @@ const copy = {
       "<@{{userId}}> was timed out for **{{minutes}} min**.",
     timeoutFailed:
       "Could not timeout that member. Check ISTe Bot permissions.",
+    moderationDisabled:
+      "The Moderation module is disabled in the ISTe Bot dashboard.",
+    clearDisabled:
+      "The /clear command is disabled for this server.",
+    timeoutDisabled:
+      "The /timeout command is disabled for this server.",
+    moderatorRoleRequired:
+      "This action requires the configured ISTe moderator or administrator role.",
     genericError: "An error occurred while running this command.",
   },
 };
@@ -507,6 +531,231 @@ async function writeAudit(
     });
   } catch (error) {
     console.error("discord audit insert failed", error);
+  }
+}
+
+function memberHasRole(
+  interaction: any,
+  roleId: string,
+) {
+  if (!roleId) return false;
+
+  const roles =
+    Array.isArray(
+      interaction?.member?.roles,
+    )
+      ? interaction.member.roles.map(
+          (role: unknown) =>
+            String(role),
+        )
+      : [];
+
+  return roles.includes(roleId);
+}
+
+async function loadModerationSettings(
+  guildId: string,
+) {
+  const fallback = {
+    enabled: true,
+    clearEnabled: true,
+    timeoutEnabled: true,
+    adminRoleId: "",
+    moderatorRoleId: "",
+    logChannelId: "",
+  };
+
+  if (!adminDb || !guildId) {
+    return fallback;
+  }
+
+  try {
+    const {
+      data,
+      error,
+    } = await adminDb
+      .from(
+        "discord_guild_settings",
+      )
+      .select(
+        "moderation_enabled, admin_role_id, moderator_role_id, log_channel_id, config",
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .maybeSingle();
+
+    if (error || !data) {
+      return fallback;
+    }
+
+    const config =
+      data.config &&
+      typeof data.config ===
+        "object"
+        ? data.config
+        : {};
+
+    return {
+      enabled:
+        data
+          .moderation_enabled ===
+        true,
+      clearEnabled:
+        config
+          .moderationClearEnabled !==
+        false,
+      timeoutEnabled:
+        config
+          .moderationTimeoutEnabled !==
+        false,
+      adminRoleId:
+        String(
+          data.admin_role_id ||
+          "",
+        ),
+      moderatorRoleId:
+        String(
+          data.moderator_role_id ||
+          "",
+        ),
+      logChannelId:
+        String(
+          data.log_channel_id ||
+          "",
+        ),
+    };
+  } catch (error) {
+    console.error(
+      "moderation settings load failed",
+      error,
+    );
+
+    return fallback;
+  }
+}
+
+function moderationActorAllowed(
+  interaction: any,
+  settings: {
+    adminRoleId: string;
+    moderatorRoleId: string;
+  },
+  nativePermission: bigint,
+) {
+  return (
+    hasPermission(
+      interaction?.member
+        ?.permissions,
+      nativePermission,
+    ) ||
+    memberHasRole(
+      interaction,
+      settings.adminRoleId,
+    ) ||
+    memberHasRole(
+      interaction,
+      settings.moderatorRoleId,
+    )
+  );
+}
+
+async function sendModerationLog(
+  settings: {
+    logChannelId: string;
+  },
+  {
+    title,
+    actorId,
+    targetId = "",
+    channelId = "",
+    details = "",
+  }: {
+    title: string;
+    actorId: string;
+    targetId?: string;
+    channelId?: string;
+    details?: string;
+  },
+) {
+  if (!settings.logChannelId) {
+    return;
+  }
+
+  const fields = [
+    {
+      name: "Moderator",
+      value:
+        actorId
+          ? `<@${actorId}>`
+          : "—",
+      inline: true,
+    },
+  ];
+
+  if (targetId) {
+    fields.push({
+      name: "Target",
+      value:
+        `<@${targetId}>`,
+      inline: true,
+    });
+  }
+
+  if (channelId) {
+    fields.push({
+      name: "Channel",
+      value:
+        `<#${channelId}>`,
+      inline: true,
+    });
+  }
+
+  if (details) {
+    fields.push({
+      name: "Details",
+      value:
+        details.slice(
+          0,
+          1024,
+        ),
+      inline: false,
+    });
+  }
+
+  try {
+    await discordApi(
+      `/channels/${settings.logChannelId}/messages`,
+      {
+        method: "POST",
+        body: {
+          embeds: [
+            {
+              title,
+              color:
+                BRAND_COLOR,
+              fields,
+              footer: {
+                text:
+                  "ISTe Moderation",
+              },
+              timestamp:
+                new Date()
+                  .toISOString(),
+            },
+          ],
+          allowed_mentions: {
+            parse: [],
+          },
+        },
+      },
+    );
+  } catch (error) {
+    console.error(
+      "moderation log send failed",
+      error,
+    );
   }
 }
 
@@ -940,14 +1189,44 @@ function pollCommand(interaction: any, lang: Language) {
 
 async function clearCommand(interaction: any, lang: Language) {
   const t = copy[lang];
+  const guildId =
+    String(
+      interaction?.guild_id ||
+      "",
+    );
+
+  const moderation =
+    await loadModerationSettings(
+      guildId,
+    );
+
+  if (!moderation.enabled) {
+    return ephemeralText(
+      t.moderationDisabled,
+    );
+  }
+
+  if (!moderation.clearEnabled) {
+    return ephemeralText(
+      t.clearDisabled,
+    );
+  }
 
   if (
-    !hasPermission(
-      interaction?.member?.permissions,
+    !moderationActorAllowed(
+      interaction,
+      moderation,
       PERMISSIONS.MANAGE_MESSAGES,
     )
   ) {
-    return ephemeralText(t.clearPermission);
+    return ephemeralText(
+      moderation
+          .adminRoleId ||
+        moderation
+          .moderatorRoleId
+        ? t.moderatorRoleRequired
+        : t.clearPermission,
+    );
   }
 
   if (
@@ -960,7 +1239,6 @@ async function clearCommand(interaction: any, lang: Language) {
   }
 
   const channelId = String(interaction?.channel_id || "");
-  const guildId = String(interaction?.guild_id || "");
   const actor = getActor(interaction);
   const options = getOptions(interaction);
   const amount = Math.min(
@@ -1019,6 +1297,22 @@ async function clearCommand(interaction: any, lang: Language) {
       amount: ids.length,
     });
 
+    await sendModerationLog(
+      moderation,
+      {
+        title:
+          "🧹 /clear",
+        actorId:
+          String(
+            actor?.id ||
+            "",
+          ),
+        channelId,
+        details:
+          `Deleted messages: ${ids.length}`,
+      },
+    );
+
     return ephemeralText(
       interpolate(t.clearDone, { count: ids.length }),
     );
@@ -1033,14 +1327,47 @@ async function timeoutCommand(
   lang: Language,
 ) {
   const t = copy[lang];
+  const guildId =
+    String(
+      interaction?.guild_id ||
+      "",
+    );
+
+  const moderation =
+    await loadModerationSettings(
+      guildId,
+    );
+
+  if (!moderation.enabled) {
+    return ephemeralText(
+      t.moderationDisabled,
+    );
+  }
 
   if (
-    !hasPermission(
-      interaction?.member?.permissions,
+    !moderation
+      .timeoutEnabled
+  ) {
+    return ephemeralText(
+      t.timeoutDisabled,
+    );
+  }
+
+  if (
+    !moderationActorAllowed(
+      interaction,
+      moderation,
       PERMISSIONS.MODERATE_MEMBERS,
     )
   ) {
-    return ephemeralText(t.timeoutPermission);
+    return ephemeralText(
+      moderation
+          .adminRoleId ||
+        moderation
+          .moderatorRoleId
+        ? t.moderatorRoleRequired
+        : t.timeoutPermission,
+    );
   }
 
   if (
@@ -1051,8 +1378,6 @@ async function timeoutCommand(
   ) {
     return ephemeralText(t.timeoutBotPermission);
   }
-
-  const guildId = String(interaction?.guild_id || "");
   const actor = getActor(interaction);
   const target = getResolvedUser(interaction);
   const options = getOptions(interaction);
@@ -1102,6 +1427,30 @@ async function timeoutCommand(
       minutes,
       reason: reason || null,
     });
+
+    await sendModerationLog(
+      moderation,
+      {
+        title:
+          "⏱️ /timeout",
+        actorId:
+          String(
+            actor?.id ||
+            "",
+          ),
+        targetId:
+          target.id,
+        details:
+          [
+            `Duration: ${minutes} min`,
+            reason
+              ? `Reason: ${reason}`
+              : "",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+      },
+    );
 
     return ephemeralText(
       interpolate(t.timeoutDone, {
