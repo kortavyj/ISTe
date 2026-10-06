@@ -1047,3 +1047,25 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Bot dashboard v7: AutoMod */
+.bot-dashboard-automod-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bot-dashboard-automod-actions .bot-dashboard-module-action {
+  flex: 1 1 180px;
+}
+
+.bot-dashboard-module-action.secondary {
+  border-color: rgba(255,255,255,.09);
+  background: rgba(255,255,255,.025);
+}
+
+.bot-dashboard-module-action.secondary:hover:not(:disabled) {
+  border-color: rgba(255,255,255,.16);
+  background: rgba(255,255,255,.05);
+}

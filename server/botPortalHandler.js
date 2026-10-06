@@ -27,7 +27,7 @@ const DEFAULT_SITE_URL =
   "https://www.istesport.com";
 
 const DEFAULT_PERMISSIONS =
-  "564049465142272";
+  "564049733577782";
 
 const MANAGE_GUILD =
   0x20n;
@@ -1106,6 +1106,146 @@ function normalizeSettings(
             .moderationTimeoutEnabled !==
           false
         : true,
+    automodEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .automodEnabled ===
+          true
+        : false,
+    automodSpamEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .automodSpamEnabled !==
+          false
+        : true,
+    automodInvitesEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .automodInvitesEnabled !==
+          false
+        : true,
+    automodMentionEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .automodMentionEnabled !==
+          false
+        : true,
+    automodCapsEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .automodCapsEnabled ===
+          true
+        : false,
+    automodForbiddenWords:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .automodForbiddenWords ||
+            "",
+          )
+        : "",
+    automodAlertChannelId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .automodAlertChannelId ||
+            "",
+          )
+        : "",
+    automodMentionLimit:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? Math.max(
+            2,
+            Math.min(
+              50,
+              Number(
+                row.config
+                  .automodMentionLimit ||
+                5,
+              ) ||
+              5,
+            ),
+          )
+        : 5,
+    automodEscalationCount:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? Math.max(
+            2,
+            Math.min(
+              10,
+              Number(
+                row.config
+                  .automodEscalationCount ||
+                3,
+              ) ||
+              3,
+            ),
+          )
+        : 3,
+    automodEscalationWindowMinutes:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? Math.max(
+            1,
+            Math.min(
+              1440,
+              Number(
+                row.config
+                  .automodEscalationWindowMinutes ||
+                10,
+              ) ||
+              10,
+            ),
+          )
+        : 10,
+    automodTimeoutMinutes:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? Math.max(
+            1,
+            Math.min(
+              40320,
+              Number(
+                row.config
+                  .automodTimeoutMinutes ||
+                10,
+              ) ||
+              10,
+            ),
+          )
+        : 10,
+    automodRuleIds:
+      row?.config &&
+      typeof row.config ===
+        "object" &&
+      row.config
+        .automodRuleIds &&
+      typeof row.config
+        .automodRuleIds ===
+        "object"
+        ? row.config
+            .automodRuleIds
+        : {},
     ticketPanelChannelId:
       row?.config &&
       typeof row.config ===
@@ -2861,6 +3001,75 @@ async function handleSaveSettings(
       .trim()
       .slice(0, 500);
 
+  const automodForbiddenWords =
+    String(
+      body.automodForbiddenWords ||
+      "",
+    )
+      .replace(/\r/g, "")
+      .trim()
+      .slice(0, 12000);
+
+  const automodMentionLimit =
+    Math.max(
+      2,
+      Math.min(
+        50,
+        Math.round(
+          Number(
+            body.automodMentionLimit ||
+            5,
+          ) ||
+          5,
+        ),
+      ),
+    );
+
+  const automodEscalationCount =
+    Math.max(
+      2,
+      Math.min(
+        10,
+        Math.round(
+          Number(
+            body.automodEscalationCount ||
+            3,
+          ) ||
+          3,
+        ),
+      ),
+    );
+
+  const automodEscalationWindowMinutes =
+    Math.max(
+      1,
+      Math.min(
+        1440,
+        Math.round(
+          Number(
+            body.automodEscalationWindowMinutes ||
+            10,
+          ) ||
+          10,
+        ),
+      ),
+    );
+
+  const automodTimeoutMinutes =
+    Math.max(
+      1,
+      Math.min(
+        40320,
+        Math.round(
+          Number(
+            body.automodTimeoutMinutes ||
+            10,
+          ) ||
+          10,
+        ),
+      ),
+    );
+
   const ticketPanelTitle =
     String(
       body.ticketPanelTitle ||
@@ -2932,6 +3141,10 @@ async function handleSaveSettings(
     ticketLogChannelId:
       readSnowflakeOrEmpty(
         body.ticketLogChannelId,
+      ),
+    automodAlertChannelId:
+      readSnowflakeOrEmpty(
+        body.automodAlertChannelId,
       ),
   };
 
@@ -3090,6 +3303,30 @@ async function handleSaveSettings(
         body
           .moderationTimeoutEnabled !==
         false,
+      automodEnabled:
+        body.automodEnabled ===
+        true,
+      automodSpamEnabled:
+        body.automodSpamEnabled !==
+        false,
+      automodInvitesEnabled:
+        body.automodInvitesEnabled !==
+        false,
+      automodMentionEnabled:
+        body.automodMentionEnabled !==
+        false,
+      automodCapsEnabled:
+        body.automodCapsEnabled ===
+        true,
+      automodForbiddenWords,
+      automodAlertChannelId:
+        fields
+          .automodAlertChannelId
+          .value,
+      automodMentionLimit,
+      automodEscalationCount,
+      automodEscalationWindowMinutes,
+      automodTimeoutMinutes,
       ticketPanelChannelId:
         fields
           .ticketPanelChannelId
@@ -3553,6 +3790,1132 @@ async function handleGuildResources(
       error.message
         ? `Discord resources error: ${error.message}`
         : "Не вдалося завантажити ролі та канали Discord.",
+    );
+  }
+}
+
+const ISTE_AUTOMOD_PREFIX =
+  "ISTe AutoMod •";
+
+function parseAutomodWords(
+  value,
+) {
+  return [
+    ...new Set(
+      String(value || "")
+        .split(/[\n,]+/)
+        .map(
+          (item) =>
+            item
+              .trim()
+              .slice(
+                0,
+                60,
+              ),
+        )
+        .filter(Boolean),
+    ),
+  ].slice(0, 1000);
+}
+
+function uniqueSnowflakes(
+  values,
+) {
+  return [
+    ...new Set(
+      values
+        .map(
+          (value) =>
+            String(
+              value ||
+              "",
+            ),
+        )
+        .filter(
+          (value) =>
+            isSnowflake(
+              value,
+            ),
+        ),
+    ),
+  ];
+}
+
+function automodActions(
+  alertChannelId,
+) {
+  return [
+    {
+      type: 1,
+      metadata: {
+        custom_message:
+          "ISTe AutoMod: повідомлення заблоковано.",
+      },
+    },
+    ...(
+      isSnowflake(
+        alertChannelId,
+      )
+        ? [
+            {
+              type: 2,
+              metadata: {
+                channel_id:
+                  alertChannelId,
+              },
+            },
+          ]
+        : []
+    ),
+  ];
+}
+
+function buildDesiredAutomodRules(
+  settings,
+) {
+  if (
+    settings.automodEnabled !==
+    true
+  ) {
+    return [];
+  }
+
+  const exemptRoles =
+    uniqueSnowflakes([
+      settings.adminRoleId,
+      settings.moderatorRoleId,
+      settings
+        .ticketSupportRoleId,
+    ]);
+
+  const actions =
+    automodActions(
+      settings
+        .automodAlertChannelId ||
+      settings.logChannelId,
+    );
+
+  const rules = [];
+  const keywords =
+    parseAutomodWords(
+      settings
+        .automodForbiddenWords,
+    );
+
+  if (
+    settings
+      .automodInvitesEnabled
+  ) {
+    keywords.push(
+      "*discord.gg/*",
+      "*discord.com/invite/*",
+      "*discord.com/invites/*",
+    );
+  }
+
+  if (
+    keywords.length ||
+    settings.automodCapsEnabled
+  ) {
+    rules.push({
+      key: "keywords",
+      name:
+        `${ISTE_AUTOMOD_PREFIX}Keywords`,
+      triggerType: 1,
+      triggerMetadata: {
+        keyword_filter:
+          [
+            ...new Set(
+              keywords,
+            ),
+          ].slice(
+            0,
+            1000,
+          ),
+        regex_patterns:
+          settings
+            .automodCapsEnabled
+            ? [
+                "[A-ZА-ЯІЇЄҐ]{12,}",
+              ]
+            : [],
+      },
+      actions,
+      exemptRoles,
+    });
+  }
+
+  if (
+    settings
+      .automodSpamEnabled
+  ) {
+    rules.push({
+      key: "spam",
+      name:
+        `${ISTE_AUTOMOD_PREFIX}Spam`,
+      triggerType: 3,
+      triggerMetadata: {},
+      actions,
+      exemptRoles,
+    });
+  }
+
+  if (
+    settings
+      .automodMentionEnabled
+  ) {
+    rules.push({
+      key: "mentions",
+      name:
+        `${ISTE_AUTOMOD_PREFIX}Mentions`,
+      triggerType: 5,
+      triggerMetadata: {
+        mention_total_limit:
+          settings
+            .automodMentionLimit,
+        mention_raid_protection_enabled:
+          true,
+      },
+      actions,
+      exemptRoles,
+    });
+  }
+
+  return rules;
+}
+
+async function syncAutomodRules(
+  guildId,
+  settings,
+  config,
+) {
+  const existing =
+    await discordRequest(
+      `/guilds/${guildId}/auto-moderation/rules`,
+      {
+        token:
+          config.botToken,
+        authType: "Bot",
+      },
+    );
+
+  const allRules =
+    Array.isArray(existing)
+      ? existing
+      : [];
+
+  const managed =
+    allRules.filter(
+      (rule) =>
+        String(
+          rule?.name ||
+          "",
+        ).startsWith(
+          ISTE_AUTOMOD_PREFIX,
+        ),
+    );
+
+  const desired =
+    buildDesiredAutomodRules(
+      settings,
+    );
+
+  const desiredNames =
+    new Set(
+      desired.map(
+        (rule) =>
+          rule.name,
+      ),
+    );
+
+  for (
+    const oldRule
+    of managed
+  ) {
+    if (
+      !desiredNames.has(
+        String(
+          oldRule?.name ||
+          "",
+        ),
+      )
+    ) {
+      await discordRequest(
+        `/guilds/${guildId}/auto-moderation/rules/${oldRule.id}`,
+        {
+          method: "DELETE",
+          token:
+            config.botToken,
+          authType: "Bot",
+        },
+      );
+    }
+  }
+
+  const ids = {};
+  const warnings = [];
+
+  for (
+    const rule
+    of desired
+  ) {
+    let current =
+      managed.find(
+        (item) =>
+          item?.name ===
+          rule.name,
+      );
+
+    if (
+      current &&
+      Number(
+        current.trigger_type,
+      ) !==
+        rule.triggerType
+    ) {
+      await discordRequest(
+        `/guilds/${guildId}/auto-moderation/rules/${current.id}`,
+        {
+          method: "DELETE",
+          token:
+            config.botToken,
+          authType: "Bot",
+        },
+      );
+
+      current = null;
+    }
+
+    if (
+      !current &&
+      [3, 5].includes(
+        rule.triggerType,
+      )
+    ) {
+      const external =
+        allRules.find(
+          (item) =>
+            !String(
+              item?.name ||
+              "",
+            ).startsWith(
+              ISTE_AUTOMOD_PREFIX,
+            ) &&
+            Number(
+              item?.trigger_type,
+            ) ===
+              rule.triggerType,
+        );
+
+      if (external) {
+        warnings.push(
+          rule.key,
+        );
+        continue;
+      }
+    }
+
+    const common = {
+      name:
+        rule.name,
+      event_type: 1,
+      trigger_metadata:
+        rule.triggerMetadata,
+      actions:
+        rule.actions,
+      enabled: true,
+      exempt_roles:
+        rule.exemptRoles,
+      exempt_channels: [],
+    };
+
+    let result;
+
+    if (current?.id) {
+      result =
+        await discordRequest(
+          `/guilds/${guildId}/auto-moderation/rules/${current.id}`,
+          {
+            method: "PATCH",
+            token:
+              config.botToken,
+            authType: "Bot",
+            body:
+              common,
+          },
+        );
+    } else {
+      result =
+        await discordRequest(
+          `/guilds/${guildId}/auto-moderation/rules`,
+          {
+            method: "POST",
+            token:
+              config.botToken,
+            authType: "Bot",
+            body: {
+              ...common,
+              trigger_type:
+                rule.triggerType,
+            },
+          },
+        );
+    }
+
+    if (result?.id) {
+      ids[rule.key] =
+        String(
+          result.id,
+        );
+    }
+  }
+
+  return {
+    ids,
+    warnings,
+  };
+}
+
+async function handleSyncAutomod(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const account =
+    await requireAccount(
+      request,
+      response,
+    );
+
+  if (!account.ok) {
+    return sendError(
+      response,
+      account.status,
+      account.error,
+      account.message,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const [
+      owned,
+      settingsResult,
+    ] =
+      await Promise.all([
+        readOwnedLicense(
+          supabase,
+          account.user.id,
+          guildId,
+        ),
+        supabase
+          .from(
+            "discord_guild_settings",
+          )
+          .select("*")
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .eq(
+            "owner_user_id",
+            account.user.id,
+          )
+          .maybeSingle(),
+      ]);
+
+    if (
+      !owned.ok ||
+      !owned.license ||
+      !licenseActive(
+        owned.license,
+      )
+    ) {
+      return sendError(
+        response,
+        403,
+        "GUILD_LICENSE_REQUIRED",
+        "Немає активної ліцензії для цього сервера.",
+      );
+    }
+
+    if (
+      settingsResult.error ||
+      !settingsResult.data
+    ) {
+      return sendError(
+        response,
+        404,
+        "GUILD_SETTINGS_NOT_FOUND",
+        "Спочатку збережіть налаштування сервера.",
+      );
+    }
+
+    const config =
+      readConfig();
+
+    if (!config.botToken) {
+      return sendError(
+        response,
+        503,
+        "DISCORD_BOT_TOKEN_MISSING",
+        "ISTe Bot не має Discord токена.",
+      );
+    }
+
+    const settings =
+      normalizeSettings(
+        settingsResult.data,
+      );
+
+    const sync =
+      await syncAutomodRules(
+        guildId,
+        settings,
+        config,
+      );
+
+    const rawConfig =
+      settingsResult.data
+        .config &&
+      typeof settingsResult.data
+        .config ===
+        "object"
+        ? settingsResult.data
+            .config
+        : {};
+
+    const {
+      error: updateError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .update({
+        config: {
+          ...rawConfig,
+          automodRuleIds:
+            sync.ids,
+          automodSyncWarnings:
+            sync.warnings,
+          automodLastSyncedAt:
+            new Date()
+              .toISOString(),
+        },
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "owner_user_id",
+        account.user.id,
+      );
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        enabled:
+          settings
+            .automodEnabled ===
+          true,
+        rules:
+          sync.ids,
+        warnings:
+          sync.warnings,
+      });
+  } catch (error) {
+    console.error(
+      "AutoMod sync error:",
+      error,
+    );
+
+    if (
+      error?.status ===
+      403
+    ) {
+      return sendError(
+        response,
+        403,
+        "AUTOMOD_MANAGE_GUILD_REQUIRED",
+        "ISTe Bot потрібне право Manage Server. Натисніть «Оновити права бота» і повторно авторизуйте його.",
+      );
+    }
+
+    return sendError(
+      response,
+      502,
+      "AUTOMOD_SYNC_FAILED",
+      error instanceof Error &&
+      error.message
+        ? `Не вдалося синхронізувати AutoMod: ${error.message}`
+        : "Не вдалося синхронізувати AutoMod.",
+    );
+  }
+}
+
+async function handleWorkerAutomodEvent(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: false,
+        maxBodyBytes: 8192,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const config =
+    readConfig();
+
+  const auth =
+    String(
+      request.headers
+        ?.authorization ||
+      "",
+    );
+
+  const expected =
+    config.botToken
+      ? `Bot ${config.botToken}`
+      : "";
+
+  if (
+    !config.botToken ||
+    !safeEqual(
+      auth,
+      expected,
+    )
+  ) {
+    return sendError(
+      response,
+      401,
+      "BOT_AUTH_REQUIRED",
+      "Bot authentication required.",
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const userId =
+    String(
+      body.userId ||
+      "",
+    ).trim();
+  const channelId =
+    String(
+      body.channelId ||
+      "",
+    ).trim();
+  const ruleId =
+    String(
+      body.ruleId ||
+      "",
+    ).trim();
+  const actionType =
+    Number(
+      body.actionType ||
+      0,
+    );
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    !isSnowflake(
+      userId,
+    ) ||
+    !isSnowflake(
+      ruleId,
+    ) ||
+    actionType !== 1
+  ) {
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        ignored: true,
+      });
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const {
+      data:
+        settingsRow,
+      error:
+        settingsError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .select("*")
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .maybeSingle();
+
+    if (
+      settingsError ||
+      !settingsRow
+    ) {
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          ignored: true,
+        });
+    }
+
+    const settings =
+      normalizeSettings(
+        settingsRow,
+      );
+
+    const managedIds =
+      Object.values(
+        settings
+          .automodRuleIds ||
+        {},
+      ).map(
+        (value) =>
+          String(value),
+      );
+
+    if (
+      settings
+        .automodEnabled !==
+        true ||
+      !managedIds.includes(
+        ruleId,
+      )
+    ) {
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          ignored: true,
+        });
+    }
+
+    const matchedKeyword =
+      String(
+        body.matchedKeyword ||
+        "",
+      )
+        .trim()
+        .slice(0, 120);
+
+    const ruleKey =
+      Object.entries(
+        settings
+          .automodRuleIds ||
+        {},
+      ).find(
+        ([
+          ,
+          value,
+        ]) =>
+          String(value) ===
+          ruleId,
+      )?.[0] ||
+      "automod";
+
+    const reason =
+      `AutoMod ${ruleKey}${matchedKeyword ? `: ${matchedKeyword}` : ""}`
+        .slice(
+          0,
+          256,
+        );
+
+    const now =
+      new Date()
+        .toISOString();
+
+    const {
+      data:
+        warnCase,
+      error:
+        warnError,
+    } = await supabase
+      .from(
+        "discord_moderation_cases",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        target_user_id:
+          userId,
+        moderator_user_id:
+          config.clientId,
+        action: "warn",
+        reason,
+        status: "active",
+        metadata: {
+          source:
+            "automod",
+          rule_id:
+            ruleId,
+          rule_key:
+            ruleKey,
+          channel_id:
+            channelId ||
+            null,
+          matched_keyword:
+            matchedKeyword ||
+            null,
+        },
+      })
+      .select("*")
+      .single();
+
+    if (warnError) {
+      throw warnError;
+    }
+
+    await supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "automod.warn",
+        payload: {
+          case_id:
+            warnCase.id,
+          user_id:
+            userId,
+          rule_id:
+            ruleId,
+          rule_key:
+            ruleKey,
+          channel_id:
+            channelId ||
+            null,
+        },
+      });
+
+    const since =
+      new Date(
+        Date.now() -
+          settings
+            .automodEscalationWindowMinutes *
+            60 *
+            1000,
+      ).toISOString();
+
+    const {
+      data:
+        recentWarnings,
+      error:
+        recentWarningsError,
+    } = await supabase
+      .from(
+        "discord_moderation_cases",
+      )
+      .select(
+        "id, created_at, metadata",
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "target_user_id",
+        userId,
+      )
+      .eq(
+        "action",
+        "warn",
+      )
+      .eq(
+        "status",
+        "active",
+      )
+      .gte(
+        "created_at",
+        since,
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        },
+      )
+      .limit(20);
+
+    if (
+      recentWarningsError
+    ) {
+      throw recentWarningsError;
+    }
+
+    const automodWarnings =
+      (
+        recentWarnings ||
+        []
+      ).filter(
+        (item) =>
+          item?.metadata
+            ?.source ===
+          "automod",
+      );
+
+    const threshold =
+      settings
+        .automodEscalationCount;
+
+    let timedOut = false;
+    let timeoutCaseId = null;
+
+    if (
+      automodWarnings.length >=
+      threshold
+    ) {
+      const {
+        data:
+          recentTimeouts,
+        error:
+          recentTimeoutsError,
+      } = await supabase
+        .from(
+          "discord_moderation_cases",
+        )
+        .select(
+          "id, created_at, metadata",
+        )
+        .eq(
+          "guild_id",
+          guildId,
+        )
+        .eq(
+          "target_user_id",
+          userId,
+        )
+        .eq(
+          "action",
+          "timeout",
+        )
+        .gte(
+          "created_at",
+          since,
+        )
+        .order(
+          "created_at",
+          {
+            ascending:
+              false,
+          },
+        )
+        .limit(10);
+
+      if (
+        recentTimeoutsError
+      ) {
+        throw recentTimeoutsError;
+      }
+
+      const alreadyEscalated =
+        (
+          recentTimeouts ||
+          []
+        ).some(
+          (item) =>
+            item?.metadata
+              ?.source ===
+            "automod",
+        );
+
+      if (!alreadyEscalated) {
+        const timeoutMinutes =
+          settings
+            .automodTimeoutMinutes;
+
+        const until =
+          new Date(
+            Date.now() +
+              timeoutMinutes *
+                60 *
+                1000,
+          ).toISOString();
+
+        await discordRequest(
+          `/guilds/${guildId}/members/${userId}`,
+          {
+            method: "PATCH",
+            token:
+              config.botToken,
+            authType: "Bot",
+            body: {
+              communication_disabled_until:
+                until,
+            },
+          },
+        );
+
+        const {
+          data:
+            timeoutCase,
+          error:
+            timeoutCaseError,
+        } = await supabase
+          .from(
+            "discord_moderation_cases",
+          )
+          .insert({
+            guild_id:
+              guildId,
+            target_user_id:
+              userId,
+            moderator_user_id:
+              config.clientId,
+            action:
+              "timeout",
+            reason:
+              `AutoMod escalation after ${automodWarnings.length} violations`,
+            duration_minutes:
+              timeoutMinutes,
+            status:
+              "completed",
+            metadata: {
+              source:
+                "automod",
+              escalation:
+                true,
+              warning_count:
+                automodWarnings.length,
+              window_minutes:
+                settings
+                  .automodEscalationWindowMinutes,
+            },
+          })
+          .select("*")
+          .single();
+
+        if (
+          timeoutCaseError
+        ) {
+          throw timeoutCaseError;
+        }
+
+        timeoutCaseId =
+          timeoutCase.id;
+        timedOut = true;
+
+        await supabase
+          .from(
+            "discord_bot_audit",
+          )
+          .insert({
+            guild_id:
+              guildId,
+            event_type:
+              "automod.timeout",
+            payload: {
+              case_id:
+                timeoutCase.id,
+              user_id:
+                userId,
+              minutes:
+                timeoutMinutes,
+              warning_count:
+                automodWarnings.length,
+            },
+          });
+      }
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        caseId:
+          warnCase.id,
+        warningCount:
+          automodWarnings.length,
+        timedOut,
+        timeoutCaseId,
+        processedAt:
+          now,
+      });
+  } catch (error) {
+    console.error(
+      "Worker AutoMod event error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "AUTOMOD_EVENT_FAILED",
+      "Could not process AutoMod event.",
     );
   }
 }
@@ -4616,6 +5979,29 @@ async function handleWorkerConfig(
               true,
             moderationTimeoutEnabled:
               true,
+            automodEnabled:
+              false,
+            automodSpamEnabled:
+              true,
+            automodInvitesEnabled:
+              true,
+            automodMentionEnabled:
+              true,
+            automodCapsEnabled:
+              false,
+            automodForbiddenWords:
+              "",
+            automodAlertChannelId:
+              "",
+            automodMentionLimit:
+              5,
+            automodEscalationCount:
+              3,
+            automodEscalationWindowMinutes:
+              10,
+            automodTimeoutMinutes:
+              10,
+            automodRuleIds: {},
             ticketPanelChannelId:
               "",
             ticketCategoryId: "",
@@ -5551,6 +6937,26 @@ export default async function botPortalHandler(
     "moderation-history"
   ) {
     return handleModerationHistory(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "sync-automod"
+  ) {
+    return handleSyncAutomod(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "worker-automod-event"
+  ) {
+    return handleWorkerAutomodEvent(
       request,
       response,
     );

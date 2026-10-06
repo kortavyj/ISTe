@@ -22,6 +22,18 @@ const EMPTY_SETTINGS = {
   welcomeShowMemberCount: true,
   moderationClearEnabled: true,
   moderationTimeoutEnabled: true,
+  automodEnabled: false,
+  automodSpamEnabled: true,
+  automodInvitesEnabled: true,
+  automodMentionEnabled: true,
+  automodCapsEnabled: false,
+  automodForbiddenWords: "",
+  automodAlertChannelId: "",
+  automodMentionLimit: 5,
+  automodEscalationCount: 3,
+  automodEscalationWindowMinutes: 10,
+  automodTimeoutMinutes: 10,
+  automodRuleIds: {},
   ticketPanelChannelId: "",
   ticketCategoryId: "",
   ticketSupportRoleId: "",
@@ -107,6 +119,27 @@ const copy = {
       "Керує командами модерації, ролями доступу та журналом дій.",
     moderationClear: "Дозволити /clear",
     moderationTimeout: "Дозволити /timeout",
+    automod: "AutoMod",
+    automodText:
+      "Нативні правила Discord: блокування спаму, invite-посилань, масових згадок, CAPS і власних стоп-слів.",
+    automodSpam: "Блокувати spam content",
+    automodInvites: "Блокувати Discord invite",
+    automodMentions: "Mention spam",
+    automodCaps: "CAPS фільтр",
+    automodWords: "Заборонені слова / фрази",
+    automodWordsPlaceholder:
+      "Одне слово або фраза на рядок",
+    automodAlertChannel: "Канал AutoMod alerts",
+    automodMentionLimit: "Ліміт згадок",
+    automodEscalationCount: "Поріг для timeout",
+    automodEscalationWindow: "Вікно, хв",
+    automodTimeoutMinutes: "Timeout, хв",
+    syncAutomod: "Синхронізувати AutoMod",
+    syncingAutomod: "Синхронізація...",
+    automodSynced: "AutoMod правила ISTe синхронізовано.",
+    automodConflict:
+      "Частина Spam/Mention правил уже керується Discord або іншим AutoMod правилом. ISTe їх не змінював.",
+    updateBotPermissions: "Оновити права бота",
     moderationCenter: "Moderation Center",
     moderationCenterText:
       "Історія покарань, активні попередження та технічний журнал дій цього Discord-сервера.",
@@ -258,6 +291,27 @@ const copy = {
       "Controls moderation commands, access roles and action logging.",
     moderationClear: "Allow /clear",
     moderationTimeout: "Allow /timeout",
+    automod: "AutoMod",
+    automodText:
+      "Native Discord rules for spam, invite links, mention spam, CAPS and custom blocked terms.",
+    automodSpam: "Block spam content",
+    automodInvites: "Block Discord invites",
+    automodMentions: "Mention spam",
+    automodCaps: "CAPS filter",
+    automodWords: "Blocked words / phrases",
+    automodWordsPlaceholder:
+      "One word or phrase per line",
+    automodAlertChannel: "AutoMod alert channel",
+    automodMentionLimit: "Mention limit",
+    automodEscalationCount: "Timeout threshold",
+    automodEscalationWindow: "Window, min",
+    automodTimeoutMinutes: "Timeout, min",
+    syncAutomod: "Sync AutoMod",
+    syncingAutomod: "Syncing...",
+    automodSynced: "ISTe AutoMod rules synchronized.",
+    automodConflict:
+      "Some Spam/Mention rules are already managed by Discord or another AutoMod rule. ISTe left them unchanged.",
+    updateBotPermissions: "Update bot permissions",
     moderationCenter: "Moderation Center",
     moderationCenterText:
       "Punishment history, active warnings and technical action log for this Discord server.",
@@ -992,6 +1046,64 @@ export default function BotDashboard() {
 
       setNotice(
         c.saved,
+      );
+
+      await load();
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+        c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function syncAutomod() {
+    if (!selectedGuild) {
+      return;
+    }
+
+    setBusy("automod");
+    setError("");
+    setNotice("");
+
+    try {
+      const saved =
+        await api(
+          "save-settings",
+          {
+            method: "POST",
+            body: {
+              guildId:
+                selectedGuild.guildId,
+              ...settings,
+            },
+          },
+        );
+
+      setSettings({
+        ...EMPTY_SETTINGS,
+        ...saved.settings,
+      });
+
+      const result =
+        await api(
+          "sync-automod",
+          {
+            method: "POST",
+            body: {
+              guildId:
+                selectedGuild.guildId,
+            },
+          },
+        );
+
+      setNotice(
+        result.warnings
+          ?.length
+          ? `${c.automodSynced} ${c.automodConflict}`
+          : c.automodSynced,
       );
 
       await load();
@@ -1910,6 +2022,383 @@ export default function BotDashboard() {
                             {c.moderationTimeout}
                           </span>
                         </label>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article
+                    className={
+                      `bot-dashboard-module-card${settings.automodEnabled ? " active" : ""}`
+                    }
+                  >
+                    <header>
+                      <div>
+                        <strong>
+                          {c.automod}
+                        </strong>
+                        <small>
+                          {c.automodText}
+                        </small>
+                      </div>
+
+                      <label className="bot-dashboard-switch">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .automodEnabled
+                          }
+                          disabled={
+                            !hasFeature(
+                              "moderation",
+                            )
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {settings.automodEnabled
+                            ? c.moduleOn
+                            : c.moduleOff}
+                        </span>
+                      </label>
+                    </header>
+
+                    <div className="bot-dashboard-inline-options full">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .automodSpamEnabled
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodSpamEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {c.automodSpam}
+                        </span>
+                      </label>
+
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .automodInvitesEnabled
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodInvitesEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {c.automodInvites}
+                        </span>
+                      </label>
+
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .automodMentionEnabled
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodMentionEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {c.automodMentions}
+                        </span>
+                      </label>
+
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .automodCapsEnabled
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodCapsEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {c.automodCaps}
+                        </span>
+                      </label>
+                    </div>
+
+                    <div className="bot-dashboard-module-fields">
+                      <label>
+                        <span>
+                          {c.automodAlertChannel}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .automodAlertChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodAlertChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
+                          </option>
+                          {resources.channels.map(
+                            (channel) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #{channel.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.automodMentionLimit}
+                        </span>
+                        <input
+                          type="number"
+                          min={2}
+                          max={50}
+                          value={
+                            settings
+                              .automodMentionLimit
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodMentionLimit",
+                              Math.max(
+                                2,
+                                Math.min(
+                                  50,
+                                  Number(
+                                    event
+                                      .target
+                                      .value,
+                                  ) || 5,
+                                ),
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="full">
+                        <span>
+                          {c.automodWords}
+                        </span>
+                        <textarea
+                          rows={5}
+                          maxLength={12000}
+                          placeholder={
+                            c.automodWordsPlaceholder
+                          }
+                          value={
+                            settings
+                              .automodForbiddenWords
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodForbiddenWords",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.automodEscalationCount}
+                        </span>
+                        <input
+                          type="number"
+                          min={2}
+                          max={10}
+                          value={
+                            settings
+                              .automodEscalationCount
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodEscalationCount",
+                              Math.max(
+                                2,
+                                Math.min(
+                                  10,
+                                  Number(
+                                    event
+                                      .target
+                                      .value,
+                                  ) || 3,
+                                ),
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.automodEscalationWindow}
+                        </span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={1440}
+                          value={
+                            settings
+                              .automodEscalationWindowMinutes
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodEscalationWindowMinutes",
+                              Math.max(
+                                1,
+                                Math.min(
+                                  1440,
+                                  Number(
+                                    event
+                                      .target
+                                      .value,
+                                  ) || 10,
+                                ),
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.automodTimeoutMinutes}
+                        </span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={40320}
+                          value={
+                            settings
+                              .automodTimeoutMinutes
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "automodTimeoutMinutes",
+                              Math.max(
+                                1,
+                                Math.min(
+                                  40320,
+                                  Number(
+                                    event
+                                      .target
+                                      .value,
+                                  ) || 10,
+                                ),
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+
+                      <div className="bot-dashboard-automod-actions full">
+                        <button
+                          type="button"
+                          className="bot-dashboard-module-action"
+                          onClick={
+                            syncAutomod
+                          }
+                          disabled={
+                            busy ===
+                            "automod"
+                          }
+                        >
+                          {busy ===
+                          "automod"
+                            ? c.syncingAutomod
+                            : c.syncAutomod}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="bot-dashboard-module-action secondary"
+                          onClick={() =>
+                            activateGuild(
+                              selectedGuild,
+                            )
+                          }
+                          disabled={
+                            busy ===
+                            `activate:${selectedGuild.guildId}`
+                          }
+                        >
+                          {c.updateBotPermissions}
+                        </button>
                       </div>
                     </div>
                   </article>

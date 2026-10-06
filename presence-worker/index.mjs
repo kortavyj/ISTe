@@ -217,6 +217,7 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.AutoModerationExecution,
   ],
 });
 
@@ -238,6 +239,10 @@ let privateVoiceLastError = null;
 
 let welcomeMessagesSent = 0;
 let welcomeLastError = null;
+
+let automodEventsProcessed = 0;
+let automodLastEventAt = null;
+let automodLastError = null;
 
 function log(event, data = {}) {
   console.log(
@@ -400,6 +405,9 @@ function defaultGuildRuntimeConfig(guildId) {
         true,
       moderationTimeoutEnabled:
         true,
+      automodEnabled:
+        false,
+      automodRuleIds: {},
       autoRolesEnabled:
         internal,
       privateVoiceEnabled:
@@ -1718,6 +1726,214 @@ client.once(Events.ClientReady, async (readyClient) => {
   scheduleRefresh();
 });
 
+async function reportAutoModerationExecution(
+  execution,
+) {
+  try {
+    const guildId =
+      cleanText(
+        execution?.guildId,
+      );
+    const userId =
+      cleanText(
+        execution?.userId,
+      );
+    const channelId =
+      cleanText(
+        execution?.channelId,
+      );
+    const ruleId =
+      cleanText(
+        execution?.ruleId,
+      );
+    const actionType =
+      Number(
+        execution?.action
+          ?.type ||
+        0,
+      );
+
+    if (
+      actionType !== 1 ||
+      !guildId ||
+      !userId ||
+      !ruleId
+    ) {
+      return;
+    }
+
+    const runtime =
+      await fetchGuildRuntimeConfig(
+        guildId,
+      );
+
+    const managedRuleIds =
+      Object.values(
+        runtime.settings
+          ?.automodRuleIds ||
+        {},
+      ).map(
+        (value) =>
+          String(value),
+      );
+
+    if (
+      !runtime.active ||
+      runtime.settings
+        ?.automodEnabled !==
+        true ||
+      !managedRuleIds.includes(
+        ruleId,
+      )
+    ) {
+      return;
+    }
+
+    const url =
+      new URL(
+        `${siteUrl}/api/owner`,
+      );
+
+    url.searchParams.set(
+      "module",
+      "bot-portal",
+    );
+
+    url.searchParams.set(
+      "action",
+      "worker-automod-event",
+    );
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            Accept:
+              "application/json",
+            "Content-Type":
+              "application/json",
+            Authorization:
+              `Bot ${token}`,
+            "User-Agent":
+              "ISTesport-Discord-Worker/2.3",
+          },
+          body:
+            JSON.stringify({
+              guildId,
+              userId,
+              channelId,
+              ruleId,
+              actionType,
+              matchedKeyword:
+                cleanText(
+                  execution
+                    ?.matchedKeyword,
+                )
+                  .slice(
+                    0,
+                    120,
+                  ),
+            }),
+          signal:
+            AbortSignal.timeout(
+              FETCH_TIMEOUT_MS,
+            ),
+        },
+      );
+
+    const result =
+      await response
+        .json()
+        .catch(
+          () => null,
+        );
+
+    if (
+      !response.ok ||
+      result?.ok !==
+        true
+    ) {
+      throw new Error(
+        result?.message ||
+        `AutoMod event endpoint returned ${response.status}`,
+      );
+    }
+
+    automodEventsProcessed +=
+      1;
+    automodLastEventAt =
+      new Date()
+        .toISOString();
+    automodLastError =
+      null;
+
+    guildRuntimeConfigCache.delete(
+      guildId,
+    );
+
+    log(
+      "automod_event_processed",
+      {
+        guildId,
+        userId,
+        ruleId,
+        caseId:
+          result?.caseId ||
+          null,
+        warningCount:
+          result
+            ?.warningCount ??
+          null,
+        timedOut:
+          result?.timedOut ===
+          true,
+      },
+    );
+  } catch (error) {
+    automodLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "automod_event_failed",
+      {
+        guildId:
+          execution?.guildId ??
+          null,
+        userId:
+          execution?.userId ??
+          null,
+        message:
+          automodLastError,
+      },
+    );
+  }
+}
+
+function automodHealth() {
+  return {
+    eventsProcessed:
+      automodEventsProcessed,
+    lastEventAt:
+      automodLastEventAt,
+    lastError:
+      automodLastError,
+  };
+}
+
+client.on(
+  Events.AutoModerationActionExecution,
+  (execution) => {
+    void reportAutoModerationExecution(
+      execution,
+    );
+  },
+);
+
 client.on(Events.GuildMemberAdd, (member) => {
   void (async () => {
     await assignAutoRoles(
@@ -1823,6 +2039,8 @@ const healthServer = createServer((request, response) => {
       privateVoice: privateVoiceHealth(),
       welcome:
         welcomeHealth(),
+      automod:
+        automodHealth(),
       matchAnnouncements:
         matchAnnouncementsHealth(),
       uptimeSeconds: Math.round(process.uptime()),
