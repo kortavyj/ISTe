@@ -3242,15 +3242,37 @@ async function handleGuildResources(
 
     if (
       error?.status ===
-        403 ||
+      401
+    ) {
+      return sendError(
+        response,
+        502,
+        "DISCORD_BOT_TOKEN_INVALID",
+        "Discord відхилив токен ISTe Bot. Перевірте DISCORD_BOT_TOKEN у Vercel.",
+      );
+    }
+
+    if (
       error?.status ===
-        404
+      403
     ) {
       return sendError(
         response,
         409,
-        "BOT_NOT_IN_GUILD",
-        "ISTe Bot не знайдено на цьому сервері або йому бракує прав.",
+        "DISCORD_GUILD_FORBIDDEN",
+        "ISTe Bot бачить Discord API, але не має доступу до ресурсів цього сервера. Перевірте, що саме цей бот встановлений на сервері та має доступ до каналів.",
+      );
+    }
+
+    if (
+      error?.status ===
+      404
+    ) {
+      return sendError(
+        response,
+        409,
+        "DISCORD_GUILD_NOT_FOUND",
+        "Discord не знайшов цей сервер для ISTe Bot. Найімовірніше, бот не встановлений на цьому сервері або використовується інший Discord application.",
       );
     }
 
@@ -3258,7 +3280,10 @@ async function handleGuildResources(
       response,
       502,
       "GUILD_RESOURCES_FAILED",
-      "Не вдалося завантажити ролі та канали Discord.",
+      error instanceof Error &&
+      error.message
+        ? `Discord resources error: ${error.message}`
+        : "Не вдалося завантажити ролі та канали Discord.",
     );
   }
 }
