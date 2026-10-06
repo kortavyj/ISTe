@@ -1106,6 +1106,83 @@ function normalizeSettings(
             .moderationTimeoutEnabled !==
           false
         : true,
+    ticketPanelChannelId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .ticketPanelChannelId ||
+            "",
+          )
+        : "",
+    ticketCategoryId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .ticketCategoryId ||
+            "",
+          )
+        : "",
+    ticketSupportRoleId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .ticketSupportRoleId ||
+            "",
+          )
+        : "",
+    ticketLogChannelId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .ticketLogChannelId ||
+            "",
+          )
+        : "",
+    ticketPanelTitle:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .ticketPanelTitle ||
+            "",
+          )
+        : "",
+    ticketPanelMessage:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .ticketPanelMessage ||
+            "",
+          )
+        : "",
+    ticketMaxOpenPerUser:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? Math.max(
+            1,
+            Math.min(
+              5,
+              Number(
+                row.config
+                  .ticketMaxOpenPerUser ||
+                1,
+              ) ||
+              1,
+            ),
+          )
+        : 1,
     welcomeEnabled:
       row?.welcome_enabled ===
       true,
@@ -2784,6 +2861,37 @@ async function handleSaveSettings(
       .trim()
       .slice(0, 500);
 
+  const ticketPanelTitle =
+    String(
+      body.ticketPanelTitle ||
+      "",
+    )
+      .trim()
+      .slice(0, 80);
+
+  const ticketPanelMessage =
+    String(
+      body.ticketPanelMessage ||
+      "",
+    )
+      .trim()
+      .slice(0, 500);
+
+  const ticketMaxOpenPerUser =
+    Math.max(
+      1,
+      Math.min(
+        5,
+        Math.round(
+          Number(
+            body.ticketMaxOpenPerUser ||
+            1,
+          ) ||
+          1,
+        ),
+      ),
+    );
+
   const fields = {
     adminRoleId:
       readSnowflakeOrEmpty(
@@ -2808,6 +2916,22 @@ async function handleSaveSettings(
     matchChannelId:
       readSnowflakeOrEmpty(
         body.matchChannelId,
+      ),
+    ticketPanelChannelId:
+      readSnowflakeOrEmpty(
+        body.ticketPanelChannelId,
+      ),
+    ticketCategoryId:
+      readSnowflakeOrEmpty(
+        body.ticketCategoryId,
+      ),
+    ticketSupportRoleId:
+      readSnowflakeOrEmpty(
+        body.ticketSupportRoleId,
+      ),
+    ticketLogChannelId:
+      readSnowflakeOrEmpty(
+        body.ticketLogChannelId,
       ),
   };
 
@@ -2966,6 +3090,25 @@ async function handleSaveSettings(
         body
           .moderationTimeoutEnabled !==
         false,
+      ticketPanelChannelId:
+        fields
+          .ticketPanelChannelId
+          .value,
+      ticketCategoryId:
+        fields
+          .ticketCategoryId
+          .value,
+      ticketSupportRoleId:
+        fields
+          .ticketSupportRoleId
+          .value,
+      ticketLogChannelId:
+        fields
+          .ticketLogChannelId
+          .value,
+      ticketPanelTitle,
+      ticketPanelMessage,
+      ticketMaxOpenPerUser,
     };
 
     const now =
@@ -3261,6 +3404,45 @@ async function handleGuildResources(
           }),
         );
 
+    const normalizedCategories =
+      (
+        Array.isArray(
+          channels,
+        )
+          ? channels
+          : []
+      )
+        .filter(
+          (channel) =>
+            Number(
+              channel.type,
+            ) === 4,
+        )
+        .sort(
+          (left, right) =>
+            Number(
+              left.position ||
+              0,
+            ) -
+            Number(
+              right.position ||
+              0,
+            ),
+        )
+        .map(
+          (channel) => ({
+            id:
+              String(
+                channel.id,
+              ),
+            name:
+              String(
+                channel.name ||
+                "category",
+              ),
+          }),
+        );
+
     const normalizedChannels =
       (
         Array.isArray(
@@ -3318,6 +3500,8 @@ async function handleGuildResources(
           normalizedRoles,
         channels:
           normalizedChannels,
+        categories:
+          normalizedCategories,
       });
   } catch (error) {
     console.error(
@@ -3369,6 +3553,393 @@ async function handleGuildResources(
       error.message
         ? `Discord resources error: ${error.message}`
         : "Не вдалося завантажити ролі та канали Discord.",
+    );
+  }
+}
+
+async function handlePublishTicketPanel(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const account =
+    await requireAccount(
+      request,
+      response,
+    );
+
+  if (!account.ok) {
+    return sendError(
+      response,
+      account.status,
+      account.error,
+      account.message,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const [
+      owned,
+      settingsResult,
+    ] =
+      await Promise.all([
+        readOwnedLicense(
+          supabase,
+          account.user.id,
+          guildId,
+        ),
+        supabase
+          .from(
+            "discord_guild_settings",
+          )
+          .select("*")
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .eq(
+            "owner_user_id",
+            account.user.id,
+          )
+          .maybeSingle(),
+      ]);
+
+    if (
+      !owned.ok ||
+      !owned.license ||
+      !licenseActive(
+        owned.license,
+      )
+    ) {
+      return sendError(
+        response,
+        403,
+        "GUILD_LICENSE_REQUIRED",
+        "Немає активної ліцензії для цього сервера.",
+      );
+    }
+
+    if (
+      settingsResult.error ||
+      !settingsResult.data
+    ) {
+      return sendError(
+        response,
+        404,
+        "GUILD_SETTINGS_NOT_FOUND",
+        "Спочатку збережіть налаштування сервера.",
+      );
+    }
+
+    const settings =
+      normalizeSettings(
+        settingsResult.data,
+      );
+
+    if (!settings.ticketsEnabled) {
+      return sendError(
+        response,
+        409,
+        "TICKETS_DISABLED",
+        "Спочатку увімкніть модуль Tickets.",
+      );
+    }
+
+    if (
+      !isSnowflake(
+        settings
+          .ticketPanelChannelId,
+      )
+    ) {
+      return sendError(
+        response,
+        400,
+        "TICKET_PANEL_CHANNEL_REQUIRED",
+        "Оберіть канал панелі тикетів.",
+      );
+    }
+
+    const config =
+      readConfig();
+
+    if (!config.botToken) {
+      return sendError(
+        response,
+        503,
+        "DISCORD_BOT_TOKEN_MISSING",
+        "ISTe Bot не має Discord токена.",
+      );
+    }
+
+    const language =
+      settings.locale ===
+        "en"
+        ? "en"
+        : "uk";
+
+    const title =
+      settings.ticketPanelTitle ||
+      (
+        language === "en"
+          ? "ISTe Support"
+          : "Підтримка ISTe"
+      );
+
+    const description =
+      settings.ticketPanelMessage ||
+      (
+        language === "en"
+          ? "Press the button below to create a private support ticket."
+          : "Натисни кнопку нижче, щоб створити приватний тикет зі staff."
+      );
+
+    const messageBody = {
+      embeds: [
+        {
+          title:
+            title.slice(
+              0,
+              256,
+            ),
+          description:
+            description.slice(
+              0,
+              4096,
+            ),
+          color: 0xe30613,
+          footer: {
+            text:
+              "ISTe Tickets • istesport.com",
+          },
+        },
+      ],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 1,
+              custom_id:
+                "iste:ticket:create",
+              label:
+                language ===
+                  "en"
+                  ? "Create ticket"
+                  : "Створити тикет",
+              emoji: {
+                name: "🎫",
+              },
+            },
+          ],
+        },
+      ],
+      allowed_mentions: {
+        parse: [],
+      },
+    };
+
+    const rawConfig =
+      settingsResult.data
+        .config &&
+      typeof settingsResult.data
+        .config ===
+        "object"
+        ? settingsResult.data
+            .config
+        : {};
+
+    const oldMessageId =
+      String(
+        rawConfig
+          .ticketPanelMessageId ||
+        "",
+      );
+
+    const oldChannelId =
+      String(
+        rawConfig
+          .ticketPanelMessageChannelId ||
+        "",
+      );
+
+    let panelMessage = null;
+
+    if (
+      isSnowflake(
+        oldMessageId,
+      ) &&
+      oldChannelId ===
+        settings
+          .ticketPanelChannelId
+    ) {
+      try {
+        panelMessage =
+          await discordRequest(
+            `/channels/${settings.ticketPanelChannelId}/messages/${oldMessageId}`,
+            {
+              method:
+                "PATCH",
+              token:
+                config.botToken,
+              authType: "Bot",
+              body:
+                messageBody,
+            },
+          );
+      } catch (error) {
+        if (
+          error?.status !==
+          404
+        ) {
+          throw error;
+        }
+      }
+    }
+
+    if (!panelMessage) {
+      if (
+        isSnowflake(
+          oldMessageId,
+        ) &&
+        isSnowflake(
+          oldChannelId,
+        ) &&
+        oldChannelId !==
+          settings
+            .ticketPanelChannelId
+      ) {
+        await discordRequest(
+          `/channels/${oldChannelId}/messages/${oldMessageId}`,
+          {
+            method:
+              "DELETE",
+            token:
+              config.botToken,
+            authType: "Bot",
+          },
+        ).catch(
+          () => null,
+        );
+      }
+
+      panelMessage =
+        await discordRequest(
+          `/channels/${settings.ticketPanelChannelId}/messages`,
+          {
+            method:
+              "POST",
+            token:
+              config.botToken,
+            authType: "Bot",
+            body:
+              messageBody,
+          },
+        );
+    }
+
+    const nextConfig = {
+      ...rawConfig,
+      ticketPanelMessageId:
+        String(
+          panelMessage?.id ||
+          "",
+        ),
+      ticketPanelMessageChannelId:
+        settings
+          .ticketPanelChannelId,
+    };
+
+    const {
+      error: updateError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .update({
+        config:
+          nextConfig,
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "owner_user_id",
+        account.user.id,
+      );
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        channelId:
+          settings
+            .ticketPanelChannelId,
+        messageId:
+          String(
+            panelMessage?.id ||
+            "",
+          ),
+      });
+  } catch (error) {
+    console.error(
+      "Publish ticket panel error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      502,
+      "TICKET_PANEL_PUBLISH_FAILED",
+      error instanceof Error &&
+      error.message
+        ? `Не вдалося опублікувати Ticket panel: ${error.message}`
+        : "Не вдалося опублікувати Ticket panel.",
     );
   }
 }
@@ -3681,6 +4252,16 @@ async function handleWorkerConfig(
               true,
             moderationTimeoutEnabled:
               true,
+            ticketPanelChannelId:
+              "",
+            ticketCategoryId: "",
+            ticketSupportRoleId:
+              "",
+            ticketLogChannelId: "",
+            ticketPanelTitle: "",
+            ticketPanelMessage: "",
+            ticketMaxOpenPerUser:
+              1,
             privateVoiceEnabled:
               fallbackInternal,
             autoRolesEnabled:
@@ -4596,6 +5177,16 @@ export default async function botPortalHandler(
     "guild-resources"
   ) {
     return handleGuildResources(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "publish-ticket-panel"
+  ) {
+    return handlePublishTicketPanel(
       request,
       response,
     );

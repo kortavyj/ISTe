@@ -13,6 +13,10 @@ import {
   handlePrivateRoomModal,
 } from "./privateRooms.ts";
 
+import {
+  handleTicketComponent,
+} from "./tickets.ts";
+
 const encoder = new TextEncoder();
 const SITE_URL = (Deno.env.get("SITE_URL") || "https://istesport.com").replace(/\/+$/, "");
 const DISCORD_PUBLIC_KEY =
@@ -1673,6 +1677,15 @@ Deno.serve(async (request) => {
 
   if (interaction?.type === 3) {
     try {
+      const ticketResponse =
+        await handleTicketComponent(
+          interaction,
+        );
+
+      if (ticketResponse) {
+        return json(ticketResponse);
+      }
+
       const privateResponse =
         await handlePrivateRoomComponent(
           interaction,

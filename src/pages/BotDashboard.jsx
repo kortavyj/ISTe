@@ -22,6 +22,13 @@ const EMPTY_SETTINGS = {
   welcomeShowMemberCount: true,
   moderationClearEnabled: true,
   moderationTimeoutEnabled: true,
+  ticketPanelChannelId: "",
+  ticketCategoryId: "",
+  ticketSupportRoleId: "",
+  ticketLogChannelId: "",
+  ticketPanelTitle: "",
+  ticketPanelMessage: "",
+  ticketMaxOpenPerUser: 1,
   welcomeEnabled: false,
   moderationEnabled: false,
   ticketsEnabled: false,
@@ -102,7 +109,21 @@ const copy = {
     moderationTimeout: "Дозволити /timeout",
     tickets: "Tickets",
     ticketsText:
-      "Повний ticket runtime з приватними каналами підключимо наступним блоком.",
+      "Приватні канали підтримки з керуванням доступом, закриттям, повторним відкриттям і логами.",
+    ticketPanelChannel: "Канал панелі",
+    ticketCategory: "Категорія тикетів",
+    ticketSupportRole: "Роль підтримки",
+    ticketLogChannel: "Канал логів тикетів",
+    ticketPanelTitle: "Заголовок панелі",
+    ticketPanelMessage: "Текст панелі",
+    ticketPanelTitlePlaceholder: "Підтримка ISTe",
+    ticketPanelMessagePlaceholder:
+      "Натисни кнопку нижче, щоб створити приватний тикет зі staff.",
+    ticketMaxOpen: "Макс. відкритих на користувача",
+    chooseCategory: "Без категорії",
+    publishTicketPanel: "Опублікувати панель",
+    publishingTicketPanel: "Публікація...",
+    ticketPanelPublished: "Ticket panel опубліковано або оновлено.",
     comingNext: "Наступний модуль",
     serverControls: "Керування сервером",
     serverControlsText:
@@ -216,7 +237,21 @@ const copy = {
     moderationTimeout: "Allow /timeout",
     tickets: "Tickets",
     ticketsText:
-      "The full private-channel ticket runtime will be connected in the next block.",
+      "Private support channels with access control, closing, reopening and logs.",
+    ticketPanelChannel: "Panel channel",
+    ticketCategory: "Ticket category",
+    ticketSupportRole: "Support role",
+    ticketLogChannel: "Ticket log channel",
+    ticketPanelTitle: "Panel title",
+    ticketPanelMessage: "Panel message",
+    ticketPanelTitlePlaceholder: "ISTe Support",
+    ticketPanelMessagePlaceholder:
+      "Press the button below to create a private ticket with staff.",
+    ticketMaxOpen: "Max open per user",
+    chooseCategory: "No category",
+    publishTicketPanel: "Publish panel",
+    publishingTicketPanel: "Publishing...",
+    ticketPanelPublished: "Ticket panel published or updated.",
     comingNext: "Next module",
     serverControls: "Server management",
     serverControlsText:
@@ -373,6 +408,7 @@ export default function BotDashboard() {
   ] = useState({
     roles: [],
     channels: [],
+    categories: [],
   });
 
   const [
@@ -507,6 +543,7 @@ export default function BotDashboard() {
     setResources({
       roles: [],
       channels: [],
+      categories: [],
     });
 
     setResourcesLoading(true);
@@ -538,6 +575,12 @@ export default function BotDashboard() {
             result.channels,
           )
             ? result.channels
+            : [],
+        categories:
+          Array.isArray(
+            result.categories,
+          )
+            ? result.categories
             : [],
       });
     } catch (resourcesError) {
@@ -742,6 +785,60 @@ export default function BotDashboard() {
 
       setNotice(
         c.saved,
+      );
+
+      await load();
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+        c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function publishTicketPanel() {
+    if (!selectedGuild) {
+      return;
+    }
+
+    setBusy("ticket-panel");
+    setError("");
+    setNotice("");
+
+    try {
+      const saved =
+        await api(
+          "save-settings",
+          {
+            method: "POST",
+            body: {
+              guildId:
+                selectedGuild.guildId,
+              ...settings,
+            },
+          },
+        );
+
+      setSettings({
+        ...EMPTY_SETTINGS,
+        ...saved.settings,
+      });
+
+      await api(
+        "publish-ticket-panel",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild.guildId,
+          },
+        },
+      );
+
+      setNotice(
+        c.ticketPanelPublished,
       );
 
       await load();
@@ -1610,7 +1707,11 @@ export default function BotDashboard() {
                     </div>
                   </article>
 
-                  <article className="bot-dashboard-module-card">
+                  <article
+                    className={
+                      `bot-dashboard-module-card${settings.ticketsEnabled ? " active" : ""}`
+                    }
+                  >
                     <header>
                       <div>
                         <strong>
@@ -1621,10 +1722,306 @@ export default function BotDashboard() {
                         </small>
                       </div>
 
-                      <span className="bot-dashboard-module-next">
-                        {c.comingNext}
-                      </span>
+                      <label className="bot-dashboard-switch">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .ticketsEnabled
+                          }
+                          disabled={
+                            !hasFeature(
+                              "tickets",
+                            )
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "ticketsEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {settings.ticketsEnabled
+                            ? c.moduleOn
+                            : c.moduleOff}
+                        </span>
+                      </label>
                     </header>
+
+                    <div className="bot-dashboard-module-fields">
+                      <label>
+                        <span>
+                          {c.ticketPanelChannel}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .ticketPanelChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "ticketPanelChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
+                          </option>
+                          {resources.channels.map(
+                            (channel) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #{channel.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.ticketCategory}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .ticketCategoryId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "ticketCategoryId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseCategory}
+                          </option>
+                          {resources.categories.map(
+                            (category) => (
+                              <option
+                                key={
+                                  category.id
+                                }
+                                value={
+                                  category.id
+                                }
+                              >
+                                {category.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.ticketSupportRole}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .ticketSupportRoleId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "ticketSupportRoleId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseRole}
+                          </option>
+                          {resources.roles.map(
+                            (role) => (
+                              <option
+                                key={
+                                  role.id
+                                }
+                                value={
+                                  role.id
+                                }
+                              >
+                                @{role.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.ticketLogChannel}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .ticketLogChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "ticketLogChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
+                          </option>
+                          {resources.channels.map(
+                            (channel) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #{channel.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.ticketPanelTitle}
+                        </span>
+                        <input
+                          type="text"
+                          maxLength={80}
+                          placeholder={
+                            c.ticketPanelTitlePlaceholder
+                          }
+                          value={
+                            settings
+                              .ticketPanelTitle
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "ticketPanelTitle",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.ticketMaxOpen}
+                        </span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={5}
+                          value={
+                            settings
+                              .ticketMaxOpenPerUser
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "ticketMaxOpenPerUser",
+                              Math.max(
+                                1,
+                                Math.min(
+                                  5,
+                                  Number(
+                                    event
+                                      .target
+                                      .value,
+                                  ) || 1,
+                                ),
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="full">
+                        <span>
+                          {c.ticketPanelMessage}
+                        </span>
+                        <textarea
+                          rows={4}
+                          maxLength={500}
+                          placeholder={
+                            c.ticketPanelMessagePlaceholder
+                          }
+                          value={
+                            settings
+                              .ticketPanelMessage
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "ticketPanelMessage",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        className="bot-dashboard-module-action full"
+                        onClick={
+                          publishTicketPanel
+                        }
+                        disabled={
+                          busy ===
+                            "ticket-panel" ||
+                          !settings
+                            .ticketsEnabled ||
+                          !settings
+                            .ticketPanelChannelId
+                        }
+                      >
+                        {busy ===
+                        "ticket-panel"
+                          ? c.publishingTicketPanel
+                          : c.publishTicketPanel}
+                      </button>
+                    </div>
                   </article>
 
                   <article className="bot-dashboard-module-card">

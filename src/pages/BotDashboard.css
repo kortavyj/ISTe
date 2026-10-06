@@ -721,3 +721,28 @@
     grid-column: auto;
   }
 }
+
+
+/* Bot dashboard v5: ticket controls */
+.bot-dashboard-module-action {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(227,6,19,.34);
+  border-radius: 8px;
+  background: rgba(227,6,19,.09);
+  color: #fff;
+  font: inherit;
+  font-size: .62rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.bot-dashboard-module-action:hover:not(:disabled) {
+  border-color: rgba(227,6,19,.56);
+  background: rgba(227,6,19,.14);
+}
+
+.bot-dashboard-module-action:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
