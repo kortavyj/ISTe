@@ -244,7 +244,10 @@ const copy = {
     shopDmRejected:
       "❌ Замовлення на тариф **{{plan}}** відхилено.",
     subscriptionInternal:
-      "Для цього акаунта активна внутрішня підписка ISTe. Заявка не потрібна.",
+      "Для цього акаунта активна внутрішня підписка ISTe.",
+    subscriptionInternalTesting:
+      "Для owner/internal акаунта доступний **тестовий checkout**. Він проходить весь шлях клієнта, але не змінює внутрішню підписку або реальні ліцензії.",
+    shopTestMode: "🧪 ТЕСТОВИЙ РЕЖИМ",
     subscriptionUnavailable:
       "Сервіс підписок тимчасово недоступний.",
     subscriptionNoExpiry: "безстроково",
@@ -427,7 +430,10 @@ const copy = {
     shopDmRejected:
       "❌ Заказ на тариф **{{plan}}** отклонён.",
     subscriptionInternal:
-      "Для этого аккаунта активна внутренняя подписка ISTe. Заявка не требуется.",
+      "Для этого аккаунта активна внутренняя подписка ISTe.",
+    subscriptionInternalTesting:
+      "Для owner/internal аккаунта доступен **тестовый checkout**. Он проходит весь путь клиента, но не изменяет внутреннюю подписку или реальные лицензии.",
+    shopTestMode: "🧪 ТЕСТОВЫЙ РЕЖИМ",
     subscriptionUnavailable:
       "Сервис подписок временно недоступен.",
     subscriptionNoExpiry: "бессрочно",
@@ -610,7 +616,10 @@ const copy = {
     shopDmRejected:
       "❌ The **{{plan}}** order was rejected.",
     subscriptionInternal:
-      "This account already has an internal ISTe subscription. No request is needed.",
+      "This account has an internal ISTe subscription.",
+    subscriptionInternalTesting:
+      "Owner/internal accounts can use **test checkout**. It follows the full customer flow without changing the internal subscription or real licenses.",
+    shopTestMode: "🧪 TEST MODE",
     subscriptionUnavailable:
       "The subscription service is temporarily unavailable.",
     subscriptionNoExpiry: "unlimited",
@@ -968,6 +977,7 @@ function subscriptionShopEmbed(
     id: string;
     name: string;
   }> = [],
+  testMode = false,
 ) {
   const config =
     SUBSCRIPTION_PLANS[
@@ -1002,6 +1012,17 @@ function subscriptionShopEmbed(
           ? 0xe74c3c
           : BRAND_COLOR,
     fields: [
+      ...(testMode
+        ? [
+            {
+              name:
+                t.shopTestMode,
+              value:
+                t.subscriptionInternalTesting,
+              inline: false,
+            },
+          ]
+        : []),
       {
         name:
           t.shopBuyer,
@@ -1171,6 +1192,8 @@ async function upsertSubscriptionShopOrder(
         )
           ? metadata.selected_guilds
           : [],
+        metadata?.internal_test_mode ===
+          true,
       ),
     ],
     components:
@@ -1813,22 +1836,9 @@ async function subscriptionCommand(
   const pending =
     requestResult.data;
 
-  if (
+  const internalTestMode =
     subscription?.plan ===
-    "internal"
-  ) {
-    return interactionMessage(
-      baseEmbed(
-        t.subscriptionTitle,
-        t.subscriptionInternal,
-        t.footer,
-      ),
-      subscriptionDashboardRow(
-        t.subscriptionOpenDashboard,
-      ),
-      true,
-    );
-  }
+    "internal";
 
   const currentPlan =
     String(
@@ -1866,6 +1876,13 @@ async function subscriptionCommand(
         String(
           pending.plan,
         ).toUpperCase(),
+    );
+  }
+
+  if (internalTestMode) {
+    lines.push(
+      "",
+      t.subscriptionInternalTesting,
     );
   }
 
@@ -2282,6 +2299,10 @@ async function handleSubscriptionAdminComponent(
                           ?.metadata
                           ?.selected_guilds
                       : [],
+                    requestRow
+                      ?.metadata
+                      ?.internal_test_mode ===
+                      true,
                   ),
                 ],
                 components: [],
@@ -2485,22 +2506,9 @@ async function handleSubscriptionComponent(
     throw subscriptionError;
   }
 
-  if (
+  const internalTestMode =
     subscription?.plan ===
-    "internal"
-  ) {
-    return interactionMessage(
-      baseEmbed(
-        t.subscriptionTitle,
-        t.subscriptionInternal,
-        t.footer,
-      ),
-      subscriptionDashboardRow(
-        t.subscriptionOpenDashboard,
-      ),
-      true,
-    );
-  }
+    "internal";
 
   const guilds =
     await eligibleSubscriptionGuilds(
@@ -2544,17 +2552,25 @@ async function handleSubscriptionComponent(
   return interactionMessage(
     baseEmbed(
       t.subscriptionServerTitle,
-      interpolate(
-        t.subscriptionServerText,
-        {
-          plan:
-            plan.toUpperCase(),
-          count:
-            SUBSCRIPTION_PLANS[
-              plan
-            ].maxGuilds,
-        },
-      ),
+      [
+        interpolate(
+          t.subscriptionServerText,
+          {
+            plan:
+              plan.toUpperCase(),
+            count:
+              SUBSCRIPTION_PLANS[
+                plan
+              ].maxGuilds,
+          },
+        ),
+        ...(internalTestMode
+          ? [
+              "",
+              t.subscriptionInternalTesting,
+            ]
+          : []),
+      ].join("\n"),
       t.footer,
     ),
     subscriptionGuildSelect(
@@ -2738,6 +2754,34 @@ async function handleSubscriptionGuildComponent(
     throw existingError;
   }
 
+  const {
+    data:
+      activeSubscription,
+    error:
+      activeSubscriptionError,
+  } = await adminDb
+    .from(
+      "discord_subscriptions",
+    )
+    .select(
+      "plan,status",
+    )
+    .eq(
+      "user_id",
+      account.user_id,
+    )
+    .maybeSingle();
+
+  if (
+    activeSubscriptionError
+  ) {
+    throw activeSubscriptionError;
+  }
+
+  const internalTestMode =
+    activeSubscription?.plan ===
+    "internal";
+
   const now =
     new Date()
       .toISOString();
@@ -2772,6 +2816,8 @@ async function handleSubscriptionGuildComponent(
       "discord_server_select",
     payment_mode:
       "discord_shop",
+    internal_test_mode:
+      internalTestMode,
     selected_guild_ids:
       selectedGuilds.map(
         (guild) =>
