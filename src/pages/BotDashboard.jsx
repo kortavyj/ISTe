@@ -2436,7 +2436,13 @@ export default function BotDashboard() {
                         </p>
 
                         <div className="bot-dashboard-role-picker-list">
-                          {resources.roles.map(
+                          {resources.roles
+                            .filter(
+                              (role) =>
+                                role.manageable !==
+                                false,
+                            )
+                            .map(
                             (role) => {
                               const selected =
                                 settings
