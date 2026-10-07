@@ -679,7 +679,7 @@ function subscriptionDashboardRow(
 
 function subscriptionExpiryText(
   value: unknown,
-  t: typeof copy[Language],
+  t: (typeof copy)[Language],
 ) {
   if (!value) {
     return t.subscriptionNoExpiry;
