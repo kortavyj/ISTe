@@ -280,6 +280,10 @@ let healthSnapshotsSent = 0;
 let healthSnapshotLastAt = null;
 let healthSnapshotLastError = null;
 
+let commandSyncLastAt = null;
+let commandSyncLastError = null;
+let commandSyncCount = null;
+
 function log(event, data = {}) {
   console.log(
     JSON.stringify({
@@ -3035,6 +3039,14 @@ async function reportHealthSnapshot() {
           publicationsHealth(),
         matchAnnouncements:
           matchAnnouncementsHealth(),
+        commands: {
+          count:
+            commandSyncCount,
+          lastSyncedAt:
+            commandSyncLastAt,
+          lastError:
+            commandSyncLastError,
+        },
       },
     });
 
@@ -3107,11 +3119,29 @@ client.once(Events.ClientReady, async (readyClient) => {
       readyClient.user.id,
     );
 
+    commandSyncCount =
+      Number(
+        result?.count,
+      ) || 0;
+    commandSyncLastAt =
+      new Date()
+        .toISOString();
+    commandSyncLastError =
+      null;
+
     log("discord_commands_synced", result);
   } catch (error) {
+    commandSyncLastAt =
+      new Date()
+        .toISOString();
+    commandSyncLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
     log("discord_commands_sync_failed", {
       message:
-        error instanceof Error ? error.message : String(error),
+        commandSyncLastError,
     });
   }
 
@@ -3426,6 +3456,14 @@ const healthServer = createServer((request, response) => {
         securityHealth(),
       publications:
         publicationsHealth(),
+      commands: {
+        count:
+          commandSyncCount,
+        lastSyncedAt:
+          commandSyncLastAt,
+        lastError:
+          commandSyncLastError,
+      },
       telemetry:
         telemetryHealth(),
       matchAnnouncements:
