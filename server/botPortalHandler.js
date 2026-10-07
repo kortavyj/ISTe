@@ -7363,6 +7363,7 @@ const CONFIG_HISTORY_GROUPS =
 function configVersionDiff(
   currentRow,
   snapshotRow,
+  access = null,
 ) {
   const current =
     normalizeSettings(
@@ -7375,6 +7376,33 @@ function configVersionDiff(
 
   const changedFields = [];
 
+  const permissionByGroup = {
+    general:
+      "system.view",
+    onboarding:
+      "onboarding.view",
+    moderation:
+      "moderation.view",
+    security:
+      "security.view",
+    support:
+      "support.view",
+  };
+
+  const permissions =
+    access?.permissions instanceof
+      Set
+      ? access.permissions
+      : new Set(
+          Array.isArray(
+            access
+              ?.permissionKeys,
+          )
+            ? access
+                .permissionKeys
+            : [],
+        );
+
   for (
     const [
       group,
@@ -7384,6 +7412,21 @@ function configVersionDiff(
       CONFIG_HISTORY_GROUPS,
     )
   ) {
+    if (
+      access &&
+      access.isOwner !==
+        true &&
+      !permissionAllows(
+        permissions,
+        permissionByGroup[
+          group
+        ] ||
+          "system.view",
+      )
+    ) {
+      continue;
+    }
+
     const changed =
       fields.filter(
         (field) =>
@@ -7649,6 +7692,7 @@ async function handleConfigHistoryList(
             configVersionDiff(
               settingsRow,
               versionRow,
+              access,
             );
 
           return {
@@ -7678,8 +7722,9 @@ async function handleConfigHistoryList(
           updatedAt:
             settingsRow.updated_at,
           settings:
-            normalizeSettings(
+            normalizeSettingsForControlAccess(
               settingsRow,
+              access,
             ),
         },
         versions,
