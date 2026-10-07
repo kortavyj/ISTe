@@ -196,7 +196,16 @@ const copy = {
     subscriptionExpires: "Діє до",
     subscriptionPending: "Очікує підтвердження",
     subscriptionChoose:
-      "Оберіть тариф нижче. Бот створить замовлення у каналі **Shop**. Після оплати адміністратор підтвердить її, і підписка активується на 30 днів.",
+      "Оберіть тариф нижче. Далі оберіть Discord-сервер для ліцензії, після чого бот створить замовлення у **Shop**.",
+    subscriptionServerTitle: "Оберіть Discord-сервер",
+    subscriptionServerText:
+      "Тариф **{{plan}}** дозволяє підключити до **{{count}}** серверів. Оберіть сервер або сервери зі списку нижче.",
+    subscriptionServerPlaceholder: "Оберіть сервер для ISTe Bot",
+    subscriptionNoServers:
+      "Не знайдено серверів, якими ви можете керувати та де вже встановлено ISTe Bot. Спочатку додайте бота на свій сервер.",
+    subscriptionInvalidServers:
+      "Обрані сервери більше недоступні. Відкрийте команду підписки та спробуйте ще раз.",
+    subscriptionSelectedServers: "Сервери",
     subscriptionLinkRequired:
       "Спочатку прив'яжіть Discord до акаунта ISTe на сайті. Після цього поверніться до цієї команди.",
     subscriptionOpenDashboard: "Відкрити ISTe Dashboard",
@@ -370,7 +379,16 @@ const copy = {
     subscriptionExpires: "Действует до",
     subscriptionPending: "Ожидает подтверждения",
     subscriptionChoose:
-      "Выберите тариф ниже. Бот создаст заказ в канале **Shop**. После оплаты администратор подтвердит её, и подписка активируется на 30 дней.",
+      "Выберите тариф ниже. Затем выберите Discord-сервер для лицензии, после чего бот создаст заказ в **Shop**.",
+    subscriptionServerTitle: "Выберите Discord-сервер",
+    subscriptionServerText:
+      "Тариф **{{plan}}** позволяет подключить до **{{count}}** серверов. Выберите сервер или серверы из списка ниже.",
+    subscriptionServerPlaceholder: "Выберите сервер для ISTe Bot",
+    subscriptionNoServers:
+      "Не найдено серверов, которыми вы можете управлять и где уже установлен ISTe Bot. Сначала добавьте бота на свой сервер.",
+    subscriptionInvalidServers:
+      "Выбранные серверы больше недоступны. Откройте команду подписки и попробуйте ещё раз.",
+    subscriptionSelectedServers: "Серверы",
     subscriptionLinkRequired:
       "Сначала привяжите Discord к аккаунту ISTe на сайте. После этого вернитесь к этой команде.",
     subscriptionOpenDashboard: "Открыть ISTe Dashboard",
@@ -544,7 +562,16 @@ const copy = {
     subscriptionExpires: "Expires",
     subscriptionPending: "Pending approval",
     subscriptionChoose:
-      "Choose a plan below. The bot creates an order in the **Shop** channel. After payment, an ISTe admin confirms it and the subscription activates for 30 days.",
+      "Choose a plan below. Then select the Discord server for the license, and ISTe Bot will create the order in **Shop**.",
+    subscriptionServerTitle: "Choose Discord server",
+    subscriptionServerText:
+      "The **{{plan}}** plan supports up to **{{count}}** servers. Select the server or servers below.",
+    subscriptionServerPlaceholder: "Choose server for ISTe Bot",
+    subscriptionNoServers:
+      "No manageable servers with ISTe Bot installed were found. Add the bot to your server first.",
+    subscriptionInvalidServers:
+      "The selected servers are no longer available. Open the subscription command and try again.",
+    subscriptionSelectedServers: "Servers",
     subscriptionLinkRequired:
       "Link Discord to your ISTe website account first, then return to this command.",
     subscriptionOpenDashboard: "Open ISTe Dashboard",
