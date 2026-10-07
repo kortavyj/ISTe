@@ -44,6 +44,16 @@ const INTERNAL_GUILD_ID = String(
     "1334264628695404556",
 ).trim();
 
+const SHOP_CHANNEL_NAME = String(
+  process.env.ISTE_SHOP_CHANNEL_NAME ||
+    "shop",
+)
+  .trim()
+  .toLowerCase();
+
+const SHOP_PANEL_FOOTER =
+  "ISTe Shop • Subscription Panel";
+
 const BOT_CONFIG_CACHE_MS = 60_000;
 const guildRuntimeConfigCache = new Map();
 
@@ -290,6 +300,199 @@ let commandSyncNames = [];
 let guildSubscriptionSyncLastAt = null;
 let guildSubscriptionSyncLastError = null;
 let guildSubscriptionSyncGuilds = [];
+
+let shopPanelMessageId = null;
+let shopPanelChannelId = null;
+let shopPanelLastSyncedAt = null;
+let shopPanelLastError = null;
+
+function shopSubscriptionPanelPayload() {
+  return {
+    embeds: [
+      {
+        title:
+          "🛒 ISTe SHOP — ISTe Bot Premium",
+        description:
+          [
+            "**Официальная подписка ISTe Bot.**",
+            "Выбери тариф, создай заказ и заверши оплату прямо через наш Discord.",
+            "",
+            "**STARTER — $2.99 / 30 дней**",
+            "1 Discord-сервер",
+            "",
+            "**PRO — $4.99 / 30 дней**",
+            "До 3 Discord-серверов",
+            "",
+            "**MAX — $6.99 / 30 дней**",
+            "До 10 Discord-серверов",
+            "",
+            "**Как купить**",
+            "1️⃣ Нажми **Оформить подписку**.",
+            "2️⃣ Выбери Starter, Pro или Max.",
+            "3️⃣ ISTe Bot создаст персональный заказ в этом канале.",
+            "4️⃣ После оплаты администрация ISTe подтвердит заказ.",
+            "5️⃣ Подписка активируется автоматически на 30 дней.",
+            "",
+            "⚠️ **Важно:** ISTe Bot не списывает деньги автоматически. Подписка включается только после подтверждения оплаты администрацией ISTe.",
+          ].join("\n"),
+        color: 0xe30613,
+        footer: {
+          text:
+            SHOP_PANEL_FOOTER,
+        },
+        timestamp:
+          new Date()
+            .toISOString(),
+      },
+    ],
+    components: [
+      {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 1,
+            custom_id:
+              "iste:subscription-shop-open",
+            label:
+              "Оформить подписку",
+            emoji: {
+              name: "🛒",
+            },
+          },
+        ],
+      },
+    ],
+    allowedMentions: {
+      parse: [],
+    },
+  };
+}
+
+async function ensureShopSubscriptionPanel() {
+  if (
+    !client.isReady() ||
+    !client.user
+  ) {
+    return;
+  }
+
+  try {
+    const guild =
+      client.guilds.cache.get(
+        INTERNAL_GUILD_ID,
+      );
+
+    if (!guild) {
+      throw new Error(
+        "ISTe internal guild is not connected",
+      );
+    }
+
+    await guild.channels.fetch();
+
+    const channel =
+      guild.channels.cache.find(
+        (item) =>
+          [
+            ChannelType.GuildText,
+            ChannelType.GuildAnnouncement,
+          ].includes(
+            item.type,
+          ) &&
+          String(
+            item.name ||
+            "",
+          )
+            .trim()
+            .toLowerCase() ===
+            SHOP_CHANNEL_NAME,
+      );
+
+    if (
+      !channel ||
+      !channel.isTextBased?.() ||
+      typeof channel.messages
+        ?.fetch !== "function"
+    ) {
+      throw new Error(
+        "ISTe Shop text channel not found",
+      );
+    }
+
+    const messages =
+      await channel.messages.fetch({
+        limit: 100,
+      });
+
+    const existing =
+      messages.find(
+        (message) =>
+          message.author?.id ===
+            client.user.id &&
+          message.embeds.some(
+            (embed) =>
+              embed.footer
+                ?.text ===
+              SHOP_PANEL_FOOTER,
+          ),
+      );
+
+    const payload =
+      shopSubscriptionPanelPayload();
+
+    const message =
+      existing
+        ? await existing.edit(
+            payload,
+          )
+        : await channel.send(
+            payload,
+          );
+
+    shopPanelMessageId =
+      message.id;
+    shopPanelChannelId =
+      channel.id;
+    shopPanelLastSyncedAt =
+      new Date()
+        .toISOString();
+    shopPanelLastError =
+      null;
+
+    log(
+      "shop_subscription_panel_synced",
+      {
+        guildId:
+          guild.id,
+        channelId:
+          channel.id,
+        messageId:
+          message.id,
+        updated:
+          Boolean(
+            existing,
+          ),
+      },
+    );
+  } catch (error) {
+    shopPanelLastSyncedAt =
+      new Date()
+        .toISOString();
+    shopPanelLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "shop_subscription_panel_sync_failed",
+      {
+        message:
+          shopPanelLastError,
+      },
+    );
+  }
+}
 
 function log(event, data = {}) {
   console.log(
@@ -3063,6 +3266,16 @@ async function reportHealthSnapshot() {
             lastError:
               guildSubscriptionSyncLastError,
           },
+          shopPanel: {
+            channelId:
+              shopPanelChannelId,
+            messageId:
+              shopPanelMessageId,
+            lastSyncedAt:
+              shopPanelLastSyncedAt,
+            lastError:
+              shopPanelLastError,
+          },
         },
       },
     });
@@ -3221,6 +3434,7 @@ client.once(Events.ClientReady, async (readyClient) => {
     });
   }
 
+  await ensureShopSubscriptionPanel();
   await initializePrivateVoice();
   await refreshPresence();
   scheduleRefresh();
