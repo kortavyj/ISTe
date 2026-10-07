@@ -92,6 +92,22 @@ const copy = {
     members: "учасників",
     settings: "Налаштування сервера",
     back: "Назад до серверів",
+    controlCenter: "ISTe Control Center",
+    tabOverview: "Огляд",
+    tabOnboarding: "Онбординг",
+    tabModeration: "Модерація",
+    tabSupport: "Підтримка",
+    tabSystem: "Система",
+    overviewTitle: "Стан модулів",
+    overviewText:
+      "Швидкий огляд конфігурації. Обери розділ, щоб перейти до його налаштувань.",
+    configured: "налаштовано",
+    enabledShort: "Увімкнено",
+    disabledShort: "Вимкнено",
+    discordPreview: "Discord preview",
+    saveChanges: "Зберегти зміни",
+    savingChanges: "Збереження…",
+    currentSection: "Поточний розділ",
     general: "Основне",
     language: "Мова бота",
     uk: "Українська",
@@ -293,6 +309,22 @@ const copy = {
     members: "members",
     settings: "Server settings",
     back: "Back to servers",
+    controlCenter: "ISTe Control Center",
+    tabOverview: "Overview",
+    tabOnboarding: "Onboarding",
+    tabModeration: "Moderation",
+    tabSupport: "Support",
+    tabSystem: "System",
+    overviewTitle: "Module status",
+    overviewText:
+      "Quick configuration overview. Choose a section to open its settings.",
+    configured: "configured",
+    enabledShort: "Enabled",
+    disabledShort: "Disabled",
+    discordPreview: "Discord preview",
+    saveChanges: "Save changes",
+    savingChanges: "Saving…",
+    currentSection: "Current section",
     general: "General",
     language: "Bot language",
     uk: "Українська",
@@ -596,6 +628,11 @@ export default function BotDashboard() {
   ] = useState("");
 
   const [
+    settingsTab,
+    setSettingsTab,
+  ] = useState("overview");
+
+  const [
     settings,
     setSettings,
   ] = useState(
@@ -760,6 +797,36 @@ export default function BotDashboard() {
     );
   }
 
+  function previewTemplate(
+    value,
+    fallback,
+  ) {
+    return String(
+      value ||
+      fallback ||
+      "",
+    )
+      .replaceAll(
+        "{{server}}",
+        selectedGuild?.name ||
+          "ISTe",
+      )
+      .replaceAll(
+        "{{user}}",
+        language === "en"
+          ? "NewMember"
+          : "НовийУчасник",
+      )
+      .replaceAll(
+        "{{count}}",
+        String(
+          selectedGuild
+            ?.memberCount ||
+            0,
+        ),
+      );
+  }
+
   async function loadModerationHistory(
     guildId =
       selectedGuildId,
@@ -844,6 +911,9 @@ export default function BotDashboard() {
   ) {
     setSelectedGuildId(
       guild.guildId,
+    );
+    setSettingsTab(
+      "overview",
     );
 
     setSettings({
@@ -1411,7 +1481,11 @@ export default function BotDashboard() {
   ];
 
   return (
-    <section className="bot-dashboard-page">
+    <section
+      className={
+        `bot-dashboard-page${selectedGuild ? " managing" : ""}`
+      }
+    >
       <div className="bot-dashboard-shell">
         <header className="bot-dashboard-hero">
           <div>
@@ -1608,11 +1682,14 @@ export default function BotDashboard() {
             <button
               type="button"
               className="bot-dashboard-back"
-              onClick={() =>
+              onClick={() => {
                 setSelectedGuildId(
                   "",
-                )
-              }
+                );
+                setSettingsTab(
+                  "overview",
+                );
+              }}
             >
               ← {c.back}
             </button>
@@ -1659,15 +1736,243 @@ export default function BotDashboard() {
                   }
                 </p>
               </div>
+              <div className="bot-dashboard-control-status">
+                <span
+                  className={
+                    selectedGuild
+                      .installed
+                      ? "ok"
+                      : ""
+                  }
+                >
+                  {selectedGuild
+                    .installed
+                    ? c.connected
+                    : c.notConnected}
+                </span>
+                <span
+                  className={
+                    selectedGuild
+                      .licensed
+                      ? "ok"
+                      : ""
+                  }
+                >
+                  {selectedGuild
+                    .licensed
+                    ? c.licensed
+                    : c.noLicense}
+                </span>
+              </div>
             </div>
 
+            <nav
+              className="bot-dashboard-control-tabs"
+              aria-label={
+                c.controlCenter
+              }
+            >
+              {[
+                [
+                  "overview",
+                  c.tabOverview,
+                  "01",
+                ],
+                [
+                  "onboarding",
+                  c.tabOnboarding,
+                  "02",
+                ],
+                [
+                  "moderation",
+                  c.tabModeration,
+                  "03",
+                ],
+                [
+                  "support",
+                  c.tabSupport,
+                  "04",
+                ],
+                [
+                  "system",
+                  c.tabSystem,
+                  "05",
+                ],
+              ].map(
+                ([
+                  key,
+                  label,
+                  index,
+                ]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={
+                      settingsTab ===
+                      key
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setSettingsTab(
+                        key,
+                      )
+                    }
+                  >
+                    <span>
+                      {index}
+                    </span>
+                    {label}
+                  </button>
+                ),
+              )}
+            </nav>
+
+            {settingsTab ===
+            "overview" ? (
+              <section className="bot-dashboard-control-overview">
+                <header>
+                  <div>
+                    <span>
+                      {c.controlCenter}
+                    </span>
+                    <h3>
+                      {c.overviewTitle}
+                    </h3>
+                    <p>
+                      {c.overviewText}
+                    </p>
+                  </div>
+                </header>
+
+                <div className="bot-dashboard-overview-grid">
+                  {[
+                    {
+                      key:
+                        "onboarding",
+                      index: "02",
+                      title:
+                        c.tabOnboarding,
+                      enabled: [
+                        settings
+                          .autoRolesEnabled,
+                        settings
+                          .welcomeEnabled,
+                        settings
+                          .verificationEnabled,
+                        settings
+                          .selfRolesEnabled,
+                      ].filter(
+                        Boolean,
+                      ).length,
+                      total: 4,
+                    },
+                    {
+                      key:
+                        "moderation",
+                      index: "03",
+                      title:
+                        c.tabModeration,
+                      enabled: [
+                        settings
+                          .moderationEnabled,
+                        settings
+                          .automodEnabled,
+                      ].filter(
+                        Boolean,
+                      ).length,
+                      total: 2,
+                    },
+                    {
+                      key:
+                        "support",
+                      index: "04",
+                      title:
+                        c.tabSupport,
+                      enabled: [
+                        settings
+                          .privateVoiceEnabled,
+                        settings
+                          .ticketsEnabled,
+                      ].filter(
+                        Boolean,
+                      ).length,
+                      total: 2,
+                    },
+                    {
+                      key:
+                        "system",
+                      index: "05",
+                      title:
+                        c.tabSystem,
+                      enabled: [
+                        Boolean(
+                          settings
+                            .adminRoleId,
+                        ),
+                        Boolean(
+                          settings
+                            .matchChannelId,
+                        ),
+                      ].filter(
+                        Boolean,
+                      ).length,
+                      total: 2,
+                    },
+                  ].map(
+                    (item) => (
+                      <button
+                        key={
+                          item.key
+                        }
+                        type="button"
+                        onClick={() =>
+                          setSettingsTab(
+                            item.key,
+                          )
+                        }
+                      >
+                        <span className="index">
+                          {item.index}
+                        </span>
+                        <div>
+                          <strong>
+                            {
+                              item.title
+                            }
+                          </strong>
+                          <small>
+                            {
+                              item.enabled
+                            }
+                            /
+                            {
+                              item.total
+                            }{" "}
+                            {
+                              c.configured
+                            }
+                          </small>
+                        </div>
+                        <span className="arrow">
+                          →
+                        </span>
+                      </button>
+                    ),
+                  )}
+                </div>
+              </section>
+            ) : null}
+
             <form
-              className="bot-dashboard-settings"
+              className={
+                `bot-dashboard-settings tab-${settingsTab}`
+              }
               onSubmit={
                 saveSettings
               }
             >
-              <section>
+              <section className="bot-dashboard-core-section module-overview">
                 <header>
                   <strong>
                     {c.general}
@@ -1703,7 +2008,7 @@ export default function BotDashboard() {
                 </label>
               </section>
 
-              <section>
+              <section className="bot-dashboard-core-section module-onboarding">
                 <header>
                   <div>
                     <strong>
@@ -1786,7 +2091,7 @@ export default function BotDashboard() {
                 </label>
               </section>
 
-              <section>
+              <section className="bot-dashboard-core-section module-support">
                 <header>
                   <div>
                     <strong>
@@ -1837,7 +2142,7 @@ export default function BotDashboard() {
                 <div className="bot-dashboard-module-grid">
                   <article
                     className={
-                      `bot-dashboard-module-card${settings.welcomeEnabled ? " active" : ""}`
+                      `bot-dashboard-module-card module-onboarding module-welcome${settings.welcomeEnabled ? " active" : ""}`
                     }
                   >
                     <header>
@@ -2023,12 +2328,67 @@ export default function BotDashboard() {
                           </span>
                         </label>
                       </div>
+                    <div className="bot-dashboard-discord-preview full">
+                      <span className="preview-label">
+                        {c.discordPreview}
+                      </span>
+                      <div className="discord-message">
+                        <div className="discord-avatar">
+                          I
+                        </div>
+                        <div className="discord-message-body">
+                          <div className="discord-author">
+                            <strong>
+                              ISTe Bot
+                            </strong>
+                            <span>
+                              BOT
+                            </span>
+                          </div>
+                          {settings.welcomeMention ? (
+                            <p className="discord-mention">
+                              @
+                              {language ===
+                              "en"
+                                ? "NewMember"
+                                : "НовийУчасник"}
+                            </p>
+                          ) : null}
+                          <div className="discord-embed">
+                            <strong>
+                              {previewTemplate(
+                                settings
+                                  .welcomeTitle,
+                                c.welcomeTitlePlaceholder,
+                              )}
+                            </strong>
+                            <p>
+                              {previewTemplate(
+                                settings
+                                  .welcomeMessage,
+                                c.welcomeMessagePlaceholder,
+                              )}
+                            </p>
+                            {settings
+                              .welcomeShowMemberCount ? (
+                              <small>
+                                {c.members}:{" "}
+                                {
+                                  selectedGuild
+                                    .memberCount
+                                }
+                              </small>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     </div>
                   </article>
 
                   <article
                     className={
-                      `bot-dashboard-module-card${settings.verificationEnabled ? " active" : ""}`
+                      `bot-dashboard-module-card module-onboarding module-verification${settings.verificationEnabled ? " active" : ""}`
                     }
                   >
                     <header>
@@ -2254,6 +2614,36 @@ export default function BotDashboard() {
                         />
                       </label>
 
+                      <div className="bot-dashboard-discord-preview full">
+                        <span className="preview-label">
+                          {c.discordPreview}
+                        </span>
+                        <div className="discord-panel">
+                          <div className="discord-embed">
+                            <strong>
+                              {settings
+                                .verificationPanelTitle ||
+                                c.verificationTitlePlaceholder}
+                            </strong>
+                            <p>
+                              {settings
+                                .verificationPanelMessage ||
+                                c.verificationMessagePlaceholder}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            tabIndex={-1}
+                          >
+                            ✓{" "}
+                            {language ===
+                            "en"
+                              ? "Verify"
+                              : "Підтвердити"}
+                          </button>
+                        </div>
+                      </div>
+
                       <button
                         type="button"
                         className="bot-dashboard-module-action full"
@@ -2281,7 +2671,7 @@ export default function BotDashboard() {
 
                   <article
                     className={
-                      `bot-dashboard-module-card${settings.selfRolesEnabled ? " active" : ""}`
+                      `bot-dashboard-module-card module-onboarding module-selfroles${settings.selfRolesEnabled ? " active" : ""}`
                     }
                   >
                     <header>
@@ -2543,7 +2933,7 @@ export default function BotDashboard() {
 
                   <article
                     className={
-                      `bot-dashboard-module-card${settings.moderationEnabled ? " active" : ""}`
+                      `bot-dashboard-module-card module-moderation module-manualmod${settings.moderationEnabled ? " active" : ""}`
                     }
                   >
                     <header>
@@ -2720,7 +3110,7 @@ export default function BotDashboard() {
 
                   <article
                     className={
-                      `bot-dashboard-module-card${settings.automodEnabled ? " active" : ""}`
+                      `bot-dashboard-module-card module-moderation module-automod${settings.automodEnabled ? " active" : ""}`
                     }
                   >
                     <header>
@@ -3097,7 +3487,7 @@ export default function BotDashboard() {
 
                   <article
                     className={
-                      `bot-dashboard-module-card${settings.ticketsEnabled ? " active" : ""}`
+                      `bot-dashboard-module-card module-support module-tickets${settings.ticketsEnabled ? " active" : ""}`
                     }
                   >
                     <header>
@@ -3389,6 +3779,36 @@ export default function BotDashboard() {
                         />
                       </label>
 
+                      <div className="bot-dashboard-discord-preview full">
+                        <span className="preview-label">
+                          {c.discordPreview}
+                        </span>
+                        <div className="discord-panel">
+                          <div className="discord-embed">
+                            <strong>
+                              {settings
+                                .ticketPanelTitle ||
+                                c.ticketPanelTitlePlaceholder}
+                            </strong>
+                            <p>
+                              {settings
+                                .ticketPanelMessage ||
+                                c.ticketPanelMessagePlaceholder}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            tabIndex={-1}
+                          >
+                            🎫{" "}
+                            {language ===
+                            "en"
+                              ? "Create ticket"
+                              : "Створити тикет"}
+                          </button>
+                        </div>
+                      </div>
+
                       <button
                         type="button"
                         className="bot-dashboard-module-action full"
@@ -3412,7 +3832,7 @@ export default function BotDashboard() {
                     </div>
                   </article>
 
-                  <article className="bot-dashboard-module-card">
+                  <article className="bot-dashboard-module-card module-system module-server">
                     <header>
                       <div>
                         <strong>
@@ -3509,22 +3929,49 @@ export default function BotDashboard() {
                 </div>
               </section>
 
-              <button
-                type="submit"
-                className="bot-dashboard-save"
-                disabled={
-                  busy ===
+              <div className="bot-dashboard-savebar">
+                <div>
+                  <span>
+                    {c.currentSection}
+                  </span>
+                  <strong>
+                    {settingsTab ===
+                    "overview"
+                      ? c.tabOverview
+                      : settingsTab ===
+                          "onboarding"
+                        ? c.tabOnboarding
+                        : settingsTab ===
+                            "moderation"
+                          ? c.tabModeration
+                          : settingsTab ===
+                              "support"
+                            ? c.tabSupport
+                            : c.tabSystem}
+                  </strong>
+                </div>
+
+                <button
+                  type="submit"
+                  className="bot-dashboard-save"
+                  disabled={
+                    busy ===
+                    "settings"
+                  }
+                >
+                  {busy ===
                   "settings"
-                }
-              >
-                {busy ===
-                "settings"
-                  ? c.saving
-                  : c.save}
-              </button>
+                    ? c.savingChanges
+                    : c.saveChanges}
+                </button>
+              </div>
             </form>
 
-            <section className="bot-dashboard-moderation-center">
+            <section
+              className={
+                `bot-dashboard-moderation-center${settingsTab === "moderation" ? "" : " hidden"}`
+              }
+            >
               <header className="bot-dashboard-moderation-head">
                 <div>
                   <span>
