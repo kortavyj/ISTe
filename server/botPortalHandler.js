@@ -9226,23 +9226,26 @@ async function handleGuildResources(
       );
 
     const normalizedCategories =
-      visibleToStaff
+      allChannels
         .filter(
           (channel) =>
             Number(
               channel.type,
-            ) === 4 ||
-            visibleParentIds.has(
-              String(
-                channel.id,
-              ),
+            ) === 4 &&
+            (
+              access.isOwner ||
+              visibleParentIds.has(
+                String(
+                  channel.id,
+                ),
+              ) ||
+              memberCanViewGuildChannel(
+                guildId,
+                access.member,
+                roles,
+                channel,
+              )
             ),
-        )
-        .filter(
-          (channel) =>
-            Number(
-              channel.type,
-            ) === 4,
         )
         .sort(
           (left, right) =>
