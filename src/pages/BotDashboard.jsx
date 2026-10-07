@@ -64,6 +64,36 @@ const EMPTY_PUBLICATIONS = {
   scheduled: [],
 };
 
+const EMPTY_ANALYTICS = {
+  summary: {
+    currentMembers: null,
+    joins: 0,
+    leaves: 0,
+    netGrowth: 0,
+    moderationCases: 0,
+    activeWarnings: 0,
+    ticketsCreated: 0,
+    openTickets: 0,
+    giveaways: 0,
+    giveawayEntries: 0,
+    scheduledMessages: 0,
+    sentMessages: 0,
+    verified: 0,
+    selfRoleChanges: 0,
+    automodActions: 0,
+    recruitmentEvents: 0,
+  },
+  timeline: [],
+  topSelfRoles: [],
+  recentActivity: [],
+  health: {
+    latest: null,
+    uptime24h: null,
+    avgPing24h: null,
+    samples24h: 0,
+  },
+};
+
 const EMPTY_GIVEAWAY_DRAFT = {
   channelId: "",
   prize: "",
@@ -116,6 +146,7 @@ const copy = {
     back: "Назад до серверів",
     controlCenter: "ISTe Control Center",
     tabOverview: "Огляд",
+    tabAnalytics: "Аналітика",
     tabOnboarding: "Онбординг",
     tabModeration: "Модерація",
     tabSupport: "Підтримка",
@@ -124,6 +155,44 @@ const copy = {
     overviewTitle: "Стан модулів",
     overviewText:
       "Швидкий огляд конфігурації. Обери розділ, щоб перейти до його налаштувань.",
+    analyticsTitle: "Analytics & Activity",
+    analyticsText:
+      "Реальна активність Discord-сервера, модулів ISTe та стан worker за вибраний період.",
+    analytics7d: "7 днів",
+    analytics30d: "30 днів",
+    refreshAnalytics: "Оновити",
+    analyticsLoading: "Завантаження...",
+    analyticsError: "Не вдалося завантажити Discord analytics.",
+    currentMembersMetric: "Учасники",
+    netGrowthMetric: "Зміна",
+    joinsMetric: "Приєдналися",
+    leavesMetric: "Вийшли",
+    moderationMetric: "Moderation cases",
+    ticketsMetric: "Tickets створено",
+    openTicketsMetric: "Відкриті tickets",
+    verifiedMetric: "Verification",
+    selfRolesMetric: "Self role зміни",
+    automodMetric: "AutoMod",
+    giveawayEntriesMetric: "Giveaway entries",
+    sentMessagesMetric: "Повідомлень відправлено",
+    activityChart: "Активність за днями",
+    activityChartText:
+      "Сумарні події модулів та moderation cases за київським календарем.",
+    topSelfRoles: "Популярні self roles",
+    noSelfRoles: "Ще немає даних про self roles.",
+    recentActivity: "Останні події",
+    noActivity: "Подій за цей період ще немає.",
+    workerHealth: "Worker Health",
+    workerOnline: "ONLINE",
+    workerStale: "STALE",
+    workerWaiting: "WAITING",
+    workerPing: "Discord ping",
+    workerUptime: "Worker uptime",
+    workerUptime24: "Доступність 24h",
+    workerGuilds: "Серверів",
+    healthSamples: "Health samples",
+    activityEvents: "подій",
+    activeWarningsMetric: "Активні warn",
     configured: "налаштовано",
     enabledShort: "Увімкнено",
     disabledShort: "Вимкнено",
@@ -388,6 +457,7 @@ const copy = {
     back: "Back to servers",
     controlCenter: "ISTe Control Center",
     tabOverview: "Overview",
+    tabAnalytics: "Analytics",
     tabOnboarding: "Onboarding",
     tabModeration: "Moderation",
     tabSupport: "Support",
@@ -396,6 +466,44 @@ const copy = {
     overviewTitle: "Module status",
     overviewText:
       "Quick configuration overview. Choose a section to open its settings.",
+    analyticsTitle: "Analytics & Activity",
+    analyticsText:
+      "Real Discord server activity, ISTe module usage and worker health for the selected period.",
+    analytics7d: "7 days",
+    analytics30d: "30 days",
+    refreshAnalytics: "Refresh",
+    analyticsLoading: "Loading...",
+    analyticsError: "Could not load Discord analytics.",
+    currentMembersMetric: "Members",
+    netGrowthMetric: "Net growth",
+    joinsMetric: "Joined",
+    leavesMetric: "Left",
+    moderationMetric: "Moderation cases",
+    ticketsMetric: "Tickets created",
+    openTicketsMetric: "Open tickets",
+    verifiedMetric: "Verification",
+    selfRolesMetric: "Self role changes",
+    automodMetric: "AutoMod",
+    giveawayEntriesMetric: "Giveaway entries",
+    sentMessagesMetric: "Messages sent",
+    activityChart: "Daily activity",
+    activityChartText:
+      "Combined module events and moderation cases using the Kyiv calendar.",
+    topSelfRoles: "Popular self roles",
+    noSelfRoles: "No self role activity yet.",
+    recentActivity: "Recent activity",
+    noActivity: "No activity for this period yet.",
+    workerHealth: "Worker Health",
+    workerOnline: "ONLINE",
+    workerStale: "STALE",
+    workerWaiting: "WAITING",
+    workerPing: "Discord ping",
+    workerUptime: "Worker uptime",
+    workerUptime24: "24h availability",
+    workerGuilds: "Guilds",
+    healthSamples: "Health samples",
+    activityEvents: "events",
+    activeWarningsMetric: "Active warnings",
     configured: "configured",
     enabledShort: "Enabled",
     disabledShort: "Disabled",
@@ -877,6 +985,62 @@ function formatKyivDateTime(
   ).format(date);
 }
 
+function formatDuration(
+  seconds,
+) {
+  const value =
+    Math.max(
+      0,
+      Number(seconds) ||
+      0,
+    );
+
+  const days =
+    Math.floor(
+      value /
+      86400,
+    );
+  const hours =
+    Math.floor(
+      (
+        value %
+        86400
+      ) /
+      3600,
+    );
+  const minutes =
+    Math.floor(
+      (
+        value %
+        3600
+      ) /
+      60,
+    );
+
+  if (days) {
+    return (
+      String(days) +
+      "d " +
+      String(hours) +
+      "h"
+    );
+  }
+
+  if (hours) {
+    return (
+      String(hours) +
+      "h " +
+      String(minutes) +
+      "m"
+    );
+  }
+
+  return (
+    String(minutes) +
+    "m"
+  );
+}
+
 export default function BotDashboard() {
   const {
     language,
@@ -953,6 +1117,28 @@ export default function BotDashboard() {
   const [
     moderationError,
     setModerationError,
+  ] = useState("");
+
+  const [
+    analytics,
+    setAnalytics,
+  ] = useState(
+    EMPTY_ANALYTICS,
+  );
+
+  const [
+    analyticsDays,
+    setAnalyticsDays,
+  ] = useState(7);
+
+  const [
+    analyticsLoading,
+    setAnalyticsLoading,
+  ] = useState(false);
+
+  const [
+    analyticsError,
+    setAnalyticsError,
   ] = useState("");
 
   const [
@@ -1127,6 +1313,78 @@ export default function BotDashboard() {
       );
   }
 
+  async function loadAnalytics(
+    guildId =
+      selectedGuildId,
+    days =
+      analyticsDays,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setAnalyticsLoading(
+      true,
+    );
+    setAnalyticsError("");
+
+    try {
+      const result =
+        await api(
+          "analytics-overview",
+          {
+            method: "POST",
+            body: {
+              guildId,
+              days,
+            },
+          },
+        );
+
+      setAnalytics({
+        summary: {
+          ...EMPTY_ANALYTICS
+            .summary,
+          ...(result.summary ||
+            {}),
+        },
+        timeline:
+          Array.isArray(
+            result.timeline,
+          )
+            ? result.timeline
+            : [],
+        topSelfRoles:
+          Array.isArray(
+            result.topSelfRoles,
+          )
+            ? result.topSelfRoles
+            : [],
+        recentActivity:
+          Array.isArray(
+            result.recentActivity,
+          )
+            ? result.recentActivity
+            : [],
+        health: {
+          ...EMPTY_ANALYTICS
+            .health,
+          ...(result.health ||
+            {}),
+        },
+      });
+    } catch (loadError) {
+      setAnalyticsError(
+        loadError?.message ||
+          c.analyticsError,
+      );
+    } finally {
+      setAnalyticsLoading(
+        false,
+      );
+    }
+  }
+
   async function loadPublications(
     guildId =
       selectedGuildId,
@@ -1292,6 +1550,11 @@ export default function BotDashboard() {
       audit: [],
     });
     setModerationError("");
+    setAnalytics(
+      EMPTY_ANALYTICS,
+    );
+    setAnalyticsDays(7);
+    setAnalyticsError("");
     setPublications(
       EMPTY_PUBLICATIONS,
     );
@@ -1309,6 +1572,11 @@ export default function BotDashboard() {
       guild.guildId,
       "",
       "",
+    );
+
+    void loadAnalytics(
+      guild.guildId,
+      7,
     );
 
     void loadPublications(
@@ -2424,29 +2692,34 @@ export default function BotDashboard() {
                   "01",
                 ],
                 [
+                  "analytics",
+                  c.tabAnalytics,
+                  "02",
+                ],
+                [
                   "onboarding",
                   c.tabOnboarding,
-                  "02",
+                  "03",
                 ],
                 [
                   "moderation",
                   c.tabModeration,
-                  "03",
+                  "04",
                 ],
                 [
                   "support",
                   c.tabSupport,
-                  "04",
+                  "05",
                 ],
                 [
                   "publishing",
                   c.tabPublishing,
-                  "05",
+                  "06",
                 ],
                 [
                   "system",
                   c.tabSystem,
-                  "06",
+                  "07",
                 ],
               ].map(
                 ([
@@ -2467,6 +2740,13 @@ export default function BotDashboard() {
                       setSettingsTab(
                         key,
                       );
+
+                      if (
+                        key ===
+                        "analytics"
+                      ) {
+                        void loadAnalytics();
+                      }
 
                       if (
                         key ===
@@ -2506,8 +2786,24 @@ export default function BotDashboard() {
                   {[
                     {
                       key:
-                        "onboarding",
+                        "analytics",
                       index: "02",
+                      title:
+                        c.tabAnalytics,
+                      enabled:
+                        analytics
+                          .summary
+                          .netGrowth,
+                      total:
+                        analytics
+                          .summary
+                          .currentMembers ??
+                        0,
+                    },
+                    {
+                      key:
+                        "onboarding",
+                      index: "03",
                       title:
                         c.tabOnboarding,
                       enabled: [
@@ -2527,7 +2823,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "moderation",
-                      index: "03",
+                      index: "04",
                       title:
                         c.tabModeration,
                       enabled: [
@@ -2543,7 +2839,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "support",
-                      index: "04",
+                      index: "05",
                       title:
                         c.tabSupport,
                       enabled: [
@@ -2559,7 +2855,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "publishing",
-                      index: "05",
+                      index: "06",
                       title:
                         c.tabPublishing,
                       enabled:
@@ -2590,7 +2886,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "system",
-                      index: "06",
+                      index: "07",
                       title:
                         c.tabSystem,
                       enabled: [
@@ -2630,16 +2926,34 @@ export default function BotDashboard() {
                             }
                           </strong>
                           <small>
-                            {
-                              item.enabled
-                            }
-                            /
-                            {
-                              item.total
-                            }{" "}
-                            {
-                              c.configured
-                            }
+                            {item.key ===
+                            "analytics"
+                              ? (
+                                  (item.enabled >=
+                                  0
+                                    ? "+"
+                                    : "") +
+                                  String(
+                                    item.enabled,
+                                  ) +
+                                  " · " +
+                                  String(
+                                    item.total,
+                                  ) +
+                                  " " +
+                                  c.members
+                                )
+                              : (
+                                  String(
+                                    item.enabled,
+                                  ) +
+                                  "/" +
+                                  String(
+                                    item.total,
+                                  ) +
+                                  " " +
+                                  c.configured
+                                )}
                           </small>
                         </div>
                         <span className="arrow">
@@ -4627,8 +4941,11 @@ export default function BotDashboard() {
                     "overview"
                       ? c.tabOverview
                       : settingsTab ===
-                          "onboarding"
-                        ? c.tabOnboarding
+                          "analytics"
+                        ? c.tabAnalytics
+                        : settingsTab ===
+                            "onboarding"
+                          ? c.tabOnboarding
                         : settingsTab ===
                             "moderation"
                           ? c.tabModeration
@@ -4657,6 +4974,635 @@ export default function BotDashboard() {
                 </button>
               </div>
             </form>
+
+            <section
+              className={
+                `bot-dashboard-analytics-center${settingsTab === "analytics" ? "" : " hidden"}`
+              }
+            >
+              <header className="bot-dashboard-analytics-head">
+                <div>
+                  <span>
+                    ANALYTICS
+                  </span>
+                  <h3>
+                    {c.analyticsTitle}
+                  </h3>
+                  <p>
+                    {c.analyticsText}
+                  </p>
+                </div>
+
+                <div className="bot-dashboard-analytics-actions">
+                  <div className="bot-dashboard-range-switch">
+                    {[7, 30].map(
+                      (days) => (
+                        <button
+                          key={days}
+                          type="button"
+                          className={
+                            analyticsDays ===
+                            days
+                              ? "active"
+                              : ""
+                          }
+                          onClick={() => {
+                            setAnalyticsDays(
+                              days,
+                            );
+                            void loadAnalytics(
+                              selectedGuild
+                                .guildId,
+                              days,
+                            );
+                          }}
+                        >
+                          {days === 7
+                            ? c.analytics7d
+                            : c.analytics30d}
+                        </button>
+                      ),
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="refresh"
+                    onClick={() =>
+                      void loadAnalytics()
+                    }
+                    disabled={
+                      analyticsLoading
+                    }
+                  >
+                    {analyticsLoading
+                      ? c.analyticsLoading
+                      : c.refreshAnalytics}
+                  </button>
+                </div>
+              </header>
+
+              {analyticsError ? (
+                <div className="bot-dashboard-alert error">
+                  {analyticsError}
+                </div>
+              ) : null}
+
+              <div className="bot-dashboard-analytics-kpis">
+                {[
+                  [
+                    c.currentMembersMetric,
+                    analytics.summary
+                      .currentMembers ??
+                      "—",
+                    "members",
+                  ],
+                  [
+                    c.netGrowthMetric,
+                    (analytics.summary
+                      .netGrowth >=
+                    0
+                      ? "+"
+                      : "") +
+                      String(
+                        analytics
+                          .summary
+                          .netGrowth,
+                      ),
+                    analytics.summary
+                      .netGrowth >=
+                    0
+                      ? "positive"
+                      : "negative",
+                  ],
+                  [
+                    c.joinsMetric,
+                    analytics.summary
+                      .joins,
+                    "positive",
+                  ],
+                  [
+                    c.leavesMetric,
+                    analytics.summary
+                      .leaves,
+                    "negative",
+                  ],
+                  [
+                    c.moderationMetric,
+                    analytics.summary
+                      .moderationCases,
+                    "moderation",
+                  ],
+                  [
+                    c.activeWarningsMetric,
+                    analytics.summary
+                      .activeWarnings,
+                    "warning",
+                  ],
+                  [
+                    c.ticketsMetric,
+                    analytics.summary
+                      .ticketsCreated,
+                    "tickets",
+                  ],
+                  [
+                    c.openTicketsMetric,
+                    analytics.summary
+                      .openTickets,
+                    "tickets",
+                  ],
+                  [
+                    c.verifiedMetric,
+                    analytics.summary
+                      .verified,
+                    "positive",
+                  ],
+                  [
+                    c.selfRolesMetric,
+                    analytics.summary
+                      .selfRoleChanges,
+                    "roles",
+                  ],
+                  [
+                    c.automodMetric,
+                    analytics.summary
+                      .automodActions,
+                    "moderation",
+                  ],
+                  [
+                    c.giveawayEntriesMetric,
+                    analytics.summary
+                      .giveawayEntries,
+                    "publishing",
+                  ],
+                ].map(
+                  ([
+                    label,
+                    value,
+                    tone,
+                  ]) => (
+                    <article
+                      key={
+                        label
+                      }
+                      className={
+                        tone
+                      }
+                    >
+                      <span>
+                        {label}
+                      </span>
+                      <strong>
+                        {value}
+                      </strong>
+                    </article>
+                  ),
+                )}
+              </div>
+
+              <div className="bot-dashboard-analytics-main">
+                <article className="bot-dashboard-analytics-chart-card">
+                  <header>
+                    <div>
+                      <strong>
+                        {c.activityChart}
+                      </strong>
+                      <small>
+                        {c.activityChartText}
+                      </small>
+                    </div>
+                    <span>
+                      {analytics.timeline.reduce(
+                        (
+                          total,
+                          item,
+                        ) =>
+                          total +
+                          Number(
+                            item.total ||
+                            0,
+                          ),
+                        0,
+                      )}{" "}
+                      {c.activityEvents}
+                    </span>
+                  </header>
+
+                  <div className="bot-dashboard-activity-chart">
+                    {analytics.timeline.map(
+                      (
+                        item,
+                        index,
+                      ) => {
+                        const maxValue =
+                          Math.max(
+                            1,
+                            ...analytics.timeline.map(
+                              (
+                                day,
+                              ) =>
+                                Number(
+                                  day.total ||
+                                  0,
+                                ),
+                            ),
+                          );
+
+                        const height =
+                          Math.max(
+                            item.total
+                              ? 8
+                              : 2,
+                            Math.round(
+                              (
+                                Number(
+                                  item.total ||
+                                  0,
+                                ) /
+                                maxValue
+                              ) *
+                                100,
+                            ),
+                          );
+
+                        return (
+                          <div
+                            key={
+                              item.date
+                            }
+                            className="day"
+                            title={
+                              item.date +
+                              " · " +
+                              String(
+                                item.total ||
+                                0,
+                              ) +
+                              " " +
+                              c.activityEvents
+                            }
+                          >
+                            <div className="bar-track">
+                              <div
+                                className="bar"
+                                style={{
+                                  height:
+                                    String(
+                                      height,
+                                    ) +
+                                    "%",
+                                }}
+                              />
+                            </div>
+                            <small>
+                              {analyticsDays ===
+                              7 ||
+                              index %
+                                5 ===
+                                0 ||
+                              index ===
+                                analytics
+                                  .timeline
+                                  .length -
+                                  1
+                                ? item.date
+                                    .slice(
+                                      5,
+                                    )
+                                : ""}
+                            </small>
+                          </div>
+                        );
+                      },
+                    )}
+                  </div>
+
+                  <div className="bot-dashboard-analytics-legend">
+                    <span>
+                      <i className="joins" />
+                      {c.joinsMetric}:{" "}
+                      {
+                        analytics
+                          .summary
+                          .joins
+                      }
+                    </span>
+                    <span>
+                      <i className="leaves" />
+                      {c.leavesMetric}:{" "}
+                      {
+                        analytics
+                          .summary
+                          .leaves
+                      }
+                    </span>
+                    <span>
+                      <i className="moderation" />
+                      {c.moderationMetric}:{" "}
+                      {
+                        analytics
+                          .summary
+                          .moderationCases
+                      }
+                    </span>
+                  </div>
+                </article>
+
+                <article className="bot-dashboard-worker-health">
+                  <header>
+                    <strong>
+                      {c.workerHealth}
+                    </strong>
+                    {(() => {
+                      const latest =
+                        analytics
+                          .health
+                          .latest;
+                      const age =
+                        latest
+                          ?.captured_at
+                          ? Date.now() -
+                            new Date(
+                              latest
+                                .captured_at,
+                            )
+                              .getTime()
+                          : Infinity;
+                      const online =
+                        latest
+                          ?.ready ===
+                          true &&
+                        age <
+                          10 *
+                            60 *
+                            1000;
+
+                      return (
+                        <span
+                          className={
+                            !latest
+                              ? "waiting"
+                              : online
+                                ? "online"
+                                : "stale"
+                          }
+                        >
+                          {!latest
+                            ? c.workerWaiting
+                            : online
+                              ? c.workerOnline
+                              : c.workerStale}
+                        </span>
+                      );
+                    })()}
+                  </header>
+
+                  <div className="bot-dashboard-worker-grid">
+                    <div>
+                      <span>
+                        {c.workerPing}
+                      </span>
+                      <strong>
+                        {analytics
+                          .health
+                          .latest
+                          ?.ws_ping_ms !=
+                        null
+                          ? String(
+                              analytics
+                                .health
+                                .latest
+                                .ws_ping_ms,
+                            ) +
+                            " ms"
+                          : "—"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>
+                        {c.workerUptime}
+                      </span>
+                      <strong>
+                        {analytics
+                          .health
+                          .latest
+                          ? formatDuration(
+                              analytics
+                                .health
+                                .latest
+                                .uptime_seconds,
+                            )
+                          : "—"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>
+                        {c.workerUptime24}
+                      </span>
+                      <strong>
+                        {analytics
+                          .health
+                          .uptime24h !=
+                        null
+                          ? String(
+                              analytics
+                                .health
+                                .uptime24h,
+                            ) +
+                            "%"
+                          : "—"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>
+                        {c.workerGuilds}
+                      </span>
+                      <strong>
+                        {analytics
+                          .health
+                          .latest
+                          ?.guild_count ??
+                          "—"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>
+                        {c.healthSamples}
+                      </span>
+                      <strong>
+                        {analytics
+                          .health
+                          .samples24h ||
+                          0}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>
+                        {c.workerPing} 24h
+                      </span>
+                      <strong>
+                        {analytics
+                          .health
+                          .avgPing24h !=
+                        null
+                          ? String(
+                              analytics
+                                .health
+                                .avgPing24h,
+                            ) +
+                            " ms"
+                          : "—"}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {analytics
+                    .health
+                    .latest
+                    ?.captured_at ? (
+                    <small className="last-seen">
+                      {formatKyivDateTime(
+                        analytics
+                          .health
+                          .latest
+                          .captured_at,
+                        language,
+                      )}
+                    </small>
+                  ) : null}
+                </article>
+              </div>
+
+              <div className="bot-dashboard-analytics-bottom">
+                <article className="bot-dashboard-top-roles">
+                  <header>
+                    <strong>
+                      {c.topSelfRoles}
+                    </strong>
+                  </header>
+
+                  {analytics
+                    .topSelfRoles
+                    .length ? (
+                    <div className="bot-dashboard-role-ranking">
+                      {analytics.topSelfRoles.map(
+                        (
+                          role,
+                          index,
+                        ) => (
+                          <div
+                            key={
+                              role.roleId
+                            }
+                          >
+                            <span className="rank">
+                              {index +
+                                1}
+                            </span>
+                            <strong>
+                              @
+                              {
+                                role.name
+                              }
+                            </strong>
+                            <span className="count">
+                              {
+                                role.count
+                              }
+                            </span>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    <p className="bot-dashboard-log-empty">
+                      {c.noSelfRoles}
+                    </p>
+                  )}
+                </article>
+
+                <article className="bot-dashboard-activity-feed">
+                  <header>
+                    <strong>
+                      {c.recentActivity}
+                    </strong>
+                    <span>
+                      {
+                        analytics
+                          .recentActivity
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  {analytics
+                    .recentActivity
+                    .length ? (
+                    <div className="bot-dashboard-activity-feed-list">
+                      {analytics.recentActivity.map(
+                        (
+                          item,
+                        ) => {
+                          const userId =
+                            item
+                              .payload
+                              ?.user_id ||
+                            item
+                              .payload
+                              ?.target_id ||
+                            item
+                              .payload
+                              ?.opener_id ||
+                            "";
+                          const channelId =
+                            item
+                              .payload
+                              ?.channel_id ||
+                            "";
+
+                          return (
+                            <div
+                              key={
+                                item.id
+                              }
+                            >
+                              <span className="dot" />
+                              <div>
+                                <strong>
+                                  {
+                                    item.label
+                                  }
+                                </strong>
+                                <small>
+                                  {userId
+                                    ? "User " +
+                                      userId
+                                    : channelId
+                                      ? "Channel " +
+                                        channelId
+                                      : item.type}
+                                </small>
+                              </div>
+                              <time>
+                                {formatKyivDateTime(
+                                  item
+                                    .createdAt,
+                                  language,
+                                )}
+                              </time>
+                            </div>
+                          );
+                        },
+                      )}
+                    </div>
+                  ) : (
+                    <p className="bot-dashboard-log-empty">
+                      {c.noActivity}
+                    </p>
+                  )}
+                </article>
+              </div>
+            </section>
 
             <section
               className={
