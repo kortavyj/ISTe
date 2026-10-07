@@ -9959,7 +9959,8 @@ export default function BotDashboard() {
                     }
                     disabled={
                       busy ===
-                      `activate:${selectedGuild.guildId}`
+                        `activate:${selectedGuild.guildId}` ||
+                      !controlOwner
                     }
                   >
                     {c.updateBotPermissions}
@@ -9973,6 +9974,9 @@ export default function BotDashboard() {
                     disabled={
                       busy ===
                         "automod" ||
+                      !canControl(
+                        "moderation.manage",
+                      ) ||
                       !settings
                         .automodEnabled
                     }
