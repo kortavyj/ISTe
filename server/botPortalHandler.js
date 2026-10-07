@@ -16870,21 +16870,49 @@ async function handleAnalyticsOverview(
       auditRows
         .slice(0, 30)
         .map(
-          (row) => ({
-            id:
-              row.id,
-            type:
-              row.event_type,
-            label:
-              analyticsEventLabel(
+          (row) => {
+            const payload =
+              row.payload &&
+              typeof row.payload ===
+                "object"
+                ? row.payload
+                : {};
+
+            return {
+              id:
+                row.id,
+              type:
                 row.event_type,
-              ),
-            payload:
-              row.payload ||
-              {},
-            createdAt:
-              row.created_at,
-          }),
+              label:
+                analyticsEventLabel(
+                  row.event_type,
+                ),
+              payload: {
+                user_id:
+                  String(
+                    payload.user_id ||
+                    "",
+                  ),
+                target_id:
+                  String(
+                    payload.target_id ||
+                    "",
+                  ),
+                opener_id:
+                  String(
+                    payload.opener_id ||
+                    "",
+                  ),
+                channel_id:
+                  String(
+                    payload.channel_id ||
+                    "",
+                  ),
+              },
+              createdAt:
+                row.created_at,
+            };
+          },
         );
 
     return response
@@ -16941,8 +16969,34 @@ async function handleAnalyticsOverview(
         health: {
           latest:
             latestHealthResult
-              .data ||
-            null,
+              .data
+              ? {
+                  ready:
+                    latestHealthResult
+                      .data.ready ===
+                    true,
+                  ws_ping_ms:
+                    latestHealthResult
+                      .data
+                      .ws_ping_ms ??
+                    null,
+                  uptime_seconds:
+                    latestHealthResult
+                      .data
+                      .uptime_seconds ??
+                    null,
+                  guild_count:
+                    latestHealthResult
+                      .data
+                      .guild_count ??
+                    null,
+                  captured_at:
+                    latestHealthResult
+                      .data
+                      .captured_at ||
+                    null,
+                }
+              : null,
           uptime24h,
           avgPing24h,
           samples24h:
