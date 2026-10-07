@@ -44,20 +44,20 @@
       "kd": 1.19
     },
     {
-      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
-      "nickname": "sssoo",
-      "avatar": "https://distribution.faceit-cdn.net/images/54cc62fe-a448-4681-8271-eb57b0b873d0.jpg",
+      "playerId": "13f30008-c350-4fe3-b714-1f7a2b447220",
+      "nickname": "dezz1we",
+      "avatar": "https://distribution.faceit-cdn.net/images/62664c69-71b1-433e-bb67-a5e79ec0f3da.jpeg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
+      "faceitUrl": "https://www.faceit.com/ru/players/dezz1we",
       "level": 10,
-      "elo": 2020,
+      "elo": 2634,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.19
+      "winRate": 52,
+      "kd": 0.98
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -76,6 +76,22 @@
       "kd": 1
     },
     {
+      "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
+      "nickname": "tw3ntyq",
+      "avatar": "https://distribution.faceit-cdn.net/images/78893d81-b58e-4510-8843-7b40689ba588.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
+      "level": 10,
+      "elo": 2464,
+      "role": "RIFLER",
+      "reason": "Закреплённая роль основного состава ISTe",
+      "confidence": 100,
+      "roleSource": "ISTe manual roster override",
+      "winRate": 51,
+      "kd": 1.08
+    },
+    {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
       "nickname": "Droni452",
       "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
@@ -92,20 +108,20 @@
       "kd": 1.06
     },
     {
-      "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
-      "nickname": "tw3ntyq",
-      "avatar": "https://distribution.faceit-cdn.net/images/78893d81-b58e-4510-8843-7b40689ba588.jpg",
+      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
+      "nickname": "sssoo",
+      "avatar": "https://distribution.faceit-cdn.net/images/54cc62fe-a448-4681-8271-eb57b0b873d0.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
+      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2439,
+      "elo": 2020,
       "role": "RIFLER",
-      "reason": "Закреплённая роль основного состава ISTe",
-      "confidence": 100,
-      "roleSource": "ISTe manual roster override",
-      "winRate": 51,
-      "kd": 1.09
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 49,
+      "kd": 1.19
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -116,28 +132,12 @@
       "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
       "level": 10,
       "elo": 2344,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.08
-    },
-    {
-      "playerId": "13f30008-c350-4fe3-b714-1f7a2b447220",
-      "nickname": "dezz1we",
-      "avatar": "https://distribution.faceit-cdn.net/images/62664c69-71b1-433e-bb67-a5e79ec0f3da.jpeg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/dezz1we",
-      "level": 10,
-      "elo": 2634,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 0.98
+      "winRate": 51,
+      "kd": 1.08
     }
   ],
   "teamMatches": [
@@ -3421,5 +3421,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-07T06:30:59.761Z"
+  "updatedAt": "2026-10-07T13:46:38.334Z"
 }
