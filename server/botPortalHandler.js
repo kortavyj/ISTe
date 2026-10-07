@@ -7031,7 +7031,7 @@ async function handleConfigHistoryList(
       )
       .eq(
         "owner_user_id",
-        account.user.id,
+        access.ownerUserId,
       )
       .order(
         "created_at",
@@ -7322,7 +7322,7 @@ async function handleRestoreConfigVersion(
       )
       .eq(
         "owner_user_id",
-        account.user.id,
+        access.ownerUserId,
       )
       .maybeSingle();
 
@@ -7415,7 +7415,7 @@ async function handleRestoreConfigVersion(
       )
       .eq(
         "owner_user_id",
-        account.user.id,
+        access.ownerUserId,
       )
       .select("*")
       .single();
@@ -11262,7 +11262,7 @@ async function handlePublishVerificationPanel(
       )
       .eq(
         "owner_user_id",
-        account.user.id,
+        access.ownerUserId,
       );
 
     if (updateError) {
@@ -11582,7 +11582,7 @@ async function handlePublishSelfRolesPanel(
       )
       .eq(
         "owner_user_id",
-        account.user.id,
+        access.ownerUserId,
       );
 
     if (updateError) {
