@@ -1774,8 +1774,9 @@ async function handleStatus(
     const [
       discordAccountResult,
       guildsResult,
-      licensesResult,
-      settingsResult,
+      ownLicensesResult,
+      ownSettingsResult,
+      staffPoliciesResult,
     ] =
       await Promise.all([
         supabase
@@ -1825,6 +1826,17 @@ async function handleStatus(
             "owner_user_id",
             account.user.id,
           ),
+        supabase
+          .from(
+            "discord_staff_role_permissions",
+          )
+          .select(
+            "guild_id,role_id,label,permission_keys,enabled",
+          )
+          .eq(
+            "enabled",
+            true,
+          ),
       ]);
 
     for (
@@ -1832,8 +1844,9 @@ async function handleStatus(
       of [
         discordAccountResult,
         guildsResult,
-        licensesResult,
-        settingsResult,
+        ownLicensesResult,
+        ownSettingsResult,
+        staffPoliciesResult,
       ]
     ) {
       if (result.error) {
@@ -1848,27 +1861,342 @@ async function handleStatus(
         ? guildsResult.data
         : [];
 
-    const licenses =
+    const ownLicenses =
       Array.isArray(
-        licensesResult.data,
+        ownLicensesResult.data,
       )
-        ? licensesResult.data
+        ? ownLicensesResult.data
         : [];
 
-    const settings =
+    const ownSettings =
       Array.isArray(
-        settingsResult.data,
+        ownSettingsResult.data,
       )
-        ? settingsResult.data
+        ? ownSettingsResult.data
         : [];
+
+    const staffPolicies =
+      Array.isArray(
+        staffPoliciesResult.data,
+      )
+        ? staffPoliciesResult.data
+        : [];
+
+    const discordAccount =
+      discordAccountResult.data;
+    const discordUserId =
+      String(
+        discordAccount
+          ?.discord_user_id ||
+        "",
+      );
 
     const roleSync =
       await syncSubscriberRole(
         supabase,
         subscription,
-        discordAccountResult
-          .data,
+        discordAccount,
       );
+
+    const policiesByGuild =
+      new Map();
+
+    for (
+      const policy
+      of staffPolicies
+    ) {
+      const guildId =
+        String(
+          policy.guild_id ||
+          "",
+        );
+
+      if (
+        !isSnowflake(
+          guildId,
+        )
+      ) {
+        continue;
+      }
+
+      if (
+        !policiesByGuild.has(
+          guildId,
+        )
+      ) {
+        policiesByGuild.set(
+          guildId,
+          [],
+        );
+      }
+
+      policiesByGuild
+        .get(guildId)
+        .push(policy);
+    }
+
+    const candidateStaffGuildIds =
+      [
+        ...policiesByGuild.keys(),
+      ];
+
+    let candidateLicenses = [];
+    let candidateSettings = [];
+
+    if (
+      candidateStaffGuildIds.length &&
+      isSnowflake(
+        discordUserId,
+      )
+    ) {
+      const [
+        licensesResult,
+        settingsResult,
+      ] =
+        await Promise.all([
+          supabase
+            .from(
+              "discord_guild_licenses",
+            )
+            .select("*")
+            .in(
+              "guild_id",
+              candidateStaffGuildIds,
+            ),
+          supabase
+            .from(
+              "discord_guild_settings",
+            )
+            .select("*")
+            .in(
+              "guild_id",
+              candidateStaffGuildIds,
+            ),
+        ]);
+
+      if (
+        licensesResult.error ||
+        settingsResult.error
+      ) {
+        throw (
+          licensesResult.error ||
+          settingsResult.error
+        );
+      }
+
+      candidateLicenses =
+        licensesResult.data ||
+        [];
+      candidateSettings =
+        settingsResult.data ||
+        [];
+    }
+
+    const candidateLicenseMap =
+      new Map(
+        candidateLicenses.map(
+          (item) => [
+            String(
+              item.guild_id,
+            ),
+            item,
+          ],
+        ),
+      );
+
+    const candidateSettingsMap =
+      new Map(
+        candidateSettings.map(
+          (item) => [
+            String(
+              item.guild_id,
+            ),
+            item,
+          ],
+        ),
+      );
+
+    const staffAccessMap =
+      new Map();
+    const config =
+      readConfig();
+
+    if (
+      isSnowflake(
+        discordUserId,
+      ) &&
+      config.botToken
+    ) {
+      await Promise.all(
+        candidateStaffGuildIds.map(
+          async (
+            guildId,
+          ) => {
+            const license =
+              candidateLicenseMap.get(
+                guildId,
+              );
+            const settingsRow =
+              candidateSettingsMap.get(
+                guildId,
+              );
+
+            if (
+              !license ||
+              !settingsRow ||
+              !licenseActive(
+                license,
+              ) ||
+              (
+                settingsRow
+                  .owner_user_id ===
+                account.user.id
+              )
+            ) {
+              return;
+            }
+
+            let member = null;
+
+            try {
+              member =
+                await discordRequest(
+                  "/guilds/" +
+                  guildId +
+                  "/members/" +
+                  discordUserId,
+                  {
+                    token:
+                      config.botToken,
+                    authType:
+                      "Bot",
+                  },
+                );
+            } catch (error) {
+              if (
+                error?.status ===
+                  404 ||
+                error?.status ===
+                  403
+              ) {
+                return;
+              }
+
+              throw error;
+            }
+
+            const roleIds =
+              new Set(
+                (
+                  Array.isArray(
+                    member?.roles,
+                  )
+                    ? member.roles
+                    : []
+                ).map(
+                  (value) =>
+                    String(value),
+                ),
+              );
+
+            const matchedPolicies =
+              (
+                policiesByGuild.get(
+                  guildId,
+                ) ||
+                []
+              ).filter(
+                (policy) =>
+                  roleIds.has(
+                    String(
+                      policy.role_id,
+                    ),
+                  ),
+              );
+
+            if (
+              !matchedPolicies.length
+            ) {
+              return;
+            }
+
+            const permissionKeys =
+              normalizeStaffPermissionKeys(
+                matchedPolicies.flatMap(
+                  (policy) =>
+                    Array.isArray(
+                      policy
+                        .permission_keys,
+                    )
+                      ? policy
+                          .permission_keys
+                      : [],
+                ),
+              );
+
+            if (
+              !permissionKeys.length
+            ) {
+              return;
+            }
+
+            staffAccessMap.set(
+              guildId,
+              {
+                permissionKeys,
+                matchedRoleIds:
+                  matchedPolicies.map(
+                    (policy) =>
+                      String(
+                        policy.role_id,
+                      ),
+                  ),
+                roleLabels:
+                  matchedPolicies.map(
+                    (policy) =>
+                      String(
+                        policy.label ||
+                        "",
+                      ),
+                  ),
+              },
+            );
+          },
+        ),
+      );
+    }
+
+    const allLicenses = [
+      ...ownLicenses,
+      ...candidateLicenses.filter(
+        (item) =>
+          !ownLicenses.some(
+            (owned) =>
+              String(
+                owned.guild_id,
+              ) ===
+              String(
+                item.guild_id,
+              ),
+          ),
+      ),
+    ];
+
+    const allSettings = [
+      ...ownSettings,
+      ...candidateSettings.filter(
+        (item) =>
+          !ownSettings.some(
+            (owned) =>
+              String(
+                owned.guild_id,
+              ) ===
+              String(
+                item.guild_id,
+              ),
+          ),
+      ),
+    ];
 
     const guildIds =
       [
@@ -1876,18 +2204,22 @@ async function handleStatus(
           [
             ...guilds.map(
               (item) =>
-                item.guild_id,
+                String(
+                  item.guild_id,
+                ),
             ),
-            ...licenses.map(
+            ...ownLicenses.map(
               (item) =>
-                item.guild_id,
+                String(
+                  item.guild_id,
+                ),
             ),
+            ...staffAccessMap.keys(),
           ],
         ),
       ];
 
-    let installed =
-      [];
+    let installed = [];
 
     if (guildIds.length) {
       const {
@@ -1898,7 +2230,7 @@ async function handleStatus(
           "discord_guilds",
         )
         .select(
-          "guild_id, guild_name, guild_icon, active, member_count, locale, last_seen_at, updated_at",
+          "guild_id,guild_name,guild_icon,active,member_count,locale,last_seen_at,updated_at",
         )
         .in(
           "guild_id",
@@ -1915,11 +2247,25 @@ async function handleStatus(
           : [];
     }
 
+    const guildMap =
+      new Map(
+        guilds.map(
+          (item) => [
+            String(
+              item.guild_id,
+            ),
+            item,
+          ],
+        ),
+      );
+
     const licenseMap =
       new Map(
-        licenses.map(
+        allLicenses.map(
           (item) => [
-            item.guild_id,
+            String(
+              item.guild_id,
+            ),
             item,
           ],
         ),
@@ -1927,9 +2273,11 @@ async function handleStatus(
 
     const settingsMap =
       new Map(
-        settings.map(
+        allSettings.map(
           (item) => [
-            item.guild_id,
+            String(
+              item.guild_id,
+            ),
             item,
           ],
         ),
@@ -1939,10 +2287,168 @@ async function handleStatus(
       new Map(
         installed.map(
           (item) => [
-            item.guild_id,
+            String(
+              item.guild_id,
+            ),
             item,
           ],
         ),
+      );
+
+    const visibleGuildIds =
+      [
+        ...new Set(
+          [
+            ...guilds.map(
+              (item) =>
+                String(
+                  item.guild_id,
+                ),
+            ),
+            ...staffAccessMap.keys(),
+          ],
+        ),
+      ];
+
+    const visibleGuilds =
+      visibleGuildIds.map(
+        (guildId) => {
+          const guild =
+            guildMap.get(
+              guildId,
+            ) ||
+            null;
+          const license =
+            licenseMap.get(
+              guildId,
+            ) ||
+            null;
+          const settingsRow =
+            settingsMap.get(
+              guildId,
+            ) ||
+            null;
+          const runtime =
+            installedMap.get(
+              guildId,
+            ) ||
+            null;
+          const delegated =
+            staffAccessMap.get(
+              guildId,
+            ) ||
+            null;
+          const controlOwner =
+            settingsRow
+              ?.owner_user_id ===
+              account.user.id &&
+            license
+              ?.user_id ===
+              account.user.id;
+
+          const access =
+            controlOwner
+              ? {
+                  isOwner: true,
+                  delegated: false,
+                  permissionKeys: [
+                    "*",
+                  ],
+                  matchedRoleIds: [],
+                  roleLabels: [],
+                }
+              : delegated
+                ? {
+                    isOwner: false,
+                    delegated: true,
+                    permissionKeys:
+                      delegated
+                        .permissionKeys,
+                    matchedRoleIds:
+                      delegated
+                        .matchedRoleIds,
+                    roleLabels:
+                      delegated
+                        .roleLabels,
+                  }
+                : {
+                    isOwner: false,
+                    delegated: false,
+                    permissionKeys: [],
+                    matchedRoleIds: [],
+                    roleLabels: [],
+                  };
+
+          return {
+            guildId,
+            name:
+              guild?.guild_name ||
+              runtime?.guild_name ||
+              "Discord Server",
+            iconUrl:
+              discordGuildIconUrl(
+                guildId,
+                guild?.guild_icon ||
+                  runtime
+                    ?.guild_icon,
+              ),
+            isOwner:
+              guild?.is_owner ===
+              true,
+            permissions:
+              guild?.permissions ||
+              "0",
+            canManage:
+              guild?.can_manage ===
+              true,
+            licensed:
+              Boolean(
+                license &&
+                licenseActive(
+                  license,
+                ),
+              ),
+            license:
+              license
+                ? {
+                    plan:
+                      license.plan,
+                    status:
+                      license.status,
+                    expiresAt:
+                      license
+                        .expires_at,
+                  }
+                : null,
+            installed:
+              runtime?.active ===
+              true,
+            memberCount:
+              runtime
+                ?.member_count ??
+              null,
+            settings:
+              settingsRow
+                ? normalizeSettings(
+                    settingsRow,
+                  )
+                : null,
+            access,
+          };
+        },
+      )
+      .sort(
+        (
+          left,
+          right,
+        ) =>
+          String(
+            left.name,
+          ).localeCompare(
+            String(
+              right.name,
+            ),
+          ),
       );
 
     return response
@@ -1955,32 +2461,25 @@ async function handleStatus(
               .clientSecret,
           ),
         discordAccount:
-          discordAccountResult
-            .data
+          discordAccount
             ? {
                 discordUserId:
-                  discordAccountResult
-                    .data
+                  discordAccount
                     .discord_user_id,
                 username:
-                  discordAccountResult
-                    .data
+                  discordAccount
                     .discord_username,
                 globalName:
-                  discordAccountResult
-                    .data
+                  discordAccount
                     .discord_global_name,
                 avatar:
-                  discordAccountResult
-                    .data
+                  discordAccount
                     .discord_avatar,
                 linkedAt:
-                  discordAccountResult
-                    .data
+                  discordAccount
                     .linked_at,
                 lastSyncedAt:
-                  discordAccountResult
-                    .data
+                  discordAccount
                     .last_synced_at,
               }
             : null,
@@ -1996,15 +2495,18 @@ async function handleStatus(
             .map(
               ([
                 plan,
-                config,
+                planConfig,
               ]) => ({
                 plan,
                 priceUsd:
-                  config.priceUsd,
+                  planConfig
+                    .priceUsd,
                 maxGuilds:
-                  config.maxGuilds,
+                  planConfig
+                    .maxGuilds,
                 features:
-                  config.features,
+                  planConfig
+                    .features,
               }),
             ),
         subscription: {
@@ -2037,7 +2539,7 @@ async function handleStatus(
               : subscription
                   .max_guilds,
           usedGuilds:
-            licenses.filter(
+            ownLicenses.filter(
               (license) =>
                 [
                   "active",
@@ -2058,77 +2560,7 @@ async function handleStatus(
               .subscriber_role_expires_at,
         },
         guilds:
-          guilds.map(
-            (guild) => {
-              const license =
-                licenseMap.get(
-                  guild.guild_id,
-                ) || null;
-
-              const runtime =
-                installedMap.get(
-                  guild.guild_id,
-                ) || null;
-
-              return {
-                guildId:
-                  guild.guild_id,
-                name:
-                  guild.guild_name ||
-                  runtime?.guild_name ||
-                  "Discord Server",
-                iconUrl:
-                  discordGuildIconUrl(
-                    guild.guild_id,
-                    guild.guild_icon ||
-                      runtime
-                        ?.guild_icon,
-                  ),
-                isOwner:
-                  guild.is_owner ===
-                  true,
-                permissions:
-                  guild.permissions ||
-                  "0",
-                canManage:
-                  guild.can_manage ===
-                  true,
-                licensed:
-                  Boolean(
-                    license,
-                  ),
-                license:
-                  license
-                    ? {
-                        plan:
-                          license.plan,
-                        status:
-                          license.status,
-                        expiresAt:
-                          license
-                            .expires_at,
-                      }
-                    : null,
-                installed:
-                  runtime?.active ===
-                  true,
-                memberCount:
-                  runtime
-                    ?.member_count ??
-                  null,
-                settings:
-                  settingsMap.has(
-                    guild.guild_id,
-                  )
-                    ? normalizeSettings(
-                        settingsMap.get(
-                          guild.guild_id,
-                        ),
-                      )
-                    : null,
-              };
-            },
-          ),
+          visibleGuilds,
       });
   } catch (error) {
     console.error(
