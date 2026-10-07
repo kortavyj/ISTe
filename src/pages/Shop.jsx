@@ -298,6 +298,14 @@ function PreorderModal({
           </h2>
           <strong>{product.name}</strong>
           <span>{labels.modalText}</span>
+
+          {product.description ||
+          product.shortDescription ? (
+            <div className="wear-modal__product-copy">
+              {product.description ||
+                product.shortDescription}
+            </div>
+          ) : null}
         </div>
 
         {reference ? (
@@ -702,6 +710,12 @@ export default function Shop() {
                     <h2>
                       {product.name}
                     </h2>
+
+                    {product.shortDescription ? (
+                      <p className="wear-card__description">
+                        {product.shortDescription}
+                      </p>
+                    ) : null}
 
                     <div className="wear-card__sizes">
                       <span>
