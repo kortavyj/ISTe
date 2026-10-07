@@ -36,7 +36,25 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const DISCORD_API = "https://discord.com/api/v10";
 const BRAND_COLOR = 0xe30613;
-const BOT_VERSION = "2.3.0";
+const BOT_VERSION = "2.4.0";
+
+const SUBSCRIPTION_PLANS = {
+  starter: {
+    priceUsd: 2.99,
+    maxGuilds: 1,
+  },
+  pro: {
+    priceUsd: 4.99,
+    maxGuilds: 3,
+  },
+  max: {
+    priceUsd: 6.99,
+    maxGuilds: 10,
+  },
+} as const;
+
+type SubscriptionPlan =
+  keyof typeof SUBSCRIPTION_PLANS;
 
 const PERMISSIONS = {
   KICK_MEMBERS: 1n << 1n,
@@ -124,7 +142,7 @@ const copy = {
       "**Утиліти**\n`/ping` `/server` `/user` `/avatar` `/bot` `/invite`\n\n" +
       "**Спільнота**\n`/poll` `/room`\n\n" +
       "**Модерація**\n`/warn` `/warnings` `/unwarn` `/timeout` `/kick` `/ban` `/unban` `/clear` `/slowmode`\n\n" +
-      "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news`\n\n" +
+      "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news` `/subscription`\n\n" +
       "`/help` — ця довідка",
     pingTitle: "ISTe Bot онлайн",
     pingText: "Обробка запиту: **{{ms}} мс**",
@@ -152,6 +170,24 @@ const copy = {
     inviteTitle: "Додайте ISTe Bot на свій сервер",
     inviteText:
       "Встановлення проходить через офіційне вікно Discord. Ви самі обираєте сервер, де маєте право керування.",
+    subscriptionTitle: "Підписка ISTe Bot",
+    subscriptionCurrent: "Поточний тариф",
+    subscriptionStatus: "Статус",
+    subscriptionExpires: "Діє до",
+    subscriptionPending: "Очікує підтвердження",
+    subscriptionChoose:
+      "Оберіть тариф нижче. Це заявка без автоматичного списання коштів. Після підтвердження адміністратором підписка активується на 30 днів.",
+    subscriptionLinkRequired:
+      "Спочатку прив'яжіть Discord до акаунта ISTe на сайті. Після цього поверніться до цієї команди.",
+    subscriptionOpenDashboard: "Відкрити ISTe Dashboard",
+    subscriptionRequested:
+      "Заявку на **{{plan}}** збережено. Адміністратор ISTe має підтвердити її перед активацією.",
+    subscriptionInternal:
+      "Для цього акаунта активна внутрішня підписка ISTe. Заявка не потрібна.",
+    subscriptionUnavailable:
+      "Сервіс підписок тимчасово недоступний.",
+    subscriptionNoExpiry: "безстроково",
+    subscriptionFree: "FREE",
     pollPermission:
       "ISTe Bot не має права **Надсилати опитування** в цьому каналі.",
     pollInvalid:
@@ -235,7 +271,7 @@ const copy = {
       "**Утилиты**\n`/ping` `/server` `/user` `/avatar` `/bot` `/invite`\n\n" +
       "**Сообщество**\n`/poll` `/room`\n\n" +
       "**Модерация**\n`/warn` `/warnings` `/unwarn` `/timeout` `/kick` `/ban` `/unban` `/clear` `/slowmode`\n\n" +
-      "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news`\n\n" +
+      "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news` `/subscription`\n\n" +
       "`/help` — эта справка",
     pingTitle: "ISTe Bot онлайн",
     pingText: "Обработка запроса: **{{ms}} мс**",
@@ -263,6 +299,24 @@ const copy = {
     inviteTitle: "Добавьте ISTe Bot на свой сервер",
     inviteText:
       "Установка проходит через официальное окно Discord. Вы сами выбираете сервер, где у вас есть право управления.",
+    subscriptionTitle: "Подписка ISTe Bot",
+    subscriptionCurrent: "Текущий тариф",
+    subscriptionStatus: "Статус",
+    subscriptionExpires: "Действует до",
+    subscriptionPending: "Ожидает подтверждения",
+    subscriptionChoose:
+      "Выберите тариф ниже. Это заявка без автоматического списания денег. После подтверждения администратором подписка активируется на 30 дней.",
+    subscriptionLinkRequired:
+      "Сначала привяжите Discord к аккаунту ISTe на сайте. После этого вернитесь к этой команде.",
+    subscriptionOpenDashboard: "Открыть ISTe Dashboard",
+    subscriptionRequested:
+      "Заявка на **{{plan}}** сохранена. Администратор ISTe должен подтвердить её перед активацией.",
+    subscriptionInternal:
+      "Для этого аккаунта активна внутренняя подписка ISTe. Заявка не требуется.",
+    subscriptionUnavailable:
+      "Сервис подписок временно недоступен.",
+    subscriptionNoExpiry: "бессрочно",
+    subscriptionFree: "FREE",
     pollPermission:
       "У ISTe Bot нет права **Отправлять опросы** в этом канале.",
     pollInvalid:
@@ -346,7 +400,7 @@ const copy = {
       "**Utilities**\n`/ping` `/server` `/user` `/avatar` `/bot` `/invite`\n\n" +
       "**Community**\n`/poll` `/room`\n\n" +
       "**Moderation**\n`/warn` `/warnings` `/unwarn` `/timeout` `/kick` `/ban` `/unban` `/clear` `/slowmode`\n\n" +
-      "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news`\n\n" +
+      "**ISTesport**\n`/site` `/rules` `/team` `/matches` `/news` `/subscription`\n\n" +
       "`/help` — this help page",
     pingTitle: "ISTe Bot is online",
     pingText: "Request processing: **{{ms}} ms**",
@@ -374,6 +428,24 @@ const copy = {
     inviteTitle: "Add ISTe Bot to your server",
     inviteText:
       "Installation uses Discord's official authorization screen.",
+    subscriptionTitle: "ISTe Bot subscription",
+    subscriptionCurrent: "Current plan",
+    subscriptionStatus: "Status",
+    subscriptionExpires: "Expires",
+    subscriptionPending: "Pending approval",
+    subscriptionChoose:
+      "Choose a plan below. This creates a request and does not charge you automatically. The subscription activates for 30 days after ISTe admin approval.",
+    subscriptionLinkRequired:
+      "Link Discord to your ISTe website account first, then return to this command.",
+    subscriptionOpenDashboard: "Open ISTe Dashboard",
+    subscriptionRequested:
+      "Your **{{plan}}** request was saved. An ISTe admin must approve it before activation.",
+    subscriptionInternal:
+      "This account already has an internal ISTe subscription. No request is needed.",
+    subscriptionUnavailable:
+      "The subscription service is temporarily unavailable.",
+    subscriptionNoExpiry: "unlimited",
+    subscriptionFree: "FREE",
     pollPermission:
       "ISTe Bot is missing the **Send Polls** permission in this channel.",
     pollInvalid:
@@ -549,6 +621,565 @@ function getOptions(interaction: any) {
 
 function getActor(interaction: any) {
   return interaction?.member?.user || interaction?.user || null;
+}
+
+function subscriptionButtons() {
+  return [
+    {
+      type: 1,
+      components: (
+        Object.entries(
+          SUBSCRIPTION_PLANS,
+        ) as Array<
+          [
+            SubscriptionPlan,
+            {
+              priceUsd: number;
+              maxGuilds: number;
+            },
+          ]
+        >
+      ).map(
+        ([
+          plan,
+          config,
+        ]) => ({
+          type: 2,
+          style:
+            plan === "pro"
+              ? 1
+              : 2,
+          custom_id:
+            "iste:subscription:" +
+            plan,
+          label:
+            plan.toUpperCase() +
+            " · $" +
+            config.priceUsd.toFixed(
+              2,
+            ),
+        }),
+      ),
+    },
+  ];
+}
+
+function subscriptionDashboardRow(
+  label: string,
+) {
+  return linkRow([
+    {
+      label,
+      url:
+        SITE_URL +
+        "/bot/dashboard",
+    },
+  ]);
+}
+
+function subscriptionExpiryText(
+  value: unknown,
+  t: typeof copy[Language],
+) {
+  if (!value) {
+    return t.subscriptionNoExpiry;
+  }
+
+  const parsed =
+    Date.parse(
+      String(value),
+    );
+
+  return Number.isFinite(
+    parsed,
+  )
+    ? discordTimestamp(
+        parsed,
+      )
+    : t.subscriptionNoExpiry;
+}
+
+async function readDiscordSubscriptionAccount(
+  discordUserId: string,
+) {
+  if (
+    !adminDb ||
+    !/^[0-9]{17,20}$/.test(
+      discordUserId,
+    )
+  ) {
+    return null;
+  }
+
+  const {
+    data,
+    error,
+  } = await adminDb
+    .from(
+      "discord_customer_accounts",
+    )
+    .select(
+      "user_id,discord_user_id,discord_username,discord_global_name",
+    )
+    .eq(
+      "discord_user_id",
+      discordUserId,
+    )
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+async function subscriptionCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const actor =
+    getActor(
+      interaction,
+    );
+  const discordUserId =
+    String(
+      actor?.id ||
+      "",
+    );
+
+  if (!adminDb) {
+    return interactionMessage(
+      baseEmbed(
+        t.subscriptionTitle,
+        t.subscriptionUnavailable,
+        t.footer,
+      ),
+      [],
+      true,
+    );
+  }
+
+  const account =
+    await readDiscordSubscriptionAccount(
+      discordUserId,
+    );
+
+  if (!account) {
+    return interactionMessage(
+      baseEmbed(
+        t.subscriptionTitle,
+        t.subscriptionLinkRequired,
+        t.footer,
+      ),
+      subscriptionDashboardRow(
+        t.subscriptionOpenDashboard,
+      ),
+      true,
+    );
+  }
+
+  const [
+    subscriptionResult,
+    requestResult,
+  ] =
+    await Promise.all([
+      adminDb
+        .from(
+          "discord_subscriptions",
+        )
+        .select(
+          "plan,status,expires_at,max_guilds",
+        )
+        .eq(
+          "user_id",
+          account.user_id,
+        )
+        .maybeSingle(),
+      adminDb
+        .from(
+          "discord_subscription_requests",
+        )
+        .select(
+          "id,plan,status,requested_at",
+        )
+        .eq(
+          "user_id",
+          account.user_id,
+        )
+        .eq(
+          "status",
+          "pending",
+        )
+        .maybeSingle(),
+    ]);
+
+  if (
+    subscriptionResult.error ||
+    requestResult.error
+  ) {
+    throw (
+      subscriptionResult.error ||
+      requestResult.error
+    );
+  }
+
+  const subscription =
+    subscriptionResult.data;
+  const pending =
+    requestResult.data;
+
+  if (
+    subscription?.plan ===
+    "internal"
+  ) {
+    return interactionMessage(
+      baseEmbed(
+        t.subscriptionTitle,
+        t.subscriptionInternal,
+        t.footer,
+      ),
+      subscriptionDashboardRow(
+        t.subscriptionOpenDashboard,
+      ),
+      true,
+    );
+  }
+
+  const currentPlan =
+    String(
+      subscription?.plan ||
+      t.subscriptionFree,
+    ).toUpperCase();
+
+  const lines = [
+    "**" +
+      t.subscriptionCurrent +
+      ":** " +
+      currentPlan,
+    "**" +
+      t.subscriptionStatus +
+      ":** " +
+      String(
+        subscription?.status ||
+        "free",
+      ).toUpperCase(),
+    "**" +
+      t.subscriptionExpires +
+      ":** " +
+      subscriptionExpiryText(
+        subscription
+          ?.expires_at,
+        t,
+      ),
+  ];
+
+  if (pending) {
+    lines.push(
+      "**" +
+        t.subscriptionPending +
+        ":** " +
+        String(
+          pending.plan,
+        ).toUpperCase(),
+    );
+  }
+
+  lines.push(
+    "",
+    t.subscriptionChoose,
+  );
+
+  return interactionMessage(
+    baseEmbed(
+      t.subscriptionTitle,
+      lines.join("\n"),
+      t.footer,
+    ),
+    subscriptionButtons(),
+    true,
+  );
+}
+
+async function handleSubscriptionComponent(
+  interaction: any,
+) {
+  const customId =
+    String(
+      interaction
+        ?.data
+        ?.custom_id ||
+      "",
+    );
+
+  if (
+    !customId.startsWith(
+      "iste:subscription:",
+    )
+  ) {
+    return null;
+  }
+
+  const lang =
+    localeFamily(
+      interaction?.locale ||
+      interaction
+        ?.guild_locale,
+    ) as Language;
+  const t =
+    copy[lang];
+  const plan =
+    customId.slice(
+      "iste:subscription:"
+        .length,
+    ) as SubscriptionPlan;
+
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      SUBSCRIPTION_PLANS,
+      plan,
+    )
+  ) {
+    return ephemeralText(
+      t.subscriptionUnavailable,
+    );
+  }
+
+  const actor =
+    getActor(
+      interaction,
+    );
+  const discordUserId =
+    String(
+      actor?.id ||
+      "",
+    );
+
+  if (!adminDb) {
+    return ephemeralText(
+      t.subscriptionUnavailable,
+    );
+  }
+
+  const account =
+    await readDiscordSubscriptionAccount(
+      discordUserId,
+    );
+
+  if (!account) {
+    return interactionMessage(
+      baseEmbed(
+        t.subscriptionTitle,
+        t.subscriptionLinkRequired,
+        t.footer,
+      ),
+      subscriptionDashboardRow(
+        t.subscriptionOpenDashboard,
+      ),
+      true,
+    );
+  }
+
+  const {
+    data:
+      subscription,
+    error:
+      subscriptionError,
+  } = await adminDb
+    .from(
+      "discord_subscriptions",
+    )
+    .select(
+      "plan,status,expires_at",
+    )
+    .eq(
+      "user_id",
+      account.user_id,
+    )
+    .maybeSingle();
+
+  if (subscriptionError) {
+    throw subscriptionError;
+  }
+
+  if (
+    subscription?.plan ===
+    "internal"
+  ) {
+    return interactionMessage(
+      baseEmbed(
+        t.subscriptionTitle,
+        t.subscriptionInternal,
+        t.footer,
+      ),
+      subscriptionDashboardRow(
+        t.subscriptionOpenDashboard,
+      ),
+      true,
+    );
+  }
+
+  const {
+    data:
+      existingRequest,
+    error:
+      existingError,
+  } = await adminDb
+    .from(
+      "discord_subscription_requests",
+    )
+    .select("id")
+    .eq(
+      "user_id",
+      account.user_id,
+    )
+    .eq(
+      "status",
+      "pending",
+    )
+    .maybeSingle();
+
+  if (existingError) {
+    throw existingError;
+  }
+
+  const now =
+    new Date()
+      .toISOString();
+
+  const metadata = {
+    locale:
+      lang,
+    guild_id:
+      String(
+        interaction
+          ?.guild_id ||
+        "",
+      ) ||
+      null,
+    channel_id:
+      String(
+        interaction
+          ?.channel_id ||
+        "",
+      ) ||
+      null,
+    requested_via:
+      "discord_button",
+  };
+
+  if (existingRequest) {
+    const {
+      error,
+    } = await adminDb
+      .from(
+        "discord_subscription_requests",
+      )
+      .update({
+        plan,
+        discord_user_id:
+          discordUserId,
+        source:
+          "discord",
+        requested_at:
+          now,
+        updated_at:
+          now,
+        metadata,
+      })
+      .eq(
+        "id",
+        existingRequest.id,
+      )
+      .eq(
+        "status",
+        "pending",
+      );
+
+    if (error) {
+      throw error;
+    }
+  } else {
+    const {
+      error,
+    } = await adminDb
+      .from(
+        "discord_subscription_requests",
+      )
+      .insert({
+        user_id:
+          account.user_id,
+        discord_user_id:
+          discordUserId,
+        plan,
+        status:
+          "pending",
+        source:
+          "discord",
+        requested_at:
+          now,
+        updated_at:
+          now,
+        metadata,
+      });
+
+    if (error) {
+      if (
+        error.code ===
+        "23505"
+      ) {
+        const {
+          error:
+            retryError,
+        } = await adminDb
+          .from(
+            "discord_subscription_requests",
+          )
+          .update({
+            plan,
+            discord_user_id:
+              discordUserId,
+            requested_at:
+              now,
+            updated_at:
+              now,
+            metadata,
+          })
+          .eq(
+            "user_id",
+            account.user_id,
+          )
+          .eq(
+            "status",
+            "pending",
+          );
+
+        if (retryError) {
+          throw retryError;
+        }
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  return interactionMessage(
+    baseEmbed(
+      t.subscriptionTitle,
+      interpolate(
+        t.subscriptionRequested,
+        {
+          plan:
+            plan.toUpperCase(),
+        },
+      ),
+      t.footer,
+    ),
+    subscriptionButtons(),
+    true,
+  );
 }
 
 function getResolvedUser(interaction: any, optionName = "member") {
@@ -3240,6 +3871,13 @@ async function handleCommand(
     return inviteCommand(interaction, lang);
   }
 
+  if (command === "subscription") {
+    return await subscriptionCommand(
+      interaction,
+      lang,
+    );
+  }
+
   if (command === "poll") {
     return pollCommand(interaction, lang);
   }
@@ -3481,6 +4119,17 @@ Deno.serve(async (request) => {
 
   if (interaction?.type === 3) {
     try {
+      const subscriptionResponse =
+        await handleSubscriptionComponent(
+          interaction,
+        );
+
+      if (subscriptionResponse) {
+        return json(
+          subscriptionResponse,
+        );
+      }
+
       const giveawayResponse =
         await handleGiveawayComponent(
           interaction,
