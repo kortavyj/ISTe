@@ -210,6 +210,30 @@ const copy = {
       "Оплату підтверджено. Підписку **{{plan}}** активовано до {{expires}}.",
     subscriptionPaymentRejected:
       "Замовлення на **{{plan}}** відхилено.",
+    shopOrderTitle: "🛒 ISTe Bot • Підписка",
+    shopPendingDescription:
+      "Після отримання оплати адміністратор ISTe підтвердить замовлення кнопкою нижче.",
+    shopApprovedDescription:
+      "Оплату підтверджено, підписку активовано.",
+    shopRejectedDescription:
+      "Замовлення закрито без активації підписки.",
+    shopBuyer: "Покупець",
+    shopPlan: "Тариф",
+    shopPrice: "Вартість",
+    shopPeriod: "Період",
+    shopPeriod30: "30 днів",
+    shopStatus: "Статус",
+    shopOrderId: "ID замовлення",
+    shopExpires: "Активна до",
+    shopStatusPending: "🟡 ОЧІКУЄ ОПЛАТУ",
+    shopStatusApproved: "🟢 ОПЛАЧЕНО / АКТИВОВАНО",
+    shopStatusRejected: "🔴 ВІДХИЛЕНО",
+    shopApprovePayment: "Підтвердити оплату",
+    shopRejectPayment: "Відхилити",
+    shopDmApproved:
+      "✅ Оплату підтверджено. Тариф **{{plan}}** активовано{{expires}}.",
+    shopDmRejected:
+      "❌ Замовлення на тариф **{{plan}}** відхилено.",
     subscriptionInternal:
       "Для цього акаунта активна внутрішня підписка ISTe. Заявка не потрібна.",
     subscriptionUnavailable:
@@ -360,6 +384,30 @@ const copy = {
       "Оплата подтверждена. Подписка **{{plan}}** активирована до {{expires}}.",
     subscriptionPaymentRejected:
       "Заказ на **{{plan}}** отклонён.",
+    shopOrderTitle: "🛒 ISTe Bot • Подписка",
+    shopPendingDescription:
+      "После получения оплаты администратор ISTe подтвердит заказ кнопкой ниже.",
+    shopApprovedDescription:
+      "Оплата подтверждена, подписка активирована.",
+    shopRejectedDescription:
+      "Заказ закрыт без активации подписки.",
+    shopBuyer: "Покупатель",
+    shopPlan: "Тариф",
+    shopPrice: "Стоимость",
+    shopPeriod: "Период",
+    shopPeriod30: "30 дней",
+    shopStatus: "Статус",
+    shopOrderId: "ID заказа",
+    shopExpires: "Активна до",
+    shopStatusPending: "🟡 ОЖИДАЕТ ОПЛАТУ",
+    shopStatusApproved: "🟢 ОПЛАЧЕНО / АКТИВИРОВАНО",
+    shopStatusRejected: "🔴 ОТКЛОНЕНО",
+    shopApprovePayment: "Подтвердить оплату",
+    shopRejectPayment: "Отклонить",
+    shopDmApproved:
+      "✅ Оплата подтверждена. Тариф **{{plan}}** активирован{{expires}}.",
+    shopDmRejected:
+      "❌ Заказ на тариф **{{plan}}** отклонён.",
     subscriptionInternal:
       "Для этого аккаунта активна внутренняя подписка ISTe. Заявка не требуется.",
     subscriptionUnavailable:
@@ -510,6 +558,30 @@ const copy = {
       "Payment confirmed. **{{plan}}** is active until {{expires}}.",
     subscriptionPaymentRejected:
       "The **{{plan}}** order was rejected.",
+    shopOrderTitle: "🛒 ISTe Bot • Subscription",
+    shopPendingDescription:
+      "After payment is received, an ISTe administrator confirms the order with the button below.",
+    shopApprovedDescription:
+      "Payment confirmed and the subscription is active.",
+    shopRejectedDescription:
+      "The order was closed without activating the subscription.",
+    shopBuyer: "Buyer",
+    shopPlan: "Plan",
+    shopPrice: "Price",
+    shopPeriod: "Period",
+    shopPeriod30: "30 days",
+    shopStatus: "Status",
+    shopOrderId: "Order ID",
+    shopExpires: "Active until",
+    shopStatusPending: "🟡 AWAITING PAYMENT",
+    shopStatusApproved: "🟢 PAID / ACTIVE",
+    shopStatusRejected: "🔴 REJECTED",
+    shopApprovePayment: "Confirm payment",
+    shopRejectPayment: "Reject",
+    shopDmApproved:
+      "✅ Payment confirmed. **{{plan}}** is active{{expires}}.",
+    shopDmRejected:
+      "❌ The **{{plan}}** order was rejected.",
     subscriptionInternal:
       "This account already has an internal ISTe subscription. No request is needed.",
     subscriptionUnavailable:
@@ -863,30 +935,34 @@ function subscriptionShopEmbed(
     | "pending"
     | "approved"
     | "rejected",
+  lang: Language,
   expiresAt?: string | null,
 ) {
   const config =
     SUBSCRIPTION_PLANS[
       plan
     ];
+  const t =
+    copy[lang];
 
   const statusText =
     status === "approved"
-      ? "🟢 ОПЛАЧЕНО / АКТИВИРОВАНО"
+      ? t.shopStatusApproved
       : status === "rejected"
-        ? "🔴 ОТКЛОНЕНО"
-        : "🟡 ОЖИДАЕТ ОПЛАТУ";
+        ? t.shopStatusRejected
+        : t.shopStatusPending;
+
+  const description =
+    status === "approved"
+      ? t.shopApprovedDescription
+      : status === "rejected"
+        ? t.shopRejectedDescription
+        : t.shopPendingDescription;
 
   return {
     title:
-      "🛒 ISTe Bot • Подписка",
-    description:
-      status === "pending"
-        ? "После получения оплаты администратор ISTe подтверждает заказ кнопкой ниже."
-        : status ===
-            "approved"
-          ? "Оплата подтверждена, подписка активирована."
-          : "Заказ закрыт без активации подписки.",
+      t.shopOrderTitle,
+    description,
     color:
       status === "approved"
         ? 0x2ecc71
@@ -897,7 +973,7 @@ function subscriptionShopEmbed(
     fields: [
       {
         name:
-          "Покупатель",
+          t.shopBuyer,
         value:
           "<@" +
           discordUserId +
@@ -905,13 +981,15 @@ function subscriptionShopEmbed(
         inline: true,
       },
       {
-        name: "Тариф",
+        name:
+          t.shopPlan,
         value:
           plan.toUpperCase(),
         inline: true,
       },
       {
-        name: "Стоимость",
+        name:
+          t.shopPrice,
         value:
           "$" +
           config.priceUsd.toFixed(
@@ -920,18 +998,22 @@ function subscriptionShopEmbed(
         inline: true,
       },
       {
-        name: "Период",
-        value: "30 дней",
-        inline: true,
-      },
-      {
-        name: "Статус",
-        value: statusText,
+        name:
+          t.shopPeriod,
+        value:
+          t.shopPeriod30,
         inline: true,
       },
       {
         name:
-          "ID заказа",
+          t.shopStatus,
+        value:
+          statusText,
+        inline: true,
+      },
+      {
+        name:
+          t.shopOrderId,
         value:
           "`" +
           requestId +
@@ -942,7 +1024,7 @@ function subscriptionShopEmbed(
         ? [
             {
               name:
-                "Активна до",
+                t.shopExpires,
               value:
                 discordTimestamp(
                   expiresAt,
@@ -964,7 +1046,11 @@ function subscriptionShopEmbed(
 
 function subscriptionShopComponents(
   requestId: string,
+  lang: Language,
 ) {
+  const t =
+    copy[lang];
+
   return [
     {
       type: 1,
@@ -976,7 +1062,7 @@ function subscriptionShopComponents(
             "iste:subscription-admin:approve:" +
             requestId,
           label:
-            "Подтвердить оплату",
+            t.shopApprovePayment,
         },
         {
           type: 2,
@@ -985,7 +1071,7 @@ function subscriptionShopComponents(
             "iste:subscription-admin:reject:" +
             requestId,
           label:
-            "Отклонить",
+            t.shopRejectPayment,
         },
       ],
     },
@@ -1001,6 +1087,10 @@ async function upsertSubscriptionShopOrder(
     unknown
   > = {},
 ) {
+  const lang =
+    localeFamily(
+      metadata?.locale,
+    ) as Language;
   const channelId =
     await resolveShopChannelId();
 
@@ -1021,11 +1111,13 @@ async function upsertSubscriptionShopOrder(
         discordUserId,
         plan,
         "pending",
+        lang,
       ),
     ],
     components:
       subscriptionShopComponents(
         requestId,
+        lang,
       ),
     allowed_mentions: {
       users: [
@@ -1112,6 +1204,7 @@ async function sendSubscriptionDecisionDm(
   decision:
     | "approve"
     | "reject",
+  lang: Language,
   expiresAt?: string | null,
 ) {
   if (
@@ -1121,6 +1214,9 @@ async function sendSubscriptionDecisionDm(
   ) {
     return false;
   }
+
+  const t =
+    copy[lang];
 
   try {
     const dm =
@@ -1149,6 +1245,33 @@ async function sendSubscriptionDecisionDm(
       return false;
     }
 
+    const expires =
+      expiresAt
+        ? " " +
+          (
+            lang === "uk"
+              ? "до "
+              : lang === "ru"
+                ? "до "
+                : "until "
+          ) +
+          discordTimestamp(
+            expiresAt,
+          )
+        : "";
+
+    const description =
+      interpolate(
+        decision === "approve"
+          ? t.shopDmApproved
+          : t.shopDmRejected,
+        {
+          plan:
+            plan.toUpperCase(),
+          expires,
+        },
+      );
+
     await discordBotRequest(
       "/channels/" +
         channelId +
@@ -1159,25 +1282,8 @@ async function sendSubscriptionDecisionDm(
           embeds: [
             {
               title:
-                "ISTe Bot • Подписка",
-              description:
-                decision ===
-                "approve"
-                  ? "✅ Оплата подтверждена. Тариф **" +
-                    plan.toUpperCase() +
-                    "** активирован" +
-                    (
-                      expiresAt
-                        ? " до " +
-                          discordTimestamp(
-                            expiresAt,
-                          )
-                        : ""
-                    ) +
-                    "."
-                  : "❌ Заказ на тариф **" +
-                    plan.toUpperCase() +
-                    "** отклонён.",
+                t.shopOrderTitle,
+              description,
               color:
                 decision ===
                 "approve"
@@ -1867,6 +1973,12 @@ async function handleSubscriptionAdminComponent(
         },
       );
 
+    const requestLang =
+      localeFamily(
+        requestRow
+          ?.metadata
+          ?.locale,
+      ) as Language;
     const finalPlan =
       String(
         result?.plan ||
@@ -1938,6 +2050,7 @@ async function handleSubscriptionAdminComponent(
                       "approve"
                       ? "approved"
                       : "rejected",
+                    requestLang,
                     result
                       ?.expiresAt ||
                       null,
@@ -1973,6 +2086,7 @@ async function handleSubscriptionAdminComponent(
           "approve"
           ? "approve"
           : "reject",
+        requestLang,
         result?.expiresAt ||
           null,
       );
