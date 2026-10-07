@@ -36,6 +36,9 @@ const MANAGE_GUILD =
 const ADMINISTRATOR =
   0x8n;
 
+const VIEW_CHANNEL =
+  0x400n;
+
 const INTERNAL_GUILD_ID =
   "1334264628695404556";
 
@@ -8804,6 +8807,194 @@ async function handleSaveSettings(
   }
 }
 
+function discordPermissionBits(
+  value,
+) {
+  try {
+    return BigInt(
+      String(
+        value ||
+        "0",
+      ),
+    );
+  } catch {
+    return 0n;
+  }
+}
+
+function applyDiscordOverwrite(
+  permissions,
+  overwrite,
+) {
+  if (!overwrite) {
+    return permissions;
+  }
+
+  const deny =
+    discordPermissionBits(
+      overwrite.deny,
+    );
+  const allow =
+    discordPermissionBits(
+      overwrite.allow,
+    );
+
+  return (
+    permissions &
+    ~deny
+  ) |
+    allow;
+}
+
+function memberCanViewGuildChannel(
+  guildId,
+  member,
+  roles,
+  channel,
+) {
+  const userId =
+    String(
+      member?.user?.id ||
+      "",
+    );
+  const memberRoleIds =
+    new Set(
+      (
+        Array.isArray(
+          member?.roles,
+        )
+          ? member.roles
+          : []
+      ).map(
+        (value) =>
+          String(value),
+      ),
+    );
+
+  let permissions =
+    0n;
+
+  for (
+    const role
+    of (
+      Array.isArray(roles)
+        ? roles
+        : []
+    )
+  ) {
+    const roleId =
+      String(
+        role?.id ||
+        "",
+      );
+
+    if (
+      roleId === guildId ||
+      memberRoleIds.has(
+        roleId,
+      )
+    ) {
+      permissions |=
+        discordPermissionBits(
+          role?.permissions,
+        );
+    }
+  }
+
+  if (
+    (
+      permissions &
+      ADMINISTRATOR
+    ) ===
+      ADMINISTRATOR
+  ) {
+    return true;
+  }
+
+  const overwrites =
+    Array.isArray(
+      channel
+        ?.permission_overwrites,
+    )
+      ? channel
+          .permission_overwrites
+      : [];
+
+  permissions =
+    applyDiscordOverwrite(
+      permissions,
+      overwrites.find(
+        (overwrite) =>
+          Number(
+            overwrite?.type,
+          ) === 0 &&
+          String(
+            overwrite?.id ||
+            "",
+          ) === guildId,
+      ),
+    );
+
+  let roleDeny = 0n;
+  let roleAllow = 0n;
+
+  for (
+    const overwrite
+    of overwrites
+  ) {
+    if (
+      Number(
+        overwrite?.type,
+      ) !== 0 ||
+      !memberRoleIds.has(
+        String(
+          overwrite?.id ||
+          "",
+        ),
+      )
+    ) {
+      continue;
+    }
+
+    roleDeny |=
+      discordPermissionBits(
+        overwrite.deny,
+      );
+    roleAllow |=
+      discordPermissionBits(
+        overwrite.allow,
+      );
+  }
+
+  permissions =
+    (
+      permissions &
+      ~roleDeny
+    ) |
+    roleAllow;
+
+  permissions =
+    applyDiscordOverwrite(
+      permissions,
+      overwrites.find(
+        (overwrite) =>
+          Number(
+            overwrite?.type,
+          ) === 1 &&
+          String(
+            overwrite?.id ||
+            "",
+          ) === userId,
+      ),
+    );
+
+  return (
+    permissions &
+    VIEW_CHANNEL
+  ) ===
+    VIEW_CHANNEL;
+}
+
 async function handleGuildResources(
   request,
   response,
@@ -8990,14 +9181,63 @@ async function handleGuildResources(
           }),
         );
 
-    const normalizedCategories =
-      (
-        Array.isArray(
-          channels,
-        )
-          ? channels
-          : []
+    const allChannels =
+      Array.isArray(
+        channels,
       )
+        ? channels
+        : [];
+
+    const visibleToStaff =
+      access.isOwner
+        ? allChannels
+        : allChannels.filter(
+            (channel) =>
+              memberCanViewGuildChannel(
+                guildId,
+                access.member,
+                roles,
+                channel,
+              ),
+          );
+
+    const visibleParentIds =
+      new Set(
+        visibleToStaff
+          .filter(
+            (channel) =>
+              [
+                0,
+                5,
+              ].includes(
+                Number(
+                  channel.type,
+                ),
+              ),
+          )
+          .map(
+            (channel) =>
+              String(
+                channel.parent_id ||
+                "",
+              ),
+          )
+          .filter(Boolean),
+      );
+
+    const normalizedCategories =
+      visibleToStaff
+        .filter(
+          (channel) =>
+            Number(
+              channel.type,
+            ) === 4 ||
+            visibleParentIds.has(
+              String(
+                channel.id,
+              ),
+            ),
+        )
         .filter(
           (channel) =>
             Number(
@@ -9030,13 +9270,7 @@ async function handleGuildResources(
         );
 
     const normalizedChannels =
-      (
-        Array.isArray(
-          channels,
-        )
-          ? channels
-          : []
-      )
+      visibleToStaff
         .filter(
           (channel) =>
             [
@@ -11276,6 +11510,7 @@ async function readGuildControlAccess(
     matchedRoleIds,
     discordUserId,
     discordAccount,
+    member,
     settingsRow,
     settings:
       normalizeSettings(
