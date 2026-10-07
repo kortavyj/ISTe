@@ -8235,21 +8235,6 @@ async function handleGuildResources(
     );
   }
 
-  const account =
-    await requireAccount(
-      request,
-      response,
-    );
-
-  if (!account.ok) {
-    return sendError(
-      response,
-      account.status,
-      account.error,
-      account.message,
-    );
-  }
-
   const guildId =
     String(
       readJsonBody(request)
@@ -8267,63 +8252,18 @@ async function handleGuildResources(
   }
 
   try {
-    const supabase =
-      getSupabaseAdminClient();
-
-    const [
-      accessResult,
-      owned,
-    ] =
-      await Promise.all([
-        supabase
-          .from(
-            "discord_customer_guilds",
-          )
-          .select(
-            "guild_id, can_manage",
-          )
-          .eq(
-            "user_id",
-            account.user.id,
-          )
-          .eq(
-            "guild_id",
-            guildId,
-          )
-          .eq(
-            "can_manage",
-            true,
-          )
-          .maybeSingle(),
-        readOwnedLicense(
-          supabase,
-          account.user.id,
-          guildId,
-        ),
-      ]);
-
-    if (
-      accessResult.error ||
-      !accessResult.data
-    ) {
-      return sendError(
+    const access =
+      await requireGuildControlAccess(
+        request,
         response,
-        403,
-        "GUILD_MANAGE_REQUIRED",
-        "Discord не підтвердив право керування цим сервером.",
+        guildId,
+        "",
+        "guild-resources",
+        false,
       );
-    }
 
-    if (
-      !owned.ok ||
-      !owned.license
-    ) {
-      return sendError(
-        response,
-        403,
-        "GUILD_LICENSE_REQUIRED",
-        "Спочатку активуйте ліцензію для цього сервера.",
-      );
+    if (!access.ok) {
+      return access.sent;
     }
 
     const config =
@@ -9016,21 +8956,6 @@ async function handleSyncAutomod(
     );
   }
 
-  const account =
-    await requireAccount(
-      request,
-      response,
-    );
-
-  if (!account.ok) {
-    return sendError(
-      response,
-      account.status,
-      account.error,
-      account.message,
-    );
-  }
-
   const guildId =
     String(
       readJsonBody(request)
@@ -9048,61 +8973,27 @@ async function handleSyncAutomod(
   }
 
   try {
+    const access =
+      await requireGuildControlAccess(
+        request,
+        response,
+        guildId,
+        "moderation.manage",
+        "sync-automod",
+        true,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
     const supabase =
-      getSupabaseAdminClient();
-
-    const [
-      owned,
-      settingsResult,
-    ] =
-      await Promise.all([
-        readOwnedLicense(
-          supabase,
-          account.user.id,
-          guildId,
-        ),
-        supabase
-          .from(
-            "discord_guild_settings",
-          )
-          .select("*")
-          .eq(
-            "guild_id",
-            guildId,
-          )
-          .eq(
-            "owner_user_id",
-            account.user.id,
-          )
-          .maybeSingle(),
-      ]);
-
-    if (
-      !owned.ok ||
-      !owned.license ||
-      !licenseActive(
-        owned.license,
-      )
-    ) {
-      return sendError(
-        response,
-        403,
-        "GUILD_LICENSE_REQUIRED",
-        "Немає активної ліцензії для цього сервера.",
-      );
-    }
-
-    if (
-      settingsResult.error ||
-      !settingsResult.data
-    ) {
-      return sendError(
-        response,
-        404,
-        "GUILD_SETTINGS_NOT_FOUND",
-        "Спочатку збережіть налаштування сервера.",
-      );
-    }
+      access.supabase;
+    const settingsResult = {
+      data:
+        access.settingsRow,
+      error: null,
+    };
 
     const config =
       readConfig();
@@ -9163,10 +9054,7 @@ async function handleSyncAutomod(
         "guild_id",
         guildId,
       )
-      .eq(
-        "owner_user_id",
-        account.user.id,
-      );
+      ;
 
     if (updateError) {
       throw updateError;
@@ -9760,21 +9648,6 @@ async function handleModerationHistory(
     );
   }
 
-  const account =
-    await requireAccount(
-      request,
-      response,
-    );
-
-  if (!account.ok) {
-    return sendError(
-      response,
-      account.status,
-      account.error,
-      account.message,
-    );
-  }
-
   const body =
     readJsonBody(request) ||
     {};
@@ -9843,64 +9716,22 @@ async function handleModerationHistory(
   }
 
   try {
+    const access =
+      await requireGuildControlAccess(
+        request,
+        response,
+        guildId,
+        "moderation.view",
+        "moderation-history",
+        false,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
     const supabase =
-      getSupabaseAdminClient();
-
-    const [
-      accessResult,
-      owned,
-    ] =
-      await Promise.all([
-        supabase
-          .from(
-            "discord_customer_guilds",
-          )
-          .select(
-            "guild_id, can_manage",
-          )
-          .eq(
-            "user_id",
-            account.user.id,
-          )
-          .eq(
-            "guild_id",
-            guildId,
-          )
-          .eq(
-            "can_manage",
-            true,
-          )
-          .maybeSingle(),
-        readOwnedLicense(
-          supabase,
-          account.user.id,
-          guildId,
-        ),
-      ]);
-
-    if (
-      accessResult.error ||
-      !accessResult.data
-    ) {
-      return sendError(
-        response,
-        403,
-        "GUILD_MANAGE_REQUIRED",
-        "Discord не підтвердив право керування цим сервером.",
-      );
-    }
-
-    if (
-      !owned.ok ||
-      !owned.license
-    ) {
-      return sendError(
-        response,
-        403,
-        "GUILD_LICENSE_REQUIRED",
-        "Немає доступу до налаштувань цього сервера.",
-      );
-    }
+      access.supabase;
 
     let caseQuery =
       supabase
@@ -11667,21 +11498,6 @@ async function handlePublishTicketPanel(
     );
   }
 
-  const account =
-    await requireAccount(
-      request,
-      response,
-    );
-
-  if (!account.ok) {
-    return sendError(
-      response,
-      account.status,
-      account.error,
-      account.message,
-    );
-  }
-
   const guildId =
     String(
       readJsonBody(request)
@@ -11699,61 +11515,27 @@ async function handlePublishTicketPanel(
   }
 
   try {
+    const access =
+      await requireGuildControlAccess(
+        request,
+        response,
+        guildId,
+        "support.manage",
+        "publish-ticket-panel",
+        true,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
     const supabase =
-      getSupabaseAdminClient();
-
-    const [
-      owned,
-      settingsResult,
-    ] =
-      await Promise.all([
-        readOwnedLicense(
-          supabase,
-          account.user.id,
-          guildId,
-        ),
-        supabase
-          .from(
-            "discord_guild_settings",
-          )
-          .select("*")
-          .eq(
-            "guild_id",
-            guildId,
-          )
-          .eq(
-            "owner_user_id",
-            account.user.id,
-          )
-          .maybeSingle(),
-      ]);
-
-    if (
-      !owned.ok ||
-      !owned.license ||
-      !licenseActive(
-        owned.license,
-      )
-    ) {
-      return sendError(
-        response,
-        403,
-        "GUILD_LICENSE_REQUIRED",
-        "Немає активної ліцензії для цього сервера.",
-      );
-    }
-
-    if (
-      settingsResult.error ||
-      !settingsResult.data
-    ) {
-      return sendError(
-        response,
-        404,
-        "GUILD_SETTINGS_NOT_FOUND",
-        "Спочатку збережіть налаштування сервера.",
-      );
-    }
+      access.supabase;
+    const settingsResult = {
+      data:
+        access.settingsRow,
+      error: null,
+    };
 
     const settings =
       normalizeSettings(
@@ -11991,10 +11773,7 @@ async function handlePublishTicketPanel(
         "guild_id",
         guildId,
       )
-      .eq(
-        "owner_user_id",
-        account.user.id,
-      );
+      ;
 
     if (updateError) {
       throw updateError;
