@@ -36,6 +36,7 @@ import OwnerDiscord from "./pages/OwnerDiscord.jsx";
 import OwnerRoster from "./pages/OwnerRoster.jsx";
 import OwnerShop from "./pages/OwnerShop.jsx";
 import OwnerUsers from "./pages/OwnerUsers.jsx";
+import PaddleCheckout from "./pages/PaddleCheckout.jsx";
 import Partners from "./pages/Partners.jsx";
 import PlayerTactics from "./pages/PlayerTactics.jsx";
 import Register from "./pages/Register.jsx";
