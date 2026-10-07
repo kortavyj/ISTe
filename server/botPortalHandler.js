@@ -3294,6 +3294,582 @@ async function handleSecurityOverview(
 }
 
 
+
+async function requireGuildOwnerAccess(
+  request,
+  response,
+  guildId,
+) {
+  const account =
+    await requireAccount(
+      request,
+      response,
+    );
+
+  if (!account.ok) {
+    return {
+      ok: false,
+      sent:
+        sendError(
+          response,
+          account.status,
+          account.error,
+          account.message,
+        ),
+    };
+  }
+
+  const supabase =
+    getSupabaseAdminClient();
+  const access =
+    await readGuildControlAccess(
+      supabase,
+      account,
+      guildId,
+    );
+
+  if (
+    !access.ok ||
+    !access.isOwner
+  ) {
+    return {
+      ok: false,
+      sent:
+        sendError(
+          response,
+          403,
+          "GUILD_OWNER_REQUIRED",
+          "Staff permissions може змінювати лише власник сервера.",
+        ),
+    };
+  }
+
+  return {
+    ok: true,
+    account,
+    supabase,
+    ...access,
+  };
+}
+
+async function handleStaffPermissionsOverview(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await requireGuildOwnerAccess(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const [
+      policiesResult,
+      auditResult,
+    ] =
+      await Promise.all([
+        access.supabase
+          .from(
+            "discord_staff_role_permissions",
+          )
+          .select("*")
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                true,
+            },
+          ),
+        access.supabase
+          .from(
+            "discord_staff_access_audit",
+          )
+          .select(
+            "id,website_user_id,discord_user_id,action,permission_key,decision,matched_role_ids,created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(50),
+      ]);
+
+    if (
+      policiesResult.error ||
+      auditResult.error
+    ) {
+      throw (
+        policiesResult.error ||
+        auditResult.error
+      );
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        permissionCatalog:
+          STAFF_PERMISSION_CATALOG,
+        presets:
+          STAFF_PERMISSION_PRESETS,
+        policies:
+          (
+            policiesResult.data ||
+            []
+          ).map(
+            (row) => ({
+              roleId:
+                row.role_id,
+              label:
+                row.label,
+              permissionKeys:
+                normalizeStaffPermissionKeys(
+                  row.permission_keys,
+                ),
+              enabled:
+                row.enabled ===
+                true,
+              createdAt:
+                row.created_at,
+              updatedAt:
+                row.updated_at,
+            }),
+          ),
+        recentAccess:
+          (
+            auditResult.data ||
+            []
+          ).map(
+            (row) => ({
+              id:
+                row.id,
+              websiteUserId:
+                row.website_user_id,
+              discordUserId:
+                row.discord_user_id,
+              action:
+                row.action,
+              permissionKey:
+                row.permission_key,
+              decision:
+                row.decision,
+              matchedRoleIds:
+                row.matched_role_ids ||
+                [],
+              createdAt:
+                row.created_at,
+            }),
+          ),
+      });
+  } catch (error) {
+    console.error(
+      "Staff permissions overview error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "STAFF_PERMISSIONS_LOAD_FAILED",
+      "Не вдалося завантажити Staff & Permissions.",
+    );
+  }
+}
+
+async function handleSaveStaffRolePolicy(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 16000,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const roleId =
+    String(
+      body.roleId ||
+      "",
+    ).trim();
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    !isSnowflake(
+      roleId,
+    ) ||
+    roleId === guildId
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_STAFF_ROLE",
+      "Оберіть коректну Discord роль.",
+    );
+  }
+
+  try {
+    const access =
+      await requireGuildOwnerAccess(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const config =
+      readConfig();
+    const roles =
+      await discordRequest(
+        "/guilds/" +
+        guildId +
+        "/roles",
+        {
+          token:
+            config.botToken,
+          authType: "Bot",
+        },
+      );
+
+    const role =
+      (
+        Array.isArray(roles)
+          ? roles
+          : []
+      ).find(
+        (item) =>
+          String(
+            item.id,
+          ) ===
+          roleId,
+      );
+
+    if (
+      !role ||
+      role.managed ===
+        true
+    ) {
+      return sendError(
+        response,
+        400,
+        "STAFF_ROLE_UNAVAILABLE",
+        "Ця Discord роль недоступна для staff policy.",
+      );
+    }
+
+    const permissionKeys =
+      normalizeStaffPermissionKeys(
+        body.permissionKeys,
+      );
+
+    if (!permissionKeys.length) {
+      return sendError(
+        response,
+        400,
+        "STAFF_PERMISSIONS_REQUIRED",
+        "Оберіть хоча б один permission.",
+      );
+    }
+
+    const now =
+      new Date()
+        .toISOString();
+    const label =
+      String(
+        body.label ||
+        role.name ||
+        "",
+      )
+        .trim()
+        .slice(
+          0,
+          100,
+        );
+
+    const {
+      data,
+      error,
+    } = await access.supabase
+      .from(
+        "discord_staff_role_permissions",
+      )
+      .upsert(
+        {
+          guild_id:
+            guildId,
+          role_id:
+            roleId,
+          label,
+          permission_keys:
+            permissionKeys,
+          enabled:
+            body.enabled !==
+            false,
+          updated_by:
+            access.account
+              .user.id,
+          updated_at:
+            now,
+        },
+        {
+          onConflict:
+            "guild_id,role_id",
+        },
+      )
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    await access.supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "staff.policy_saved",
+        payload: {
+          role_id:
+            roleId,
+          role_name:
+            role.name,
+          permissions:
+            permissionKeys,
+          enabled:
+            data.enabled,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        policy: {
+          roleId:
+            data.role_id,
+          label:
+            data.label,
+          permissionKeys:
+            data.permission_keys,
+          enabled:
+            data.enabled,
+          updatedAt:
+            data.updated_at,
+        },
+      });
+  } catch (error) {
+    console.error(
+      "Save staff policy error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "STAFF_POLICY_SAVE_FAILED",
+      "Не вдалося зберегти staff policy.",
+    );
+  }
+}
+
+async function handleDeleteStaffRolePolicy(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const roleId =
+    String(
+      body.roleId ||
+      "",
+    ).trim();
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    !isSnowflake(
+      roleId,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_STAFF_ROLE",
+      "Некоректна Discord роль.",
+    );
+  }
+
+  try {
+    const access =
+      await requireGuildOwnerAccess(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const {
+      error,
+    } = await access.supabase
+      .from(
+        "discord_staff_role_permissions",
+      )
+      .delete()
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "role_id",
+        roleId,
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    await access.supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "staff.policy_deleted",
+        payload: {
+          role_id:
+            roleId,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Delete staff policy error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "STAFF_POLICY_DELETE_FAILED",
+      "Не вдалося видалити staff policy.",
+    );
+  }
+}
+
 const INCIDENT_SOURCE_TYPES =
   new Set([
     "audit",
@@ -9493,10 +10069,783 @@ async function handleModerationHistory(
   }
 }
 
-async function readManagedGuildSettings(
+
+const STAFF_PERMISSION_CATALOG =
+  Object.freeze([
+    {
+      key: "overview.view",
+      group: "overview",
+      label: "Control Center overview",
+      level: "view",
+    },
+    {
+      key: "analytics.view",
+      group: "analytics",
+      label: "Analytics",
+      level: "view",
+    },
+    {
+      key: "commands.view",
+      group: "commands",
+      label: "View commands",
+      level: "view",
+    },
+    {
+      key: "commands.manage",
+      group: "commands",
+      label: "Manage commands",
+      level: "manage",
+    },
+    {
+      key: "security.view",
+      group: "security",
+      label: "View security",
+      level: "view",
+    },
+    {
+      key: "security.manage",
+      group: "security",
+      label: "Manage Raid Guard",
+      level: "manage",
+    },
+    {
+      key: "security.emergency",
+      group: "security",
+      label: "Emergency mode",
+      level: "danger",
+    },
+    {
+      key: "incidents.view",
+      group: "incidents",
+      label: "View incidents",
+      level: "view",
+    },
+    {
+      key: "incidents.manage",
+      group: "incidents",
+      label: "Manage incidents",
+      level: "manage",
+    },
+    {
+      key: "onboarding.view",
+      group: "onboarding",
+      label: "View onboarding",
+      level: "view",
+    },
+    {
+      key: "onboarding.manage",
+      group: "onboarding",
+      label: "Manage onboarding",
+      level: "manage",
+    },
+    {
+      key: "moderation.view",
+      group: "moderation",
+      label: "View moderation",
+      level: "view",
+    },
+    {
+      key: "moderation.manage",
+      group: "moderation",
+      label: "Manage moderation",
+      level: "manage",
+    },
+    {
+      key: "support.view",
+      group: "support",
+      label: "View support",
+      level: "view",
+    },
+    {
+      key: "support.manage",
+      group: "support",
+      label: "Manage support",
+      level: "manage",
+    },
+    {
+      key: "publishing.view",
+      group: "publishing",
+      label: "View publishing",
+      level: "view",
+    },
+    {
+      key: "publishing.manage",
+      group: "publishing",
+      label: "Manage publishing",
+      level: "manage",
+    },
+    {
+      key: "system.view",
+      group: "system",
+      label: "View system",
+      level: "view",
+    },
+    {
+      key: "system.manage",
+      group: "system",
+      label: "Manage system settings",
+      level: "manage",
+    },
+    {
+      key: "system.snapshot",
+      group: "system",
+      label: "Create config snapshots",
+      level: "manage",
+    },
+    {
+      key: "system.restore",
+      group: "system",
+      label: "Restore configuration",
+      level: "danger",
+    },
+    {
+      key: "diagnostics.view",
+      group: "diagnostics",
+      label: "Diagnostics",
+      level: "view",
+    },
+  ]);
+
+const STAFF_PERMISSION_KEYS =
+  new Set(
+    STAFF_PERMISSION_CATALOG.map(
+      (item) =>
+        item.key,
+    ),
+  );
+
+const STAFF_PERMISSION_PRESETS =
+  Object.freeze({
+    moderator: [
+      "overview.view",
+      "analytics.view",
+      "moderation.view",
+      "moderation.manage",
+      "incidents.view",
+      "incidents.manage",
+      "diagnostics.view",
+    ],
+    support: [
+      "overview.view",
+      "analytics.view",
+      "support.view",
+      "support.manage",
+      "incidents.view",
+      "incidents.manage",
+      "diagnostics.view",
+    ],
+    recruiter: [
+      "overview.view",
+      "analytics.view",
+      "onboarding.view",
+      "incidents.view",
+      "commands.view",
+      "diagnostics.view",
+    ],
+    security: [
+      "overview.view",
+      "analytics.view",
+      "security.view",
+      "security.manage",
+      "incidents.view",
+      "incidents.manage",
+      "diagnostics.view",
+    ],
+    content: [
+      "overview.view",
+      "analytics.view",
+      "publishing.view",
+      "publishing.manage",
+      "commands.view",
+      "diagnostics.view",
+    ],
+    administrator:
+      STAFF_PERMISSION_CATALOG
+        .filter(
+          (item) =>
+            ![
+              "security.emergency",
+              "system.restore",
+            ].includes(
+              item.key,
+            ),
+        )
+        .map(
+          (item) =>
+            item.key,
+        ),
+  });
+
+function normalizeStaffPermissionKeys(
+  values,
+) {
+  return [
+    ...new Set(
+      (
+        Array.isArray(values)
+          ? values
+          : []
+      )
+        .map(
+          (value) =>
+            String(
+              value ||
+              "",
+            )
+              .trim()
+              .toLowerCase(),
+        )
+        .filter(
+          (value) =>
+            STAFF_PERMISSION_KEYS.has(
+              value,
+            ),
+        ),
+    ),
+  ];
+}
+
+function permissionAllows(
+  permissions,
+  required,
+) {
+  if (!required) {
+    return true;
+  }
+
+  const set =
+    permissions instanceof Set
+      ? permissions
+      : new Set(
+          Array.isArray(
+            permissions,
+          )
+            ? permissions
+            : [],
+        );
+
+  if (set.has("*")) {
+    return true;
+  }
+
+  if (set.has(required)) {
+    return true;
+  }
+
+  if (
+    required.endsWith(
+      ".view",
+    )
+  ) {
+    const group =
+      required.split(".")[0];
+
+    return (
+      set.has(
+        group +
+          ".manage",
+      ) ||
+      set.has(
+        group +
+          ".restore",
+      ) ||
+      set.has(
+        group +
+          ".emergency",
+      )
+    );
+  }
+
+  return false;
+}
+
+async function recordStaffAccessDecision(
+  supabase,
+  {
+    guildId,
+    account,
+    discordUserId,
+    action,
+    permissionKey,
+    decision,
+    matchedRoleIds,
+  },
+) {
+  if (
+    !supabase ||
+    !guildId ||
+    !account?.user?.id ||
+    !action
+  ) {
+    return;
+  }
+
+  try {
+    await supabase
+      .from(
+        "discord_staff_access_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        website_user_id:
+          account.user.id,
+        discord_user_id:
+          discordUserId ||
+          null,
+        action:
+          String(action)
+            .slice(0, 100),
+        permission_key:
+          permissionKey ||
+          null,
+        decision,
+        matched_role_ids:
+          Array.isArray(
+            matchedRoleIds,
+          )
+            ? matchedRoleIds
+            : [],
+      });
+  } catch (error) {
+    console.error(
+      "Staff access audit insert failed:",
+      error,
+    );
+  }
+}
+
+async function readGuildControlAccess(
+  supabase,
+  account,
+  guildId,
+  {
+    requiredPermission = "",
+    action = "",
+    audit = false,
+  } = {},
+) {
+  const [
+    settingsResult,
+    licenseResult,
+  ] =
+    await Promise.all([
+      supabase
+        .from(
+          "discord_guild_settings",
+        )
+        .select("*")
+        .eq(
+          "guild_id",
+          guildId,
+        )
+        .maybeSingle(),
+      supabase
+        .from(
+          "discord_guild_licenses",
+        )
+        .select("*")
+        .eq(
+          "guild_id",
+          guildId,
+        )
+        .maybeSingle(),
+    ]);
+
+  if (
+    settingsResult.error ||
+    licenseResult.error
+  ) {
+    throw (
+      settingsResult.error ||
+      licenseResult.error
+    );
+  }
+
+  const settingsRow =
+    settingsResult.data;
+  const license =
+    licenseResult.data;
+
+  if (
+    !settingsRow ||
+    !license ||
+    !licenseActive(
+      license,
+    )
+  ) {
+    return {
+      ok: false,
+      status: 403,
+      error:
+        "GUILD_LICENSE_REQUIRED",
+      message:
+        "Немає активної ліцензії для цього сервера.",
+    };
+  }
+
+  const isOwner =
+    settingsRow.owner_user_id ===
+      account.user.id &&
+    license.user_id ===
+      account.user.id;
+
+  if (isOwner) {
+    return {
+      ok: true,
+      isOwner: true,
+      permissions:
+        new Set(["*"]),
+      permissionKeys: ["*"],
+      matchedRoleIds: [],
+      discordUserId: null,
+      settingsRow,
+      settings:
+        normalizeSettings(
+          settingsRow,
+        ),
+      license,
+      ownerUserId:
+        settingsRow.owner_user_id,
+    };
+  }
+
+  const {
+    data:
+      discordAccount,
+    error:
+      discordAccountError,
+  } = await supabase
+    .from(
+      "discord_customer_accounts",
+    )
+    .select(
+      "discord_user_id,discord_username,discord_global_name,discord_avatar",
+    )
+    .eq(
+      "user_id",
+      account.user.id,
+    )
+    .maybeSingle();
+
+  if (
+    discordAccountError
+  ) {
+    throw discordAccountError;
+  }
+
+  const discordUserId =
+    String(
+      discordAccount
+        ?.discord_user_id ||
+      "",
+    );
+
+  if (
+    !isSnowflake(
+      discordUserId,
+    )
+  ) {
+    if (audit) {
+      await recordStaffAccessDecision(
+        supabase,
+        {
+          guildId,
+          account,
+          discordUserId:
+            null,
+          action,
+          permissionKey:
+            requiredPermission,
+          decision:
+            "denied",
+          matchedRoleIds: [],
+        },
+      );
+    }
+
+    return {
+      ok: false,
+      status: 403,
+      error:
+        "DISCORD_LINK_REQUIRED",
+      message:
+        "Підключіть Discord акаунт для staff доступу.",
+    };
+  }
+
+  const {
+    data:
+      policies,
+    error:
+      policiesError,
+  } = await supabase
+    .from(
+      "discord_staff_role_permissions",
+    )
+    .select(
+      "role_id,label,permission_keys,enabled",
+    )
+    .eq(
+      "guild_id",
+      guildId,
+    )
+    .eq(
+      "enabled",
+      true,
+    );
+
+  if (policiesError) {
+    throw policiesError;
+  }
+
+  if (
+    !Array.isArray(
+      policies,
+    ) ||
+    !policies.length
+  ) {
+    if (audit) {
+      await recordStaffAccessDecision(
+        supabase,
+        {
+          guildId,
+          account,
+          discordUserId,
+          action,
+          permissionKey:
+            requiredPermission,
+          decision:
+            "denied",
+          matchedRoleIds: [],
+        },
+      );
+    }
+
+    return {
+      ok: false,
+      status: 403,
+      error:
+        "STAFF_ACCESS_REQUIRED",
+      message:
+        "Для цього Discord-сервера staff доступ не налаштований.",
+    };
+  }
+
+  const config =
+    readConfig();
+
+  if (!config.botToken) {
+    return {
+      ok: false,
+      status: 503,
+      error:
+        "DISCORD_BOT_TOKEN_MISSING",
+      message:
+        "ISTe Bot не має Discord токена.",
+    };
+  }
+
+  let member = null;
+
+  try {
+    member =
+      await discordRequest(
+        "/guilds/" +
+        guildId +
+        "/members/" +
+        discordUserId,
+        {
+          token:
+            config.botToken,
+          authType: "Bot",
+        },
+      );
+  } catch (error) {
+    if (
+      error?.status ===
+        404
+    ) {
+      if (audit) {
+        await recordStaffAccessDecision(
+          supabase,
+          {
+            guildId,
+            account,
+            discordUserId,
+            action,
+            permissionKey:
+              requiredPermission,
+            decision:
+              "denied",
+            matchedRoleIds: [],
+          },
+        );
+      }
+
+      return {
+        ok: false,
+        status: 403,
+        error:
+          "STAFF_GUILD_MEMBER_REQUIRED",
+        message:
+          "Discord акаунт не є учасником цього сервера.",
+      };
+    }
+
+    throw error;
+  }
+
+  const memberRoles =
+    new Set(
+      (
+        Array.isArray(
+          member?.roles,
+        )
+          ? member.roles
+          : []
+      ).map(
+        (value) =>
+          String(value),
+      ),
+    );
+
+  const matchedPolicies =
+    policies.filter(
+      (policy) =>
+        memberRoles.has(
+          String(
+            policy.role_id,
+          ),
+        ),
+    );
+
+  const matchedRoleIds =
+    matchedPolicies.map(
+      (policy) =>
+        String(
+          policy.role_id,
+        ),
+    );
+
+  const permissionKeys =
+    normalizeStaffPermissionKeys(
+      matchedPolicies.flatMap(
+        (policy) =>
+          Array.isArray(
+            policy
+              .permission_keys,
+          )
+            ? policy
+                .permission_keys
+            : [],
+      ),
+    );
+  const permissions =
+    new Set(
+      permissionKeys,
+    );
+
+  if (
+    !matchedPolicies.length ||
+    !permissionAllows(
+      permissions,
+      requiredPermission,
+    )
+  ) {
+    if (audit) {
+      await recordStaffAccessDecision(
+        supabase,
+        {
+          guildId,
+          account,
+          discordUserId,
+          action,
+          permissionKey:
+            requiredPermission,
+          decision:
+            "denied",
+          matchedRoleIds,
+        },
+      );
+    }
+
+    return {
+      ok: false,
+      status: 403,
+      error:
+        "STAFF_PERMISSION_REQUIRED",
+      message:
+        requiredPermission
+          ? "Недостатньо staff permissions для цієї дії."
+          : "Немає staff доступу до цього сервера.",
+    };
+  }
+
+  if (
+    audit &&
+    requiredPermission &&
+    !requiredPermission.endsWith(
+      ".view",
+    )
+  ) {
+    await recordStaffAccessDecision(
+      supabase,
+      {
+        guildId,
+        account,
+        discordUserId,
+        action,
+        permissionKey:
+          requiredPermission,
+        decision:
+          "allowed",
+        matchedRoleIds,
+      },
+    );
+  }
+
+  return {
+    ok: true,
+    isOwner: false,
+    permissions,
+    permissionKeys,
+    matchedRoleIds,
+    discordUserId,
+    discordAccount,
+    settingsRow,
+    settings:
+      normalizeSettings(
+        settingsRow,
+      ),
+    license,
+    ownerUserId:
+      settingsRow.owner_user_id,
+  };
+}
+
+function sendControlAccessError(
+  response,
+  access,
+) {
+  return sendError(
+    response,
+    access.status ||
+      403,
+    access.error ||
+      "STAFF_PERMISSION_REQUIRED",
+    access.message ||
+      "Недостатньо прав.",
+  );
+}
+
+async function requireGuildControlAccess(
   request,
   response,
   guildId,
+  requiredPermission,
+  action,
+  audit = false,
 ) {
   const account =
     await requireAccount(
@@ -9519,64 +10868,25 @@ async function readManagedGuildSettings(
 
   const supabase =
     getSupabaseAdminClient();
+  const access =
+    await readGuildControlAccess(
+      supabase,
+      account,
+      guildId,
+      {
+        requiredPermission,
+        action,
+        audit,
+      },
+    );
 
-  const [
-    owned,
-    settingsResult,
-  ] =
-    await Promise.all([
-      readOwnedLicense(
-        supabase,
-        account.user.id,
-        guildId,
-      ),
-      supabase
-        .from(
-          "discord_guild_settings",
-        )
-        .select("*")
-        .eq(
-          "guild_id",
-          guildId,
-        )
-        .eq(
-          "owner_user_id",
-          account.user.id,
-        )
-        .maybeSingle(),
-    ]);
-
-  if (
-    !owned.ok ||
-    !owned.license ||
-    !licenseActive(
-      owned.license,
-    )
-  ) {
+  if (!access.ok) {
     return {
       ok: false,
       sent:
-        sendError(
+        sendControlAccessError(
           response,
-          403,
-          "GUILD_LICENSE_REQUIRED",
-          "Немає активної ліцензії для цього сервера.",
-        ),
-    };
-  }
-
-  if (
-    settingsResult.error ||
-    !settingsResult.data
-  ) {
-    return {
-      ok: false,
-      sent:
-        sendError(
-          response,
-          404,
-          "GUILD_SETTINGS_NOT_FOUND",
-          "Спочатку збережіть налаштування сервера.",
+          access,
         ),
     };
   }
@@ -9585,13 +10895,28 @@ async function readManagedGuildSettings(
     ok: true,
     account,
     supabase,
-    settingsRow:
-      settingsResult.data,
-    settings:
-      normalizeSettings(
-        settingsResult.data,
-      ),
+    ...access,
   };
+}
+
+async function readManagedGuildSettings(
+  request,
+  response,
+  guildId,
+  requiredPermission =
+    "overview.view",
+  action =
+    "guild-settings",
+  audit = false,
+) {
+  return requireGuildControlAccess(
+    request,
+    response,
+    guildId,
+    requiredPermission,
+    action,
+    audit,
+  );
 }
 
 async function publishManagedDiscordPanel({
@@ -16097,6 +17422,36 @@ export default async function botPortalHandler(
     "publish-ticket-panel"
   ) {
     return handlePublishTicketPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "staff-permissions-overview"
+  ) {
+    return handleStaffPermissionsOverview(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "save-staff-role-policy"
+  ) {
+    return handleSaveStaffRolePolicy(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "delete-staff-role-policy"
+  ) {
+    return handleDeleteStaffRolePolicy(
       request,
       response,
     );
