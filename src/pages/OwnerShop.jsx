@@ -753,6 +753,78 @@ export default function OwnerShop() {
 
         <aside className="owner-shop-products">
           <div className="owner-shop-section-title">
+            <p>ПРЕДПРОСМОТР</p>
+            <h2>Карточка товара</h2>
+          </div>
+
+          <article className="owner-shop-live-preview">
+            <div className="owner-shop-live-preview__visual">
+              {form.imageUrl ? (
+                <img
+                  src={form.imageUrl}
+                  alt=""
+                />
+              ) : (
+                <span>ISTe</span>
+              )}
+            </div>
+
+            <div className="owner-shop-live-preview__body">
+              <div className="owner-shop-live-preview__meta">
+                <span>
+                  {form.collection ||
+                    "ISTe Wear"}
+                </span>
+                <strong>
+                  {form.priceUah === ""
+                    ? "Цена скоро"
+                    : `${Number(
+                        form.priceUah ||
+                          0,
+                      ).toLocaleString(
+                        "ru-RU",
+                      )} ₴`}
+                </strong>
+              </div>
+
+              <h3>
+                {form.name ||
+                  "Название товара"}
+              </h3>
+
+              {form.shortDescription ? (
+                <p>
+                  {
+                    form.shortDescription
+                  }
+                </p>
+              ) : null}
+
+              <div className="owner-shop-live-preview__sizes">
+                {parseSizes(
+                  form.sizesText,
+                )
+                  .slice(0, 8)
+                  .map(
+                    (size) => (
+                      <span
+                        key={size}
+                      >
+                        {size}
+                      </span>
+                    ),
+                  )}
+              </div>
+
+              <ProductStatus
+                status={
+                  form.status
+                }
+              />
+            </div>
+          </article>
+
+          <div className="owner-shop-section-title owner-shop-section-title--catalog">
             <p>КАТАЛОГ</p>
             <h2>Товары</h2>
           </div>
