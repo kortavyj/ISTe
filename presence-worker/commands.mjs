@@ -880,6 +880,149 @@ function compactCommandForLog(command) {
   };
 }
 
+export const ISTE_SUBSCRIPTION_COMMANDS =
+  ISTE_COMMANDS.filter(
+    (command) =>
+      command.name ===
+        "subscription" ||
+      command.name ===
+        "subscriptions",
+  );
+
+async function upsertGuildCommand(
+  token,
+  applicationId,
+  guildId,
+  command,
+) {
+  const response = await fetch(
+    `${DISCORD_API}/applications/${applicationId}/guilds/${guildId}/commands`,
+    {
+      method: "POST",
+      headers: {
+        Authorization:
+          `Bot ${token}`,
+        "Content-Type":
+          "application/json",
+        Accept:
+          "application/json",
+      },
+      body:
+        JSON.stringify(
+          command,
+        ),
+    },
+  );
+
+  const payload =
+    await response
+      .json()
+      .catch(() => null);
+
+  if (!response.ok) {
+    const message =
+      payload?.message ||
+      `Discord guild command sync failed with HTTP ${response.status}`;
+
+    throw new Error(
+      `${message}: ${JSON.stringify(
+        payload,
+      ).slice(0, 1500)}`,
+    );
+  }
+
+  return payload;
+}
+
+export async function syncDiscordGuildSubscriptionCommands(
+  token,
+  applicationId,
+  guildIds,
+) {
+  const cleanToken =
+    String(token || "")
+      .trim();
+  const cleanApplicationId =
+    String(
+      applicationId ||
+        "",
+    ).trim();
+  const cleanGuildIds =
+    [
+      ...new Set(
+        (
+          Array.isArray(
+            guildIds,
+          )
+            ? guildIds
+            : []
+        )
+          .map((value) =>
+            String(
+              value ||
+                "",
+            ).trim(),
+          )
+          .filter((value) =>
+            /^[0-9]{17,20}$/.test(
+              value,
+            ),
+          ),
+      ),
+    ];
+
+  if (!cleanToken) {
+    throw new Error(
+      "DISCORD_BOT_TOKEN is missing",
+    );
+  }
+
+  if (!cleanApplicationId) {
+    throw new Error(
+      "Discord application id is missing",
+    );
+  }
+
+  const synced = [];
+
+  for (
+    const guildId
+    of cleanGuildIds
+  ) {
+    for (
+      const command
+      of ISTE_SUBSCRIPTION_COMMANDS
+    ) {
+      const result =
+        await upsertGuildCommand(
+          cleanToken,
+          cleanApplicationId,
+          guildId,
+          command,
+        );
+
+      synced.push({
+        guildId,
+        name:
+          result?.name ||
+          command.name,
+        id:
+          result?.id ||
+          null,
+      });
+    }
+  }
+
+  return {
+    guildCount:
+      cleanGuildIds.length,
+    commandCount:
+      synced.length,
+    commands:
+      synced,
+  };
+}
+
 export async function syncDiscordCommands(token, applicationId) {
   const cleanToken = String(token || "").trim();
   const cleanApplicationId = String(applicationId || "").trim();
