@@ -78,6 +78,121 @@
   font: inherit;
 }
 
+.admin-bot-subscription-requests {
+  margin: 18px 0 24px;
+  overflow: hidden;
+  border: 1px solid rgba(227,6,19,.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(227,6,19,.055), transparent 42%),
+    #0b0f14;
+}
+
+.admin-bot-subscription-requests > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.admin-bot-subscription-requests > header span {
+  color: #e30613;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.admin-bot-subscription-requests > header h2 {
+  margin: 5px 0 0;
+  font-size: 1.25rem;
+}
+
+.admin-bot-subscription-requests > header p {
+  max-width: 720px;
+  margin: 7px 0 0;
+  color: rgba(255,255,255,.38);
+  font-size: .68rem;
+  line-height: 1.55;
+}
+
+.admin-bot-subscription-requests > header > strong {
+  display: grid;
+  min-width: 42px;
+  min-height: 42px;
+  place-items: center;
+  border: 1px solid rgba(227,6,19,.22);
+  border-radius: 12px;
+  background: rgba(227,6,19,.08);
+  color: #ff5c67;
+}
+
+.admin-bot-subscription-request-list {
+  display: grid;
+  gap: 1px;
+  background: rgba(255,255,255,.045);
+}
+
+.admin-bot-subscription-request-list article {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) minmax(300px, 1.4fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  background: #0b0f14;
+}
+
+.admin-bot-subscription-request-plans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.admin-bot-subscription-request-plans span {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  color: rgba(255,255,255,.3);
+  font-size: .5rem;
+}
+
+.admin-bot-subscription-request-plans b {
+  color: rgba(255,255,255,.82);
+  font-size: .62rem;
+}
+
+.admin-bot-subscription-request-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.admin-bot-subscription-request-actions button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(227,6,19,.3);
+  border-radius: 7px;
+  background: rgba(227,6,19,.1);
+  color: #fff;
+  cursor: pointer;
+  font-size: .57rem;
+  font-weight: 900;
+}
+
+.admin-bot-subscription-request-actions button.danger {
+  border-color: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.025);
+  color: #ff848d;
+}
+
+.admin-bot-subscription-request-actions button:disabled {
+  cursor: wait;
+  opacity: .45;
+}
+
 .admin-bot-subscriptions-list {
   display: grid;
   gap: 8px;
@@ -223,8 +338,13 @@
 }
 
 @media (max-width: 980px) {
-  .admin-bot-subscriptions-list article {
+  .admin-bot-subscriptions-list article,
+  .admin-bot-subscription-request-list article {
     grid-template-columns: 1fr;
+  }
+
+  .admin-bot-subscription-request-actions {
+    justify-content: flex-start;
   }
 
   .admin-bot-subscriptions-actions {
