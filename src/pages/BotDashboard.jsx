@@ -73,6 +73,21 @@ const EMPTY_PUBLICATIONS = {
   scheduled: [],
 };
 
+const EMPTY_STAFF_CENTER = {
+  permissionCatalog: [],
+  presets: {},
+  policies: [],
+  recentAccess: [],
+};
+
+const EMPTY_STAFF_DRAFT = {
+  roleId: "",
+  label: "",
+  preset: "moderator",
+  permissionKeys: [],
+  enabled: true,
+};
+
 const EMPTY_INCIDENT_CENTER = {
   windowDays: 14,
   summary: {
@@ -221,6 +236,7 @@ const copy = {
     tabCommands: "Команди",
     tabSecurity: "Безпека",
     tabIncidents: "Інциденти",
+    tabStaff: "Staff",
     tabOnboarding: "Онбординг",
     tabModeration: "Модерація",
     tabSupport: "Підтримка",
@@ -356,6 +372,39 @@ const copy = {
     incidentSubject: "Subject",
     incidentActor: "Actor",
     incidentChannel: "Channel",
+    staffTitle: "Staff & Permissions",
+    staffText:
+      "Делегуй Control Center через реальні Discord ролі. Зняття ролі в Discord одразу забирає доступ.",
+    staffPolicies: "Role policies",
+    staffRole: "Discord роль",
+    staffLabel: "Назва policy",
+    staffLabelPlaceholder: "Наприклад: Senior Moderator",
+    staffPreset: "Preset",
+    staffPresetModerator: "Moderator",
+    staffPresetSupport: "Support",
+    staffPresetRecruiter: "Recruiter",
+    staffPresetSecurity: "Security",
+    staffPresetContent: "Content Manager",
+    staffPresetAdministrator: "Administrator",
+    staffPermissions: "Permissions",
+    staffSavePolicy: "Зберегти policy",
+    staffSaving: "Збереження...",
+    staffDelete: "Видалити",
+    staffEdit: "Редагувати",
+    staffCancelEdit: "Скасувати",
+    staffEnabled: "Policy активна",
+    staffNoPolicies: "Staff policies ще не створені.",
+    staffAccessAudit: "Access audit",
+    staffNoAudit: "Delegated access ще не використовувався.",
+    staffAllowed: "ALLOWED",
+    staffDenied: "DENIED",
+    staffPolicySaved: "Staff policy збережено.",
+    staffPolicyDeleted: "Staff policy видалено.",
+    staffDeleteConfirm: "Видалити staff policy для цієї Discord ролі?",
+    staffLoading: "Завантаження...",
+    staffError: "Не вдалося завантажити Staff & Permissions.",
+    staffDangerHint:
+      "Danger permissions не входять у звичайні пресети: Emergency Mode та Configuration Restore треба додавати вручну.",
     diagnosticsTitle: "Diagnostics & Alerts",
     diagnosticsText:
       "Перевірка Discord permissions, ролей, каналів, worker runtime та помилок активних модулів.",
@@ -703,6 +752,7 @@ const copy = {
     tabCommands: "Commands",
     tabSecurity: "Security",
     tabIncidents: "Incidents",
+    tabStaff: "Staff",
     tabOnboarding: "Onboarding",
     tabModeration: "Moderation",
     tabSupport: "Support",
@@ -838,6 +888,39 @@ const copy = {
     incidentSubject: "Subject",
     incidentActor: "Actor",
     incidentChannel: "Channel",
+    staffTitle: "Staff & Permissions",
+    staffText:
+      "Delegate Control Center access through live Discord roles. Removing the role in Discord removes access immediately.",
+    staffPolicies: "Role policies",
+    staffRole: "Discord role",
+    staffLabel: "Policy label",
+    staffLabelPlaceholder: "Example: Senior Moderator",
+    staffPreset: "Preset",
+    staffPresetModerator: "Moderator",
+    staffPresetSupport: "Support",
+    staffPresetRecruiter: "Recruiter",
+    staffPresetSecurity: "Security",
+    staffPresetContent: "Content Manager",
+    staffPresetAdministrator: "Administrator",
+    staffPermissions: "Permissions",
+    staffSavePolicy: "Save policy",
+    staffSaving: "Saving...",
+    staffDelete: "Delete",
+    staffEdit: "Edit",
+    staffCancelEdit: "Cancel",
+    staffEnabled: "Policy enabled",
+    staffNoPolicies: "No staff policies yet.",
+    staffAccessAudit: "Access audit",
+    staffNoAudit: "Delegated access has not been used yet.",
+    staffAllowed: "ALLOWED",
+    staffDenied: "DENIED",
+    staffPolicySaved: "Staff policy saved.",
+    staffPolicyDeleted: "Staff policy deleted.",
+    staffDeleteConfirm: "Delete the staff policy for this Discord role?",
+    staffLoading: "Loading...",
+    staffError: "Could not load Staff & Permissions.",
+    staffDangerHint:
+      "Danger permissions are not included in normal presets. Emergency Mode and Configuration Restore must be added manually.",
     diagnosticsTitle: "Diagnostics & Alerts",
     diagnosticsText:
       "Check Discord permissions, roles, channels, worker runtime and active module errors.",
@@ -1533,6 +1616,30 @@ export default function BotDashboard() {
   ] = useState("");
 
   const [
+    staffCenter,
+    setStaffCenter,
+  ] = useState(
+    EMPTY_STAFF_CENTER,
+  );
+
+  const [
+    staffDraft,
+    setStaffDraft,
+  ] = useState(
+    EMPTY_STAFF_DRAFT,
+  );
+
+  const [
+    staffLoading,
+    setStaffLoading,
+  ] = useState(false);
+
+  const [
+    staffError,
+    setStaffError,
+  ] = useState("");
+
+  const [
     incidentCenter,
     setIncidentCenter,
   ] = useState(
@@ -1925,6 +2032,272 @@ export default function BotDashboard() {
             0,
         ),
       );
+  }
+
+  async function loadStaffCenter(
+    guildId =
+      selectedGuildId,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setStaffLoading(true);
+    setStaffError("");
+
+    try {
+      const result =
+        await api(
+          "staff-permissions-overview",
+          {
+            method: "POST",
+            body: {
+              guildId,
+            },
+          },
+        );
+
+      setStaffCenter({
+        permissionCatalog:
+          Array.isArray(
+            result.permissionCatalog,
+          )
+            ? result.permissionCatalog
+            : [],
+        presets:
+          result.presets &&
+          typeof result.presets ===
+            "object"
+            ? result.presets
+            : {},
+        policies:
+          Array.isArray(
+            result.policies,
+          )
+            ? result.policies
+            : [],
+        recentAccess:
+          Array.isArray(
+            result.recentAccess,
+          )
+            ? result.recentAccess
+            : [],
+      });
+    } catch (loadError) {
+      setStaffError(
+        loadError?.message ||
+          c.staffError,
+      );
+    } finally {
+      setStaffLoading(false);
+    }
+  }
+
+  function applyStaffPreset(
+    preset,
+  ) {
+    setStaffDraft(
+      (current) => ({
+        ...current,
+        preset,
+        permissionKeys:
+          Array.isArray(
+            staffCenter
+              .presets?.[
+                preset
+              ],
+          )
+            ? [
+                ...staffCenter
+                  .presets[
+                    preset
+                  ],
+              ]
+            : [],
+      }),
+    );
+  }
+
+  function toggleStaffPermission(
+    permissionKey,
+  ) {
+    setStaffDraft(
+      (current) => {
+        const currentKeys =
+          new Set(
+            current
+              .permissionKeys ||
+            [],
+          );
+
+        if (
+          currentKeys.has(
+            permissionKey,
+          )
+        ) {
+          currentKeys.delete(
+            permissionKey,
+          );
+        } else {
+          currentKeys.add(
+            permissionKey,
+          );
+        }
+
+        return {
+          ...current,
+          permissionKeys: [
+            ...currentKeys,
+          ],
+        };
+      },
+    );
+  }
+
+  async function saveStaffPolicy() {
+    if (
+      !selectedGuild ||
+      !staffDraft.roleId
+    ) {
+      return;
+    }
+
+    setBusy("staff-policy");
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "save-staff-role-policy",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            roleId:
+              staffDraft.roleId,
+            label:
+              staffDraft.label,
+            permissionKeys:
+              staffDraft
+                .permissionKeys,
+            enabled:
+              staffDraft.enabled,
+          },
+        },
+      );
+
+      setStaffDraft({
+        ...EMPTY_STAFF_DRAFT,
+      });
+      setNotice(
+        c.staffPolicySaved,
+      );
+
+      await Promise.all([
+        loadStaffCenter(
+          selectedGuild
+            .guildId,
+        ),
+        load(),
+      ]);
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  function editStaffPolicy(
+    policy,
+  ) {
+    setStaffDraft({
+      roleId:
+        policy.roleId,
+      label:
+        policy.label ||
+        "",
+      preset: "",
+      permissionKeys:
+        Array.isArray(
+          policy.permissionKeys,
+        )
+          ? [
+              ...policy
+                .permissionKeys,
+            ]
+          : [],
+      enabled:
+        policy.enabled !==
+        false,
+    });
+  }
+
+  async function deleteStaffPolicy(
+    roleId,
+  ) {
+    if (
+      !selectedGuild ||
+      !window.confirm(
+        c.staffDeleteConfirm,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      "staff-delete:" +
+      roleId,
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "delete-staff-role-policy",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            roleId,
+          },
+        },
+      );
+
+      if (
+        staffDraft.roleId ===
+        roleId
+      ) {
+        setStaffDraft({
+          ...EMPTY_STAFF_DRAFT,
+        });
+      }
+
+      setNotice(
+        c.staffPolicyDeleted,
+      );
+
+      await Promise.all([
+        loadStaffCenter(
+          selectedGuild
+            .guildId,
+        ),
+        load(),
+      ]);
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
   }
 
   async function loadIncidentCenter(
@@ -2779,6 +3152,13 @@ export default function BotDashboard() {
       audit: [],
     });
     setModerationError("");
+    setStaffCenter(
+      EMPTY_STAFF_CENTER,
+    );
+    setStaffDraft({
+      ...EMPTY_STAFF_DRAFT,
+    });
+    setStaffError("");
     setIncidentCenter(
       EMPTY_INCIDENT_CENTER,
     );
@@ -2834,6 +3214,16 @@ export default function BotDashboard() {
         guild.guildId,
         "",
         "",
+      );
+    }
+
+    if (
+      guild?.access
+        ?.isOwner ===
+      true
+    ) {
+      void loadStaffCenter(
+        guild.guildId,
       );
     }
 
@@ -4220,14 +4610,19 @@ export default function BotDashboard() {
                   "09",
                 ],
                 [
+                  "staff",
+                  c.tabStaff,
+                  "10",
+                ],
+                [
                   "system",
                   c.tabSystem,
-                  "10",
+                  "11",
                 ],
                 [
                   "diagnostics",
                   c.tabDiagnostics,
-                  "11",
+                  "12",
                 ],
               ]
                 .filter(
@@ -4253,13 +4648,18 @@ export default function BotDashboard() {
                                       ? "support.view"
                                       : key === "publishing"
                                         ? "publishing.view"
-                                        : key === "system"
-                                          ? "system.view"
-                                          : "diagnostics.view";
+                                        : key === "staff"
+                                          ? "owner"
+                                          : key === "system"
+                                            ? "system.view"
+                                            : "diagnostics.view";
 
-                    return canControl(
-                      permission,
-                    );
+                    return permission ===
+                      "owner"
+                      ? controlOwner
+                      : canControl(
+                          permission,
+                        );
                   },
                 )
                 .map(
@@ -4322,6 +4722,13 @@ export default function BotDashboard() {
                         "diagnostics"
                       ) {
                         void loadDiagnostics();
+                      }
+
+                      if (
+                        key ===
+                        "staff"
+                      ) {
+                        void loadStaffCenter();
                       }
 
                       if (
@@ -4506,10 +4913,38 @@ export default function BotDashboard() {
                           .scheduled
                           .length,
                     },
+                    ...(
+                      controlOwner
+                        ? [
+                            {
+                              key:
+                                "staff",
+                              index:
+                                "10",
+                              title:
+                                c.tabStaff,
+                              enabled:
+                                staffCenter
+                                  .policies
+                                  .filter(
+                                    (
+                                      policy,
+                                    ) =>
+                                      policy.enabled,
+                                  )
+                                  .length,
+                              total:
+                                staffCenter
+                                  .policies
+                                  .length,
+                            },
+                          ]
+                        : []
+                    ),
                     {
                       key:
                         "system",
-                      index: "10",
+                      index: "11",
                       title:
                         c.tabSystem,
                       enabled: [
@@ -8023,6 +8458,489 @@ export default function BotDashboard() {
                     ) : (
                       <p className="bot-dashboard-log-empty">
                         {c.commandNoUsage}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section
+              className={
+                `bot-dashboard-staff-center${settingsTab === "staff" ? "" : " hidden"}`
+              }
+            >
+              <header className="bot-dashboard-staff-head">
+                <div>
+                  <span>
+                    STAFF RBAC
+                  </span>
+                  <h3>
+                    {c.staffTitle}
+                  </h3>
+                  <p>
+                    {c.staffText}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void loadStaffCenter()
+                  }
+                  disabled={
+                    staffLoading
+                  }
+                >
+                  {staffLoading
+                    ? c.staffLoading
+                    : c.commandCenterRefresh}
+                </button>
+              </header>
+
+              {staffError ? (
+                <div className="bot-dashboard-alert error">
+                  {staffError}
+                </div>
+              ) : null}
+
+              <div className="bot-dashboard-staff-layout">
+                <article className="bot-dashboard-staff-editor">
+                  <header>
+                    <strong>
+                      {c.staffPolicies}
+                    </strong>
+                    <span>
+                      {
+                        staffCenter
+                          .policies
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="staff-editor-body">
+                    <div className="staff-editor-grid">
+                      <label>
+                        <span>
+                          {c.staffRole}
+                        </span>
+                        <select
+                          value={
+                            staffDraft
+                              .roleId
+                          }
+                          onChange={(
+                            event,
+                          ) => {
+                            const roleId =
+                              event
+                                .target
+                                .value;
+                            const role =
+                              resources
+                                .roles
+                                .find(
+                                  (
+                                    item,
+                                  ) =>
+                                    item.id ===
+                                    roleId,
+                                );
+
+                            setStaffDraft(
+                              (
+                                current,
+                              ) => ({
+                                ...current,
+                                roleId,
+                                label:
+                                  current.label ||
+                                  role
+                                    ?.name ||
+                                  "",
+                              }),
+                            );
+                          }}
+                        >
+                          <option value="">
+                            {c.chooseRole}
+                          </option>
+                          {resources.roles.map(
+                            (
+                              role,
+                            ) => (
+                              <option
+                                key={
+                                  role.id
+                                }
+                                value={
+                                  role.id
+                                }
+                              >
+                                @
+                                {
+                                  role.name
+                                }
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.staffPreset}
+                        </span>
+                        <select
+                          value={
+                            staffDraft
+                              .preset
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            applyStaffPreset(
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="moderator">
+                            {c.staffPresetModerator}
+                          </option>
+                          <option value="support">
+                            {c.staffPresetSupport}
+                          </option>
+                          <option value="recruiter">
+                            {c.staffPresetRecruiter}
+                          </option>
+                          <option value="security">
+                            {c.staffPresetSecurity}
+                          </option>
+                          <option value="content">
+                            {c.staffPresetContent}
+                          </option>
+                          <option value="administrator">
+                            {c.staffPresetAdministrator}
+                          </option>
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.staffLabel}
+                        </span>
+                        <input
+                          type="text"
+                          maxLength={100}
+                          placeholder={
+                            c.staffLabelPlaceholder
+                          }
+                          value={
+                            staffDraft
+                              .label
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            setStaffDraft(
+                              (
+                                current,
+                              ) => ({
+                                ...current,
+                                label:
+                                  event
+                                    .target
+                                    .value,
+                              }),
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="staff-enabled-line">
+                        <input
+                          type="checkbox"
+                          checked={
+                            staffDraft
+                              .enabled
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            setStaffDraft(
+                              (
+                                current,
+                              ) => ({
+                                ...current,
+                                enabled:
+                                  event
+                                    .target
+                                    .checked,
+                              }),
+                            )
+                          }
+                        />
+                        <span>
+                          {c.staffEnabled}
+                        </span>
+                      </label>
+                    </div>
+
+                    <div className="staff-permission-grid">
+                      {staffCenter.permissionCatalog.map(
+                        (
+                          permission,
+                        ) => (
+                          <label
+                            key={
+                              permission.key
+                            }
+                            className={
+                              `staff-permission ${permission.level}`
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={
+                                staffDraft
+                                  .permissionKeys
+                                  .includes(
+                                    permission.key,
+                                  )
+                              }
+                              onChange={() =>
+                                toggleStaffPermission(
+                                  permission.key,
+                                )
+                              }
+                            />
+                            <span>
+                              <strong>
+                                {
+                                  permission.label
+                                }
+                              </strong>
+                              <small>
+                                {
+                                  permission.key
+                                }
+                              </small>
+                            </span>
+                          </label>
+                        ),
+                      )}
+                    </div>
+
+                    <p className="staff-danger-hint">
+                      {c.staffDangerHint}
+                    </p>
+
+                    <div className="staff-editor-actions">
+                      {staffDraft.roleId ? (
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() =>
+                            setStaffDraft({
+                              ...EMPTY_STAFF_DRAFT,
+                            })
+                          }
+                        >
+                          {c.staffCancelEdit}
+                        </button>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        onClick={
+                          saveStaffPolicy
+                        }
+                        disabled={
+                          busy ===
+                            "staff-policy" ||
+                          !staffDraft
+                            .roleId ||
+                          !staffDraft
+                            .permissionKeys
+                            .length
+                        }
+                      >
+                        {busy ===
+                        "staff-policy"
+                          ? c.staffSaving
+                          : c.staffSavePolicy}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="staff-policy-list">
+                    {staffCenter
+                      .policies
+                      .length ? (
+                      staffCenter.policies.map(
+                        (
+                          policy,
+                        ) => {
+                          const role =
+                            resources.roles.find(
+                              (
+                                item,
+                              ) =>
+                                item.id ===
+                                policy.roleId,
+                            );
+
+                          return (
+                            <div
+                              key={
+                                policy.roleId
+                              }
+                              className={
+                                `staff-policy-row${policy.enabled ? "" : " disabled"}`
+                              }
+                            >
+                              <div>
+                                <strong>
+                                  @
+                                  {role
+                                    ?.name ||
+                                    policy.label ||
+                                    policy.roleId}
+                                </strong>
+                                <small>
+                                  {policy.label ||
+                                    role
+                                      ?.name ||
+                                    ""}
+                                </small>
+                                <div className="staff-policy-scopes">
+                                  {policy.permissionKeys.map(
+                                    (
+                                      key,
+                                    ) => (
+                                      <span
+                                        key={
+                                          key
+                                        }
+                                      >
+                                        {
+                                          key
+                                        }
+                                      </span>
+                                    ),
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="staff-policy-actions">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    editStaffPolicy(
+                                      policy,
+                                    )
+                                  }
+                                >
+                                  {c.staffEdit}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="danger"
+                                  onClick={() =>
+                                    void deleteStaffPolicy(
+                                      policy.roleId,
+                                    )
+                                  }
+                                  disabled={
+                                    busy ===
+                                    "staff-delete:" +
+                                      policy.roleId
+                                  }
+                                >
+                                  {c.staffDelete}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        },
+                      )
+                    ) : (
+                      <p className="bot-dashboard-log-empty">
+                        {c.staffNoPolicies}
+                      </p>
+                    )}
+                  </div>
+                </article>
+
+                <article className="bot-dashboard-staff-audit">
+                  <header>
+                    <strong>
+                      {c.staffAccessAudit}
+                    </strong>
+                    <span>
+                      {
+                        staffCenter
+                          .recentAccess
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="staff-audit-list">
+                    {staffCenter
+                      .recentAccess
+                      .length ? (
+                      staffCenter.recentAccess.map(
+                        (
+                          item,
+                        ) => (
+                          <div
+                            key={
+                              item.id
+                            }
+                            className={
+                              `staff-audit-row ${item.decision}`
+                            }
+                          >
+                            <div>
+                              <strong>
+                                {item.permissionKey ||
+                                  item.action}
+                              </strong>
+                              <span>
+                                {item.decision ===
+                                "allowed"
+                                  ? c.staffAllowed
+                                  : c.staffDenied}
+                              </span>
+                            </div>
+
+                            <small>
+                              Discord{" "}
+                              {item.discordUserId ||
+                                "—"}
+                            </small>
+                            <small>
+                              {
+                                item.action
+                              }
+                            </small>
+                            <time>
+                              {formatKyivDateTime(
+                                item
+                                  .createdAt,
+                                language,
+                              )}
+                            </time>
+                          </div>
+                        ),
+                      )
+                    ) : (
+                      <p className="bot-dashboard-log-empty">
+                        {c.staffNoAudit}
                       </p>
                     )}
                   </div>
