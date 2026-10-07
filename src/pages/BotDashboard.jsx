@@ -59,6 +59,28 @@ const EMPTY_SETTINGS = {
   autoRolesEnabled: false,
 };
 
+const EMPTY_PUBLICATIONS = {
+  giveaways: [],
+  scheduled: [],
+};
+
+const EMPTY_GIVEAWAY_DRAFT = {
+  channelId: "",
+  prize: "",
+  description: "",
+  requiredRoleId: "",
+  winnerCount: 1,
+  endsAt: "",
+};
+
+const EMPTY_SCHEDULE_DRAFT = {
+  channelId: "",
+  content: "",
+  embedTitle: "",
+  embedDescription: "",
+  scheduledAt: "",
+};
+
 const copy = {
   uk: {
     eyebrow: "ISTe BOT CONTROL",
@@ -97,6 +119,7 @@ const copy = {
     tabOnboarding: "Онбординг",
     tabModeration: "Модерація",
     tabSupport: "Підтримка",
+    tabPublishing: "Публікації",
     tabSystem: "Система",
     overviewTitle: "Стан модулів",
     overviewText:
@@ -108,6 +131,60 @@ const copy = {
     saveChanges: "Зберегти зміни",
     savingChanges: "Збереження…",
     currentSection: "Поточний розділ",
+    publishingTitle: "Discord публікації",
+    publishingText:
+      "Створюй розіграші та плануй повідомлення. Worker ISTe опублікує все автоматично за київським часом.",
+    refreshPublications: "Оновити",
+    publicationsLoading: "Завантаження...",
+    giveawayBuilder: "Новий Giveaway",
+    giveawayBuilderText:
+      "Кнопка участі, обов'язкова роль, кількість переможців та автоматичне завершення.",
+    giveawayChannel: "Канал розіграшу",
+    giveawayPrize: "Приз",
+    giveawayPrizePlaceholder: "Наприклад: Discord Nitro",
+    giveawayDescription: "Опис",
+    giveawayDescriptionPlaceholder:
+      "Умови або короткий опис розіграшу.",
+    giveawayRequiredRole: "Обов'язкова роль",
+    giveawayWinnerCount: "Кількість переможців",
+    giveawayEndsAt: "Завершення",
+    kyivTime: "Europe/Kyiv",
+    createGiveaway: "Запустити Giveaway",
+    creatingGiveaway: "Створення...",
+    giveawayCreated: "Giveaway опубліковано.",
+    activeGiveaways: "Giveaways",
+    noGiveaways: "Розіграшів поки немає.",
+    participants: "учасників",
+    reroll: "Reroll",
+    cancelGiveaway: "Скасувати",
+    cancelGiveawayConfirm: "Скасувати цей розіграш?",
+    rerollConfirm: "Обрати нових переможців?",
+    scheduledBuilder: "Scheduled Messages",
+    scheduledBuilderText:
+      "Вкажи канал, дату й контент. ISTe Bot відправить повідомлення автоматично.",
+    messageChannel: "Канал",
+    messageContent: "Текст повідомлення",
+    messageContentPlaceholder:
+      "Звичайний текст над Embed, необов'язково.",
+    embedTitle: "Embed заголовок",
+    embedDescription: "Embed текст",
+    scheduledAt: "Дата та час",
+    scheduleMessage: "Запланувати",
+    schedulingMessage: "Планування...",
+    scheduledCreated: "Повідомлення заплановано.",
+    scheduledMessages: "Черга повідомлень",
+    noScheduled: "Запланованих повідомлень немає.",
+    cancelScheduled: "Скасувати",
+    cancelScheduledConfirm: "Скасувати цю заплановану публікацію?",
+    publicationStatus: "Статус",
+    statusActive: "ACTIVE",
+    statusEnded: "ENDED",
+    statusCancelled: "CANCELLED",
+    statusScheduled: "SCHEDULED",
+    statusSent: "SENT",
+    statusFailed: "FAILED",
+    publicationError:
+      "Не вдалося завантажити або змінити Discord публікації.",
     general: "Основне",
     language: "Мова бота",
     uk: "Українська",
@@ -314,6 +391,7 @@ const copy = {
     tabOnboarding: "Onboarding",
     tabModeration: "Moderation",
     tabSupport: "Support",
+    tabPublishing: "Publishing",
     tabSystem: "System",
     overviewTitle: "Module status",
     overviewText:
@@ -325,6 +403,60 @@ const copy = {
     saveChanges: "Save changes",
     savingChanges: "Saving…",
     currentSection: "Current section",
+    publishingTitle: "Discord publishing",
+    publishingText:
+      "Create giveaways and schedule messages. The ISTe worker publishes them automatically using Kyiv time.",
+    refreshPublications: "Refresh",
+    publicationsLoading: "Loading...",
+    giveawayBuilder: "New Giveaway",
+    giveawayBuilderText:
+      "Participation button, required role, winner count and automatic ending.",
+    giveawayChannel: "Giveaway channel",
+    giveawayPrize: "Prize",
+    giveawayPrizePlaceholder: "Example: Discord Nitro",
+    giveawayDescription: "Description",
+    giveawayDescriptionPlaceholder:
+      "Rules or a short giveaway description.",
+    giveawayRequiredRole: "Required role",
+    giveawayWinnerCount: "Winner count",
+    giveawayEndsAt: "Ends at",
+    kyivTime: "Europe/Kyiv",
+    createGiveaway: "Launch Giveaway",
+    creatingGiveaway: "Creating...",
+    giveawayCreated: "Giveaway published.",
+    activeGiveaways: "Giveaways",
+    noGiveaways: "No giveaways yet.",
+    participants: "participants",
+    reroll: "Reroll",
+    cancelGiveaway: "Cancel",
+    cancelGiveawayConfirm: "Cancel this giveaway?",
+    rerollConfirm: "Pick new winners?",
+    scheduledBuilder: "Scheduled Messages",
+    scheduledBuilderText:
+      "Choose a channel, date and content. ISTe Bot will send it automatically.",
+    messageChannel: "Channel",
+    messageContent: "Message content",
+    messageContentPlaceholder:
+      "Optional plain text above the embed.",
+    embedTitle: "Embed title",
+    embedDescription: "Embed description",
+    scheduledAt: "Date and time",
+    scheduleMessage: "Schedule",
+    schedulingMessage: "Scheduling...",
+    scheduledCreated: "Message scheduled.",
+    scheduledMessages: "Message queue",
+    noScheduled: "No scheduled messages.",
+    cancelScheduled: "Cancel",
+    cancelScheduledConfirm: "Cancel this scheduled publication?",
+    publicationStatus: "Status",
+    statusActive: "ACTIVE",
+    statusEnded: "ENDED",
+    statusCancelled: "CANCELLED",
+    statusScheduled: "SCHEDULED",
+    statusSent: "SENT",
+    statusFailed: "FAILED",
+    publicationError:
+      "Could not load or update Discord publications.",
     general: "General",
     language: "Bot language",
     uk: "Українська",
@@ -608,6 +740,143 @@ function formatDateTime(
   ).format(date);
 }
 
+function kyivLocalToIso(
+  value,
+) {
+  if (!value) {
+    return "";
+  }
+
+  const match =
+    String(value)
+      .match(
+        /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/,
+      );
+
+  if (!match) {
+    return "";
+  }
+
+  const target =
+    Date.UTC(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3]),
+      Number(match[4]),
+      Number(match[5]),
+      0,
+    );
+
+  let guess =
+    target;
+
+  for (
+    let pass = 0;
+    pass < 3;
+    pass += 1
+  ) {
+    const parts =
+      new Intl.DateTimeFormat(
+        "en-CA",
+        {
+          timeZone:
+            "Europe/Kyiv",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23",
+        },
+      )
+        .formatToParts(
+          new Date(
+            guess,
+          ),
+        )
+        .reduce(
+          (
+            result,
+            part,
+          ) => {
+            if (
+              part.type !==
+              "literal"
+            ) {
+              result[
+                part.type
+              ] =
+                part.value;
+            }
+
+            return result;
+          },
+          {},
+        );
+
+    const rendered =
+      Date.UTC(
+        Number(
+          parts.year,
+        ),
+        Number(
+          parts.month,
+        ) - 1,
+        Number(
+          parts.day,
+        ),
+        Number(
+          parts.hour,
+        ),
+        Number(
+          parts.minute,
+        ),
+        0,
+      );
+
+    guess +=
+      target -
+      rendered;
+  }
+
+  return new Date(
+    guess,
+  ).toISOString();
+}
+
+function formatKyivDateTime(
+  value,
+  language,
+) {
+  if (!value) return "—";
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat(
+    language === "en"
+      ? "en-GB"
+      : "uk-UA",
+    {
+      timeZone:
+        "Europe/Kyiv",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  ).format(date);
+}
+
 export default function BotDashboard() {
   const {
     language,
@@ -685,6 +954,37 @@ export default function BotDashboard() {
     moderationError,
     setModerationError,
   ] = useState("");
+
+  const [
+    publications,
+    setPublications,
+  ] = useState(
+    EMPTY_PUBLICATIONS,
+  );
+
+  const [
+    publicationsLoading,
+    setPublicationsLoading,
+  ] = useState(false);
+
+  const [
+    publicationsError,
+    setPublicationsError,
+  ] = useState("");
+
+  const [
+    giveawayDraft,
+    setGiveawayDraft,
+  ] = useState(
+    EMPTY_GIVEAWAY_DRAFT,
+  );
+
+  const [
+    scheduleDraft,
+    setScheduleDraft,
+  ] = useState(
+    EMPTY_SCHEDULE_DRAFT,
+  );
 
   const [
     loading,
@@ -827,6 +1127,57 @@ export default function BotDashboard() {
       );
   }
 
+  async function loadPublications(
+    guildId =
+      selectedGuildId,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setPublicationsLoading(
+      true,
+    );
+    setPublicationsError("");
+
+    try {
+      const result =
+        await api(
+          "publications-list",
+          {
+            method: "POST",
+            body: {
+              guildId,
+            },
+          },
+        );
+
+      setPublications({
+        giveaways:
+          Array.isArray(
+            result.giveaways,
+          )
+            ? result.giveaways
+            : [],
+        scheduled:
+          Array.isArray(
+            result.scheduled,
+          )
+            ? result.scheduled
+            : [],
+      });
+    } catch (loadError) {
+      setPublicationsError(
+        loadError?.message ||
+          c.publicationError,
+      );
+    } finally {
+      setPublicationsLoading(
+        false,
+      );
+    }
+  }
+
   async function loadModerationHistory(
     guildId =
       selectedGuildId,
@@ -941,6 +1292,16 @@ export default function BotDashboard() {
       audit: [],
     });
     setModerationError("");
+    setPublications(
+      EMPTY_PUBLICATIONS,
+    );
+    setPublicationsError("");
+    setGiveawayDraft(
+      EMPTY_GIVEAWAY_DRAFT,
+    );
+    setScheduleDraft(
+      EMPTY_SCHEDULE_DRAFT,
+    );
     setNotice("");
     setError("");
 
@@ -948,6 +1309,10 @@ export default function BotDashboard() {
       guild.guildId,
       "",
       "",
+    );
+
+    void loadPublications(
+      guild.guildId,
     );
 
     try {
@@ -1192,6 +1557,286 @@ export default function BotDashboard() {
       setError(
         actionError?.message ||
         c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function createGiveaway() {
+    if (!selectedGuild) {
+      return;
+    }
+
+    setBusy("create-giveaway");
+    setError("");
+    setNotice("");
+
+    try {
+      const endsAt =
+        kyivLocalToIso(
+          giveawayDraft
+            .endsAt,
+        );
+
+      const result =
+        await api(
+          "create-giveaway",
+          {
+            method: "POST",
+            body: {
+              guildId:
+                selectedGuild
+                  .guildId,
+              channelId:
+                giveawayDraft
+                  .channelId,
+              prize:
+                giveawayDraft
+                  .prize,
+              description:
+                giveawayDraft
+                  .description,
+              requiredRoleId:
+                giveawayDraft
+                  .requiredRoleId,
+              winnerCount:
+                giveawayDraft
+                  .winnerCount,
+              endsAt,
+            },
+          },
+        );
+
+      setGiveawayDraft(
+        (current) => ({
+          ...EMPTY_GIVEAWAY_DRAFT,
+          channelId:
+            current.channelId,
+        }),
+      );
+
+      setNotice(
+        c.giveawayCreated,
+      );
+
+      await loadPublications(
+        selectedGuild
+          .guildId,
+      );
+
+      return result;
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.publicationError,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function cancelGiveaway(
+    giveawayId,
+  ) {
+    if (
+      !selectedGuild ||
+      !window.confirm(
+        c.cancelGiveawayConfirm,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      "giveaway:" +
+      giveawayId,
+    );
+    setError("");
+
+    try {
+      await api(
+        "cancel-giveaway",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            giveawayId,
+          },
+        },
+      );
+
+      await loadPublications(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.publicationError,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function rerollGiveaway(
+    giveawayId,
+  ) {
+    if (
+      !selectedGuild ||
+      !window.confirm(
+        c.rerollConfirm,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      "reroll:" +
+      giveawayId,
+    );
+    setError("");
+
+    try {
+      await api(
+        "reroll-giveaway",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            giveawayId,
+          },
+        },
+      );
+
+      await loadPublications(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.publicationError,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function createScheduledMessage() {
+    if (!selectedGuild) {
+      return;
+    }
+
+    setBusy(
+      "schedule-message",
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      const scheduledAt =
+        kyivLocalToIso(
+          scheduleDraft
+            .scheduledAt,
+        );
+
+      await api(
+        "create-scheduled-message",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            channelId:
+              scheduleDraft
+                .channelId,
+            content:
+              scheduleDraft
+                .content,
+            embedTitle:
+              scheduleDraft
+                .embedTitle,
+            embedDescription:
+              scheduleDraft
+                .embedDescription,
+            scheduledAt,
+          },
+        },
+      );
+
+      setScheduleDraft(
+        (current) => ({
+          ...EMPTY_SCHEDULE_DRAFT,
+          channelId:
+            current.channelId,
+        }),
+      );
+
+      setNotice(
+        c.scheduledCreated,
+      );
+
+      await loadPublications(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.publicationError,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function cancelScheduledMessage(
+    scheduledId,
+  ) {
+    if (
+      !selectedGuild ||
+      !window.confirm(
+        c.cancelScheduledConfirm,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      "schedule:" +
+      scheduledId,
+    );
+    setError("");
+
+    try {
+      await api(
+        "cancel-scheduled-message",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            scheduledId,
+          },
+        },
+      );
+
+      await loadPublications(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.publicationError,
       );
     } finally {
       setBusy("");
@@ -1794,9 +2439,14 @@ export default function BotDashboard() {
                   "04",
                 ],
                 [
+                  "publishing",
+                  c.tabPublishing,
+                  "05",
+                ],
+                [
                   "system",
                   c.tabSystem,
-                  "05",
+                  "06",
                 ],
               ].map(
                 ([
@@ -1813,11 +2463,18 @@ export default function BotDashboard() {
                         ? "active"
                         : ""
                     }
-                    onClick={() =>
+                    onClick={() => {
                       setSettingsTab(
                         key,
-                      )
-                    }
+                      );
+
+                      if (
+                        key ===
+                        "publishing"
+                      ) {
+                        void loadPublications();
+                      }
+                    }}
                   >
                     <span>
                       {index}
@@ -1901,8 +2558,39 @@ export default function BotDashboard() {
                     },
                     {
                       key:
-                        "system",
+                        "publishing",
                       index: "05",
+                      title:
+                        c.tabPublishing,
+                      enabled:
+                        publications
+                          .giveaways
+                          .filter(
+                            (item) =>
+                              item.status ===
+                              "active",
+                          )
+                          .length +
+                        publications
+                          .scheduled
+                          .filter(
+                            (item) =>
+                              item.status ===
+                              "scheduled",
+                          )
+                          .length,
+                      total:
+                        publications
+                          .giveaways
+                          .length +
+                        publications
+                          .scheduled
+                          .length,
+                    },
+                    {
+                      key:
+                        "system",
+                      index: "06",
                       title:
                         c.tabSystem,
                       enabled: [
@@ -3947,7 +4635,10 @@ export default function BotDashboard() {
                           : settingsTab ===
                               "support"
                             ? c.tabSupport
-                            : c.tabSystem}
+                            : settingsTab ===
+                                "publishing"
+                              ? c.tabPublishing
+                              : c.tabSystem}
                   </strong>
                 </div>
 
@@ -3966,6 +4657,824 @@ export default function BotDashboard() {
                 </button>
               </div>
             </form>
+
+            <section
+              className={
+                `bot-dashboard-publications-center${settingsTab === "publishing" ? "" : " hidden"}`
+              }
+            >
+              <header className="bot-dashboard-publications-head">
+                <div>
+                  <span>
+                    PUBLISHING
+                  </span>
+                  <h3>
+                    {c.publishingTitle}
+                  </h3>
+                  <p>
+                    {c.publishingText}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void loadPublications()
+                  }
+                  disabled={
+                    publicationsLoading
+                  }
+                >
+                  {publicationsLoading
+                    ? c.publicationsLoading
+                    : c.refreshPublications}
+                </button>
+              </header>
+
+              {publicationsError ? (
+                <div className="bot-dashboard-alert error">
+                  {publicationsError}
+                </div>
+              ) : null}
+
+              <div className="bot-dashboard-publishing-builders">
+                <article className="bot-dashboard-publishing-card">
+                  <header>
+                    <div>
+                      <strong>
+                        🎁 {c.giveawayBuilder}
+                      </strong>
+                      <small>
+                        {c.giveawayBuilderText}
+                      </small>
+                    </div>
+                  </header>
+
+                  <div className="bot-dashboard-publishing-fields">
+                    <label>
+                      <span>
+                        {c.giveawayChannel}
+                      </span>
+                      <select
+                        value={
+                          giveawayDraft
+                            .channelId
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setGiveawayDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              channelId:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      >
+                        <option value="">
+                          {c.chooseChannel}
+                        </option>
+                        {resources.channels.map(
+                          (channel) => (
+                            <option
+                              key={
+                                channel.id
+                              }
+                              value={
+                                channel.id
+                              }
+                            >
+                              #{channel.name}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>
+                        {c.giveawayPrize}
+                      </span>
+                      <input
+                        type="text"
+                        maxLength={200}
+                        placeholder={
+                          c.giveawayPrizePlaceholder
+                        }
+                        value={
+                          giveawayDraft
+                            .prize
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setGiveawayDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              prize:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      />
+                    </label>
+
+                    <label>
+                      <span>
+                        {c.giveawayRequiredRole}
+                      </span>
+                      <select
+                        value={
+                          giveawayDraft
+                            .requiredRoleId
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setGiveawayDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              requiredRoleId:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      >
+                        <option value="">
+                          {c.chooseRole}
+                        </option>
+                        {resources.roles.map(
+                          (role) => (
+                            <option
+                              key={
+                                role.id
+                              }
+                              value={
+                                role.id
+                              }
+                            >
+                              @{role.name}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>
+                        {c.giveawayWinnerCount}
+                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={
+                          giveawayDraft
+                            .winnerCount
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setGiveawayDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              winnerCount:
+                                Math.max(
+                                  1,
+                                  Math.min(
+                                    20,
+                                    Number(
+                                      event
+                                        .target
+                                        .value,
+                                    ) || 1,
+                                  ),
+                                ),
+                            }),
+                          )
+                        }
+                      />
+                    </label>
+
+                    <label>
+                      <span>
+                        {c.giveawayEndsAt}
+                      </span>
+                      <input
+                        type="datetime-local"
+                        value={
+                          giveawayDraft
+                            .endsAt
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setGiveawayDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              endsAt:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      />
+                      <small className="bot-dashboard-timezone-hint">
+                        {c.kyivTime}
+                      </small>
+                    </label>
+
+                    <label className="full">
+                      <span>
+                        {c.giveawayDescription}
+                      </span>
+                      <textarea
+                        rows={4}
+                        maxLength={3000}
+                        placeholder={
+                          c.giveawayDescriptionPlaceholder
+                        }
+                        value={
+                          giveawayDraft
+                            .description
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setGiveawayDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              description:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      />
+                    </label>
+
+                    <div className="bot-dashboard-discord-preview full">
+                      <span className="preview-label">
+                        {c.discordPreview}
+                      </span>
+                      <div className="discord-panel">
+                        <div className="discord-embed">
+                          <strong>
+                            🎁{" "}
+                            {giveawayDraft
+                              .prize ||
+                              c.giveawayPrizePlaceholder}
+                          </strong>
+                          <p>
+                            {giveawayDraft
+                              .description ||
+                              c.giveawayDescriptionPlaceholder}
+                          </p>
+                          <small>
+                            {
+                              giveawayDraft
+                                .winnerCount
+                            }{" "}
+                            {language ===
+                            "en"
+                              ? "winner(s)"
+                              : "переможець(ці)"}{" "}
+                            ·{" "}
+                            {
+                              c.kyivTime
+                            }
+                          </small>
+                        </div>
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                        >
+                          🎉{" "}
+                          {language ===
+                          "en"
+                            ? "Participate"
+                            : "Взяти участь"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="bot-dashboard-module-action full"
+                      onClick={
+                        createGiveaway
+                      }
+                      disabled={
+                        busy ===
+                          "create-giveaway" ||
+                        !giveawayDraft
+                          .channelId ||
+                        !giveawayDraft
+                          .prize ||
+                        !giveawayDraft
+                          .endsAt
+                      }
+                    >
+                      {busy ===
+                      "create-giveaway"
+                        ? c.creatingGiveaway
+                        : c.createGiveaway}
+                    </button>
+                  </div>
+                </article>
+
+                <article className="bot-dashboard-publishing-card">
+                  <header>
+                    <div>
+                      <strong>
+                        🕒 {c.scheduledBuilder}
+                      </strong>
+                      <small>
+                        {c.scheduledBuilderText}
+                      </small>
+                    </div>
+                  </header>
+
+                  <div className="bot-dashboard-publishing-fields">
+                    <label>
+                      <span>
+                        {c.messageChannel}
+                      </span>
+                      <select
+                        value={
+                          scheduleDraft
+                            .channelId
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setScheduleDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              channelId:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      >
+                        <option value="">
+                          {c.chooseChannel}
+                        </option>
+                        {resources.channels.map(
+                          (channel) => (
+                            <option
+                              key={
+                                channel.id
+                              }
+                              value={
+                                channel.id
+                              }
+                            >
+                              #{channel.name}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>
+                        {c.scheduledAt}
+                      </span>
+                      <input
+                        type="datetime-local"
+                        value={
+                          scheduleDraft
+                            .scheduledAt
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setScheduleDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              scheduledAt:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      />
+                      <small className="bot-dashboard-timezone-hint">
+                        {c.kyivTime}
+                      </small>
+                    </label>
+
+                    <label className="full">
+                      <span>
+                        {c.messageContent}
+                      </span>
+                      <textarea
+                        rows={3}
+                        maxLength={2000}
+                        placeholder={
+                          c.messageContentPlaceholder
+                        }
+                        value={
+                          scheduleDraft
+                            .content
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setScheduleDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              content:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      />
+                    </label>
+
+                    <label>
+                      <span>
+                        {c.embedTitle}
+                      </span>
+                      <input
+                        type="text"
+                        maxLength={256}
+                        value={
+                          scheduleDraft
+                            .embedTitle
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setScheduleDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              embedTitle:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      />
+                    </label>
+
+                    <label className="full">
+                      <span>
+                        {c.embedDescription}
+                      </span>
+                      <textarea
+                        rows={4}
+                        maxLength={4000}
+                        value={
+                          scheduleDraft
+                            .embedDescription
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setScheduleDraft(
+                            (
+                              current,
+                            ) => ({
+                              ...current,
+                              embedDescription:
+                                event
+                                  .target
+                                  .value,
+                            }),
+                          )
+                        }
+                      />
+                    </label>
+
+                    <div className="bot-dashboard-discord-preview full">
+                      <span className="preview-label">
+                        {c.discordPreview}
+                      </span>
+                      <div className="discord-message">
+                        <div className="discord-avatar">
+                          I
+                        </div>
+                        <div className="discord-message-body">
+                          <div className="discord-author">
+                            <strong>
+                              ISTe Bot
+                            </strong>
+                            <span>
+                              BOT
+                            </span>
+                          </div>
+                          {scheduleDraft
+                            .content ? (
+                            <p className="discord-preview-content">
+                              {
+                                scheduleDraft
+                                  .content
+                              }
+                            </p>
+                          ) : null}
+                          {(scheduleDraft
+                            .embedTitle ||
+                            scheduleDraft
+                              .embedDescription) ? (
+                            <div className="discord-embed">
+                              <strong>
+                                {scheduleDraft
+                                  .embedTitle ||
+                                  c.embedTitle}
+                              </strong>
+                              <p>
+                                {scheduleDraft
+                                  .embedDescription ||
+                                  c.embedDescription}
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="bot-dashboard-module-action full"
+                      onClick={
+                        createScheduledMessage
+                      }
+                      disabled={
+                        busy ===
+                          "schedule-message" ||
+                        !scheduleDraft
+                          .channelId ||
+                        !scheduleDraft
+                          .scheduledAt ||
+                        !(
+                          scheduleDraft
+                            .content ||
+                          scheduleDraft
+                            .embedTitle ||
+                          scheduleDraft
+                            .embedDescription
+                        )
+                      }
+                    >
+                      {busy ===
+                      "schedule-message"
+                        ? c.schedulingMessage
+                        : c.scheduleMessage}
+                    </button>
+                  </div>
+                </article>
+              </div>
+
+              <div className="bot-dashboard-publication-lists">
+                <article>
+                  <header>
+                    <strong>
+                      {c.activeGiveaways}
+                    </strong>
+                    <span>
+                      {
+                        publications
+                          .giveaways
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="bot-dashboard-publication-list">
+                    {publications
+                      .giveaways
+                      .length ? (
+                      publications.giveaways.map(
+                        (
+                          item,
+                        ) => (
+                          <div
+                            key={
+                              item.id
+                            }
+                            className="bot-dashboard-publication-row"
+                          >
+                            <div className="main">
+                              <strong>
+                                {
+                                  item.prize
+                                }
+                              </strong>
+                              <small>
+                                {
+                                  item
+                                    .participant_count ||
+                                  0
+                                }{" "}
+                                {c.participants}
+                                {" · "}
+                                {formatKyivDateTime(
+                                  item
+                                    .ends_at,
+                                  language,
+                                )}
+                              </small>
+                            </div>
+
+                            <span
+                              className={
+                                `status ${item.status}`
+                              }
+                            >
+                              {item.status ===
+                              "active"
+                                ? c.statusActive
+                                : item.status ===
+                                    "ended"
+                                  ? c.statusEnded
+                                  : c.statusCancelled}
+                            </span>
+
+                            <div className="actions">
+                              {item.status ===
+                              "active" ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void cancelGiveaway(
+                                      item.id,
+                                    )
+                                  }
+                                  disabled={
+                                    busy ===
+                                    "giveaway:" +
+                                      item.id
+                                  }
+                                >
+                                  {c.cancelGiveaway}
+                                </button>
+                              ) : null}
+
+                              {item.status ===
+                              "ended" ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void rerollGiveaway(
+                                      item.id,
+                                    )
+                                  }
+                                  disabled={
+                                    busy ===
+                                    "reroll:" +
+                                      item.id
+                                  }
+                                >
+                                  {c.reroll}
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ),
+                      )
+                    ) : (
+                      <p className="bot-dashboard-log-empty">
+                        {c.noGiveaways}
+                      </p>
+                    )}
+                  </div>
+                </article>
+
+                <article>
+                  <header>
+                    <strong>
+                      {c.scheduledMessages}
+                    </strong>
+                    <span>
+                      {
+                        publications
+                          .scheduled
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="bot-dashboard-publication-list">
+                    {publications
+                      .scheduled
+                      .length ? (
+                      publications.scheduled.map(
+                        (
+                          item,
+                        ) => (
+                          <div
+                            key={
+                              item.id
+                            }
+                            className="bot-dashboard-publication-row"
+                          >
+                            <div className="main">
+                              <strong>
+                                {item
+                                  .embed_title ||
+                                  item
+                                    .content
+                                    ?.slice(
+                                      0,
+                                      80,
+                                    ) ||
+                                  c.scheduledBuilder}
+                              </strong>
+                              <small>
+                                {formatKyivDateTime(
+                                  item
+                                    .scheduled_at,
+                                  language,
+                                )}
+                              </small>
+                            </div>
+
+                            <span
+                              className={
+                                `status ${item.status}`
+                              }
+                            >
+                              {item.status ===
+                              "scheduled"
+                                ? c.statusScheduled
+                                : item.status ===
+                                    "sent"
+                                  ? c.statusSent
+                                  : item.status ===
+                                      "failed"
+                                    ? c.statusFailed
+                                    : c.statusCancelled}
+                            </span>
+
+                            <div className="actions">
+                              {item.status ===
+                              "scheduled" ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void cancelScheduledMessage(
+                                      item.id,
+                                    )
+                                  }
+                                  disabled={
+                                    busy ===
+                                    "schedule:" +
+                                      item.id
+                                  }
+                                >
+                                  {c.cancelScheduled}
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ),
+                      )
+                    ) : (
+                      <p className="bot-dashboard-log-empty">
+                        {c.noScheduled}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              </div>
+            </section>
 
             <section
               className={
