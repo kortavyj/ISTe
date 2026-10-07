@@ -252,6 +252,11 @@ let publicationMessagesSent = 0;
 let publicationLastRunAt = null;
 let publicationLastError = null;
 
+let healthSnapshotTimer = null;
+let healthSnapshotsSent = 0;
+let healthSnapshotLastAt = null;
+let healthSnapshotLastError = null;
+
 function log(event, data = {}) {
   console.log(
     JSON.stringify({
@@ -2294,6 +2299,158 @@ function publicationsHealth() {
   };
 }
 
+
+async function reportMemberLifecycle(
+  member,
+  type,
+) {
+  try {
+    await publicationApi(
+      "worker-member-event",
+      {
+        guildId:
+          member.guild.id,
+        userId:
+          member.id,
+        type,
+        memberCount:
+          member.guild
+            .memberCount,
+        isBot:
+          member.user?.bot ===
+          true,
+        accountCreatedAt:
+          member.user
+            ?.createdAt
+            ?.toISOString?.() ||
+          null,
+      },
+    );
+
+    log(
+      "member_lifecycle_reported",
+      {
+        guildId:
+          member.guild.id,
+        userId:
+          member.id,
+        type,
+        memberCount:
+          member.guild
+            .memberCount,
+      },
+    );
+  } catch (error) {
+    log(
+      "member_lifecycle_report_failed",
+      {
+        guildId:
+          member.guild?.id ??
+          null,
+        userId:
+          member.id,
+        type,
+        message:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+    );
+  }
+}
+
+async function reportHealthSnapshot() {
+  if (!client.isReady()) {
+    return;
+  }
+
+  try {
+    await publicationApi(
+      "worker-health-snapshot",
+      {
+        workerId:
+          "discord-primary",
+        ready: true,
+        wsPingMs:
+          Number(
+            client.ws.ping,
+          ) ||
+          0,
+        uptimeSeconds:
+          Math.round(
+            process.uptime(),
+          ),
+        guildCount:
+          client.guilds.cache
+            .size,
+        metrics: {
+          lastPresence:
+            lastPresenceName ||
+            null,
+          lastRefreshAt,
+          lastSuccessfulFetchAt,
+          lastError,
+          privateVoice:
+            privateVoiceHealth(),
+          welcome:
+            welcomeHealth(),
+          automod:
+            automodHealth(),
+          publications:
+            publicationsHealth(),
+          matchAnnouncements:
+            matchAnnouncementsHealth(),
+        },
+      },
+    );
+
+    healthSnapshotsSent +=
+      1;
+    healthSnapshotLastAt =
+      new Date()
+        .toISOString();
+    healthSnapshotLastError =
+      null;
+  } catch (error) {
+    healthSnapshotLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "health_snapshot_failed",
+      {
+        message:
+          healthSnapshotLastError,
+      },
+    );
+  }
+}
+
+function scheduleHealthSnapshots() {
+  if (healthSnapshotTimer) {
+    clearInterval(
+      healthSnapshotTimer,
+    );
+  }
+
+  healthSnapshotTimer =
+    setInterval(
+      () => {
+        void reportHealthSnapshot();
+      },
+      300000,
+    );
+}
+
+function telemetryHealth() {
+  return {
+    healthSnapshotsSent,
+    healthSnapshotLastAt,
+    healthSnapshotLastError,
+  };
+}
+
 client.once(Events.ClientReady, async (readyClient) => {
   log("discord_ready", {
     bot: readyClient.user.tag,
@@ -2329,6 +2486,8 @@ client.once(Events.ClientReady, async (readyClient) => {
   scheduleRefresh();
   await refreshPublications();
   schedulePublications();
+  await reportHealthSnapshot();
+  scheduleHealthSnapshots();
 });
 
 async function reportAutoModerationExecution(
@@ -2541,14 +2700,30 @@ client.on(
 
 client.on(Events.GuildMemberAdd, (member) => {
   void (async () => {
+    await reportMemberLifecycle(
+      member,
+      "join",
+    );
+
     await assignAutoRoles(
       member,
     );
+
     await sendWelcomeMessage(
       member,
     );
   })();
 });
+
+client.on(
+  Events.GuildMemberRemove,
+  (member) => {
+    void reportMemberLifecycle(
+      member,
+      "leave",
+    );
+  },
+);
 
 client.on(
   Events.VoiceStateUpdate,
@@ -2648,6 +2823,8 @@ const healthServer = createServer((request, response) => {
         automodHealth(),
       publications:
         publicationsHealth(),
+      telemetry:
+        telemetryHealth(),
       matchAnnouncements:
         matchAnnouncementsHealth(),
       uptimeSeconds: Math.round(process.uptime()),
@@ -2678,6 +2855,13 @@ async function shutdown(signal) {
       publicationTimer,
     );
     publicationTimer = null;
+  }
+
+  if (healthSnapshotTimer) {
+    clearInterval(
+      healthSnapshotTimer,
+    );
+    healthSnapshotTimer = null;
   }
 
   for (const timer of privateDeleteTimers.values()) {
