@@ -712,7 +712,7 @@ const copy = {
     maxFeatures: "10 серверів · усі модулі · Highlights · Analytics",
     paymentSoon:
       "Оплата буде підключена окремим платіжним модулем. Тарифна система вже активна.",
-    requiresPlan: "Потрібен вищий тариф",
+    requiresPlan: "Функція недоступна для цього акаунта",
   },
   en: {
     eyebrow: "ISTe BOT CONTROL",
@@ -1228,7 +1228,7 @@ const copy = {
     maxFeatures: "10 servers · all modules · Highlights · Analytics",
     paymentSoon:
       "Checkout will be connected through a payment provider. The plan system is already active.",
-    requiresPlan: "Higher plan required",
+    requiresPlan: "This feature is unavailable for this account",
   },
 };
 
@@ -4242,38 +4242,6 @@ export default function BotDashboard() {
         feature,
       );
 
-  const planCards = [
-    {
-      plan: "free",
-      title: c.freePlan,
-      price: 0,
-      description:
-        c.freeFeatures,
-    },
-    {
-      plan: "starter",
-      title:
-        c.starterPlan,
-      price: 2.99,
-      description:
-        c.starterFeatures,
-    },
-    {
-      plan: "pro",
-      title: c.proPlan,
-      price: 4.99,
-      description:
-        c.proFeatures,
-    },
-    {
-      plan: "max",
-      title: c.maxPlan,
-      price: 6.99,
-      description:
-        c.maxFeatures,
-    },
-  ];
-
   return (
     <section
       className={
@@ -4334,47 +4302,6 @@ export default function BotDashboard() {
         <div className="bot-dashboard-summary">
           <article>
             <span>
-              {c.subscription}
-            </span>
-            <strong>
-              {String(
-                subscription?.plan ||
-                "free",
-              ).toUpperCase()}
-            </strong>
-            <small>
-              {subscription
-                ?.fullAccess
-                ? `${c.fullAccess} ✓`
-                : `${c.active}: ${subscription?.active ? "✓" : "×"}`}
-            </small>
-          </article>
-
-          <article>
-            <span>
-              {c.licenses}
-            </span>
-            <strong>
-              {subscription
-                ?.unlimited
-                ? c.unlimitedLicenses
-                : `${subscription?.usedGuilds || 0} / ${subscription?.maxGuilds || 1}`}
-            </strong>
-            <small>
-              {c.expires}:{" "}
-              {subscription
-                ?.expiresAt
-                ? formatDate(
-                    subscription
-                      .expiresAt,
-                    language,
-                  )
-                : c.unlimited}
-            </small>
-          </article>
-
-          <article>
-            <span>
               {c.discordLinked}
             </span>
             <strong>
@@ -4393,83 +4320,23 @@ export default function BotDashboard() {
                 : "×"}
             </small>
           </article>
+
+          <article>
+            <span>
+              {c.servers}
+            </span>
+            <strong>
+              {Array.isArray(
+                data?.guilds,
+              )
+                ? data.guilds.length
+                : 0}
+            </strong>
+            <small>
+              ISTe Bot
+            </small>
+          </article>
         </div>
-
-        <p className="bot-dashboard-plan-note">
-          {subscription
-            ?.unlimited
-            ? c.internalHint
-            : c.freeHint}
-        </p>
-
-        {!subscription?.unlimited ? (
-          <section className="bot-dashboard-plans">
-            <header>
-              <div>
-                <span>
-                  ISTe BOT
-                </span>
-                <h2>
-                  {c.plansTitle}
-                </h2>
-                <p>
-                  {c.plansText}
-                </p>
-              </div>
-            </header>
-
-            <div className="bot-dashboard-plan-grid">
-              {planCards.map(
-                (plan) => (
-                  <article
-                    key={
-                      plan.plan
-                    }
-                    className={
-                      subscription?.plan ===
-                      plan.plan
-                        ? "current"
-                        : ""
-                    }
-                  >
-                    <span>
-                      {plan.title}
-                    </span>
-
-                    <strong>
-                      {"$"}
-                      {plan.price.toFixed(
-                        2,
-                      )}
-                      <small>
-                        {plan.price > 0
-                          ? c.perMonth
-                          : ""}
-                      </small>
-                    </strong>
-
-                    <p>
-                      {
-                        plan.description
-                      }
-                    </p>
-
-                    {subscription?.plan ===
-                    plan.plan ? (
-                      <b>
-                        {c.currentPlan}
-                      </b>
-                    ) : null}
-                  </article>
-                ),
-              )}
-            </div>
-
-            <p className="bot-dashboard-payment-note">
-              {c.paymentSoon}
-            </p>
-          </section>
-        ) : null}
 
         {selectedGuild ? (
           <div className="bot-dashboard-settings-view">
