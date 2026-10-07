@@ -85,7 +85,6 @@ export default function PaddleCheckout() {
           settings: {
             displayMode: "overlay",
             theme: "dark",
-            locale: "en",
             allowLogout: false,
           },
         });
