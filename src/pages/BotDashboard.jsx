@@ -64,6 +64,22 @@ const EMPTY_PUBLICATIONS = {
   scheduled: [],
 };
 
+const EMPTY_COMMAND_CENTER = {
+  summary: {
+    commands: 0,
+    enabled: 0,
+    customized: 0,
+    invocations: 0,
+    allowed: 0,
+    denied: 0,
+    errors: 0,
+    uniqueUsers: 0,
+  },
+  commands: [],
+  timeline: [],
+  recentUsage: [],
+};
+
 const EMPTY_CONFIG_HISTORY = {
   current: {
     updatedAt: null,
@@ -168,6 +184,7 @@ const copy = {
     controlCenter: "ISTe Control Center",
     tabOverview: "Огляд",
     tabAnalytics: "Аналітика",
+    tabCommands: "Команди",
     tabOnboarding: "Онбординг",
     tabModeration: "Модерація",
     tabSupport: "Підтримка",
@@ -185,6 +202,52 @@ const copy = {
     refreshAnalytics: "Оновити",
     analyticsLoading: "Завантаження...",
     analyticsError: "Не вдалося завантажити Discord analytics.",
+    commandCenterTitle: "Slash Command Center",
+    commandCenterText:
+      "Керуй доступністю slash-команд окремо для цього Discord-сервера: roles, channels, cooldown та usage.",
+    commandCenterSave: "Зберегти команди",
+    commandCenterSaving: "Збереження...",
+    commandCenterSaved: "Налаштування slash-команд збережено.",
+    commandCenterReset: "Скинути overrides",
+    commandCenterResetConfirm:
+      "Скинути всі налаштування команд до стандартних? Історія usage залишиться.",
+    commandCenterResetDone: "Overrides команд скинуто.",
+    commandCenterRefresh: "Оновити",
+    commandCenterLoading: "Завантаження...",
+    commandCenterError: "Не вдалося завантажити Command Center.",
+    commandSearch: "Пошук команди",
+    commandSearchPlaceholder: "Наприклад: warn, room, matches",
+    commandCategory: "Категорія",
+    commandCategoryAll: "Усі",
+    commandCategoryUtility: "Утиліти",
+    commandCategoryCommunity: "Спільнота",
+    commandCategoryModeration: "Модерація",
+    commandCategoryIste: "ISTesport",
+    commandCategoryRecruitment: "Recruitment",
+    commandEnabled: "Увімкнена",
+    commandDisabled: "Вимкнена",
+    commandConfigure: "Налаштувати",
+    commandClose: "Закрити",
+    commandCooldown: "Cooldown, секунд",
+    commandRoles: "Дозволені ролі",
+    commandChannels: "Дозволені канали",
+    commandRestrictionHint:
+      "Нічого не вибрано = доступно для всіх ролей або каналів.",
+    commandInvocations: "Викликів · 7d",
+    commandUniqueUsers: "Користувачів",
+    commandDenied: "Заблоковано",
+    commandErrors: "Помилок",
+    commandCustomized: "Overrides",
+    commandEnabledCount: "Увімкнено",
+    commandRecentUsage: "Останні виклики",
+    commandNoUsage: "Usage журнал поки порожній.",
+    commandNoResults: "Команд за цим фільтром немає.",
+    commandOutcomeAllowed: "ALLOWED",
+    commandOutcomeDenied: "DENIED",
+    commandOutcomeError: "ERROR",
+    commandLastUsed: "Останній виклик",
+    commandUses: "викликів",
+    commandSelectMultiple: "Ctrl / Cmd для кількох значень",
     diagnosticsTitle: "Diagnostics & Alerts",
     diagnosticsText:
       "Перевірка Discord permissions, ролей, каналів, worker runtime та помилок активних модулів.",
@@ -528,6 +591,7 @@ const copy = {
     controlCenter: "ISTe Control Center",
     tabOverview: "Overview",
     tabAnalytics: "Analytics",
+    tabCommands: "Commands",
     tabOnboarding: "Onboarding",
     tabModeration: "Moderation",
     tabSupport: "Support",
@@ -545,6 +609,52 @@ const copy = {
     refreshAnalytics: "Refresh",
     analyticsLoading: "Loading...",
     analyticsError: "Could not load Discord analytics.",
+    commandCenterTitle: "Slash Command Center",
+    commandCenterText:
+      "Control slash command availability for this Discord server: roles, channels, cooldown and usage.",
+    commandCenterSave: "Save commands",
+    commandCenterSaving: "Saving...",
+    commandCenterSaved: "Slash command settings saved.",
+    commandCenterReset: "Reset overrides",
+    commandCenterResetConfirm:
+      "Reset all command settings to defaults? Usage history will be kept.",
+    commandCenterResetDone: "Command overrides reset.",
+    commandCenterRefresh: "Refresh",
+    commandCenterLoading: "Loading...",
+    commandCenterError: "Could not load Command Center.",
+    commandSearch: "Search commands",
+    commandSearchPlaceholder: "Example: warn, room, matches",
+    commandCategory: "Category",
+    commandCategoryAll: "All",
+    commandCategoryUtility: "Utilities",
+    commandCategoryCommunity: "Community",
+    commandCategoryModeration: "Moderation",
+    commandCategoryIste: "ISTesport",
+    commandCategoryRecruitment: "Recruitment",
+    commandEnabled: "Enabled",
+    commandDisabled: "Disabled",
+    commandConfigure: "Configure",
+    commandClose: "Close",
+    commandCooldown: "Cooldown, seconds",
+    commandRoles: "Allowed roles",
+    commandChannels: "Allowed channels",
+    commandRestrictionHint:
+      "Nothing selected = available to all roles or channels.",
+    commandInvocations: "Invocations · 7d",
+    commandUniqueUsers: "Users",
+    commandDenied: "Denied",
+    commandErrors: "Errors",
+    commandCustomized: "Overrides",
+    commandEnabledCount: "Enabled",
+    commandRecentUsage: "Recent usage",
+    commandNoUsage: "Usage log is empty.",
+    commandNoResults: "No commands match this filter.",
+    commandOutcomeAllowed: "ALLOWED",
+    commandOutcomeDenied: "DENIED",
+    commandOutcomeError: "ERROR",
+    commandLastUsed: "Last used",
+    commandUses: "uses",
+    commandSelectMultiple: "Ctrl / Cmd for multiple values",
     diagnosticsTitle: "Diagnostics & Alerts",
     diagnosticsText:
       "Check Discord permissions, roles, channels, worker runtime and active module errors.",
@@ -1239,6 +1349,38 @@ export default function BotDashboard() {
   ] = useState("");
 
   const [
+    commandCenter,
+    setCommandCenter,
+  ] = useState(
+    EMPTY_COMMAND_CENTER,
+  );
+
+  const [
+    commandCenterLoading,
+    setCommandCenterLoading,
+  ] = useState(false);
+
+  const [
+    commandCenterError,
+    setCommandCenterError,
+  ] = useState("");
+
+  const [
+    commandSearch,
+    setCommandSearch,
+  ] = useState("");
+
+  const [
+    commandCategory,
+    setCommandCategory,
+  ] = useState("all");
+
+  const [
+    expandedCommand,
+    setExpandedCommand,
+  ] = useState("");
+
+  const [
     configHistory,
     setConfigHistory,
   ] = useState(
@@ -1469,6 +1611,200 @@ export default function BotDashboard() {
             0,
         ),
       );
+  }
+
+  async function loadCommandCenter(
+    guildId =
+      selectedGuildId,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setCommandCenterLoading(
+      true,
+    );
+    setCommandCenterError("");
+
+    try {
+      const result =
+        await api(
+          "command-center-overview",
+          {
+            method: "POST",
+            body: {
+              guildId,
+            },
+          },
+        );
+
+      setCommandCenter({
+        summary: {
+          ...EMPTY_COMMAND_CENTER
+            .summary,
+          ...(result.summary ||
+            {}),
+        },
+        commands:
+          Array.isArray(
+            result.commands,
+          )
+            ? result.commands
+            : [],
+        timeline:
+          Array.isArray(
+            result.timeline,
+          )
+            ? result.timeline
+            : [],
+        recentUsage:
+          Array.isArray(
+            result.recentUsage,
+          )
+            ? result.recentUsage
+            : [],
+      });
+    } catch (loadError) {
+      setCommandCenterError(
+        loadError?.message ||
+          c.commandCenterError,
+      );
+    } finally {
+      setCommandCenterLoading(
+        false,
+      );
+    }
+  }
+
+  function patchCommand(
+    commandName,
+    patchValue,
+  ) {
+    setCommandCenter(
+      (current) => ({
+        ...current,
+        commands:
+          current.commands.map(
+            (command) =>
+              command.name ===
+              commandName
+                ? {
+                    ...command,
+                    ...patchValue,
+                  }
+                : command,
+          ),
+      }),
+    );
+  }
+
+  async function saveCommandCenter() {
+    if (!selectedGuild) {
+      return;
+    }
+
+    setBusy(
+      "command-center",
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "save-command-settings",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            commands:
+              commandCenter
+                .commands
+                .map(
+                  (command) => ({
+                    name:
+                      command.name,
+                    enabled:
+                      command.enabled,
+                    allowedRoleIds:
+                      command
+                        .allowedRoleIds,
+                    allowedChannelIds:
+                      command
+                        .allowedChannelIds,
+                    cooldownSeconds:
+                      command
+                        .cooldownSeconds,
+                  }),
+                ),
+          },
+        },
+      );
+
+      setNotice(
+        c.commandCenterSaved,
+      );
+
+      await loadCommandCenter(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function resetCommandCenter() {
+    if (
+      !selectedGuild ||
+      !window.confirm(
+        c.commandCenterResetConfirm,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      "command-center-reset",
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "reset-command-settings",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+          },
+        },
+      );
+
+      setNotice(
+        c.commandCenterResetDone,
+      );
+
+      await loadCommandCenter(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
   }
 
   async function loadConfigHistory(
@@ -1818,6 +2154,13 @@ export default function BotDashboard() {
       audit: [],
     });
     setModerationError("");
+    setCommandCenter(
+      EMPTY_COMMAND_CENTER,
+    );
+    setCommandCenterError("");
+    setCommandSearch("");
+    setCommandCategory("all");
+    setExpandedCommand("");
     setConfigHistory(
       EMPTY_CONFIG_HISTORY,
     );
@@ -1849,6 +2192,10 @@ export default function BotDashboard() {
       guild.guildId,
       "",
       "",
+    );
+
+    void loadCommandCenter(
+      guild.guildId,
     );
 
     void loadConfigHistory(
@@ -3098,34 +3445,39 @@ export default function BotDashboard() {
                   "02",
                 ],
                 [
+                  "commands",
+                  c.tabCommands,
+                  "03",
+                ],
+                [
                   "onboarding",
                   c.tabOnboarding,
-                  "03",
+                  "04",
                 ],
                 [
                   "moderation",
                   c.tabModeration,
-                  "04",
+                  "05",
                 ],
                 [
                   "support",
                   c.tabSupport,
-                  "05",
+                  "06",
                 ],
                 [
                   "publishing",
                   c.tabPublishing,
-                  "06",
+                  "07",
                 ],
                 [
                   "system",
                   c.tabSystem,
-                  "07",
+                  "08",
                 ],
                 [
                   "diagnostics",
                   c.tabDiagnostics,
-                  "08",
+                  "09",
                 ],
               ].map(
                 ([
@@ -3152,6 +3504,13 @@ export default function BotDashboard() {
                         "analytics"
                       ) {
                         void loadAnalytics();
+                      }
+
+                      if (
+                        key ===
+                        "commands"
+                      ) {
+                        void loadCommandCenter();
                       }
 
                       if (
@@ -3222,8 +3581,24 @@ export default function BotDashboard() {
                     },
                     {
                       key:
-                        "onboarding",
+                        "commands",
                       index: "03",
+                      title:
+                        c.tabCommands,
+                      enabled:
+                        commandCenter
+                          .summary
+                          .enabled,
+                      total:
+                        commandCenter
+                          .summary
+                          .commands ||
+                        26,
+                    },
+                    {
+                      key:
+                        "onboarding",
+                      index: "04",
                       title:
                         c.tabOnboarding,
                       enabled: [
@@ -3243,7 +3618,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "moderation",
-                      index: "04",
+                      index: "05",
                       title:
                         c.tabModeration,
                       enabled: [
@@ -3259,7 +3634,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "support",
-                      index: "05",
+                      index: "06",
                       title:
                         c.tabSupport,
                       enabled: [
@@ -3275,7 +3650,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "publishing",
-                      index: "06",
+                      index: "07",
                       title:
                         c.tabPublishing,
                       enabled:
@@ -3306,7 +3681,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "system",
-                      index: "07",
+                      index: "08",
                       title:
                         c.tabSystem,
                       enabled: [
@@ -5624,6 +5999,711 @@ export default function BotDashboard() {
                 </button>
               </div>
             </form>
+
+            <section
+              className={
+                `bot-dashboard-command-center${settingsTab === "commands" ? "" : " hidden"}`
+              }
+            >
+              <header className="bot-dashboard-command-head">
+                <div>
+                  <span>
+                    COMMAND CENTER
+                  </span>
+                  <h3>
+                    {c.commandCenterTitle}
+                  </h3>
+                  <p>
+                    {c.commandCenterText}
+                  </p>
+                </div>
+
+                <div className="bot-dashboard-command-head-actions">
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={
+                      resetCommandCenter
+                    }
+                    disabled={
+                      busy ===
+                      "command-center-reset"
+                    }
+                  >
+                    {c.commandCenterReset}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() =>
+                      void loadCommandCenter()
+                    }
+                    disabled={
+                      commandCenterLoading
+                    }
+                  >
+                    {commandCenterLoading
+                      ? c.commandCenterLoading
+                      : c.commandCenterRefresh}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={
+                      saveCommandCenter
+                    }
+                    disabled={
+                      busy ===
+                      "command-center"
+                    }
+                  >
+                    {busy ===
+                    "command-center"
+                      ? c.commandCenterSaving
+                      : c.commandCenterSave}
+                  </button>
+                </div>
+              </header>
+
+              {commandCenterError ? (
+                <div className="bot-dashboard-alert error">
+                  {commandCenterError}
+                </div>
+              ) : null}
+
+              <div className="bot-dashboard-command-kpis">
+                {[
+                  [
+                    c.commandEnabledCount,
+                    commandCenter
+                      .summary
+                      .enabled +
+                      "/" +
+                      (
+                        commandCenter
+                          .summary
+                          .commands ||
+                        26
+                      ),
+                    "enabled",
+                  ],
+                  [
+                    c.commandInvocations,
+                    commandCenter
+                      .summary
+                      .invocations,
+                    "uses",
+                  ],
+                  [
+                    c.commandUniqueUsers,
+                    commandCenter
+                      .summary
+                      .uniqueUsers,
+                    "users",
+                  ],
+                  [
+                    c.commandDenied,
+                    commandCenter
+                      .summary
+                      .denied,
+                    "denied",
+                  ],
+                  [
+                    c.commandErrors,
+                    commandCenter
+                      .summary
+                      .errors,
+                    "errors",
+                  ],
+                  [
+                    c.commandCustomized,
+                    commandCenter
+                      .summary
+                      .customized,
+                    "custom",
+                  ],
+                ].map(
+                  ([
+                    label,
+                    value,
+                    tone,
+                  ]) => (
+                    <article
+                      key={
+                        label
+                      }
+                      className={
+                        tone
+                      }
+                    >
+                      <span>
+                        {label}
+                      </span>
+                      <strong>
+                        {value}
+                      </strong>
+                    </article>
+                  ),
+                )}
+              </div>
+
+              <div className="bot-dashboard-command-filters">
+                <label>
+                  <span>
+                    {c.commandSearch}
+                  </span>
+                  <input
+                    type="search"
+                    placeholder={
+                      c.commandSearchPlaceholder
+                    }
+                    value={
+                      commandSearch
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setCommandSearch(
+                        event
+                          .target
+                          .value,
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  <span>
+                    {c.commandCategory}
+                  </span>
+                  <select
+                    value={
+                      commandCategory
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setCommandCategory(
+                        event
+                          .target
+                          .value,
+                      )
+                    }
+                  >
+                    <option value="all">
+                      {c.commandCategoryAll}
+                    </option>
+                    <option value="utility">
+                      {c.commandCategoryUtility}
+                    </option>
+                    <option value="community">
+                      {c.commandCategoryCommunity}
+                    </option>
+                    <option value="moderation">
+                      {c.commandCategoryModeration}
+                    </option>
+                    <option value="iste">
+                      {c.commandCategoryIste}
+                    </option>
+                    <option value="recruitment">
+                      {c.commandCategoryRecruitment}
+                    </option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="bot-dashboard-command-layout">
+                <article className="bot-dashboard-command-list-card">
+                  <header>
+                    <strong>
+                      Slash commands
+                    </strong>
+                    <span>
+                      {
+                        commandCenter
+                          .commands
+                          .filter(
+                            (
+                              command,
+                            ) =>
+                              (
+                                commandCategory ===
+                                  "all" ||
+                                command.category ===
+                                  commandCategory
+                              ) &&
+                              (
+                                !commandSearch
+                                  .trim() ||
+                                (
+                                  command.name +
+                                  " " +
+                                  command.label
+                                )
+                                  .toLowerCase()
+                                  .includes(
+                                    commandSearch
+                                      .trim()
+                                      .toLowerCase(),
+                                  )
+                              ),
+                          )
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="bot-dashboard-command-list">
+                    {commandCenter.commands
+                      .filter(
+                        (
+                          command,
+                        ) =>
+                          (
+                            commandCategory ===
+                              "all" ||
+                            command.category ===
+                              commandCategory
+                          ) &&
+                          (
+                            !commandSearch
+                              .trim() ||
+                            (
+                              command.name +
+                              " " +
+                              command.label
+                            )
+                              .toLowerCase()
+                              .includes(
+                                commandSearch
+                                  .trim()
+                                  .toLowerCase(),
+                              )
+                          ),
+                      )
+                      .map(
+                        (
+                          command,
+                        ) => {
+                          const categoryLabel =
+                            command.category ===
+                            "utility"
+                              ? c.commandCategoryUtility
+                              : command.category ===
+                                  "community"
+                                ? c.commandCategoryCommunity
+                                : command.category ===
+                                    "moderation"
+                                  ? c.commandCategoryModeration
+                                  : command.category ===
+                                      "recruitment"
+                                    ? c.commandCategoryRecruitment
+                                    : c.commandCategoryIste;
+
+                          const expanded =
+                            expandedCommand ===
+                            command.name;
+
+                          return (
+                            <div
+                              key={
+                                command.name
+                              }
+                              className={
+                                `bot-dashboard-command-row${command.enabled ? "" : " disabled"}${expanded ? " expanded" : ""}`
+                              }
+                            >
+                              <div className="command-summary">
+                                <div className="command-name">
+                                  <code>
+                                    /
+                                    {
+                                      command.name
+                                    }
+                                  </code>
+                                  <div>
+                                    <strong>
+                                      {
+                                        command.label
+                                      }
+                                    </strong>
+                                    <small>
+                                      {
+                                        categoryLabel
+                                      }
+                                    </small>
+                                  </div>
+                                </div>
+
+                                <div className="command-stats">
+                                  <span>
+                                    <strong>
+                                      {
+                                        command
+                                          .stats
+                                          ?.total ||
+                                        0
+                                      }
+                                    </strong>
+                                    {c.commandUses}
+                                  </span>
+                                  <span
+                                    className={
+                                      (
+                                        command
+                                          .stats
+                                          ?.denied ||
+                                        0
+                                      )
+                                        ? "denied"
+                                        : ""
+                                    }
+                                  >
+                                    <strong>
+                                      {
+                                        command
+                                          .stats
+                                          ?.denied ||
+                                        0
+                                      }
+                                    </strong>
+                                    {c.commandDenied}
+                                  </span>
+                                </div>
+
+                                <label className="bot-dashboard-switch command-toggle">
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      command.enabled
+                                    }
+                                    onChange={(
+                                      event,
+                                    ) =>
+                                      patchCommand(
+                                        command.name,
+                                        {
+                                          enabled:
+                                            event
+                                              .target
+                                              .checked,
+                                        },
+                                      )
+                                    }
+                                  />
+                                  <span />
+                                </label>
+
+                                <button
+                                  type="button"
+                                  className="command-configure"
+                                  onClick={() =>
+                                    setExpandedCommand(
+                                      expanded
+                                        ? ""
+                                        : command.name,
+                                    )
+                                  }
+                                >
+                                  {expanded
+                                    ? c.commandClose
+                                    : c.commandConfigure}
+                                </button>
+                              </div>
+
+                              {expanded ? (
+                                <div className="command-policy">
+                                  <label>
+                                    <span>
+                                      {c.commandCooldown}
+                                    </span>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={86400}
+                                      step={1}
+                                      value={
+                                        command
+                                          .cooldownSeconds
+                                      }
+                                      onChange={(
+                                        event,
+                                      ) =>
+                                        patchCommand(
+                                          command.name,
+                                          {
+                                            cooldownSeconds:
+                                              Math.max(
+                                                0,
+                                                Math.min(
+                                                  86400,
+                                                  Number(
+                                                    event
+                                                      .target
+                                                      .value,
+                                                  ) ||
+                                                    0,
+                                                ),
+                                              ),
+                                          },
+                                        )
+                                      }
+                                    />
+                                  </label>
+
+                                  <label>
+                                    <span>
+                                      {c.commandRoles}
+                                    </span>
+                                    <select
+                                      multiple
+                                      size={4}
+                                      value={
+                                        command
+                                          .allowedRoleIds
+                                      }
+                                      onChange={(
+                                        event,
+                                      ) =>
+                                        patchCommand(
+                                          command.name,
+                                          {
+                                            allowedRoleIds:
+                                              Array.from(
+                                                event
+                                                  .target
+                                                  .selectedOptions,
+                                              ).map(
+                                                (
+                                                  option,
+                                                ) =>
+                                                  option.value,
+                                              ),
+                                          },
+                                        )
+                                      }
+                                    >
+                                      {resources.roles.map(
+                                        (
+                                          role,
+                                        ) => (
+                                          <option
+                                            key={
+                                              role.id
+                                            }
+                                            value={
+                                              role.id
+                                            }
+                                          >
+                                            @
+                                            {
+                                              role.name
+                                            }
+                                          </option>
+                                        ),
+                                      )}
+                                    </select>
+                                  </label>
+
+                                  <label>
+                                    <span>
+                                      {c.commandChannels}
+                                    </span>
+                                    <select
+                                      multiple
+                                      size={4}
+                                      value={
+                                        command
+                                          .allowedChannelIds
+                                      }
+                                      onChange={(
+                                        event,
+                                      ) =>
+                                        patchCommand(
+                                          command.name,
+                                          {
+                                            allowedChannelIds:
+                                              Array.from(
+                                                event
+                                                  .target
+                                                  .selectedOptions,
+                                              ).map(
+                                                (
+                                                  option,
+                                                ) =>
+                                                  option.value,
+                                              ),
+                                          },
+                                        )
+                                      }
+                                    >
+                                      {resources.channels.map(
+                                        (
+                                          channel,
+                                        ) => (
+                                          <option
+                                            key={
+                                              channel.id
+                                            }
+                                            value={
+                                              channel.id
+                                            }
+                                          >
+                                            #
+                                            {
+                                              channel.name
+                                            }
+                                          </option>
+                                        ),
+                                      )}
+                                    </select>
+                                  </label>
+
+                                  <div className="command-policy-hint">
+                                    <span>
+                                      {c.commandRestrictionHint}
+                                    </span>
+                                    <small>
+                                      {c.commandSelectMultiple}
+                                    </small>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        },
+                      )}
+
+                    {!commandCenter.commands
+                      .filter(
+                        (
+                          command,
+                        ) =>
+                          (
+                            commandCategory ===
+                              "all" ||
+                            command.category ===
+                              commandCategory
+                          ) &&
+                          (
+                            !commandSearch
+                              .trim() ||
+                            (
+                              command.name +
+                              " " +
+                              command.label
+                            )
+                              .toLowerCase()
+                              .includes(
+                                commandSearch
+                                  .trim()
+                                  .toLowerCase(),
+                              )
+                          ),
+                      )
+                      .length ? (
+                      <p className="bot-dashboard-log-empty">
+                        {c.commandNoResults}
+                      </p>
+                    ) : null}
+                  </div>
+                </article>
+
+                <article className="bot-dashboard-command-usage">
+                  <header>
+                    <strong>
+                      {c.commandRecentUsage}
+                    </strong>
+                    <span>
+                      {
+                        commandCenter
+                          .recentUsage
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="usage-list">
+                    {commandCenter
+                      .recentUsage
+                      .length ? (
+                      commandCenter.recentUsage.map(
+                        (
+                          usage,
+                        ) => (
+                          <div
+                            key={
+                              usage.id
+                            }
+                            className={
+                              `usage-row ${usage.outcome}`
+                            }
+                          >
+                            <div>
+                              <code>
+                                /
+                                {
+                                  usage.command
+                                }
+                              </code>
+                              <span
+                                className="outcome"
+                              >
+                                {usage.outcome ===
+                                "denied"
+                                  ? c.commandOutcomeDenied
+                                  : usage.outcome ===
+                                      "error"
+                                    ? c.commandOutcomeError
+                                    : c.commandOutcomeAllowed}
+                              </span>
+                            </div>
+
+                            <small>
+                              User{" "}
+                              {
+                                usage.userId
+                              }
+                              {usage.channelId
+                                ? " · #" +
+                                  usage.channelId
+                                : ""}
+                            </small>
+
+                            {usage.deniedReason ? (
+                              <small className="reason">
+                                {
+                                  usage.deniedReason
+                                }
+                              </small>
+                            ) : null}
+
+                            <time>
+                              {formatKyivDateTime(
+                                usage
+                                  .createdAt,
+                                language,
+                              )}
+                              {usage.durationMs !=
+                              null
+                                ? " · " +
+                                  usage.durationMs +
+                                  " ms"
+                                : ""}
+                            </time>
+                          </div>
+                        ),
+                      )
+                    ) : (
+                      <p className="bot-dashboard-log-empty">
+                        {c.commandNoUsage}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              </div>
+            </section>
 
             <section
               className={
