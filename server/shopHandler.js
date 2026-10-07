@@ -187,6 +187,91 @@ function normalizeProduct(row) {
   };
 }
 
+function managedProductImagePath(
+  imageUrl,
+) {
+  const value =
+    String(
+      imageUrl || "",
+    ).trim();
+
+  if (!value) {
+    return "";
+  }
+
+  try {
+    const parsed =
+      new URL(value);
+    const marker =
+      "/storage/v1/object/public/iste-shop-products/";
+    const index =
+      parsed.pathname.indexOf(
+        marker,
+      );
+
+    if (index < 0) {
+      return "";
+    }
+
+    return decodeURIComponent(
+      parsed.pathname.slice(
+        index +
+          marker.length,
+      ),
+    );
+  } catch {
+    return "";
+  }
+}
+
+async function removeManagedProductImage(
+  supabase,
+  imageUrl,
+) {
+  const path =
+    managedProductImagePath(
+      imageUrl,
+    );
+
+  if (!path) {
+    return {
+      removed: false,
+      skipped: true,
+    };
+  }
+
+  const {
+    error,
+  } = await supabase
+    .storage
+    .from(
+      "iste-shop-products",
+    )
+    .remove([path]);
+
+  if (error) {
+    console.error(
+      "Shop product image cleanup error:",
+      {
+        path,
+        message:
+          error.message ||
+          String(error),
+      },
+    );
+
+    return {
+      removed: false,
+      skipped: false,
+    };
+  }
+
+  return {
+    removed: true,
+    skipped: false,
+  };
+}
+
 function getHeader(
   request,
   name,
@@ -1584,6 +1669,20 @@ async function handleOwnerUploadImage(
       );
     }
 
+    if (
+      previousProduct
+        ?.image_url &&
+      previousProduct
+        .image_url !==
+        data.image_url
+    ) {
+      await removeManagedProductImage(
+        supabase,
+        previousProduct
+          .image_url,
+      );
+    }
+
     const auditResult =
       await supabase
         .from(
@@ -1693,6 +1792,43 @@ async function handleOwnerSaveProduct(
   try {
     const supabase =
       getSupabaseAdminClient();
+
+    let previousProduct =
+      null;
+
+    if (input.id) {
+      const {
+        data,
+        error,
+      } = await supabase
+        .from(
+          "shop_products",
+        )
+        .select(
+          "id,image_url",
+        )
+        .eq(
+          "id",
+          input.id,
+        )
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        return sendError(
+          response,
+          404,
+          "PRODUCT_NOT_FOUND",
+          "Товар не найден.",
+        );
+      }
+
+      previousProduct =
+        data;
+    }
 
     let query;
 
@@ -1804,6 +1940,215 @@ async function handleOwnerSaveProduct(
   }
 }
 
+async function handleOwnerDeleteProduct(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(request, {
+      methods: ["POST"],
+      requireJson: true,
+      requireOrigin: true,
+      maxBodyBytes:
+        8 * 1024,
+    });
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  response.setHeader(
+    "Cache-Control",
+    "no-store, private",
+  );
+
+  const owner =
+    await getOwner(
+      request,
+      response,
+    );
+
+  if (!owner) {
+    return;
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const productId =
+    typeof body.productId ===
+      "string"
+      ? body.productId.trim()
+      : "";
+
+  if (
+    !isUuid(
+      productId,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_PRODUCT_ID",
+      "Некорректный ID товара.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const [
+      productResult,
+      preorderResult,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "shop_products",
+          )
+          .select(
+            "id,slug,name,image_url,status",
+          )
+          .eq(
+            "id",
+            productId,
+          )
+          .maybeSingle(),
+        supabase
+          .from(
+            "shop_preorders",
+          )
+          .select(
+            "id",
+            {
+              count:
+                "exact",
+              head: true,
+            },
+          )
+          .eq(
+            "product_id",
+            productId,
+          ),
+      ]);
+
+    if (
+      productResult.error ||
+      preorderResult.error
+    ) {
+      throw (
+        productResult.error ||
+        preorderResult.error
+      );
+    }
+
+    const product =
+      productResult.data;
+
+    if (!product) {
+      return sendError(
+        response,
+        404,
+        "PRODUCT_NOT_FOUND",
+        "Товар не найден.",
+      );
+    }
+
+    const preorderCount =
+      Number(
+        preorderResult.count ||
+        0,
+      );
+
+    if (
+      preorderCount > 0
+    ) {
+      return sendError(
+        response,
+        409,
+        "PRODUCT_HAS_PREORDERS",
+        "Товар нельзя удалить, потому что по нему уже есть заявки. Переведи его в статус «Скрыт» или «Недоступно».",
+      );
+    }
+
+    const {
+      error: deleteError,
+    } = await supabase
+      .from(
+        "shop_products",
+      )
+      .delete()
+      .eq(
+        "id",
+        productId,
+      );
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    await removeManagedProductImage(
+      supabase,
+      product.image_url,
+    );
+
+    const auditResult =
+      await supabase
+        .from(
+          "shop_admin_audit",
+        )
+        .insert({
+          actor_id:
+            owner.user.id,
+          action:
+            "product.delete",
+          product_id: null,
+          metadata: {
+            productId,
+            slug:
+              product.slug,
+            name:
+              product.name,
+            status:
+              product.status,
+          },
+        });
+
+    if (
+      auditResult.error
+    ) {
+      console.error(
+        "Shop delete audit insert error:",
+        auditResult.error,
+      );
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        deleted: true,
+        productId,
+      });
+  } catch (error) {
+    console.error(
+      "Unexpected owner shop delete error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "OWNER_SHOP_DELETE_FAILED",
+      "Не удалось удалить товар.",
+    );
+  }
+}
+
 export default async function shopHandler(
   request,
   response,
@@ -1865,6 +2210,16 @@ export default async function shopHandler(
     "owner-save-product"
   ) {
     return handleOwnerSaveProduct(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "owner-delete-product"
+  ) {
+    return handleOwnerDeleteProduct(
       request,
       response,
     );
