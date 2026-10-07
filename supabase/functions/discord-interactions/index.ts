@@ -1440,16 +1440,21 @@ function subscriptionShopEmbed(
           plan.toUpperCase(),
         inline: true,
       },
-      {
-        name:
-          t.shopPrice,
-        value:
-          "$" +
-          config.priceUsd.toFixed(
-            2,
-          ),
-        inline: true,
-      },
+      ...(payment?.provider ===
+          "donatello"
+        ? []
+        : [
+            {
+              name:
+                t.shopPrice,
+              value:
+                "$" +
+                config.priceUsd.toFixed(
+                  2,
+                ),
+              inline: true,
+            },
+          ]),
       {
         name:
           t.shopPeriod,
@@ -1945,11 +1950,7 @@ function subscriptionButtons() {
             "iste:subscription:" +
             plan,
           label:
-            plan.toUpperCase() +
-            " · $" +
-            config.priceUsd.toFixed(
-              2,
-            ),
+            plan.toUpperCase(),
         }),
       ),
     },
