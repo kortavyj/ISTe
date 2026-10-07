@@ -3293,6 +3293,1678 @@ async function handleSecurityOverview(
   }
 }
 
+
+const INCIDENT_SOURCE_TYPES =
+  new Set([
+    "audit",
+    "security",
+    "moderation",
+    "command",
+    "ticket",
+    "manual",
+  ]);
+
+function incidentSeverity(
+  sourceType,
+  row,
+) {
+  if (
+    sourceType ===
+    "security"
+  ) {
+    return [
+      "info",
+      "warning",
+      "critical",
+    ].includes(
+      String(
+        row?.severity ||
+        "",
+      ),
+    )
+      ? String(
+          row.severity,
+        )
+      : "warning";
+  }
+
+  if (
+    sourceType ===
+    "moderation"
+  ) {
+    const action =
+      String(
+        row?.action ||
+        "",
+      )
+        .toLowerCase();
+
+    if (
+      [
+        "ban",
+        "kick",
+      ].includes(
+        action,
+      )
+    ) {
+      return "critical";
+    }
+
+    if (
+      [
+        "timeout",
+        "warn",
+      ].includes(
+        action,
+      )
+    ) {
+      return "warning";
+    }
+
+    return "info";
+  }
+
+  if (
+    sourceType ===
+    "command"
+  ) {
+    return row?.outcome ===
+      "error"
+      ? "critical"
+      : row?.outcome ===
+          "denied"
+        ? "warning"
+        : "info";
+  }
+
+  if (
+    sourceType ===
+    "audit"
+  ) {
+    const type =
+      String(
+        row?.event_type ||
+        "",
+      );
+
+    if (
+      type.includes(
+        "failed",
+      ) ||
+      type.includes(
+        "error",
+      )
+    ) {
+      return "critical";
+    }
+
+    if (
+      type.includes(
+        "rejected",
+      ) ||
+      type.includes(
+        "revoked",
+      )
+    ) {
+      return "warning";
+    }
+  }
+
+  return "info";
+}
+
+function incidentEventFromRow(
+  sourceType,
+  row,
+) {
+  if (!row) {
+    return null;
+  }
+
+  if (
+    sourceType ===
+    "security"
+  ) {
+    const reasons =
+      Array.isArray(
+        row.details?.reasons,
+      )
+        ? row.details.reasons
+            .map(String)
+            .filter(Boolean)
+        : [];
+
+    return {
+      sourceType,
+      sourceId:
+        String(row.id),
+      eventType:
+        String(
+          row.event_type ||
+          "security",
+        ),
+      title:
+        "Security · " +
+        String(
+          row.event_type ||
+          "event",
+        ),
+      summary:
+        reasons.join(" · ") ||
+        String(
+          row.action_taken ||
+          "Security event",
+        ),
+      severity:
+        incidentSeverity(
+          sourceType,
+          row,
+        ),
+      subjectUserId:
+        String(
+          row.user_id ||
+          "",
+        ),
+      actorUserId: "",
+      channelId: "",
+      createdAt:
+        row.created_at,
+      snapshot: row,
+    };
+  }
+
+  if (
+    sourceType ===
+    "moderation"
+  ) {
+    return {
+      sourceType,
+      sourceId:
+        String(row.id),
+      eventType:
+        "moderation." +
+        String(
+          row.action ||
+          "case",
+        ),
+      title:
+        "Moderation · " +
+        String(
+          row.action ||
+          "case",
+        ),
+      summary:
+        String(
+          row.reason ||
+          "",
+        ),
+      severity:
+        incidentSeverity(
+          sourceType,
+          row,
+        ),
+      subjectUserId:
+        String(
+          row.target_user_id ||
+          "",
+        ),
+      actorUserId:
+        String(
+          row.moderator_user_id ||
+          "",
+        ),
+      channelId:
+        String(
+          row.metadata
+            ?.channel_id ||
+          "",
+        ),
+      createdAt:
+        row.created_at,
+      snapshot: row,
+    };
+  }
+
+  if (
+    sourceType ===
+    "command"
+  ) {
+    const reason =
+      String(
+        row.denied_reason ||
+        "",
+      );
+
+    return {
+      sourceType,
+      sourceId:
+        String(row.id),
+      eventType:
+        "command." +
+        String(
+          row.command_name ||
+          "unknown",
+        ),
+      title:
+        "/" +
+        String(
+          row.command_name ||
+          "command",
+        ) +
+        " · " +
+        String(
+          row.outcome ||
+          "allowed",
+        ),
+      summary:
+        reason ||
+        (
+          row.duration_ms == null
+            ? "Slash command invocation"
+            : String(
+                row.duration_ms,
+              ) +
+              " ms"
+        ),
+      severity:
+        incidentSeverity(
+          sourceType,
+          row,
+        ),
+      subjectUserId:
+        String(
+          row.user_id ||
+          "",
+        ),
+      actorUserId:
+        String(
+          row.user_id ||
+          "",
+        ),
+      channelId:
+        String(
+          row.channel_id ||
+          "",
+        ),
+      createdAt:
+        row.created_at,
+      snapshot: row,
+    };
+  }
+
+  if (
+    sourceType ===
+    "ticket"
+  ) {
+    return {
+      sourceType,
+      sourceId:
+        String(row.id),
+      eventType:
+        "ticket." +
+        String(
+          row.status ||
+          "open",
+        ),
+      title:
+        "Ticket · " +
+        String(
+          row.status ||
+          "open",
+        ),
+      summary:
+        row.channel_id
+          ? "Channel " +
+            String(
+              row.channel_id,
+            )
+          : "Discord ticket",
+      severity: "info",
+      subjectUserId:
+        String(
+          row.opener_id ||
+          "",
+        ),
+      actorUserId:
+        String(
+          row.deleted_by ||
+          row.closed_by ||
+          "",
+        ),
+      channelId:
+        String(
+          row.channel_id ||
+          "",
+        ),
+      createdAt:
+        row.created_at,
+      snapshot: row,
+    };
+  }
+
+  const payload =
+    row.payload &&
+    typeof row.payload ===
+      "object"
+      ? row.payload
+      : {};
+
+  return {
+    sourceType:
+      "audit",
+    sourceId:
+      String(row.id),
+    eventType:
+      String(
+        row.event_type ||
+        "audit",
+      ),
+    title:
+      String(
+        row.event_type ||
+        "Audit event",
+      ),
+    summary:
+      String(
+        payload.reason ||
+        payload.error ||
+        payload.category ||
+        "",
+      ),
+    severity:
+      incidentSeverity(
+        "audit",
+        row,
+      ),
+    subjectUserId:
+      String(
+        payload.user_id ||
+        payload.target_user_id ||
+        "",
+      ),
+    actorUserId:
+      String(
+        payload.actor_id ||
+        payload.reviewer_id ||
+        payload.moderator_user_id ||
+        "",
+      ),
+    channelId:
+      String(
+        payload.channel_id ||
+        "",
+      ),
+    createdAt:
+      row.created_at,
+    snapshot: row,
+  };
+}
+
+async function readIncidentSource(
+  supabase,
+  guildId,
+  sourceType,
+  sourceId,
+) {
+  if (
+    !INCIDENT_SOURCE_TYPES.has(
+      sourceType,
+    ) ||
+    sourceType ===
+      "manual"
+  ) {
+    return null;
+  }
+
+  const table =
+    sourceType ===
+      "audit"
+      ? "discord_bot_audit"
+      : sourceType ===
+          "security"
+        ? "discord_security_events"
+        : sourceType ===
+            "moderation"
+          ? "discord_moderation_cases"
+          : sourceType ===
+              "command"
+            ? "discord_command_usage"
+            : "discord_tickets";
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .from(table)
+    .select("*")
+    .eq(
+      "guild_id",
+      guildId,
+    )
+    .eq(
+      "id",
+      sourceId,
+    )
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return incidentEventFromRow(
+    sourceType,
+    data,
+  );
+}
+
+function normalizeIncidentRow(
+  row,
+  notes = [],
+) {
+  return {
+    id:
+      row.id,
+    sourceType:
+      row.source_type,
+    sourceId:
+      row.source_id,
+    status:
+      row.status,
+    severity:
+      row.severity,
+    title:
+      row.title,
+    summary:
+      row.summary,
+    subjectUserId:
+      row.subject_user_id,
+    actorUserId:
+      row.actor_user_id,
+    channelId:
+      row.channel_id,
+    resolutionNote:
+      row.resolution_note,
+    createdAt:
+      row.created_at,
+    updatedAt:
+      row.updated_at,
+    resolvedAt:
+      row.resolved_at,
+    notes:
+      notes.map(
+        (note) => ({
+          id:
+            note.id,
+          authorUserId:
+            note.author_user_id,
+          note:
+            note.note,
+          createdAt:
+            note.created_at,
+        }),
+      ),
+  };
+}
+
+async function handleIncidentCenterOverview(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const since =
+      new Date(
+        Date.now() -
+        14 *
+          86400000,
+      ).toISOString();
+
+    const [
+      auditResult,
+      securityResult,
+      moderationResult,
+      commandResult,
+      ticketResult,
+      incidentsResult,
+    ] =
+      await Promise.all([
+        access.supabase
+          .from(
+            "discord_bot_audit",
+          )
+          .select(
+            "id,event_type,payload,created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(120),
+        access.supabase
+          .from(
+            "discord_security_events",
+          )
+          .select(
+            "id,user_id,event_type,severity,action_taken,details,created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(120),
+        access.supabase
+          .from(
+            "discord_moderation_cases",
+          )
+          .select(
+            "id,target_user_id,moderator_user_id,action,reason,duration_minutes,status,metadata,created_at,updated_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(120),
+        access.supabase
+          .from(
+            "discord_command_usage",
+          )
+          .select(
+            "id,command_name,user_id,channel_id,outcome,denied_reason,duration_ms,created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(120),
+        access.supabase
+          .from(
+            "discord_tickets",
+          )
+          .select(
+            "id,channel_id,opener_id,status,closed_by,deleted_by,created_at,updated_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(120),
+        access.supabase
+          .from(
+            "discord_incidents",
+          )
+          .select("*")
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(100),
+      ]);
+
+    for (
+      const result
+      of [
+        auditResult,
+        securityResult,
+        moderationResult,
+        commandResult,
+        ticketResult,
+        incidentsResult,
+      ]
+    ) {
+      if (result.error) {
+        throw result.error;
+      }
+    }
+
+    const incidentRows =
+      incidentsResult.data ||
+      [];
+    const incidentIds =
+      incidentRows
+        .map(
+          (row) =>
+            row.id,
+        )
+        .filter(Boolean);
+
+    let noteRows = [];
+
+    if (incidentIds.length) {
+      const {
+        data,
+        error,
+      } = await access.supabase
+        .from(
+          "discord_incident_notes",
+        )
+        .select(
+          "id,incident_id,author_user_id,note,created_at",
+        )
+        .in(
+          "incident_id",
+          incidentIds,
+        )
+        .order(
+          "created_at",
+          {
+            ascending:
+              true,
+          },
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      noteRows =
+        data || [];
+    }
+
+    const notesByIncident =
+      new Map();
+
+    for (
+      const note
+      of noteRows
+    ) {
+      const key =
+        String(
+          note.incident_id,
+        );
+
+      if (
+        !notesByIncident.has(
+          key,
+        )
+      ) {
+        notesByIncident.set(
+          key,
+          [],
+        );
+      }
+
+      notesByIncident
+        .get(key)
+        .push(note);
+    }
+
+    const incidents =
+      incidentRows.map(
+        (row) =>
+          normalizeIncidentRow(
+            row,
+            notesByIncident.get(
+              String(row.id),
+            ) ||
+            [],
+          ),
+      );
+
+    const incidentBySource =
+      new Map(
+        incidents
+          .filter(
+            (item) =>
+              item.sourceId,
+          )
+          .map(
+            (item) => [
+              item.sourceType +
+                ":" +
+                item.sourceId,
+              item,
+            ],
+          ),
+      );
+
+    const events = [
+      ...(
+        auditResult.data ||
+        []
+      ).map(
+        (row) =>
+          incidentEventFromRow(
+            "audit",
+            row,
+          ),
+      ),
+      ...(
+        securityResult.data ||
+        []
+      ).map(
+        (row) =>
+          incidentEventFromRow(
+            "security",
+            row,
+          ),
+      ),
+      ...(
+        moderationResult.data ||
+        []
+      ).map(
+        (row) =>
+          incidentEventFromRow(
+            "moderation",
+            row,
+          ),
+      ),
+      ...(
+        commandResult.data ||
+        []
+      ).map(
+        (row) =>
+          incidentEventFromRow(
+            "command",
+            row,
+          ),
+      ),
+      ...(
+        ticketResult.data ||
+        []
+      ).map(
+        (row) =>
+          incidentEventFromRow(
+            "ticket",
+            row,
+          ),
+      ),
+    ]
+      .filter(Boolean)
+      .sort(
+        (
+          left,
+          right,
+        ) =>
+          new Date(
+            right.createdAt,
+          ).getTime() -
+          new Date(
+            left.createdAt,
+          ).getTime(),
+      )
+      .slice(
+        0,
+        180,
+      )
+      .map(
+        (event) => {
+          const incident =
+            incidentBySource.get(
+              event.sourceType +
+                ":" +
+                event.sourceId,
+            );
+
+          return {
+            ...event,
+            snapshot:
+              undefined,
+            incidentId:
+              incident?.id ||
+              null,
+            incidentStatus:
+              incident?.status ||
+              null,
+          };
+        },
+      );
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        windowDays: 14,
+        summary: {
+          events:
+            events.length,
+          open:
+            incidents.filter(
+              (item) =>
+                item.status ===
+                "open",
+            ).length,
+          reviewing:
+            incidents.filter(
+              (item) =>
+                item.status ===
+                "reviewing",
+            ).length,
+          resolved:
+            incidents.filter(
+              (item) =>
+                item.status ===
+                "resolved",
+            ).length,
+          critical:
+            incidents.filter(
+              (item) =>
+                item.severity ===
+                "critical" &&
+                item.status !==
+                  "resolved",
+            ).length,
+        },
+        events,
+        incidents,
+      });
+  } catch (error) {
+    console.error(
+      "Incident center overview error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "INCIDENT_CENTER_LOAD_FAILED",
+      "Не вдалося завантажити Incident Center.",
+    );
+  }
+}
+
+async function handleCreateIncident(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 12000,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const sourceType =
+    String(
+      body.sourceType ||
+      "manual",
+    )
+      .trim()
+      .toLowerCase();
+  const sourceId =
+    String(
+      body.sourceId ||
+      "",
+    ).trim();
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    !INCIDENT_SOURCE_TYPES.has(
+      sourceType,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_INCIDENT_SOURCE",
+      "Некоректне джерело incident.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    let source = null;
+
+    if (
+      sourceType !==
+      "manual"
+    ) {
+      if (!sourceId) {
+        return sendError(
+          response,
+          400,
+          "INCIDENT_SOURCE_REQUIRED",
+          "Оберіть вихідну подію.",
+        );
+      }
+
+      source =
+        await readIncidentSource(
+          access.supabase,
+          guildId,
+          sourceType,
+          sourceId,
+        );
+
+      if (!source) {
+        return sendError(
+          response,
+          404,
+          "INCIDENT_SOURCE_NOT_FOUND",
+          "Вихідну подію не знайдено.",
+        );
+      }
+    }
+
+    const manualTitle =
+      String(
+        body.title ||
+        "",
+      )
+        .trim()
+        .slice(
+          0,
+          160,
+        );
+    const manualSummary =
+      String(
+        body.summary ||
+        "",
+      )
+        .trim()
+        .slice(
+          0,
+          2000,
+        );
+    const requestedSeverity =
+      [
+        "info",
+        "warning",
+        "critical",
+      ].includes(
+        String(
+          body.severity ||
+          "",
+        ),
+      )
+        ? String(
+            body.severity,
+          )
+        : "warning";
+
+    if (
+      sourceType ===
+        "manual" &&
+      !manualTitle
+    ) {
+      return sendError(
+        response,
+        400,
+        "INCIDENT_TITLE_REQUIRED",
+        "Вкажіть назву incident.",
+      );
+    }
+
+    const row = {
+      guild_id:
+        guildId,
+      source_type:
+        sourceType,
+      source_id:
+        source
+          ? source.sourceId
+          : null,
+      status:
+        "open",
+      severity:
+        source
+          ? source.severity
+          : requestedSeverity,
+      title:
+        source
+          ? source.title
+          : manualTitle,
+      summary:
+        source
+          ? source.summary
+          : manualSummary,
+      subject_user_id:
+        source
+          ? source.subjectUserId ||
+            null
+          : null,
+      actor_user_id:
+        source
+          ? source.actorUserId ||
+            null
+          : null,
+      channel_id:
+        source
+          ? source.channelId ||
+            null
+          : null,
+      source_snapshot:
+        source?.snapshot ||
+        {},
+      created_by:
+        access.account.user.id,
+      updated_at:
+        new Date()
+          .toISOString(),
+    };
+
+    const {
+      data,
+      error,
+    } = await access.supabase
+      .from(
+        "discord_incidents",
+      )
+      .insert(row)
+      .select("*")
+      .single();
+
+    if (error) {
+      if (
+        error.code ===
+        "23505" &&
+        source
+      ) {
+        const {
+          data:
+            existing,
+          error:
+            existingError,
+        } = await access.supabase
+          .from(
+            "discord_incidents",
+          )
+          .select("*")
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .eq(
+            "source_type",
+            sourceType,
+          )
+          .eq(
+            "source_id",
+            source.sourceId,
+          )
+          .maybeSingle();
+
+        if (
+          existingError ||
+          !existing
+        ) {
+          throw (
+            existingError ||
+            error
+          );
+        }
+
+        return response
+          .status(200)
+          .json({
+            ok: true,
+            incident:
+              normalizeIncidentRow(
+                existing,
+              ),
+            existing: true,
+          });
+      }
+
+      throw error;
+    }
+
+    await access.supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "incident.created",
+        payload: {
+          incident_id:
+            data.id,
+          source_type:
+            sourceType,
+          source_id:
+            source?.sourceId ||
+            null,
+          severity:
+            data.severity,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        incident:
+          normalizeIncidentRow(
+            data,
+          ),
+      });
+  } catch (error) {
+    console.error(
+      "Create incident error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "INCIDENT_CREATE_FAILED",
+      "Не вдалося створити incident.",
+    );
+  }
+}
+
+async function handleUpdateIncident(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 12000,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const incidentId =
+    String(
+      body.incidentId ||
+      "",
+    ).trim();
+  const status =
+    String(
+      body.status ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+  const severity =
+    String(
+      body.severity ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+  const resolutionNote =
+    String(
+      body.resolutionNote ||
+      "",
+    )
+      .trim()
+      .slice(
+        0,
+        2000,
+      );
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    !/^[0-9a-f-]{36}$/i.test(
+      incidentId,
+    ) ||
+    ![
+      "open",
+      "reviewing",
+      "resolved",
+    ].includes(
+      status,
+    ) ||
+    ![
+      "info",
+      "warning",
+      "critical",
+    ].includes(
+      severity,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_INCIDENT_UPDATE",
+      "Некоректні параметри incident.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const now =
+      new Date()
+        .toISOString();
+    const update = {
+      status,
+      severity,
+      resolution_note:
+        resolutionNote,
+      updated_at:
+        now,
+      resolved_at:
+        status ===
+        "resolved"
+          ? now
+          : null,
+      resolved_by:
+        status ===
+        "resolved"
+          ? access.account
+              .user.id
+          : null,
+    };
+
+    const {
+      data,
+      error,
+    } = await access.supabase
+      .from(
+        "discord_incidents",
+      )
+      .update(update)
+      .eq(
+        "id",
+        incidentId,
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .select("*")
+      .maybeSingle();
+
+    if (
+      error ||
+      !data
+    ) {
+      if (error) {
+        throw error;
+      }
+
+      return sendError(
+        response,
+        404,
+        "INCIDENT_NOT_FOUND",
+        "Incident не знайдено.",
+      );
+    }
+
+    await access.supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "incident.updated",
+        payload: {
+          incident_id:
+            incidentId,
+          status,
+          severity,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        incident:
+          normalizeIncidentRow(
+            data,
+          ),
+      });
+  } catch (error) {
+    console.error(
+      "Update incident error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "INCIDENT_UPDATE_FAILED",
+      "Не вдалося оновити incident.",
+    );
+  }
+}
+
+async function handleAddIncidentNote(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 12000,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const incidentId =
+    String(
+      body.incidentId ||
+      "",
+    ).trim();
+  const note =
+    String(
+      body.note ||
+      "",
+    )
+      .trim()
+      .slice(
+        0,
+        2000,
+      );
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    !/^[0-9a-f-]{36}$/i.test(
+      incidentId,
+    ) ||
+    !note
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_INCIDENT_NOTE",
+      "Вкажіть текст нотатки.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const {
+      data:
+        incident,
+      error:
+        incidentError,
+    } = await access.supabase
+      .from(
+        "discord_incidents",
+      )
+      .select("id")
+      .eq(
+        "id",
+        incidentId,
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .maybeSingle();
+
+    if (
+      incidentError ||
+      !incident
+    ) {
+      if (incidentError) {
+        throw incidentError;
+      }
+
+      return sendError(
+        response,
+        404,
+        "INCIDENT_NOT_FOUND",
+        "Incident не знайдено.",
+      );
+    }
+
+    const {
+      data,
+      error,
+    } = await access.supabase
+      .from(
+        "discord_incident_notes",
+      )
+      .insert({
+        incident_id:
+          incidentId,
+        guild_id:
+          guildId,
+        author_user_id:
+          access.account
+            .user.id,
+        note,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    await access.supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "incident.note_added",
+        payload: {
+          incident_id:
+            incidentId,
+          note_id:
+            data.id,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        note: {
+          id:
+            data.id,
+          authorUserId:
+            data.author_user_id,
+          note:
+            data.note,
+          createdAt:
+            data.created_at,
+        },
+      });
+  } catch (error) {
+    console.error(
+      "Incident note error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "INCIDENT_NOTE_FAILED",
+      "Не вдалося додати нотатку.",
+    );
+  }
+}
+
 const DISCORD_COMMAND_CATALOG =
   Object.freeze([
     {
@@ -14415,6 +16087,46 @@ export default async function botPortalHandler(
     "publish-ticket-panel"
   ) {
     return handlePublishTicketPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "incident-center-overview"
+  ) {
+    return handleIncidentCenterOverview(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "create-incident"
+  ) {
+    return handleCreateIncident(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "update-incident"
+  ) {
+    return handleUpdateIncident(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "add-incident-note"
+  ) {
+    return handleAddIncidentNote(
       request,
       response,
     );
