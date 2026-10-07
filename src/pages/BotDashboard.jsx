@@ -73,6 +73,19 @@ const EMPTY_PUBLICATIONS = {
   scheduled: [],
 };
 
+const EMPTY_INCIDENT_CENTER = {
+  windowDays: 14,
+  summary: {
+    events: 0,
+    open: 0,
+    reviewing: 0,
+    resolved: 0,
+    critical: 0,
+  },
+  events: [],
+  incidents: [],
+};
+
 const EMPTY_SECURITY = {
   summary: {
     events: 0,
@@ -207,6 +220,7 @@ const copy = {
     tabAnalytics: "Аналітика",
     tabCommands: "Команди",
     tabSecurity: "Безпека",
+    tabIncidents: "Інциденти",
     tabOnboarding: "Онбординг",
     tabModeration: "Модерація",
     tabSupport: "Підтримка",
@@ -301,6 +315,47 @@ const copy = {
     securityError: "Не вдалося завантажити Security Center.",
     securityActionObserved: "OBSERVED",
     securityActionQuarantine: "QUARANTINE",
+    incidentTitle: "Audit & Incident Center",
+    incidentText:
+      "Єдина стрічка Discord подій та робочі incidents для staff review, нотаток і закриття.",
+    incidentRefresh: "Оновити",
+    incidentLoading: "Завантаження...",
+    incidentError: "Не вдалося завантажити Incident Center.",
+    incidentEvents: "Події · 14d",
+    incidentOpen: "Open",
+    incidentReviewing: "Reviewing",
+    incidentResolved: "Resolved",
+    incidentCritical: "Critical",
+    incidentEventFeed: "Event feed",
+    incidentTracked: "Tracked incidents",
+    incidentSourceAll: "Усі джерела",
+    incidentSourceAudit: "Audit",
+    incidentSourceSecurity: "Security",
+    incidentSourceModeration: "Moderation",
+    incidentSourceCommand: "Commands",
+    incidentSourceTicket: "Tickets",
+    incidentStatusAll: "Усі статуси",
+    incidentCreate: "Створити incident",
+    incidentCreating: "Створення...",
+    incidentAlreadyTracked: "TRACKED",
+    incidentNoEvents: "Подій за вибраним фільтром немає.",
+    incidentNoTracked: "Активних incidents поки немає.",
+    incidentStatus: "Статус",
+    incidentSeverity: "Severity",
+    incidentResolution: "Resolution note",
+    incidentResolutionPlaceholder: "Що було перевірено та як incident закрито",
+    incidentSave: "Зберегти incident",
+    incidentSaving: "Збереження...",
+    incidentNotes: "Внутрішні нотатки",
+    incidentNotePlaceholder: "Додати контекст для staff...",
+    incidentAddNote: "Додати нотатку",
+    incidentAddingNote: "Додавання...",
+    incidentCreated: "Incident створено.",
+    incidentUpdated: "Incident оновлено.",
+    incidentNoteAdded: "Нотатку додано.",
+    incidentSubject: "Subject",
+    incidentActor: "Actor",
+    incidentChannel: "Channel",
     diagnosticsTitle: "Diagnostics & Alerts",
     diagnosticsText:
       "Перевірка Discord permissions, ролей, каналів, worker runtime та помилок активних модулів.",
@@ -647,6 +702,7 @@ const copy = {
     tabAnalytics: "Analytics",
     tabCommands: "Commands",
     tabSecurity: "Security",
+    tabIncidents: "Incidents",
     tabOnboarding: "Onboarding",
     tabModeration: "Moderation",
     tabSupport: "Support",
@@ -741,6 +797,47 @@ const copy = {
     securityError: "Could not load Security Center.",
     securityActionObserved: "OBSERVED",
     securityActionQuarantine: "QUARANTINE",
+    incidentTitle: "Audit & Incident Center",
+    incidentText:
+      "Unified Discord event feed with tracked staff incidents, notes, review and resolution.",
+    incidentRefresh: "Refresh",
+    incidentLoading: "Loading...",
+    incidentError: "Could not load Incident Center.",
+    incidentEvents: "Events · 14d",
+    incidentOpen: "Open",
+    incidentReviewing: "Reviewing",
+    incidentResolved: "Resolved",
+    incidentCritical: "Critical",
+    incidentEventFeed: "Event feed",
+    incidentTracked: "Tracked incidents",
+    incidentSourceAll: "All sources",
+    incidentSourceAudit: "Audit",
+    incidentSourceSecurity: "Security",
+    incidentSourceModeration: "Moderation",
+    incidentSourceCommand: "Commands",
+    incidentSourceTicket: "Tickets",
+    incidentStatusAll: "All statuses",
+    incidentCreate: "Create incident",
+    incidentCreating: "Creating...",
+    incidentAlreadyTracked: "TRACKED",
+    incidentNoEvents: "No events match this filter.",
+    incidentNoTracked: "No tracked incidents yet.",
+    incidentStatus: "Status",
+    incidentSeverity: "Severity",
+    incidentResolution: "Resolution note",
+    incidentResolutionPlaceholder: "What was reviewed and how the incident was resolved",
+    incidentSave: "Save incident",
+    incidentSaving: "Saving...",
+    incidentNotes: "Internal notes",
+    incidentNotePlaceholder: "Add context for staff...",
+    incidentAddNote: "Add note",
+    incidentAddingNote: "Adding...",
+    incidentCreated: "Incident created.",
+    incidentUpdated: "Incident updated.",
+    incidentNoteAdded: "Note added.",
+    incidentSubject: "Subject",
+    incidentActor: "Actor",
+    incidentChannel: "Channel",
     diagnosticsTitle: "Diagnostics & Alerts",
     diagnosticsText:
       "Check Discord permissions, roles, channels, worker runtime and active module errors.",
@@ -1436,6 +1533,38 @@ export default function BotDashboard() {
   ] = useState("");
 
   const [
+    incidentCenter,
+    setIncidentCenter,
+  ] = useState(
+    EMPTY_INCIDENT_CENTER,
+  );
+
+  const [
+    incidentLoading,
+    setIncidentLoading,
+  ] = useState(false);
+
+  const [
+    incidentError,
+    setIncidentError,
+  ] = useState("");
+
+  const [
+    incidentSourceFilter,
+    setIncidentSourceFilter,
+  ] = useState("all");
+
+  const [
+    incidentStatusFilter,
+    setIncidentStatusFilter,
+  ] = useState("all");
+
+  const [
+    incidentNoteDrafts,
+    setIncidentNoteDrafts,
+  ] = useState({});
+
+  const [
     securityOverview,
     setSecurityOverview,
   ] = useState(
@@ -1715,6 +1844,266 @@ export default function BotDashboard() {
             0,
         ),
       );
+  }
+
+  async function loadIncidentCenter(
+    guildId =
+      selectedGuildId,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setIncidentLoading(
+      true,
+    );
+    setIncidentError("");
+
+    try {
+      const result =
+        await api(
+          "incident-center-overview",
+          {
+            method: "POST",
+            body: {
+              guildId,
+            },
+          },
+        );
+
+      setIncidentCenter({
+        windowDays:
+          Number(
+            result.windowDays ||
+            14,
+          ) ||
+          14,
+        summary: {
+          ...EMPTY_INCIDENT_CENTER
+            .summary,
+          ...(result.summary ||
+            {}),
+        },
+        events:
+          Array.isArray(
+            result.events,
+          )
+            ? result.events
+            : [],
+        incidents:
+          Array.isArray(
+            result.incidents,
+          )
+            ? result.incidents
+            : [],
+      });
+    } catch (loadError) {
+      setIncidentError(
+        loadError?.message ||
+          c.incidentError,
+      );
+    } finally {
+      setIncidentLoading(
+        false,
+      );
+    }
+  }
+
+  async function createIncidentFromEvent(
+    event,
+  ) {
+    if (!selectedGuild) {
+      return;
+    }
+
+    const busyKey =
+      "incident-create:" +
+      event.sourceType +
+      ":" +
+      event.sourceId;
+
+    setBusy(busyKey);
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "create-incident",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            sourceType:
+              event.sourceType,
+            sourceId:
+              event.sourceId,
+          },
+        },
+      );
+
+      setNotice(
+        c.incidentCreated,
+      );
+
+      await loadIncidentCenter(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  function patchIncident(
+    incidentId,
+    patchValue,
+  ) {
+    setIncidentCenter(
+      (current) => ({
+        ...current,
+        incidents:
+          current.incidents.map(
+            (incident) =>
+              incident.id ===
+              incidentId
+                ? {
+                    ...incident,
+                    ...patchValue,
+                  }
+                : incident,
+          ),
+      }),
+    );
+  }
+
+  async function saveIncident(
+    incident,
+  ) {
+    if (!selectedGuild) {
+      return;
+    }
+
+    const busyKey =
+      "incident-save:" +
+      incident.id;
+
+    setBusy(busyKey);
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "update-incident",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            incidentId:
+              incident.id,
+            status:
+              incident.status,
+            severity:
+              incident.severity,
+            resolutionNote:
+              incident
+                .resolutionNote ||
+              "",
+          },
+        },
+      );
+
+      setNotice(
+        c.incidentUpdated,
+      );
+
+      await loadIncidentCenter(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function addIncidentNote(
+    incidentId,
+  ) {
+    if (!selectedGuild) {
+      return;
+    }
+
+    const note =
+      String(
+        incidentNoteDrafts[
+          incidentId
+        ] ||
+        "",
+      ).trim();
+
+    if (!note) {
+      return;
+    }
+
+    const busyKey =
+      "incident-note:" +
+      incidentId;
+
+    setBusy(busyKey);
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "add-incident-note",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            incidentId,
+            note,
+          },
+        },
+      );
+
+      setIncidentNoteDrafts(
+        (current) => ({
+          ...current,
+          [incidentId]: "",
+        }),
+      );
+
+      setNotice(
+        c.incidentNoteAdded,
+      );
+
+      await loadIncidentCenter(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
   }
 
   async function loadSecurityOverview(
@@ -2309,6 +2698,13 @@ export default function BotDashboard() {
       audit: [],
     });
     setModerationError("");
+    setIncidentCenter(
+      EMPTY_INCIDENT_CENTER,
+    );
+    setIncidentError("");
+    setIncidentSourceFilter("all");
+    setIncidentStatusFilter("all");
+    setIncidentNoteDrafts({});
     setSecurityOverview(
       EMPTY_SECURITY,
     );
@@ -2351,6 +2747,10 @@ export default function BotDashboard() {
       guild.guildId,
       "",
       "",
+    );
+
+    void loadIncidentCenter(
+      guild.guildId,
     );
 
     void loadSecurityOverview(
@@ -3618,34 +4018,39 @@ export default function BotDashboard() {
                   "04",
                 ],
                 [
+                  "incidents",
+                  c.tabIncidents,
+                  "05",
+                ],
+                [
                   "onboarding",
                   c.tabOnboarding,
-                  "05",
+                  "06",
                 ],
                 [
                   "moderation",
                   c.tabModeration,
-                  "06",
+                  "07",
                 ],
                 [
                   "support",
                   c.tabSupport,
-                  "07",
+                  "08",
                 ],
                 [
                   "publishing",
                   c.tabPublishing,
-                  "08",
+                  "09",
                 ],
                 [
                   "system",
                   c.tabSystem,
-                  "09",
+                  "10",
                 ],
                 [
                   "diagnostics",
                   c.tabDiagnostics,
-                  "10",
+                  "11",
                 ],
               ].map(
                 ([
@@ -3686,6 +4091,13 @@ export default function BotDashboard() {
                         "security"
                       ) {
                         void loadSecurityOverview();
+                      }
+
+                      if (
+                        key ===
+                        "incidents"
+                      ) {
+                        void loadIncidentCenter();
                       }
 
                       if (
@@ -3785,8 +4197,26 @@ export default function BotDashboard() {
                     },
                     {
                       key:
-                        "onboarding",
+                        "incidents",
                       index: "05",
+                      title:
+                        c.tabIncidents,
+                      enabled:
+                        incidentCenter
+                          .summary
+                          .open +
+                        incidentCenter
+                          .summary
+                          .reviewing,
+                      total:
+                        incidentCenter
+                          .summary
+                          .events,
+                    },
+                    {
+                      key:
+                        "onboarding",
+                      index: "06",
                       title:
                         c.tabOnboarding,
                       enabled: [
@@ -3806,7 +4236,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "moderation",
-                      index: "06",
+                      index: "07",
                       title:
                         c.tabModeration,
                       enabled: [
@@ -3822,7 +4252,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "support",
-                      index: "07",
+                      index: "08",
                       title:
                         c.tabSupport,
                       enabled: [
@@ -3838,7 +4268,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "publishing",
-                      index: "08",
+                      index: "09",
                       title:
                         c.tabPublishing,
                       enabled:
@@ -3869,7 +4299,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "system",
-                      index: "09",
+                      index: "10",
                       title:
                         c.tabSystem,
                       enabled: [
@@ -7367,6 +7797,637 @@ export default function BotDashboard() {
                         {c.commandNoUsage}
                       </p>
                     )}
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section
+              className={
+                `bot-dashboard-incident-center${settingsTab === "incidents" ? "" : " hidden"}`
+              }
+            >
+              <header className="bot-dashboard-incident-head">
+                <div>
+                  <span>
+                    INCIDENT CENTER
+                  </span>
+                  <h3>
+                    {c.incidentTitle}
+                  </h3>
+                  <p>
+                    {c.incidentText}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void loadIncidentCenter()
+                  }
+                  disabled={
+                    incidentLoading
+                  }
+                >
+                  {incidentLoading
+                    ? c.incidentLoading
+                    : c.incidentRefresh}
+                </button>
+              </header>
+
+              {incidentError ? (
+                <div className="bot-dashboard-alert error">
+                  {incidentError}
+                </div>
+              ) : null}
+
+              <div className="bot-dashboard-incident-kpis">
+                {[
+                  [
+                    c.incidentEvents,
+                    incidentCenter
+                      .summary
+                      .events,
+                    "events",
+                  ],
+                  [
+                    c.incidentOpen,
+                    incidentCenter
+                      .summary
+                      .open,
+                    "open",
+                  ],
+                  [
+                    c.incidentReviewing,
+                    incidentCenter
+                      .summary
+                      .reviewing,
+                    "reviewing",
+                  ],
+                  [
+                    c.incidentResolved,
+                    incidentCenter
+                      .summary
+                      .resolved,
+                    "resolved",
+                  ],
+                  [
+                    c.incidentCritical,
+                    incidentCenter
+                      .summary
+                      .critical,
+                    "critical",
+                  ],
+                ].map(
+                  ([
+                    label,
+                    value,
+                    tone,
+                  ]) => (
+                    <article
+                      key={
+                        label
+                      }
+                      className={
+                        tone
+                      }
+                    >
+                      <span>
+                        {label}
+                      </span>
+                      <strong>
+                        {value}
+                      </strong>
+                    </article>
+                  ),
+                )}
+              </div>
+
+              <div className="bot-dashboard-incident-layout">
+                <article className="bot-dashboard-incident-events">
+                  <header>
+                    <strong>
+                      {c.incidentEventFeed}
+                    </strong>
+
+                    <select
+                      value={
+                        incidentSourceFilter
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setIncidentSourceFilter(
+                          event
+                            .target
+                            .value,
+                        )
+                      }
+                    >
+                      <option value="all">
+                        {c.incidentSourceAll}
+                      </option>
+                      <option value="audit">
+                        {c.incidentSourceAudit}
+                      </option>
+                      <option value="security">
+                        {c.incidentSourceSecurity}
+                      </option>
+                      <option value="moderation">
+                        {c.incidentSourceModeration}
+                      </option>
+                      <option value="command">
+                        {c.incidentSourceCommand}
+                      </option>
+                      <option value="ticket">
+                        {c.incidentSourceTicket}
+                      </option>
+                    </select>
+                  </header>
+
+                  <div className="incident-event-list">
+                    {incidentCenter.events
+                      .filter(
+                        (
+                          event,
+                        ) =>
+                          incidentSourceFilter ===
+                            "all" ||
+                          event.sourceType ===
+                            incidentSourceFilter,
+                      )
+                      .map(
+                        (
+                          event,
+                        ) => {
+                          const createBusy =
+                            busy ===
+                            "incident-create:" +
+                              event.sourceType +
+                              ":" +
+                              event.sourceId;
+
+                          return (
+                            <div
+                              key={
+                                event.sourceType +
+                                ":" +
+                                event.sourceId
+                              }
+                              className={
+                                `incident-event ${event.severity}`
+                              }
+                            >
+                              <div className="event-top">
+                                <div>
+                                  <span className="source">
+                                    {
+                                      event.sourceType
+                                    }
+                                  </span>
+                                  <strong>
+                                    {
+                                      event.title
+                                    }
+                                  </strong>
+                                </div>
+
+                                <span
+                                  className={
+                                    `severity ${event.severity}`
+                                  }
+                                >
+                                  {
+                                    event.severity
+                                  }
+                                </span>
+                              </div>
+
+                              {event.summary ? (
+                                <p>
+                                  {
+                                    event.summary
+                                  }
+                                </p>
+                              ) : null}
+
+                              <div className="event-identities">
+                                {event.subjectUserId ? (
+                                  <span>
+                                    {c.incidentSubject}:{" "}
+                                    {
+                                      event.subjectUserId
+                                    }
+                                  </span>
+                                ) : null}
+                                {event.actorUserId ? (
+                                  <span>
+                                    {c.incidentActor}:{" "}
+                                    {
+                                      event.actorUserId
+                                    }
+                                  </span>
+                                ) : null}
+                                {event.channelId ? (
+                                  <span>
+                                    {c.incidentChannel}:{" "}
+                                    {
+                                      event.channelId
+                                    }
+                                  </span>
+                                ) : null}
+                              </div>
+
+                              <footer>
+                                <time>
+                                  {formatKyivDateTime(
+                                    event
+                                      .createdAt,
+                                    language,
+                                  )}
+                                </time>
+
+                                {event.incidentId ? (
+                                  <span className="tracked">
+                                    {
+                                      event.incidentStatus ||
+                                      c.incidentAlreadyTracked
+                                    }
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      void createIncidentFromEvent(
+                                        event,
+                                      )
+                                    }
+                                    disabled={
+                                      createBusy
+                                    }
+                                  >
+                                    {createBusy
+                                      ? c.incidentCreating
+                                      : c.incidentCreate}
+                                  </button>
+                                )}
+                              </footer>
+                            </div>
+                          );
+                        },
+                      )}
+
+                    {!incidentCenter.events
+                      .filter(
+                        (
+                          event,
+                        ) =>
+                          incidentSourceFilter ===
+                            "all" ||
+                          event.sourceType ===
+                            incidentSourceFilter,
+                      )
+                      .length ? (
+                      <p className="bot-dashboard-log-empty">
+                        {c.incidentNoEvents}
+                      </p>
+                    ) : null}
+                  </div>
+                </article>
+
+                <article className="bot-dashboard-incident-tracked">
+                  <header>
+                    <strong>
+                      {c.incidentTracked}
+                    </strong>
+
+                    <select
+                      value={
+                        incidentStatusFilter
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setIncidentStatusFilter(
+                          event
+                            .target
+                            .value,
+                        )
+                      }
+                    >
+                      <option value="all">
+                        {c.incidentStatusAll}
+                      </option>
+                      <option value="open">
+                        {c.incidentOpen}
+                      </option>
+                      <option value="reviewing">
+                        {c.incidentReviewing}
+                      </option>
+                      <option value="resolved">
+                        {c.incidentResolved}
+                      </option>
+                    </select>
+                  </header>
+
+                  <div className="incident-card-list">
+                    {incidentCenter.incidents
+                      .filter(
+                        (
+                          incident,
+                        ) =>
+                          incidentStatusFilter ===
+                            "all" ||
+                          incident.status ===
+                            incidentStatusFilter,
+                      )
+                      .map(
+                        (
+                          incident,
+                        ) => {
+                          const saveBusy =
+                            busy ===
+                            "incident-save:" +
+                              incident.id;
+                          const noteBusy =
+                            busy ===
+                            "incident-note:" +
+                              incident.id;
+
+                          return (
+                            <div
+                              key={
+                                incident.id
+                              }
+                              className={
+                                `incident-card ${incident.severity} ${incident.status}`
+                              }
+                            >
+                              <div className="incident-card-head">
+                                <div>
+                                  <span>
+                                    {
+                                      incident.sourceType
+                                    }
+                                  </span>
+                                  <strong>
+                                    {
+                                      incident.title
+                                    }
+                                  </strong>
+                                  <time>
+                                    {formatKyivDateTime(
+                                      incident
+                                        .createdAt,
+                                      language,
+                                    )}
+                                  </time>
+                                </div>
+
+                                <span className="incident-id">
+                                  #
+                                  {String(
+                                    incident.id,
+                                  ).slice(
+                                    0,
+                                    8,
+                                  )}
+                                </span>
+                              </div>
+
+                              {incident.summary ? (
+                                <p className="incident-summary">
+                                  {
+                                    incident.summary
+                                  }
+                                </p>
+                              ) : null}
+
+                              <div className="incident-controls">
+                                <label>
+                                  <span>
+                                    {c.incidentStatus}
+                                  </span>
+                                  <select
+                                    value={
+                                      incident.status
+                                    }
+                                    onChange={(
+                                      event,
+                                    ) =>
+                                      patchIncident(
+                                        incident.id,
+                                        {
+                                          status:
+                                            event
+                                              .target
+                                              .value,
+                                        },
+                                      )
+                                    }
+                                  >
+                                    <option value="open">
+                                      {c.incidentOpen}
+                                    </option>
+                                    <option value="reviewing">
+                                      {c.incidentReviewing}
+                                    </option>
+                                    <option value="resolved">
+                                      {c.incidentResolved}
+                                    </option>
+                                  </select>
+                                </label>
+
+                                <label>
+                                  <span>
+                                    {c.incidentSeverity}
+                                  </span>
+                                  <select
+                                    value={
+                                      incident.severity
+                                    }
+                                    onChange={(
+                                      event,
+                                    ) =>
+                                      patchIncident(
+                                        incident.id,
+                                        {
+                                          severity:
+                                            event
+                                              .target
+                                              .value,
+                                        },
+                                      )
+                                    }
+                                  >
+                                    <option value="info">
+                                      INFO
+                                    </option>
+                                    <option value="warning">
+                                      WARNING
+                                    </option>
+                                    <option value="critical">
+                                      CRITICAL
+                                    </option>
+                                  </select>
+                                </label>
+                              </div>
+
+                              <label className="incident-resolution">
+                                <span>
+                                  {c.incidentResolution}
+                                </span>
+                                <textarea
+                                  rows={2}
+                                  maxLength={2000}
+                                  placeholder={
+                                    c.incidentResolutionPlaceholder
+                                  }
+                                  value={
+                                    incident
+                                      .resolutionNote ||
+                                    ""
+                                  }
+                                  onChange={(
+                                    event,
+                                  ) =>
+                                    patchIncident(
+                                      incident.id,
+                                      {
+                                        resolutionNote:
+                                          event
+                                            .target
+                                            .value,
+                                      },
+                                    )
+                                  }
+                                />
+                              </label>
+
+                              <button
+                                type="button"
+                                className="incident-save"
+                                onClick={() =>
+                                  void saveIncident(
+                                    incident,
+                                  )
+                                }
+                                disabled={
+                                  saveBusy
+                                }
+                              >
+                                {saveBusy
+                                  ? c.incidentSaving
+                                  : c.incidentSave}
+                              </button>
+
+                              <div className="incident-notes">
+                                <strong>
+                                  {c.incidentNotes}
+                                </strong>
+
+                                {incident.notes
+                                  ?.length ? (
+                                  incident.notes.map(
+                                    (
+                                      note,
+                                    ) => (
+                                      <div
+                                        key={
+                                          note.id
+                                        }
+                                        className="incident-note"
+                                      >
+                                        <p>
+                                          {
+                                            note.note
+                                          }
+                                        </p>
+                                        <time>
+                                          {formatKyivDateTime(
+                                            note
+                                              .createdAt,
+                                            language,
+                                          )}
+                                        </time>
+                                      </div>
+                                    ),
+                                  )
+                                ) : null}
+
+                                <div className="incident-note-compose">
+                                  <textarea
+                                    rows={2}
+                                    maxLength={2000}
+                                    placeholder={
+                                      c.incidentNotePlaceholder
+                                    }
+                                    value={
+                                      incidentNoteDrafts[
+                                        incident.id
+                                      ] ||
+                                      ""
+                                    }
+                                    onChange={(
+                                      event,
+                                    ) =>
+                                      setIncidentNoteDrafts(
+                                        (
+                                          current,
+                                        ) => ({
+                                          ...current,
+                                          [incident.id]:
+                                            event
+                                              .target
+                                              .value,
+                                        }),
+                                      )
+                                    }
+                                  />
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      void addIncidentNote(
+                                        incident.id,
+                                      )
+                                    }
+                                    disabled={
+                                      noteBusy ||
+                                      !String(
+                                        incidentNoteDrafts[
+                                          incident.id
+                                        ] ||
+                                          "",
+                                      ).trim()
+                                    }
+                                  >
+                                    {noteBusy
+                                      ? c.incidentAddingNote
+                                      : c.incidentAddNote}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        },
+                      )}
+
+                    {!incidentCenter.incidents
+                      .filter(
+                        (
+                          incident,
+                        ) =>
+                          incidentStatusFilter ===
+                            "all" ||
+                          incident.status ===
+                            incidentStatusFilter,
+                      )
+                      .length ? (
+                      <p className="bot-dashboard-log-empty">
+                        {c.incidentNoTracked}
+                      </p>
+                    ) : null}
                   </div>
                 </article>
               </div>
