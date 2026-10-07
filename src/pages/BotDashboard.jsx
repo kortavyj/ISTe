@@ -34,6 +34,17 @@ const EMPTY_SETTINGS = {
   automodEscalationWindowMinutes: 10,
   automodTimeoutMinutes: 10,
   automodRuleIds: {},
+  verificationEnabled: false,
+  verificationPanelChannelId: "",
+  verificationRoleId: "",
+  verificationRemoveRoleId: "",
+  verificationPanelTitle: "",
+  verificationPanelMessage: "",
+  selfRolesEnabled: false,
+  selfRolesPanelChannelId: "",
+  selfRolesPanelTitle: "",
+  selfRolesPanelMessage: "",
+  selfRoleIds: [],
   ticketPanelChannelId: "",
   ticketCategoryId: "",
   ticketSupportRoleId: "",
@@ -140,6 +151,35 @@ const copy = {
     automodConflict:
       "Частина Spam/Mention правил уже керується Discord або іншим AutoMod правилом. ISTe їх не змінював.",
     updateBotPermissions: "Оновити права бота",
+    verification: "Verification",
+    verificationText:
+      "Панель підтвердження доступу: видає verified роль і за потреби знімає роль нового учасника.",
+    verificationPanelChannel: "Канал Verification panel",
+    verificationRole: "Verified роль",
+    verificationRemoveRole: "Роль, яку зняти після verify",
+    verificationTitle: "Заголовок Verification",
+    verificationMessage: "Текст Verification",
+    verificationTitlePlaceholder: "Верифікація ISTe",
+    verificationMessagePlaceholder:
+      "Натисни кнопку нижче, щоб підтвердити доступ до сервера.",
+    publishVerification: "Опублікувати Verification",
+    publishingVerification: "Публікація...",
+    verificationPublished: "Verification panel опубліковано або оновлено.",
+    selfRoles: "Button Roles",
+    selfRolesText:
+      "Учасники самостійно отримують або знімають дозволені ролі кнопками.",
+    selfRolesPanelChannel: "Канал Button Roles panel",
+    selfRolesTitle: "Заголовок панелі ролей",
+    selfRolesMessage: "Текст панелі ролей",
+    selfRolesTitlePlaceholder: "Обери свої ролі",
+    selfRolesMessagePlaceholder:
+      "Натисни кнопку ролі, щоб отримати її. Повторне натискання зніме роль.",
+    selfRolesAllowed: "Доступні self roles",
+    selfRolesHint: "Можна обрати до 10 ролей.",
+    selectedRoles: "Обрано ролей",
+    publishSelfRoles: "Опублікувати Button Roles",
+    publishingSelfRoles: "Публікація...",
+    selfRolesPublished: "Button Roles panel опубліковано або оновлено.",
     moderationCenter: "Moderation Center",
     moderationCenterText:
       "Історія покарань, активні попередження та технічний журнал дій цього Discord-сервера.",
@@ -312,6 +352,35 @@ const copy = {
     automodConflict:
       "Some Spam/Mention rules are already managed by Discord or another AutoMod rule. ISTe left them unchanged.",
     updateBotPermissions: "Update bot permissions",
+    verification: "Verification",
+    verificationText:
+      "Access verification panel: grants a verified role and can remove the newcomer role.",
+    verificationPanelChannel: "Verification panel channel",
+    verificationRole: "Verified role",
+    verificationRemoveRole: "Role to remove after verification",
+    verificationTitle: "Verification title",
+    verificationMessage: "Verification message",
+    verificationTitlePlaceholder: "ISTe Verification",
+    verificationMessagePlaceholder:
+      "Press the button below to verify and unlock server access.",
+    publishVerification: "Publish Verification",
+    publishingVerification: "Publishing...",
+    verificationPublished: "Verification panel published or updated.",
+    selfRoles: "Button Roles",
+    selfRolesText:
+      "Members can add or remove approved roles themselves with buttons.",
+    selfRolesPanelChannel: "Button Roles panel channel",
+    selfRolesTitle: "Role panel title",
+    selfRolesMessage: "Role panel message",
+    selfRolesTitlePlaceholder: "Choose your roles",
+    selfRolesMessagePlaceholder:
+      "Press a role button to add it. Press it again to remove it.",
+    selfRolesAllowed: "Available self roles",
+    selfRolesHint: "Select up to 10 roles.",
+    selectedRoles: "Selected roles",
+    publishSelfRoles: "Publish Button Roles",
+    publishingSelfRoles: "Publishing...",
+    selfRolesPublished: "Button Roles panel published or updated.",
     moderationCenter: "Moderation Center",
     moderationCenterText:
       "Punishment history, active warnings and technical action log for this Discord server.",
@@ -1053,6 +1122,114 @@ export default function BotDashboard() {
       setError(
         actionError?.message ||
         c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function publishVerificationPanel() {
+    if (!selectedGuild) {
+      return;
+    }
+
+    setBusy("verification-panel");
+    setError("");
+    setNotice("");
+
+    try {
+      const saved =
+        await api(
+          "save-settings",
+          {
+            method: "POST",
+            body: {
+              guildId:
+                selectedGuild.guildId,
+              ...settings,
+            },
+          },
+        );
+
+      setSettings({
+        ...EMPTY_SETTINGS,
+        ...saved.settings,
+      });
+
+      await api(
+        "publish-verification-panel",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild.guildId,
+          },
+        },
+      );
+
+      setNotice(
+        c.verificationPublished,
+      );
+
+      await load();
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function publishSelfRolesPanel() {
+    if (!selectedGuild) {
+      return;
+    }
+
+    setBusy("self-roles-panel");
+    setError("");
+    setNotice("");
+
+    try {
+      const saved =
+        await api(
+          "save-settings",
+          {
+            method: "POST",
+            body: {
+              guildId:
+                selectedGuild.guildId,
+              ...settings,
+            },
+          },
+        );
+
+      setSettings({
+        ...EMPTY_SETTINGS,
+        ...saved.settings,
+      });
+
+      await api(
+        "publish-self-roles-panel",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild.guildId,
+          },
+        },
+      );
+
+      setNotice(
+        c.selfRolesPublished,
+      );
+
+      await load();
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
       );
     } finally {
       setBusy("");
@@ -1846,6 +2023,503 @@ export default function BotDashboard() {
                           </span>
                         </label>
                       </div>
+                    </div>
+                  </article>
+
+                  <article
+                    className={
+                      `bot-dashboard-module-card${settings.verificationEnabled ? " active" : ""}`
+                    }
+                  >
+                    <header>
+                      <div>
+                        <strong>
+                          {c.verification}
+                        </strong>
+                        <small>
+                          {c.verificationText}
+                        </small>
+                      </div>
+
+                      <label className="bot-dashboard-switch">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .verificationEnabled
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "verificationEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {settings.verificationEnabled
+                            ? c.moduleOn
+                            : c.moduleOff}
+                        </span>
+                      </label>
+                    </header>
+
+                    <div className="bot-dashboard-module-fields">
+                      <label>
+                        <span>
+                          {c.verificationPanelChannel}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .verificationPanelChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "verificationPanelChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
+                          </option>
+                          {resources.channels.map(
+                            (channel) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #{channel.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.verificationRole}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .verificationRoleId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "verificationRoleId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseRole}
+                          </option>
+                          {resources.roles.map(
+                            (role) => (
+                              <option
+                                key={
+                                  role.id
+                                }
+                                value={
+                                  role.id
+                                }
+                              >
+                                @{role.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.verificationRemoveRole}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .verificationRemoveRoleId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "verificationRemoveRoleId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseRole}
+                          </option>
+                          {resources.roles.map(
+                            (role) => (
+                              <option
+                                key={
+                                  role.id
+                                }
+                                value={
+                                  role.id
+                                }
+                              >
+                                @{role.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.verificationTitle}
+                        </span>
+                        <input
+                          type="text"
+                          maxLength={80}
+                          placeholder={
+                            c.verificationTitlePlaceholder
+                          }
+                          value={
+                            settings
+                              .verificationPanelTitle
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "verificationPanelTitle",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="full">
+                        <span>
+                          {c.verificationMessage}
+                        </span>
+                        <textarea
+                          rows={4}
+                          maxLength={500}
+                          placeholder={
+                            c.verificationMessagePlaceholder
+                          }
+                          value={
+                            settings
+                              .verificationPanelMessage
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "verificationPanelMessage",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        className="bot-dashboard-module-action full"
+                        onClick={
+                          publishVerificationPanel
+                        }
+                        disabled={
+                          busy ===
+                            "verification-panel" ||
+                          !settings
+                            .verificationEnabled ||
+                          !settings
+                            .verificationPanelChannelId ||
+                          !settings
+                            .verificationRoleId
+                        }
+                      >
+                        {busy ===
+                        "verification-panel"
+                          ? c.publishingVerification
+                          : c.publishVerification}
+                      </button>
+                    </div>
+                  </article>
+
+                  <article
+                    className={
+                      `bot-dashboard-module-card${settings.selfRolesEnabled ? " active" : ""}`
+                    }
+                  >
+                    <header>
+                      <div>
+                        <strong>
+                          {c.selfRoles}
+                        </strong>
+                        <small>
+                          {c.selfRolesText}
+                        </small>
+                      </div>
+
+                      <label className="bot-dashboard-switch">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .selfRolesEnabled
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "selfRolesEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {settings.selfRolesEnabled
+                            ? c.moduleOn
+                            : c.moduleOff}
+                        </span>
+                      </label>
+                    </header>
+
+                    <div className="bot-dashboard-module-fields">
+                      <label>
+                        <span>
+                          {c.selfRolesPanelChannel}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .selfRolesPanelChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "selfRolesPanelChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
+                          </option>
+                          {resources.channels.map(
+                            (channel) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #{channel.name}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.selfRolesTitle}
+                        </span>
+                        <input
+                          type="text"
+                          maxLength={80}
+                          placeholder={
+                            c.selfRolesTitlePlaceholder
+                          }
+                          value={
+                            settings
+                              .selfRolesPanelTitle
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "selfRolesPanelTitle",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="full">
+                        <span>
+                          {c.selfRolesMessage}
+                        </span>
+                        <textarea
+                          rows={3}
+                          maxLength={500}
+                          placeholder={
+                            c.selfRolesMessagePlaceholder
+                          }
+                          value={
+                            settings
+                              .selfRolesPanelMessage
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "selfRolesPanelMessage",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <div className="bot-dashboard-role-picker full">
+                        <div className="bot-dashboard-role-picker-head">
+                          <span>
+                            {c.selfRolesAllowed}
+                          </span>
+                          <small>
+                            {c.selectedRoles}:{" "}
+                            {
+                              settings
+                                .selfRoleIds
+                                .length
+                            }
+                            /10
+                          </small>
+                        </div>
+
+                        <p>
+                          {c.selfRolesHint}
+                        </p>
+
+                        <div className="bot-dashboard-role-picker-list">
+                          {resources.roles.map(
+                            (role) => {
+                              const selected =
+                                settings
+                                  .selfRoleIds
+                                  .includes(
+                                    role.id,
+                                  );
+
+                              return (
+                                <label
+                                  key={
+                                    role.id
+                                  }
+                                  className={
+                                    selected
+                                      ? "selected"
+                                      : ""
+                                  }
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      selected
+                                    }
+                                    disabled={
+                                      !selected &&
+                                      settings
+                                        .selfRoleIds
+                                        .length >=
+                                        10
+                                    }
+                                    onChange={(
+                                      event,
+                                    ) => {
+                                      const next =
+                                        event
+                                          .target
+                                          .checked
+                                          ? [
+                                              ...settings
+                                                .selfRoleIds,
+                                              role.id,
+                                            ].slice(
+                                              0,
+                                              10,
+                                            )
+                                          : settings
+                                              .selfRoleIds
+                                              .filter(
+                                                (
+                                                  id,
+                                                ) =>
+                                                  id !==
+                                                  role.id,
+                                              );
+
+                                      patch(
+                                        "selfRoleIds",
+                                        next,
+                                      );
+                                    }}
+                                  />
+                                  <span>
+                                    @{role.name}
+                                  </span>
+                                </label>
+                              );
+                            },
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="bot-dashboard-module-action full"
+                        onClick={
+                          publishSelfRolesPanel
+                        }
+                        disabled={
+                          busy ===
+                            "self-roles-panel" ||
+                          !settings
+                            .selfRolesEnabled ||
+                          !settings
+                            .selfRolesPanelChannelId ||
+                          !settings
+                            .selfRoleIds
+                            .length
+                        }
+                      >
+                        {busy ===
+                        "self-roles-panel"
+                          ? c.publishingSelfRoles
+                          : c.publishSelfRoles}
+                      </button>
                     </div>
                   </article>
 

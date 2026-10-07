@@ -1069,3 +1069,76 @@
   border-color: rgba(255,255,255,.16);
   background: rgba(255,255,255,.05);
 }
+
+
+/* Bot dashboard v8: verification and button roles */
+.bot-dashboard-role-picker {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 9px;
+  background: rgba(255,255,255,.012);
+}
+
+.bot-dashboard-role-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bot-dashboard-role-picker-head > span {
+  color: rgba(255,255,255,.48);
+  font-size: .55rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.bot-dashboard-role-picker-head > small,
+.bot-dashboard-role-picker > p {
+  margin: 0;
+  color: rgba(255,255,255,.3);
+  font-size: .52rem;
+}
+
+.bot-dashboard-role-picker-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 6px;
+  max-height: 230px;
+  overflow: auto;
+}
+
+.bot-dashboard-role-picker-list label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  background: #080c10;
+  cursor: pointer;
+}
+
+.bot-dashboard-role-picker-list label.selected {
+  border-color: rgba(227,6,19,.3);
+  background: rgba(227,6,19,.06);
+}
+
+.bot-dashboard-role-picker-list label > span {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255,255,255,.58);
+  font-size: .56rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 650px) {
+  .bot-dashboard-role-picker-list {
+    grid-template-columns: 1fr;
+  }
+}

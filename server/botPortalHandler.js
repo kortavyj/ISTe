@@ -1246,6 +1246,127 @@ function normalizeSettings(
         ? row.config
             .automodRuleIds
         : {},
+    verificationEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .verificationEnabled ===
+          true
+        : false,
+    verificationPanelChannelId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .verificationPanelChannelId ||
+            "",
+          )
+        : "",
+    verificationRoleId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .verificationRoleId ||
+            "",
+          )
+        : "",
+    verificationRemoveRoleId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .verificationRemoveRoleId ||
+            "",
+          )
+        : "",
+    verificationPanelTitle:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .verificationPanelTitle ||
+            "",
+          )
+        : "",
+    verificationPanelMessage:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .verificationPanelMessage ||
+            "",
+          )
+        : "",
+    selfRolesEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .selfRolesEnabled ===
+          true
+        : false,
+    selfRolesPanelChannelId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .selfRolesPanelChannelId ||
+            "",
+          )
+        : "",
+    selfRolesPanelTitle:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .selfRolesPanelTitle ||
+            "",
+          )
+        : "",
+    selfRolesPanelMessage:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .selfRolesPanelMessage ||
+            "",
+          )
+        : "",
+    selfRoleIds:
+      row?.config &&
+      typeof row.config ===
+        "object" &&
+      Array.isArray(
+        row.config
+          .selfRoleIds,
+      )
+        ? [
+            ...new Set(
+              row.config
+                .selfRoleIds
+                .map(
+                  (value) =>
+                    String(value),
+                )
+                .filter(
+                  (value) =>
+                    isSnowflake(
+                      value,
+                    ),
+                ),
+            ),
+          ].slice(0, 10)
+        : [],
     ticketPanelChannelId:
       row?.config &&
       typeof row.config ===
@@ -3070,6 +3191,64 @@ async function handleSaveSettings(
       ),
     );
 
+  const verificationPanelTitle =
+    String(
+      body.verificationPanelTitle ||
+      "",
+    )
+      .trim()
+      .slice(0, 80);
+
+  const verificationPanelMessage =
+    String(
+      body.verificationPanelMessage ||
+      "",
+    )
+      .trim()
+      .slice(0, 500);
+
+  const selfRolesPanelTitle =
+    String(
+      body.selfRolesPanelTitle ||
+      "",
+    )
+      .trim()
+      .slice(0, 80);
+
+  const selfRolesPanelMessage =
+    String(
+      body.selfRolesPanelMessage ||
+      "",
+    )
+      .trim()
+      .slice(0, 500);
+
+  const selfRoleIds =
+    [
+      ...new Set(
+        (
+          Array.isArray(
+            body.selfRoleIds,
+          )
+            ? body.selfRoleIds
+            : []
+        )
+          .map(
+            (value) =>
+              String(
+                value ||
+                "",
+              ).trim(),
+          )
+          .filter(
+            (value) =>
+              isSnowflake(
+                value,
+              ),
+          ),
+      ),
+    ].slice(0, 10);
+
   const ticketPanelTitle =
     String(
       body.ticketPanelTitle ||
@@ -3145,6 +3324,22 @@ async function handleSaveSettings(
     automodAlertChannelId:
       readSnowflakeOrEmpty(
         body.automodAlertChannelId,
+      ),
+    verificationPanelChannelId:
+      readSnowflakeOrEmpty(
+        body.verificationPanelChannelId,
+      ),
+    verificationRoleId:
+      readSnowflakeOrEmpty(
+        body.verificationRoleId,
+      ),
+    verificationRemoveRoleId:
+      readSnowflakeOrEmpty(
+        body.verificationRemoveRoleId,
+      ),
+    selfRolesPanelChannelId:
+      readSnowflakeOrEmpty(
+        body.selfRolesPanelChannelId,
       ),
   };
 
@@ -3327,6 +3522,33 @@ async function handleSaveSettings(
       automodEscalationCount,
       automodEscalationWindowMinutes,
       automodTimeoutMinutes,
+      verificationEnabled:
+        body.verificationEnabled ===
+        true,
+      verificationPanelChannelId:
+        fields
+          .verificationPanelChannelId
+          .value,
+      verificationRoleId:
+        fields
+          .verificationRoleId
+          .value,
+      verificationRemoveRoleId:
+        fields
+          .verificationRemoveRoleId
+          .value,
+      verificationPanelTitle,
+      verificationPanelMessage,
+      selfRolesEnabled:
+        body.selfRolesEnabled ===
+        true,
+      selfRolesPanelChannelId:
+        fields
+          .selfRolesPanelChannelId
+          .value,
+      selfRolesPanelTitle,
+      selfRolesPanelMessage,
+      selfRoleIds,
       ticketPanelChannelId:
         fields
           .ticketPanelChannelId
@@ -5284,6 +5506,794 @@ async function handleModerationHistory(
   }
 }
 
+async function readManagedGuildSettings(
+  request,
+  response,
+  guildId,
+) {
+  const account =
+    await requireAccount(
+      request,
+      response,
+    );
+
+  if (!account.ok) {
+    return {
+      ok: false,
+      sent:
+        sendError(
+          response,
+          account.status,
+          account.error,
+          account.message,
+        ),
+    };
+  }
+
+  const supabase =
+    getSupabaseAdminClient();
+
+  const [
+    owned,
+    settingsResult,
+  ] =
+    await Promise.all([
+      readOwnedLicense(
+        supabase,
+        account.user.id,
+        guildId,
+      ),
+      supabase
+        .from(
+          "discord_guild_settings",
+        )
+        .select("*")
+        .eq(
+          "guild_id",
+          guildId,
+        )
+        .eq(
+          "owner_user_id",
+          account.user.id,
+        )
+        .maybeSingle(),
+    ]);
+
+  if (
+    !owned.ok ||
+    !owned.license ||
+    !licenseActive(
+      owned.license,
+    )
+  ) {
+    return {
+      ok: false,
+      sent:
+        sendError(
+          response,
+          403,
+          "GUILD_LICENSE_REQUIRED",
+          "Немає активної ліцензії для цього сервера.",
+        ),
+    };
+  }
+
+  if (
+    settingsResult.error ||
+    !settingsResult.data
+  ) {
+    return {
+      ok: false,
+      sent:
+        sendError(
+          response,
+          404,
+          "GUILD_SETTINGS_NOT_FOUND",
+          "Спочатку збережіть налаштування сервера.",
+        ),
+    };
+  }
+
+  return {
+    ok: true,
+    account,
+    supabase,
+    settingsRow:
+      settingsResult.data,
+    settings:
+      normalizeSettings(
+        settingsResult.data,
+      ),
+  };
+}
+
+async function publishManagedDiscordPanel({
+  guildId,
+  channelId,
+  messageBody,
+  rawConfig,
+  messageIdKey,
+  channelIdKey,
+  config,
+}) {
+  const oldMessageId =
+    String(
+      rawConfig[
+        messageIdKey
+      ] ||
+      "",
+    );
+  const oldChannelId =
+    String(
+      rawConfig[
+        channelIdKey
+      ] ||
+      "",
+    );
+
+  let panelMessage = null;
+
+  if (
+    isSnowflake(
+      oldMessageId,
+    ) &&
+    oldChannelId ===
+      channelId
+  ) {
+    try {
+      panelMessage =
+        await discordRequest(
+          `/channels/${channelId}/messages/${oldMessageId}`,
+          {
+            method: "PATCH",
+            token:
+              config.botToken,
+            authType: "Bot",
+            body:
+              messageBody,
+          },
+        );
+    } catch (error) {
+      if (
+        error?.status !==
+        404
+      ) {
+        throw error;
+      }
+    }
+  }
+
+  if (!panelMessage) {
+    if (
+      isSnowflake(
+        oldMessageId,
+      ) &&
+      isSnowflake(
+        oldChannelId,
+      ) &&
+      oldChannelId !==
+        channelId
+    ) {
+      await discordRequest(
+        `/channels/${oldChannelId}/messages/${oldMessageId}`,
+        {
+          method: "DELETE",
+          token:
+            config.botToken,
+          authType: "Bot",
+        },
+      ).catch(
+        () => null,
+      );
+    }
+
+    panelMessage =
+      await discordRequest(
+        `/channels/${channelId}/messages`,
+        {
+          method: "POST",
+          token:
+            config.botToken,
+          authType: "Bot",
+          body:
+            messageBody,
+        },
+      );
+  }
+
+  return panelMessage;
+}
+
+async function handlePublishVerificationPanel(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const {
+      settings,
+      settingsRow,
+      supabase,
+      account,
+    } = access;
+
+    if (
+      !settings
+        .verificationEnabled
+    ) {
+      return sendError(
+        response,
+        409,
+        "VERIFICATION_DISABLED",
+        "Спочатку увімкніть Verification.",
+      );
+    }
+
+    if (
+      !isSnowflake(
+        settings
+          .verificationPanelChannelId,
+      ) ||
+      !isSnowflake(
+        settings
+          .verificationRoleId,
+      )
+    ) {
+      return sendError(
+        response,
+        400,
+        "VERIFICATION_SETTINGS_REQUIRED",
+        "Оберіть канал Verification та verified роль.",
+      );
+    }
+
+    const config =
+      readConfig();
+
+    if (!config.botToken) {
+      return sendError(
+        response,
+        503,
+        "DISCORD_BOT_TOKEN_MISSING",
+        "ISTe Bot не має Discord токена.",
+      );
+    }
+
+    const language =
+      settings.locale ===
+        "en"
+        ? "en"
+        : "uk";
+
+    const messageBody = {
+      embeds: [
+        {
+          title:
+            (
+              settings
+                .verificationPanelTitle ||
+              (
+                language === "en"
+                  ? "ISTe Verification"
+                  : "Верифікація ISTe"
+              )
+            ).slice(
+              0,
+              256,
+            ),
+          description:
+            (
+              settings
+                .verificationPanelMessage ||
+              (
+                language === "en"
+                  ? "Press the button below to verify and unlock server access."
+                  : "Натисни кнопку нижче, щоб підтвердити доступ до сервера."
+              )
+            ).slice(
+              0,
+              4096,
+            ),
+          color: 0xe30613,
+          footer: {
+            text:
+              "ISTe Verification • istesport.com",
+          },
+        },
+      ],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 3,
+              custom_id:
+                "iste:verify:confirm",
+              label:
+                language ===
+                  "en"
+                  ? "Verify"
+                  : "Підтвердити",
+              emoji: {
+                name: "✅",
+              },
+            },
+          ],
+        },
+      ],
+      allowed_mentions: {
+        parse: [],
+      },
+    };
+
+    const rawConfig =
+      settingsRow.config &&
+      typeof settingsRow.config ===
+        "object"
+        ? settingsRow.config
+        : {};
+
+    const panelMessage =
+      await publishManagedDiscordPanel({
+        guildId,
+        channelId:
+          settings
+            .verificationPanelChannelId,
+        messageBody,
+        rawConfig,
+        messageIdKey:
+          "verificationPanelMessageId",
+        channelIdKey:
+          "verificationPanelMessageChannelId",
+        config,
+      });
+
+    const nextConfig = {
+      ...rawConfig,
+      verificationPanelMessageId:
+        String(
+          panelMessage?.id ||
+          "",
+        ),
+      verificationPanelMessageChannelId:
+        settings
+          .verificationPanelChannelId,
+    };
+
+    const {
+      error: updateError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .update({
+        config:
+          nextConfig,
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "owner_user_id",
+        account.user.id,
+      );
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        channelId:
+          settings
+            .verificationPanelChannelId,
+        messageId:
+          String(
+            panelMessage?.id ||
+            "",
+          ),
+      });
+  } catch (error) {
+    console.error(
+      "Publish verification panel error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      502,
+      "VERIFICATION_PANEL_PUBLISH_FAILED",
+      error instanceof Error &&
+      error.message
+        ? `Не вдалося опублікувати Verification panel: ${error.message}`
+        : "Не вдалося опублікувати Verification panel.",
+    );
+  }
+}
+
+async function handlePublishSelfRolesPanel(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const {
+      settings,
+      settingsRow,
+      supabase,
+      account,
+    } = access;
+
+    if (
+      !settings
+        .selfRolesEnabled
+    ) {
+      return sendError(
+        response,
+        409,
+        "SELF_ROLES_DISABLED",
+        "Спочатку увімкніть Button Roles.",
+      );
+    }
+
+    if (
+      !isSnowflake(
+        settings
+          .selfRolesPanelChannelId,
+      ) ||
+      !settings
+        .selfRoleIds
+        .length
+    ) {
+      return sendError(
+        response,
+        400,
+        "SELF_ROLES_SETTINGS_REQUIRED",
+        "Оберіть канал та хоча б одну self role.",
+      );
+    }
+
+    const config =
+      readConfig();
+
+    if (!config.botToken) {
+      return sendError(
+        response,
+        503,
+        "DISCORD_BOT_TOKEN_MISSING",
+        "ISTe Bot не має Discord токена.",
+      );
+    }
+
+    const roles =
+      await discordRequest(
+        `/guilds/${guildId}/roles`,
+        {
+          token:
+            config.botToken,
+          authType: "Bot",
+        },
+      );
+
+    const selectedRoles =
+      settings
+        .selfRoleIds
+        .map(
+          (roleId) =>
+            (
+              Array.isArray(
+                roles,
+              )
+                ? roles
+                : []
+            ).find(
+              (role) =>
+                String(
+                  role.id,
+                ) ===
+                roleId,
+            ),
+        )
+        .filter(Boolean)
+        .slice(0, 10);
+
+    if (
+      !selectedRoles.length
+    ) {
+      return sendError(
+        response,
+        409,
+        "SELF_ROLES_NOT_FOUND",
+        "Обрані ролі більше не існують у Discord.",
+      );
+    }
+
+    const language =
+      settings.locale ===
+        "en"
+        ? "en"
+        : "uk";
+
+    const buttonRows = [];
+
+    for (
+      let index = 0;
+      index <
+        selectedRoles.length;
+      index += 5
+    ) {
+      buttonRows.push({
+        type: 1,
+        components:
+          selectedRoles
+            .slice(
+              index,
+              index + 5,
+            )
+            .map(
+              (role) => ({
+                type: 2,
+                style: 2,
+                custom_id:
+                  `iste:role:${role.id}`,
+                label:
+                  String(
+                    role.name ||
+                    "Role",
+                  ).slice(
+                    0,
+                    80,
+                  ),
+              }),
+            ),
+      });
+    }
+
+    const messageBody = {
+      embeds: [
+        {
+          title:
+            (
+              settings
+                .selfRolesPanelTitle ||
+              (
+                language === "en"
+                  ? "Choose your roles"
+                  : "Обери свої ролі"
+              )
+            ).slice(
+              0,
+              256,
+            ),
+          description:
+            (
+              settings
+                .selfRolesPanelMessage ||
+              (
+                language === "en"
+                  ? "Press a role button to add it. Press it again to remove it."
+                  : "Натисни кнопку ролі, щоб отримати її. Повторне натискання зніме роль."
+              )
+            ).slice(
+              0,
+              4096,
+            ),
+          color: 0xe30613,
+          footer: {
+            text:
+              "ISTe Roles • istesport.com",
+          },
+        },
+      ],
+      components:
+        buttonRows,
+      allowed_mentions: {
+        parse: [],
+      },
+    };
+
+    const rawConfig =
+      settingsRow.config &&
+      typeof settingsRow.config ===
+        "object"
+        ? settingsRow.config
+        : {};
+
+    const panelMessage =
+      await publishManagedDiscordPanel({
+        guildId,
+        channelId:
+          settings
+            .selfRolesPanelChannelId,
+        messageBody,
+        rawConfig,
+        messageIdKey:
+          "selfRolesPanelMessageId",
+        channelIdKey:
+          "selfRolesPanelMessageChannelId",
+        config,
+      });
+
+    const nextConfig = {
+      ...rawConfig,
+      selfRolesPanelMessageId:
+        String(
+          panelMessage?.id ||
+          "",
+        ),
+      selfRolesPanelMessageChannelId:
+        settings
+          .selfRolesPanelChannelId,
+    };
+
+    const {
+      error: updateError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .update({
+        config:
+          nextConfig,
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "owner_user_id",
+        account.user.id,
+      );
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        channelId:
+          settings
+            .selfRolesPanelChannelId,
+        messageId:
+          String(
+            panelMessage?.id ||
+            "",
+          ),
+        roles:
+          selectedRoles.map(
+            (role) => ({
+              id:
+                String(
+                  role.id,
+                ),
+              name:
+                String(
+                  role.name ||
+                  "",
+                ),
+            }),
+          ),
+      });
+  } catch (error) {
+    console.error(
+      "Publish self roles panel error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      502,
+      "SELF_ROLES_PANEL_PUBLISH_FAILED",
+      error instanceof Error &&
+      error.message
+        ? `Не вдалося опублікувати Button Roles panel: ${error.message}`
+        : "Не вдалося опублікувати Button Roles panel.",
+    );
+  }
+}
+
 async function handlePublishTicketPanel(
   request,
   response,
@@ -6002,6 +7012,27 @@ async function handleWorkerConfig(
             automodTimeoutMinutes:
               10,
             automodRuleIds: {},
+            verificationEnabled:
+              false,
+            verificationPanelChannelId:
+              "",
+            verificationRoleId:
+              "",
+            verificationRemoveRoleId:
+              "",
+            verificationPanelTitle:
+              "",
+            verificationPanelMessage:
+              "",
+            selfRolesEnabled:
+              false,
+            selfRolesPanelChannelId:
+              "",
+            selfRolesPanelTitle:
+              "",
+            selfRolesPanelMessage:
+              "",
+            selfRoleIds: [],
             ticketPanelChannelId:
               "",
             ticketCategoryId: "",
@@ -6957,6 +7988,26 @@ export default async function botPortalHandler(
     "worker-automod-event"
   ) {
     return handleWorkerAutomodEvent(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "publish-verification-panel"
+  ) {
+    return handlePublishVerificationPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "publish-self-roles-panel"
+  ) {
+    return handlePublishSelfRolesPanel(
       request,
       response,
     );
