@@ -2131,7 +2131,13 @@ export default function BotDashboard() {
                           <option value="">
                             {c.chooseRole}
                           </option>
-                          {resources.roles.map(
+                          {resources.roles
+                            .filter(
+                              (role) =>
+                                role.manageable !==
+                                false,
+                            )
+                            .map(
                             (role) => (
                               <option
                                 key={
@@ -2171,7 +2177,13 @@ export default function BotDashboard() {
                           <option value="">
                             {c.chooseRole}
                           </option>
-                          {resources.roles.map(
+                          {resources.roles
+                            .filter(
+                              (role) =>
+                                role.manageable !==
+                                false,
+                            )
+                            .map(
                             (role) => (
                               <option
                                 key={
