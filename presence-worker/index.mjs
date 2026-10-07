@@ -306,34 +306,114 @@ let shopPanelChannelId = null;
 let shopPanelLastSyncedAt = null;
 let shopPanelLastError = null;
 
-function shopSubscriptionPanelPayload() {
+function shopPanelLocale(value) {
+  const locale =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  if (
+    locale.startsWith(
+      "ru",
+    )
+  ) {
+    return "ru";
+  }
+
+  if (
+    locale.startsWith(
+      "en",
+    )
+  ) {
+    return "en";
+  }
+
+  return "uk";
+}
+
+function shopSubscriptionPanelPayload(
+  locale = "uk",
+) {
+  const lang =
+    shopPanelLocale(
+      locale,
+    );
+
+  const copy = {
+    uk: {
+      title:
+        "🛒 ISTe SHOP — ISTe Bot Premium",
+      intro:
+        "**Офіційна підписка ISTe Bot.**\nОбери тариф, створи замовлення та заверши оплату прямо в нашому Discord.",
+      starter:
+        "**STARTER — $2.99 / 30 днів**\n1 Discord-сервер",
+      pro:
+        "**PRO — $4.99 / 30 днів**\nДо 3 Discord-серверів",
+      max:
+        "**MAX — $6.99 / 30 днів**\nДо 10 Discord-серверів",
+      how:
+        "**Як придбати**\n1️⃣ Натисни **Оформити підписку**.\n2️⃣ Обери Starter, Pro або Max.\n3️⃣ Обери Discord-сервер для ліцензії.\n4️⃣ ISTe Bot створить персональне замовлення в цьому каналі.\n5️⃣ Після оплати адміністрація ISTe підтвердить замовлення.\n6️⃣ Підписка активується автоматично на 30 днів.",
+      important:
+        "⚠️ **Важливо:** ISTe Bot не списує кошти автоматично. Підписка вмикається лише після підтвердження оплати адміністрацією ISTe.",
+      button:
+        "Оформити підписку",
+    },
+    ru: {
+      title:
+        "🛒 ISTe SHOP — ISTe Bot Premium",
+      intro:
+        "**Официальная подписка ISTe Bot.**\nВыбери тариф, создай заказ и заверши оплату прямо в нашем Discord.",
+      starter:
+        "**STARTER — $2.99 / 30 дней**\n1 Discord-сервер",
+      pro:
+        "**PRO — $4.99 / 30 дней**\nДо 3 Discord-серверов",
+      max:
+        "**MAX — $6.99 / 30 дней**\nДо 10 Discord-серверов",
+      how:
+        "**Как купить**\n1️⃣ Нажми **Оформить подписку**.\n2️⃣ Выбери Starter, Pro или Max.\n3️⃣ Выбери Discord-сервер для лицензии.\n4️⃣ ISTe Bot создаст персональный заказ в этом канале.\n5️⃣ После оплаты администрация ISTe подтвердит заказ.\n6️⃣ Подписка активируется автоматически на 30 дней.",
+      important:
+        "⚠️ **Важно:** ISTe Bot не списывает деньги автоматически. Подписка включается только после подтверждения оплаты администрацией ISTe.",
+      button:
+        "Оформить подписку",
+    },
+    en: {
+      title:
+        "🛒 ISTe SHOP — ISTe Bot Premium",
+      intro:
+        "**Official ISTe Bot subscription.**\nChoose a plan, create an order and complete payment directly in our Discord.",
+      starter:
+        "**STARTER — $2.99 / 30 days**\n1 Discord server",
+      pro:
+        "**PRO — $4.99 / 30 days**\nUp to 3 Discord servers",
+      max:
+        "**MAX — $6.99 / 30 days**\nUp to 10 Discord servers",
+      how:
+        "**How to subscribe**\n1️⃣ Press **Get subscription**.\n2️⃣ Choose Starter, Pro or Max.\n3️⃣ Choose the Discord server for the license.\n4️⃣ ISTe Bot creates your personal order in this channel.\n5️⃣ After payment, ISTe administration confirms the order.\n6️⃣ The subscription activates automatically for 30 days.",
+      important:
+        "⚠️ **Important:** ISTe Bot does not charge you automatically. The subscription activates only after payment is confirmed by ISTe administration.",
+      button:
+        "Get subscription",
+    },
+  }[lang];
+
   return {
     embeds: [
       {
         title:
-          "🛒 ISTe SHOP — ISTe Bot Premium",
+          copy.title,
         description:
           [
-            "**Официальная подписка ISTe Bot.**",
-            "Выбери тариф, создай заказ и заверши оплату прямо через наш Discord.",
+            copy.intro,
             "",
-            "**STARTER — $2.99 / 30 дней**",
-            "1 Discord-сервер",
+            copy.starter,
             "",
-            "**PRO — $4.99 / 30 дней**",
-            "До 3 Discord-серверов",
+            copy.pro,
             "",
-            "**MAX — $6.99 / 30 дней**",
-            "До 10 Discord-серверов",
+            copy.max,
             "",
-            "**Как купить**",
-            "1️⃣ Нажми **Оформить подписку**.",
-            "2️⃣ Выбери Starter, Pro или Max.",
-            "3️⃣ ISTe Bot создаст персональный заказ в этом канале.",
-            "4️⃣ После оплаты администрация ISTe подтвердит заказ.",
-            "5️⃣ Подписка активируется автоматически на 30 дней.",
+            copy.how,
             "",
-            "⚠️ **Важно:** ISTe Bot не списывает деньги автоматически. Подписка включается только после подтверждения оплаты администрацией ISTe.",
+            copy.important,
           ].join("\n"),
         color: 0xe30613,
         footer: {
@@ -355,7 +435,7 @@ function shopSubscriptionPanelPayload() {
             custom_id:
               "iste:subscription-shop-open",
             label:
-              "Оформить подписку",
+              copy.button,
             emoji: {
               name: "🛒",
             },
@@ -451,8 +531,31 @@ async function ensureShopSubscriptionPanel() {
           ),
       );
 
+    let guildLocale =
+      "uk";
+
+    try {
+      const runtime =
+        await fetchGuildRuntimeConfig(
+          guild.id,
+          {
+            force: true,
+          },
+        );
+
+      guildLocale =
+        runtime?.settings
+          ?.locale ||
+        "uk";
+    } catch {
+      guildLocale =
+        "uk";
+    }
+
     const payload =
-      shopSubscriptionPanelPayload();
+      shopSubscriptionPanelPayload(
+        guildLocale,
+      );
 
     const message =
       existing
