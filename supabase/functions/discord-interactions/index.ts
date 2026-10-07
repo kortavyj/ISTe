@@ -42,8 +42,21 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const DISCORD_API = "https://discord.com/api/v10";
+const INTERNAL_GUILD_ID =
+  Deno.env.get("ISTE_INTERNAL_GUILD_ID") ||
+  "1334264628695404556";
+const SHOP_CHANNEL_ID =
+  Deno.env.get("ISTE_SHOP_CHANNEL_ID") ||
+  "";
+const SHOP_CHANNEL_NAME =
+  (
+    Deno.env.get("ISTE_SHOP_CHANNEL_NAME") ||
+    "shop"
+  )
+    .trim()
+    .toLowerCase();
 const BRAND_COLOR = 0xe30613;
-const BOT_VERSION = "2.4.0";
+const BOT_VERSION = "2.5.0";
 
 const SUBSCRIPTION_PLANS = {
   starter: {
@@ -188,7 +201,15 @@ const copy = {
       "Спочатку прив'яжіть Discord до акаунта ISTe на сайті. Після цього поверніться до цієї команди.",
     subscriptionOpenDashboard: "Відкрити ISTe Dashboard",
     subscriptionRequested:
-      "Заявку на **{{plan}}** збережено. Адміністратор ISTe має підтвердити її перед активацією.",
+      "Замовлення на **{{plan}}** створено. Перейдіть у канал **Shop** для оплати. Підписка активується лише після підтвердження оплати адміністратором ISTe.",
+    subscriptionOpenShop: "Перейти в Shop",
+    subscriptionPaymentPending: "Очікує оплату",
+    subscriptionPaymentApprove: "Підтвердити оплату",
+    subscriptionPaymentReject: "Відхилити",
+    subscriptionPaymentApproved:
+      "Оплату підтверджено. Підписку **{{plan}}** активовано до {{expires}}.",
+    subscriptionPaymentRejected:
+      "Замовлення на **{{plan}}** відхилено.",
     subscriptionInternal:
       "Для цього акаунта активна внутрішня підписка ISTe. Заявка не потрібна.",
     subscriptionUnavailable:
@@ -330,7 +351,15 @@ const copy = {
       "Сначала привяжите Discord к аккаунту ISTe на сайте. После этого вернитесь к этой команде.",
     subscriptionOpenDashboard: "Открыть ISTe Dashboard",
     subscriptionRequested:
-      "Заявка на **{{plan}}** сохранена. Администратор ISTe должен подтвердить её перед активацией.",
+      "Заказ на **{{plan}}** создан. Перейдите в канал **Shop** для оплаты. Подписка активируется только после подтверждения оплаты администратором ISTe.",
+    subscriptionOpenShop: "Перейти в Shop",
+    subscriptionPaymentPending: "Ожидает оплату",
+    subscriptionPaymentApprove: "Подтвердить оплату",
+    subscriptionPaymentReject: "Отклонить",
+    subscriptionPaymentApproved:
+      "Оплата подтверждена. Подписка **{{plan}}** активирована до {{expires}}.",
+    subscriptionPaymentRejected:
+      "Заказ на **{{plan}}** отклонён.",
     subscriptionInternal:
       "Для этого аккаунта активна внутренняя подписка ISTe. Заявка не требуется.",
     subscriptionUnavailable:
@@ -472,7 +501,15 @@ const copy = {
       "Link Discord to your ISTe website account first, then return to this command.",
     subscriptionOpenDashboard: "Open ISTe Dashboard",
     subscriptionRequested:
-      "Your **{{plan}}** request was saved. An ISTe admin must approve it before activation.",
+      "Your **{{plan}}** order was created. Open the **Shop** channel to complete payment. The subscription activates only after an ISTe admin confirms payment.",
+    subscriptionOpenShop: "Open Shop",
+    subscriptionPaymentPending: "Awaiting payment",
+    subscriptionPaymentApprove: "Confirm payment",
+    subscriptionPaymentReject: "Reject",
+    subscriptionPaymentApproved:
+      "Payment confirmed. **{{plan}}** is active until {{expires}}.",
+    subscriptionPaymentRejected:
+      "The **{{plan}}** order was rejected.",
     subscriptionInternal:
       "This account already has an internal ISTe subscription. No request is needed.",
     subscriptionUnavailable:
@@ -667,6 +704,498 @@ function getOptions(interaction: any) {
 
 function getActor(interaction: any) {
   return interaction?.member?.user || interaction?.user || null;
+}
+
+async function discordBotRequest(
+  path: string,
+  options: {
+    method?: string;
+    body?: unknown;
+  } = {},
+) {
+  if (!DISCORD_BOT_TOKEN) {
+    throw new Error(
+      "DISCORD_BOT_TOKEN missing",
+    );
+  }
+
+  const response =
+    await fetch(
+      DISCORD_API + path,
+      {
+        method:
+          options.method ||
+          "GET",
+        headers: {
+          Authorization:
+            "Bot " +
+            DISCORD_BOT_TOKEN,
+          Accept:
+            "application/json",
+          ...(options.body
+            ? {
+                "Content-Type":
+                  "application/json",
+              }
+            : {}),
+        },
+        ...(options.body
+          ? {
+              body:
+                JSON.stringify(
+                  options.body,
+                ),
+            }
+          : {}),
+      },
+    );
+
+  const payload =
+    response.status === 204
+      ? null
+      : await response
+          .json()
+          .catch(
+            () => null,
+          );
+
+  if (!response.ok) {
+    throw new Error(
+      (
+        payload?.message ||
+        "Discord API error"
+      ) +
+        " (" +
+        String(
+          response.status,
+        ) +
+        ")",
+    );
+  }
+
+  return payload;
+}
+
+async function resolveShopChannelId() {
+  if (
+    /^[0-9]{17,20}$/.test(
+      SHOP_CHANNEL_ID,
+    )
+  ) {
+    return SHOP_CHANNEL_ID;
+  }
+
+  if (
+    !/^[0-9]{17,20}$/.test(
+      INTERNAL_GUILD_ID,
+    )
+  ) {
+    return "";
+  }
+
+  const channels =
+    await discordBotRequest(
+      "/guilds/" +
+        INTERNAL_GUILD_ID +
+        "/channels",
+    );
+
+  if (
+    !Array.isArray(
+      channels,
+    )
+  ) {
+    return "";
+  }
+
+  const channel =
+    channels.find(
+      (item: any) =>
+        [0, 5].includes(
+          Number(
+            item?.type,
+          ),
+        ) &&
+        String(
+          item?.name ||
+          "",
+        )
+          .trim()
+          .toLowerCase() ===
+          SHOP_CHANNEL_NAME,
+    );
+
+  return String(
+    channel?.id ||
+    "",
+  );
+}
+
+function shopChannelUrl(
+  channelId: string,
+) {
+  return (
+    "https://discord.com/channels/" +
+    INTERNAL_GUILD_ID +
+    "/" +
+    channelId
+  );
+}
+
+function subscriptionShopEmbed(
+  requestId: string,
+  discordUserId: string,
+  plan: SubscriptionPlan,
+  status:
+    | "pending"
+    | "approved"
+    | "rejected",
+  expiresAt?: string | null,
+) {
+  const config =
+    SUBSCRIPTION_PLANS[
+      plan
+    ];
+
+  const statusText =
+    status === "approved"
+      ? "🟢 ОПЛАЧЕНО / АКТИВИРОВАНО"
+      : status === "rejected"
+        ? "🔴 ОТКЛОНЕНО"
+        : "🟡 ОЖИДАЕТ ОПЛАТУ";
+
+  return {
+    title:
+      "🛒 ISTe Bot • Подписка",
+    description:
+      status === "pending"
+        ? "После получения оплаты администратор ISTe подтверждает заказ кнопкой ниже."
+        : status ===
+            "approved"
+          ? "Оплата подтверждена, подписка активирована."
+          : "Заказ закрыт без активации подписки.",
+    color:
+      status === "approved"
+        ? 0x2ecc71
+        : status ===
+            "rejected"
+          ? 0xe74c3c
+          : BRAND_COLOR,
+    fields: [
+      {
+        name:
+          "Покупатель",
+        value:
+          "<@" +
+          discordUserId +
+          ">",
+        inline: true,
+      },
+      {
+        name: "Тариф",
+        value:
+          plan.toUpperCase(),
+        inline: true,
+      },
+      {
+        name: "Стоимость",
+        value:
+          "$" +
+          config.priceUsd.toFixed(
+            2,
+          ),
+        inline: true,
+      },
+      {
+        name: "Период",
+        value: "30 дней",
+        inline: true,
+      },
+      {
+        name: "Статус",
+        value: statusText,
+        inline: true,
+      },
+      {
+        name:
+          "ID заказа",
+        value:
+          "`" +
+          requestId +
+          "`",
+        inline: false,
+      },
+      ...(expiresAt
+        ? [
+            {
+              name:
+                "Активна до",
+              value:
+                discordTimestamp(
+                  expiresAt,
+                ),
+              inline: false,
+            },
+          ]
+        : []),
+    ],
+    footer: {
+      text:
+        "ISTe Shop • ISTe Bot",
+    },
+    timestamp:
+      new Date()
+        .toISOString(),
+  };
+}
+
+function subscriptionShopComponents(
+  requestId: string,
+) {
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          style: 3,
+          custom_id:
+            "iste:subscription-admin:approve:" +
+            requestId,
+          label:
+            "Подтвердить оплату",
+        },
+        {
+          type: 2,
+          style: 4,
+          custom_id:
+            "iste:subscription-admin:reject:" +
+            requestId,
+          label:
+            "Отклонить",
+        },
+      ],
+    },
+  ];
+}
+
+async function upsertSubscriptionShopOrder(
+  requestId: string,
+  discordUserId: string,
+  plan: SubscriptionPlan,
+  metadata: Record<
+    string,
+    unknown
+  > = {},
+) {
+  const channelId =
+    await resolveShopChannelId();
+
+  if (!channelId) {
+    throw new Error(
+      "ISTe Shop channel not found",
+    );
+  }
+
+  const payload = {
+    content:
+      "<@" +
+      discordUserId +
+      ">",
+    embeds: [
+      subscriptionShopEmbed(
+        requestId,
+        discordUserId,
+        plan,
+        "pending",
+      ),
+    ],
+    components:
+      subscriptionShopComponents(
+        requestId,
+      ),
+    allowed_mentions: {
+      users: [
+        discordUserId,
+      ],
+      parse: [],
+    },
+  };
+
+  const existingChannelId =
+    String(
+      metadata
+        ?.shop_channel_id ||
+      "",
+    );
+  const existingMessageId =
+    String(
+      metadata
+        ?.shop_message_id ||
+      "",
+    );
+
+  let message;
+
+  if (
+    /^[0-9]{17,20}$/.test(
+      existingChannelId,
+    ) &&
+    /^[0-9]{17,20}$/.test(
+      existingMessageId,
+    )
+  ) {
+    try {
+      message =
+        await discordBotRequest(
+          "/channels/" +
+            existingChannelId +
+            "/messages/" +
+            existingMessageId,
+          {
+            method:
+              "PATCH",
+            body:
+              payload,
+          },
+        );
+    } catch {
+      message = null;
+    }
+  }
+
+  if (!message) {
+    message =
+      await discordBotRequest(
+        "/channels/" +
+          channelId +
+          "/messages",
+        {
+          method: "POST",
+          body: payload,
+        },
+      );
+  }
+
+  return {
+    guildId:
+      INTERNAL_GUILD_ID,
+    channelId,
+    messageId:
+      String(
+        message?.id ||
+        "",
+      ),
+    url:
+      shopChannelUrl(
+        channelId,
+      ),
+  };
+}
+
+async function sendSubscriptionDecisionDm(
+  discordUserId: string,
+  plan: SubscriptionPlan,
+  decision:
+    | "approve"
+    | "reject",
+  expiresAt?: string | null,
+) {
+  if (
+    !/^[0-9]{17,20}$/.test(
+      discordUserId,
+    )
+  ) {
+    return false;
+  }
+
+  try {
+    const dm =
+      await discordBotRequest(
+        "/users/@me/channels",
+        {
+          method: "POST",
+          body: {
+            recipient_id:
+              discordUserId,
+          },
+        },
+      );
+
+    const channelId =
+      String(
+        dm?.id ||
+        "",
+      );
+
+    if (
+      !/^[0-9]{17,20}$/.test(
+        channelId,
+      )
+    ) {
+      return false;
+    }
+
+    await discordBotRequest(
+      "/channels/" +
+        channelId +
+        "/messages",
+      {
+        method: "POST",
+        body: {
+          embeds: [
+            {
+              title:
+                "ISTe Bot • Подписка",
+              description:
+                decision ===
+                "approve"
+                  ? "✅ Оплата подтверждена. Тариф **" +
+                    plan.toUpperCase() +
+                    "** активирован" +
+                    (
+                      expiresAt
+                        ? " до " +
+                          discordTimestamp(
+                            expiresAt,
+                          )
+                        : ""
+                    ) +
+                    "."
+                  : "❌ Заказ на тариф **" +
+                    plan.toUpperCase() +
+                    "** отклонён.",
+              color:
+                decision ===
+                "approve"
+                  ? 0x2ecc71
+                  : 0xe74c3c,
+              footer: {
+                text:
+                  "ISTe Shop • ISTe Bot",
+              },
+              timestamp:
+                new Date()
+                  .toISOString(),
+            },
+          ],
+          allowed_mentions: {
+            parse: [],
+          },
+        },
+      },
+    );
+
+    return true;
+  } catch (
+    error
+  ) {
+    console.error(
+      "subscription decision DM failed",
+      error,
+    );
+    return false;
+  }
 }
 
 function subscriptionButtons() {
