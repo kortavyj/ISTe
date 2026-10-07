@@ -3190,6 +3190,9 @@ async function handleSecurityOverview(
         request,
         response,
         guildId,
+        "security.view",
+        "security-overview",
+        false,
       );
 
     if (!access.ok) {
@@ -4426,6 +4429,9 @@ async function handleIncidentCenterOverview(
         request,
         response,
         guildId,
+        "incidents.view",
+        "incident-center-overview",
+        false,
       );
 
     if (!access.ok) {
@@ -4920,6 +4926,9 @@ async function handleCreateIncident(
         request,
         response,
         guildId,
+        "incidents.manage",
+        "create-incident",
+        true,
       );
 
     if (!access.ok) {
@@ -5264,6 +5273,9 @@ async function handleUpdateIncident(
         request,
         response,
         guildId,
+        "incidents.manage",
+        "update-incident",
+        true,
       );
 
     if (!access.ok) {
@@ -5438,6 +5450,9 @@ async function handleAddIncidentNote(
         request,
         response,
         guildId,
+        "incidents.manage",
+        "add-incident-note",
+        true,
       );
 
     if (!access.ok) {
@@ -5917,6 +5932,9 @@ async function handleCommandCenterOverview(
         request,
         response,
         guildId,
+        "commands.view",
+        "command-center-overview",
+        false,
       );
 
     if (!access.ok) {
@@ -6251,6 +6269,9 @@ async function handleSaveCommandSettings(
         request,
         response,
         guildId,
+        "commands.manage",
+        "save-command-settings",
+        true,
       );
 
     if (!access.ok) {
@@ -6489,6 +6510,9 @@ async function handleResetCommandSettings(
         request,
         response,
         guildId,
+        "commands.manage",
+        "reset-command-settings",
+        true,
       );
 
     if (!access.ok) {
@@ -6976,6 +7000,9 @@ async function handleConfigHistoryList(
         request,
         response,
         guildId,
+        "system.view",
+        "config-history-list",
+        false,
       );
 
     if (!access.ok) {
@@ -7140,6 +7167,9 @@ async function handleCreateConfigSnapshot(
         request,
         response,
         guildId,
+        "system.snapshot",
+        "create-config-snapshot",
+        true,
       );
 
     if (!access.ok) {
@@ -7257,6 +7287,9 @@ async function handleRestoreConfigVersion(
         request,
         response,
         guildId,
+        "system.restore",
+        "restore-config-version",
+        true,
       );
 
     if (!access.ok) {
@@ -11060,6 +11093,9 @@ async function handlePublishVerificationPanel(
         request,
         response,
         guildId,
+        "onboarding.manage",
+        "publish-verification-panel",
+        true,
       );
 
     if (!access.ok) {
@@ -11319,6 +11355,9 @@ async function handlePublishSelfRolesPanel(
         request,
         response,
         guildId,
+        "onboarding.manage",
+        "publish-self-roles-panel",
+        true,
       );
 
     if (!access.ok) {
@@ -12290,6 +12329,9 @@ async function handlePublicationsList(
         request,
         response,
         guildId,
+        "publishing.view",
+        "publications-list",
+        false,
       );
 
     if (!access.ok) {
@@ -12561,6 +12603,9 @@ async function handleCreateGiveaway(
         request,
         response,
         guildId,
+        "publishing.manage",
+        "create-giveaway",
+        true,
       );
 
     if (!access.ok) {
@@ -12794,6 +12839,9 @@ async function handleCancelGiveaway(
         request,
         response,
         guildId,
+        "publishing.manage",
+        "cancel-giveaway",
+        true,
       );
 
     if (!access.ok) {
@@ -13023,6 +13071,9 @@ async function handleRerollGiveaway(
         request,
         response,
         guildId,
+        "publishing.manage",
+        "reroll-giveaway",
+        true,
       );
 
     if (!access.ok) {
@@ -13347,6 +13398,9 @@ async function handleCreateScheduledMessage(
         request,
         response,
         guildId,
+        "publishing.manage",
+        "create-scheduled-message",
+        true,
       );
 
     if (!access.ok) {
@@ -13486,6 +13540,9 @@ async function handleCancelScheduledMessage(
         request,
         response,
         guildId,
+        "publishing.manage",
+        "cancel-scheduled-message",
+        true,
       );
 
     if (!access.ok) {
@@ -14678,10 +14735,13 @@ async function handleDiagnosticsOverview(request, response) {
 
   try {
     const access = await readManagedGuildSettings(
-      request,
-      response,
-      guildId,
-    );
+    request,
+    response,
+    guildId,
+    "diagnostics.view",
+    "diagnostics-overview",
+    false,
+      );
 
     if (!access.ok) {
       return access.sent;
@@ -15468,6 +15528,9 @@ async function handleAnalyticsOverview(
         request,
         response,
         guildId,
+        "analytics.view",
+        "analytics-overview",
+        false,
       );
 
     if (!access.ok) {
