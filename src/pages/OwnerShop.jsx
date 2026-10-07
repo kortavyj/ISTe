@@ -48,6 +48,28 @@ function parseSizes(value) {
   )];
 }
 
+function slugifyProductName(value) {
+  const translit = {
+    а: "a", б: "b", в: "v", г: "g", ґ: "g", д: "d",
+    е: "e", ё: "e", є: "ie", ж: "zh", з: "z", и: "i",
+    і: "i", ї: "i", й: "i", к: "k", л: "l", м: "m",
+    н: "n", о: "o", п: "p", р: "r", с: "s", т: "t",
+    у: "u", ф: "f", х: "h", ц: "ts", ч: "ch", ш: "sh",
+    щ: "shch", ъ: "", ы: "y", ь: "", э: "e", ю: "yu",
+    я: "ya",
+  };
+
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .split("")
+    .map((char) => translit[char] ?? char)
+    .join("")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
 async function fileToBase64(file) {
   const buffer = await file.arrayBuffer();
   const bytes = new Uint8Array(buffer);
@@ -141,6 +163,8 @@ export default function OwnerShop() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -174,6 +198,7 @@ export default function OwnerShop() {
 
   function editProduct(product) {
     setForm(mapProductToForm(product));
+    setSlugManuallyEdited(true);
     setSuccess("");
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -181,6 +206,7 @@ export default function OwnerShop() {
 
   function createProduct() {
     setForm(EMPTY_PRODUCT);
+    setSlugManuallyEdited(false);
     setSuccess("");
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -313,6 +339,61 @@ export default function OwnerShop() {
     }
   }
 
+  async function deleteProduct() {
+    if (
+      !form.id ||
+      deleting
+    ) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Удалить товар «${form.name || "Без названия"}»? Это действие нельзя отменить.`,
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await apiRequest(
+        "owner-delete-product",
+        {
+          method: "POST",
+          body: {
+            productId: form.id,
+          },
+        },
+      );
+
+      setProducts(
+        (current) =>
+          current.filter(
+            (item) =>
+              item.id !== form.id,
+          ),
+      );
+      setForm(EMPTY_PRODUCT);
+      setSlugManuallyEdited(false);
+      setSuccess(
+        "Товар удалён из магазина.",
+      );
+    } catch (
+      deleteError
+    ) {
+      setError(
+        deleteError?.message ||
+          "Не удалось удалить товар.",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   function exportPreorders() {
     if (preorders.length === 0) return;
 
@@ -395,7 +476,28 @@ export default function OwnerShop() {
               <input
                 value={form.name}
                 maxLength={100}
-                onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                onChange={(event) => {
+                  const name =
+                    event.target.value;
+
+                  setForm(
+                    (current) => ({
+                      ...current,
+                      name,
+                      ...(
+                        !current.id &&
+                        !slugManuallyEdited
+                          ? {
+                              slug:
+                                slugifyProductName(
+                                  name,
+                                ),
+                            }
+                          : {}
+                      ),
+                    }),
+                  );
+                }}
                 required
               />
             </label>
@@ -406,7 +508,31 @@ export default function OwnerShop() {
                 value={form.slug}
                 maxLength={80}
                 placeholder="iste-core-hoodie"
-                onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))}
+                onChange={(event) => {
+                  setSlugManuallyEdited(
+                    true,
+                  );
+                  setForm(
+                    (current) => ({
+                      ...current,
+                      slug:
+                        event.target.value
+                          .toLowerCase()
+                          .replace(
+                            /[^a-z0-9-]+/g,
+                            "-",
+                          )
+                          .replace(
+                            /-+/g,
+                            "-",
+                          )
+                          .replace(
+                            /^-+|-+$/g,
+                            "",
+                          ),
+                    }),
+                  );
+                }}
                 required
               />
             </label>
@@ -509,31 +635,51 @@ export default function OwnerShop() {
                 <small>JPG, PNG или WEBP до 2.5 MB</small>
               </div>
 
-              <label className="owner-shop-upload">
-                <span>
-                  {uploadingImage
-                    ? "ЗАГРУЖАЕМ..."
-                    : "ЗАГРУЗИТЬ ФАЙЛ"}
-                </span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={uploadingImage}
-                  onChange={(event) => {
-                    const file =
-                      event.target.files?.[0];
+              <div className="owner-shop-image-actions">
+                <label className="owner-shop-upload">
+                  <span>
+                    {uploadingImage
+                      ? "ЗАГРУЖАЕМ..."
+                      : "ЗАГРУЗИТЬ ФАЙЛ"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={uploadingImage}
+                    onChange={(event) => {
+                      const file =
+                        event.target.files?.[0];
 
-                    if (file) {
-                      void uploadProductImage(
-                        file,
-                      );
+                      if (file) {
+                        void uploadProductImage(
+                          file,
+                        );
+                      }
+
+                      event.target.value =
+                        "";
+                    }}
+                  />
+                </label>
+
+                {form.imageUrl ? (
+                  <button
+                    className="owner-shop-image-remove"
+                    type="button"
+                    onClick={() =>
+                      setForm(
+                        (current) => ({
+                          ...current,
+                          imageUrl: "",
+                        }),
+                      )
                     }
-
-                    event.target.value =
-                      "";
-                  }}
-                />
-              </label>
+                    disabled={uploadingImage}
+                  >
+                    УБРАТЬ
+                  </button>
+                ) : null}
+              </div>
             </div>
 
             <div className="owner-shop-image-editor__body">
@@ -569,9 +715,40 @@ export default function OwnerShop() {
             </div>
           </section>
 
-          <button className="owner-shop-save" type="submit" disabled={saving}>
-            {saving ? "СОХРАНЯЕМ..." : "СОХРАНИТЬ ТОВАР"}
-          </button>
+          <div className="owner-shop-editor-actions">
+            <button
+              className="owner-shop-save"
+              type="submit"
+              disabled={
+                saving ||
+                deleting ||
+                uploadingImage
+              }
+            >
+              {saving
+                ? "СОХРАНЯЕМ..."
+                : "СОХРАНИТЬ ТОВАР"}
+            </button>
+
+            {form.id ? (
+              <button
+                className="owner-shop-delete"
+                type="button"
+                onClick={() =>
+                  void deleteProduct()
+                }
+                disabled={
+                  saving ||
+                  deleting ||
+                  uploadingImage
+                }
+              >
+                {deleting
+                  ? "УДАЛЯЕМ..."
+                  : "УДАЛИТЬ ТОВАР"}
+              </button>
+            ) : null}
+          </div>
         </form>
 
         <aside className="owner-shop-products">
