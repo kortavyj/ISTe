@@ -15,7 +15,6 @@ import SeoManager from "./components/SeoManager.jsx";
 import FloatingSupportButton from "./components/support/FloatingSupportButton.jsx";
 import Account from "./pages/Account.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
-import AdminBotSubscriptions from "./pages/AdminBotSubscriptions.jsx";
 import AdminHighlights from "./pages/AdminHighlights.jsx";
 import AdminNews from "./pages/AdminNews.jsx";
 import AIPrivacy from "./pages/AIPrivacy.jsx";
@@ -179,15 +178,6 @@ export default function App() {
             element={
               <AdminRoute>
                 <AdminDashboard />
-              </AdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/bot-subscriptions"
-            element={
-              <AdminRoute>
-                <AdminBotSubscriptions />
               </AdminRoute>
             }
           />
