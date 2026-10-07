@@ -220,10 +220,18 @@
 }
 
 .wear-card h2 {
-  margin: 11px 0 22px;
+  margin: 11px 0 12px;
   font-size: clamp(24px, 2.8vw, 39px);
   line-height: 0.98;
   letter-spacing: -0.04em;
+}
+
+.wear-card__description {
+  min-height: 2.9em;
+  margin: 0 0 22px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .wear-card__sizes {
@@ -455,6 +463,18 @@
   color: rgba(255, 255, 255, 0.50);
   font-size: 13px;
   line-height: 1.55;
+}
+
+.wear-modal__product-copy {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-line;
 }
 
 .wear-form {
