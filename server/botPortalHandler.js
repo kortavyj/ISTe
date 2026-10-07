@@ -9360,6 +9360,778 @@ async function handleWorkerHealthSnapshot(
   }
 }
 
+
+const DIAGNOSTIC_PERMISSION_BITS =
+  Object.freeze({
+    viewChannels: 1n << 10n,
+    sendMessages: 1n << 11n,
+    manageMessages: 1n << 13n,
+    embedLinks: 1n << 14n,
+    readHistory: 1n << 16n,
+    manageRoles: 1n << 28n,
+    manageChannels: 1n << 4n,
+    manageGuild: 1n << 5n,
+    kickMembers: 1n << 1n,
+    banMembers: 1n << 2n,
+    moderateMembers: 1n << 40n,
+    administrator: 1n << 3n,
+  });
+
+function discordPermissionValue(value) {
+  try {
+    return BigInt(String(value || "0"));
+  } catch {
+    return 0n;
+  }
+}
+
+function diagnosticStatusRank(status) {
+  return ({ ok: 0, warning: 1, error: 2 })[status] ?? 0;
+}
+
+function diagnosticCheck(id, title, status, detail, items = []) {
+  return { id, title, status, detail, items };
+}
+
+async function handleDiagnosticsOverview(request, response) {
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 4096,
+  });
+
+  if (!guard.ok) {
+    return sendGuardError(response, guard);
+  }
+
+  const body = readJsonBody(request) || {};
+  const guildId = String(body.guildId || "").trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access = await readManagedGuildSettings(
+      request,
+      response,
+      guildId,
+    );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const { supabase, settings } = access;
+    const config = readConfig();
+
+    if (!config.botToken) {
+      return response.status(200).json({
+        ok: true,
+        guildId,
+        checkedAt: new Date().toISOString(),
+        overallStatus: "error",
+        summary: { ok: 0, warning: 0, error: 1 },
+        checks: [
+          diagnosticCheck(
+            "bot-token",
+            "Discord Bot token",
+            "error",
+            "DISCORD_BOT_TOKEN відсутній у Vercel.",
+          ),
+        ],
+        permissions: [],
+        worker: null,
+        bot: null,
+      });
+    }
+
+    const [
+      botUserResult,
+      rolesResult,
+      channelsResult,
+      botMemberResult,
+      healthResult,
+      failuresResult,
+    ] = await Promise.allSettled([
+      discordRequest("/users/@me", {
+        token: config.botToken,
+        authType: "Bot",
+      }),
+      discordRequest("/guilds/" + guildId + "/roles", {
+        token: config.botToken,
+        authType: "Bot",
+      }),
+      discordRequest("/guilds/" + guildId + "/channels", {
+        token: config.botToken,
+        authType: "Bot",
+      }),
+      discordRequest(
+        "/guilds/" + guildId + "/members/" + config.clientId,
+        {
+          token: config.botToken,
+          authType: "Bot",
+        },
+      ),
+      supabase
+        .from("discord_bot_health_snapshots")
+        .select(
+          "ready,ws_ping_ms,uptime_seconds,guild_count,metrics,captured_at",
+        )
+        .order("captured_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("discord_bot_audit")
+        .select("id,event_type,payload,created_at")
+        .eq("guild_id", guildId)
+        .in("event_type", [
+          "scheduled_message.delivery_failed",
+          "giveaway.delivery_failed",
+        ])
+        .gte(
+          "created_at",
+          new Date(Date.now() - 24 * 3600000).toISOString(),
+        )
+        .order("created_at", { ascending: false })
+        .limit(20),
+    ]);
+
+    const checks = [];
+
+    const botUser =
+      botUserResult.status === "fulfilled"
+        ? botUserResult.value
+        : null;
+
+    const roles =
+      rolesResult.status === "fulfilled" &&
+      Array.isArray(rolesResult.value)
+        ? rolesResult.value
+        : [];
+
+    const channels =
+      channelsResult.status === "fulfilled" &&
+      Array.isArray(channelsResult.value)
+        ? channelsResult.value
+        : [];
+
+    const botMember =
+      botMemberResult.status === "fulfilled"
+        ? botMemberResult.value
+        : null;
+
+    if (!botUser) {
+      checks.push(
+        diagnosticCheck(
+          "bot-identity",
+          "Bot identity",
+          "error",
+          botUserResult.reason?.message ||
+            "Discord відхилив Bot token.",
+        ),
+      );
+    } else {
+      const identityMatches =
+        String(botUser.id || "") === String(config.clientId || "");
+
+      checks.push(
+        diagnosticCheck(
+          "bot-identity",
+          "Bot identity",
+          identityMatches ? "ok" : "error",
+          identityMatches
+            ? String(botUser.username || "ISTe Bot") +
+                " (" +
+                String(botUser.id) +
+                ") відповідає DISCORD_CLIENT_ID."
+            : "Token належить Discord user " +
+                String(botUser.id) +
+                ", а DISCORD_CLIENT_ID = " +
+                String(config.clientId) +
+                ".",
+        ),
+      );
+    }
+
+    if (!roles.length || !channels.length || !botMember) {
+      const resourceErrors = [
+        rolesResult,
+        channelsResult,
+        botMemberResult,
+      ]
+        .filter((result) => result.status === "rejected")
+        .map(
+          (result) =>
+            result.reason?.message || "Discord API error",
+        );
+
+      checks.push(
+        diagnosticCheck(
+          "guild-access",
+          "Discord server access",
+          "error",
+          resourceErrors.join(" · ") ||
+            "Не вдалося прочитати ресурси Discord-сервера.",
+        ),
+      );
+    } else {
+      checks.push(
+        diagnosticCheck(
+          "guild-access",
+          "Discord server access",
+          "ok",
+          "Доступ підтверджено: " +
+            String(roles.length) +
+            " ролей, " +
+            String(channels.length) +
+            " каналів.",
+        ),
+      );
+    }
+
+    const roleMap = new Map(
+      roles.map((role) => [String(role.id), role]),
+    );
+
+    const channelMap = new Map(
+      channels.map((channel) => [String(channel.id), channel]),
+    );
+
+    const botRoleIds = new Set(
+      (
+        Array.isArray(botMember?.roles)
+          ? botMember.roles
+          : []
+      ).map((value) => String(value)),
+    );
+
+    let effectivePermissions = discordPermissionValue(
+      roleMap.get(guildId)?.permissions,
+    );
+
+    let botHighestRolePosition = 0;
+
+    for (const roleId of botRoleIds) {
+      const role = roleMap.get(roleId);
+      if (!role) continue;
+
+      effectivePermissions |= discordPermissionValue(
+        role.permissions,
+      );
+
+      botHighestRolePosition = Math.max(
+        botHighestRolePosition,
+        Number(role.position || 0),
+      );
+    }
+
+    const administrator =
+      (
+        effectivePermissions &
+        DIAGNOSTIC_PERMISSION_BITS.administrator
+      ) !== 0n;
+
+    const hasPermission = (bit) =>
+      administrator || (effectivePermissions & bit) !== 0n;
+
+    const roleFeaturesEnabled =
+      settings.autoRolesEnabled ||
+      settings.verificationEnabled ||
+      settings.selfRolesEnabled;
+
+    const channelsFeatureEnabled =
+      settings.ticketsEnabled ||
+      settings.privateVoiceEnabled;
+
+    const moderationEnabled =
+      settings.moderationEnabled === true;
+
+    const automodEnabled =
+      settings.automodEnabled === true;
+
+    const permissionDefinitions = [
+      {
+        key: "viewChannels",
+        label: "View Channels",
+        required: true,
+      },
+      {
+        key: "sendMessages",
+        label: "Send Messages",
+        required: true,
+      },
+      {
+        key: "embedLinks",
+        label: "Embed Links",
+        required: true,
+      },
+      {
+        key: "readHistory",
+        label: "Read Message History",
+        required: true,
+      },
+      {
+        key: "manageRoles",
+        label: "Manage Roles",
+        required: roleFeaturesEnabled,
+      },
+      {
+        key: "manageChannels",
+        label: "Manage Channels",
+        required: channelsFeatureEnabled,
+      },
+      {
+        key: "manageMessages",
+        label: "Manage Messages",
+        required: moderationEnabled,
+      },
+      {
+        key: "moderateMembers",
+        label: "Moderate Members",
+        required: moderationEnabled || automodEnabled,
+      },
+      {
+        key: "manageGuild",
+        label: "Manage Server",
+        required: automodEnabled,
+      },
+      {
+        key: "kickMembers",
+        label: "Kick Members",
+        required: moderationEnabled,
+      },
+      {
+        key: "banMembers",
+        label: "Ban Members",
+        required: moderationEnabled,
+      },
+    ];
+
+    const permissions = permissionDefinitions.map((definition) => {
+      const granted = hasPermission(
+        DIAGNOSTIC_PERMISSION_BITS[definition.key],
+      );
+
+      return {
+        ...definition,
+        granted,
+        status: !definition.required
+          ? "optional"
+          : granted
+            ? "ok"
+            : "error",
+      };
+    });
+
+    const missingRequired = permissions.filter(
+      (permission) =>
+        permission.required && !permission.granted,
+    );
+
+    checks.push(
+      diagnosticCheck(
+        "permissions",
+        "Discord permissions",
+        missingRequired.length ? "error" : "ok",
+        missingRequired.length
+          ? "Не вистачає " +
+              String(missingRequired.length) +
+              " обов'язкових permission(s)."
+          : administrator
+            ? "Administrator активний. Усі необхідні права покрито."
+            : "Усі права, потрібні активним модулям, доступні.",
+        missingRequired.map((permission) => permission.label),
+      ),
+    );
+
+    const channelReferences = [
+      [
+        "Log channel",
+        settings.logChannelId,
+        false,
+        [0, 5],
+      ],
+      [
+        "Welcome channel",
+        settings.welcomeChannelId,
+        settings.welcomeEnabled,
+        [0, 5],
+      ],
+      [
+        "LIVE match channel",
+        settings.matchChannelId,
+        Boolean(settings.matchChannelId),
+        [0, 5],
+      ],
+      [
+        "AutoMod alerts",
+        settings.automodAlertChannelId,
+        automodEnabled &&
+          Boolean(settings.automodAlertChannelId),
+        [0, 5],
+      ],
+      [
+        "Verification panel",
+        settings.verificationPanelChannelId,
+        settings.verificationEnabled,
+        [0, 5],
+      ],
+      [
+        "Self Roles panel",
+        settings.selfRolesPanelChannelId,
+        settings.selfRolesEnabled,
+        [0, 5],
+      ],
+      [
+        "Ticket panel",
+        settings.ticketPanelChannelId,
+        settings.ticketsEnabled,
+        [0, 5],
+      ],
+      [
+        "Ticket log",
+        settings.ticketLogChannelId,
+        settings.ticketsEnabled &&
+          Boolean(settings.ticketLogChannelId),
+        [0, 5],
+      ],
+      [
+        "Ticket category",
+        settings.ticketCategoryId,
+        settings.ticketsEnabled,
+        [4],
+      ],
+    ];
+
+    const channelIssues = [];
+
+    for (const [
+      label,
+      id,
+      required,
+      allowedTypes,
+    ] of channelReferences) {
+      if (!id) {
+        if (required) {
+          channelIssues.push(label + ": не налаштовано");
+        }
+        continue;
+      }
+
+      const channel = channelMap.get(String(id));
+
+      if (!channel) {
+        channelIssues.push(
+          label + ": канал видалено або недоступний",
+        );
+        continue;
+      }
+
+      if (
+        !allowedTypes.includes(Number(channel.type))
+      ) {
+        channelIssues.push(
+          label + ": неправильний тип каналу",
+        );
+      }
+    }
+
+    checks.push(
+      diagnosticCheck(
+        "channels",
+        "Configured channels",
+        channelIssues.length ? "error" : "ok",
+        channelIssues.length
+          ? String(channelIssues.length) +
+              " проблем із каналами."
+          : "Усі налаштовані канали існують і мають правильний тип.",
+        channelIssues,
+      ),
+    );
+
+    const roleReferences = [
+      [
+        "Member role",
+        settings.memberRoleId,
+        settings.autoRolesEnabled,
+        true,
+      ],
+      [
+        "Verification role",
+        settings.verificationRoleId,
+        settings.verificationEnabled,
+        true,
+      ],
+      [
+        "Verification remove role",
+        settings.verificationRemoveRoleId,
+        false,
+        true,
+      ],
+      [
+        "Admin role",
+        settings.adminRoleId,
+        false,
+        false,
+      ],
+      [
+        "Moderator role",
+        settings.moderatorRoleId,
+        false,
+        false,
+      ],
+      [
+        "Ticket support role",
+        settings.ticketSupportRoleId,
+        settings.ticketsEnabled,
+        false,
+      ],
+      ...(
+        Array.isArray(settings.selfRoleIds)
+          ? settings.selfRoleIds.map((roleId, index) => [
+              "Self role " + String(index + 1),
+              roleId,
+              settings.selfRolesEnabled,
+              true,
+            ])
+          : []
+      ),
+    ];
+
+    const roleIssues = [];
+
+    for (const [
+      label,
+      id,
+      required,
+      mustManage,
+    ] of roleReferences) {
+      if (!id) {
+        if (required) {
+          roleIssues.push(label + ": не налаштовано");
+        }
+        continue;
+      }
+
+      const role = roleMap.get(String(id));
+
+      if (!role) {
+        roleIssues.push(
+          label + ": роль видалено або недоступна",
+        );
+        continue;
+      }
+
+      if (
+        mustManage &&
+        Number(role.position || 0) >= botHighestRolePosition
+      ) {
+        roleIssues.push(
+          label +
+            ": роль ISTe Bot має бути вище @" +
+            String(role.name || id),
+        );
+      }
+    }
+
+    checks.push(
+      diagnosticCheck(
+        "roles",
+        "Configured roles",
+        roleIssues.length ? "error" : "ok",
+        roleIssues.length
+          ? String(roleIssues.length) +
+              " проблем із ролями або hierarchy."
+          : "Усі налаштовані ролі існують, hierarchy коректна.",
+        roleIssues,
+      ),
+    );
+
+    const health =
+      healthResult.status === "fulfilled" &&
+      !healthResult.value.error
+        ? healthResult.value.data
+        : null;
+
+    const healthAge = health?.captured_at
+      ? Date.now() -
+        new Date(health.captured_at).getTime()
+      : Infinity;
+
+    const workerFresh =
+      health?.ready === true &&
+      healthAge < 3 * 60 * 1000;
+
+    checks.push(
+      diagnosticCheck(
+        "worker",
+        "Discord worker",
+        !health
+          ? "warning"
+          : workerFresh
+            ? "ok"
+            : "error",
+        !health
+          ? "Health snapshot ще не отримано."
+          : workerFresh
+            ? "Worker online · " +
+                String(health.ws_ping_ms ?? "—") +
+                " ms · uptime " +
+                String(health.uptime_seconds ?? 0) +
+                "s."
+            : "Останній health snapshot застарів або worker не ready.",
+      ),
+    );
+
+    const runtimeErrorItems = [];
+    const metrics =
+      health?.metrics &&
+      typeof health.metrics === "object"
+        ? health.metrics
+        : {};
+
+    const pushRuntimeError = (label, value) => {
+      const text = String(value || "").trim();
+
+      if (text) {
+        runtimeErrorItems.push(label + ": " + text);
+      }
+    };
+
+    pushRuntimeError("Presence", metrics.lastError);
+    pushRuntimeError(
+      "Welcome",
+      metrics.welcome?.lastError,
+    );
+    pushRuntimeError(
+      "AutoMod",
+      metrics.automod?.lastError,
+    );
+    pushRuntimeError(
+      "Private Voice",
+      metrics.privateVoice?.lastError,
+    );
+    pushRuntimeError(
+      "Publications",
+      metrics.publications?.lastError,
+    );
+
+    const matchGuild =
+      Array.isArray(
+        metrics.matchAnnouncements?.guilds,
+      )
+        ? metrics.matchAnnouncements.guilds.find(
+            (item) =>
+              String(item.guildId || "") === guildId,
+          )
+        : null;
+
+    pushRuntimeError(
+      "LIVE announcements",
+      matchGuild?.lastError,
+    );
+
+    checks.push(
+      diagnosticCheck(
+        "runtime-errors",
+        "Runtime modules",
+        runtimeErrorItems.length ? "error" : "ok",
+        runtimeErrorItems.length
+          ? String(runtimeErrorItems.length) +
+              " runtime error(s) знайдено."
+          : "Активні runtime модулі не повідомляють про помилки.",
+        runtimeErrorItems,
+      ),
+    );
+
+    const failureRows =
+      failuresResult.status === "fulfilled" &&
+      !failuresResult.value.error
+        ? failuresResult.value.data || []
+        : [];
+
+    checks.push(
+      diagnosticCheck(
+        "delivery-failures",
+        "Delivery failures · 24h",
+        failureRows.length ? "warning" : "ok",
+        failureRows.length
+          ? String(failureRows.length) +
+              " невдалих delivery attempt(s) за 24 години."
+          : "Giveaways і Scheduled Messages не мають delivery failures за 24 години.",
+        failureRows
+          .slice(0, 5)
+          .map(
+            (row) =>
+              String(row.event_type) +
+              " · " +
+              String(row.created_at),
+          ),
+      ),
+    );
+
+    const summary = {
+      ok: checks.filter(
+        (check) => check.status === "ok",
+      ).length,
+      warning: checks.filter(
+        (check) => check.status === "warning",
+      ).length,
+      error: checks.filter(
+        (check) => check.status === "error",
+      ).length,
+    };
+
+    const overallStatus = checks.reduce(
+      (current, check) =>
+        diagnosticStatusRank(check.status) >
+        diagnosticStatusRank(current)
+          ? check.status
+          : current,
+      "ok",
+    );
+
+    return response.status(200).json({
+      ok: true,
+      guildId,
+      checkedAt: new Date().toISOString(),
+      overallStatus,
+      summary,
+      checks,
+      permissions,
+      worker: health,
+      bot: botUser
+        ? {
+            id: String(botUser.id || ""),
+            username: String(botUser.username || ""),
+          }
+        : null,
+    });
+  } catch (error) {
+    console.error(
+      "Discord diagnostics error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "DIAGNOSTICS_FAILED",
+      error instanceof Error && error.message
+        ? "Не вдалося виконати Discord diagnostics: " +
+            error.message
+        : "Не вдалося виконати Discord diagnostics.",
+    );
+  }
+}
+
 async function handleAnalyticsOverview(
   request,
   response,
@@ -11370,6 +12142,16 @@ export default async function botPortalHandler(
     "publish-ticket-panel"
   ) {
     return handlePublishTicketPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "diagnostics-overview"
+  ) {
+    return handleDiagnosticsOverview(
       request,
       response,
     );
