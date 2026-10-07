@@ -1,5 +1,6 @@
 import {
   randomBytes,
+  randomInt,
   timingSafeEqual,
 } from "node:crypto";
 
@@ -6733,6 +6734,2085 @@ async function handlePublishTicketPanel(
   }
 }
 
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value || ""),
+  );
+}
+
+function pickRandomUserIds(
+  rows,
+  count,
+  exclude = [],
+) {
+  const excluded =
+    new Set(
+      (Array.isArray(exclude)
+        ? exclude
+        : []
+      ).map(
+        (value) =>
+          String(value),
+      ),
+    );
+
+  const values =
+    [
+      ...new Set(
+        (Array.isArray(rows)
+          ? rows
+          : []
+        )
+          .map(
+            (row) =>
+              String(
+                row?.user_id ||
+                row ||
+                "",
+              ),
+          )
+          .filter(
+            (value) =>
+              isSnowflake(value) &&
+              !excluded.has(value),
+          ),
+      ),
+    ];
+
+  for (
+    let index =
+      values.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const swapIndex =
+      randomInt(
+        index + 1,
+      );
+
+    [
+      values[index],
+      values[swapIndex],
+    ] = [
+      values[swapIndex],
+      values[index],
+    ];
+  }
+
+  return values.slice(
+    0,
+    Math.max(
+      0,
+      Math.min(
+        Number(count) || 0,
+        values.length,
+      ),
+    ),
+  );
+}
+
+function giveawayMessageBody(
+  giveaway,
+  participantCount = 0,
+  locale = "uk",
+  state = "active",
+) {
+  const english =
+    locale === "en";
+  const endsAt =
+    new Date(
+      giveaway.ends_at ||
+      giveaway.endsAt,
+    );
+  const unix =
+    Number.isNaN(
+      endsAt.getTime(),
+    )
+      ? 0
+      : Math.floor(
+          endsAt.getTime() /
+          1000,
+        );
+  const roleId =
+    String(
+      giveaway.required_role_id ||
+      giveaway.requiredRoleId ||
+      "",
+    );
+  const fields = [
+    {
+      name:
+        english
+          ? "Winners"
+          : "Переможців",
+      value:
+        String(
+          giveaway.winner_count ||
+          giveaway.winnerCount ||
+          1,
+        ),
+      inline: true,
+    },
+    {
+      name:
+        english
+          ? "Participants"
+          : "Учасників",
+      value:
+        String(
+          participantCount,
+        ),
+      inline: true,
+    },
+  ];
+
+  if (unix) {
+    fields.push({
+      name:
+        english
+          ? "Ends"
+          : "Завершення",
+      value:
+        "<t:" +
+        String(unix) +
+        (
+          state === "active"
+            ? ":R>"
+            : ":f>"
+        ),
+      inline: true,
+    });
+  }
+
+  if (isSnowflake(roleId)) {
+    fields.push({
+      name:
+        english
+          ? "Required role"
+          : "Обов'язкова роль",
+      value:
+        "<@&" +
+        roleId +
+        ">",
+      inline: false,
+    });
+  }
+
+  const statusText =
+    state === "cancelled"
+      ? (
+          english
+            ? "❌ Giveaway cancelled"
+            : "❌ Розіграш скасовано"
+        )
+      : state === "ended"
+        ? (
+            english
+              ? "🏁 Giveaway ended"
+              : "🏁 Розіграш завершено"
+          )
+        : "";
+
+  return {
+    embeds: [
+      {
+        title:
+          "🎁 " +
+          String(
+            giveaway.prize ||
+            "ISTe Giveaway",
+          ).slice(
+            0,
+            240,
+          ),
+        description:
+          [
+            String(
+              giveaway.description ||
+              "",
+            )
+              .trim()
+              .slice(
+                0,
+                3000,
+              ),
+            statusText,
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
+        color:
+          state === "cancelled"
+            ? 0x6b7280
+            : 0xe30613,
+        fields,
+        footer: {
+          text:
+            "ISTe Giveaways • istesport.com",
+        },
+        timestamp:
+          new Date()
+            .toISOString(),
+      },
+    ],
+    components:
+      state === "active"
+        ? [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  style: 1,
+                  custom_id:
+                    "iste:giveaway:" +
+                    String(
+                      giveaway.id,
+                    ),
+                  label:
+                    english
+                      ? "Participate"
+                      : "Взяти участь",
+                  emoji: {
+                    name: "🎉",
+                  },
+                },
+              ],
+            },
+          ]
+        : [],
+    allowed_mentions: {
+      parse: [],
+    },
+  };
+}
+
+async function handlePublicationsList(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const supabase =
+      access.supabase;
+
+    const [
+      giveawaysResult,
+      scheduledResult,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "discord_giveaways",
+          )
+          .select("*")
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(30),
+        supabase
+          .from(
+            "discord_scheduled_messages",
+          )
+          .select("*")
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(30),
+      ]);
+
+    if (
+      giveawaysResult.error ||
+      scheduledResult.error
+    ) {
+      throw (
+        giveawaysResult.error ||
+        scheduledResult.error
+      );
+    }
+
+    const ids =
+      (giveawaysResult.data || [])
+        .map(
+          (row) =>
+            row.id,
+        );
+
+    const counts = {};
+
+    if (ids.length) {
+      const {
+        data,
+        error,
+      } = await supabase
+        .from(
+          "discord_giveaway_participants",
+        )
+        .select(
+          "giveaway_id",
+        )
+        .in(
+          "giveaway_id",
+          ids,
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      for (
+        const row
+        of (data || [])
+      ) {
+        counts[
+          row.giveaway_id
+        ] =
+          (
+            counts[
+              row.giveaway_id
+            ] ||
+            0
+          ) + 1;
+      }
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        giveaways:
+          (giveawaysResult.data || [])
+            .map(
+              (row) => ({
+                ...row,
+                participant_count:
+                  counts[
+                    row.id
+                  ] ||
+                  0,
+              }),
+            ),
+        scheduled:
+          scheduledResult.data ||
+          [],
+      });
+  } catch (error) {
+    console.error(
+      "Publications list error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "PUBLICATIONS_LOAD_FAILED",
+      "Не вдалося завантажити публікації Discord.",
+    );
+  }
+}
+
+async function handleCreateGiveaway(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 16384,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const channelId =
+    String(
+      body.channelId ||
+      "",
+    ).trim();
+  const prize =
+    String(
+      body.prize ||
+      "",
+    )
+      .trim()
+      .slice(0, 200);
+  const description =
+    String(
+      body.description ||
+      "",
+    )
+      .trim()
+      .slice(0, 3000);
+  const requiredRoleId =
+    String(
+      body.requiredRoleId ||
+      "",
+    ).trim();
+  const winnerCount =
+    Math.max(
+      1,
+      Math.min(
+        20,
+        Math.round(
+          Number(
+            body.winnerCount ||
+            1,
+          ) ||
+          1,
+        ),
+      ),
+    );
+  const endsAt =
+    new Date(
+      body.endsAt,
+    );
+
+  if (
+    !isSnowflake(guildId) ||
+    !isSnowflake(channelId)
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GIVEAWAY_CHANNEL",
+      "Оберіть коректний Discord канал.",
+    );
+  }
+
+  if (!prize) {
+    return sendError(
+      response,
+      400,
+      "GIVEAWAY_PRIZE_REQUIRED",
+      "Вкажіть приз розіграшу.",
+    );
+  }
+
+  if (
+    requiredRoleId &&
+    !isSnowflake(
+      requiredRoleId,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_REQUIRED_ROLE",
+      "Некоректна обов'язкова роль.",
+    );
+  }
+
+  if (
+    Number.isNaN(
+      endsAt.getTime(),
+    ) ||
+    endsAt.getTime() <
+      Date.now() +
+      60000
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GIVEAWAY_END",
+      "Час завершення має бути щонайменше через 1 хвилину.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const supabase =
+      access.supabase;
+    const account =
+      access.account;
+    const settings =
+      access.settings;
+
+    const {
+      data:
+        giveaway,
+      error:
+        insertError,
+    } = await supabase
+      .from(
+        "discord_giveaways",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        channel_id:
+          channelId,
+        prize,
+        description,
+        required_role_id:
+          requiredRoleId,
+        winner_count:
+          winnerCount,
+        ends_at:
+          endsAt
+            .toISOString(),
+        status:
+          "active",
+        created_by:
+          account.user.id,
+      })
+      .select("*")
+      .single();
+
+    if (insertError) {
+      throw insertError;
+    }
+
+    try {
+      const config =
+        readConfig();
+
+      if (!config.botToken) {
+        throw new Error(
+          "DISCORD_BOT_TOKEN missing",
+        );
+      }
+
+      const message =
+        await discordRequest(
+          "/channels/" +
+          channelId +
+          "/messages",
+          {
+            method: "POST",
+            token:
+              config.botToken,
+            authType: "Bot",
+            body:
+              giveawayMessageBody(
+                giveaway,
+                0,
+                settings.locale,
+                "active",
+              ),
+          },
+        );
+
+      const {
+        error:
+          updateError,
+      } = await supabase
+        .from(
+          "discord_giveaways",
+        )
+        .update({
+          message_id:
+            String(
+              message?.id ||
+              "",
+            ),
+          updated_at:
+            new Date()
+              .toISOString(),
+        })
+        .eq(
+          "id",
+          giveaway.id,
+        );
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      await supabase
+        .from(
+          "discord_bot_audit",
+        )
+        .insert({
+          guild_id:
+            guildId,
+          event_type:
+            "giveaway.created",
+          payload: {
+            giveaway_id:
+              giveaway.id,
+            channel_id:
+              channelId,
+            message_id:
+              String(
+                message?.id ||
+                "",
+              ),
+            prize,
+            winner_count:
+              winnerCount,
+            ends_at:
+              endsAt
+                .toISOString(),
+          },
+        });
+
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          giveaway: {
+            ...giveaway,
+            message_id:
+              String(
+                message?.id ||
+                "",
+              ),
+            participant_count:
+              0,
+          },
+        });
+    } catch (publishError) {
+      await supabase
+        .from(
+          "discord_giveaways",
+        )
+        .delete()
+        .eq(
+          "id",
+          giveaway.id,
+        );
+
+      throw publishError;
+    }
+  } catch (error) {
+    console.error(
+      "Create giveaway error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      502,
+      "GIVEAWAY_CREATE_FAILED",
+      error instanceof Error &&
+      error.message
+        ? "Не вдалося створити розіграш: " +
+          error.message
+        : "Не вдалося створити розіграш.",
+    );
+  }
+}
+
+async function handleCancelGiveaway(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const giveawayId =
+    String(
+      body.giveawayId ||
+      "",
+    ).trim();
+
+  if (
+    !isSnowflake(guildId) ||
+    !isUuid(giveawayId)
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GIVEAWAY",
+      "Некоректний розіграш.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const supabase =
+      access.supabase;
+    const settings =
+      access.settings;
+
+    const {
+      data:
+        giveaway,
+      error,
+    } = await supabase
+      .from(
+        "discord_giveaways",
+      )
+      .select("*")
+      .eq(
+        "id",
+        giveawayId,
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .maybeSingle();
+
+    if (
+      error ||
+      !giveaway
+    ) {
+      return sendError(
+        response,
+        404,
+        "GIVEAWAY_NOT_FOUND",
+        "Розіграш не знайдено.",
+      );
+    }
+
+    if (
+      giveaway.status !==
+      "active"
+    ) {
+      return sendError(
+        response,
+        409,
+        "GIVEAWAY_NOT_ACTIVE",
+        "Цей розіграш уже не активний.",
+      );
+    }
+
+    const {
+      count,
+      error:
+        countError,
+    } = await supabase
+      .from(
+        "discord_giveaway_participants",
+      )
+      .select(
+        "user_id",
+        {
+          count: "exact",
+          head: true,
+        },
+      )
+      .eq(
+        "giveaway_id",
+        giveawayId,
+      );
+
+    if (countError) {
+      throw countError;
+    }
+
+    const now =
+      new Date()
+        .toISOString();
+
+    const {
+      error:
+        updateError,
+    } = await supabase
+      .from(
+        "discord_giveaways",
+      )
+      .update({
+        status:
+          "cancelled",
+        ended_at:
+          now,
+        updated_at:
+          now,
+      })
+      .eq(
+        "id",
+        giveawayId,
+      );
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    if (
+      isSnowflake(
+        giveaway.channel_id,
+      ) &&
+      isSnowflake(
+        giveaway.message_id,
+      )
+    ) {
+      const config =
+        readConfig();
+
+      await discordRequest(
+        "/channels/" +
+        giveaway.channel_id +
+        "/messages/" +
+        giveaway.message_id,
+        {
+          method: "PATCH",
+          token:
+            config.botToken,
+          authType: "Bot",
+          body:
+            giveawayMessageBody(
+              giveaway,
+              count || 0,
+              settings.locale,
+              "cancelled",
+            ),
+        },
+      ).catch(
+        () => null,
+      );
+    }
+
+    await supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "giveaway.cancelled",
+        payload: {
+          giveaway_id:
+            giveawayId,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Cancel giveaway error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "GIVEAWAY_CANCEL_FAILED",
+      "Не вдалося скасувати розіграш.",
+    );
+  }
+}
+
+async function handleRerollGiveaway(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const giveawayId =
+    String(
+      body.giveawayId ||
+      "",
+    ).trim();
+
+  if (
+    !isSnowflake(guildId) ||
+    !isUuid(giveawayId)
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GIVEAWAY",
+      "Некоректний розіграш.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const supabase =
+      access.supabase;
+    const settings =
+      access.settings;
+
+    const {
+      data:
+        giveaway,
+      error,
+    } = await supabase
+      .from(
+        "discord_giveaways",
+      )
+      .select("*")
+      .eq(
+        "id",
+        giveawayId,
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .maybeSingle();
+
+    if (
+      error ||
+      !giveaway
+    ) {
+      return sendError(
+        response,
+        404,
+        "GIVEAWAY_NOT_FOUND",
+        "Розіграш не знайдено.",
+      );
+    }
+
+    if (
+      giveaway.status !==
+      "ended"
+    ) {
+      return sendError(
+        response,
+        409,
+        "GIVEAWAY_NOT_ENDED",
+        "Reroll доступний лише після завершення розіграшу.",
+      );
+    }
+
+    const {
+      data:
+        participants,
+      error:
+        participantError,
+    } = await supabase
+      .from(
+        "discord_giveaway_participants",
+      )
+      .select(
+        "user_id",
+      )
+      .eq(
+        "giveaway_id",
+        giveawayId,
+      );
+
+    if (
+      participantError
+    ) {
+      throw participantError;
+    }
+
+    const previous =
+      Array.isArray(
+        giveaway
+          .winner_user_ids,
+      )
+        ? giveaway
+            .winner_user_ids
+        : [];
+
+    let winners =
+      pickRandomUserIds(
+        participants,
+        giveaway
+          .winner_count,
+        previous,
+      );
+
+    if (!winners.length) {
+      winners =
+        pickRandomUserIds(
+          participants,
+          giveaway
+            .winner_count,
+        );
+    }
+
+    const {
+      error:
+        updateError,
+    } = await supabase
+      .from(
+        "discord_giveaways",
+      )
+      .update({
+        winner_user_ids:
+          winners,
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "id",
+        giveawayId,
+      );
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    if (
+      isSnowflake(
+        giveaway.channel_id,
+      )
+    ) {
+      const config =
+        readConfig();
+      const english =
+        settings.locale ===
+        "en";
+
+      await discordRequest(
+        "/channels/" +
+        giveaway.channel_id +
+        "/messages",
+        {
+          method: "POST",
+          token:
+            config.botToken,
+          authType: "Bot",
+          body: {
+            content:
+              winners.length
+                ? (
+                    english
+                      ? "🔁 Reroll winners: "
+                      : "🔁 Нові переможці: "
+                  ) +
+                  winners
+                    .map(
+                      (id) =>
+                        "<@" +
+                        id +
+                        ">",
+                    )
+                    .join(" ")
+                : (
+                    english
+                      ? "🔁 Reroll: no eligible participants."
+                      : "🔁 Reroll: немає доступних учасників."
+                  ),
+            allowed_mentions: {
+              parse: [],
+              users:
+                winners,
+            },
+          },
+        },
+      );
+    }
+
+    await supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "giveaway.rerolled",
+        payload: {
+          giveaway_id:
+            giveawayId,
+          previous_winners:
+            previous,
+          winners,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        winners,
+      });
+  } catch (error) {
+    console.error(
+      "Reroll giveaway error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "GIVEAWAY_REROLL_FAILED",
+      "Не вдалося виконати reroll.",
+    );
+  }
+}
+
+async function handleCreateScheduledMessage(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 20000,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const channelId =
+    String(
+      body.channelId ||
+      "",
+    ).trim();
+  const content =
+    String(
+      body.content ||
+      "",
+    )
+      .trim()
+      .slice(0, 2000);
+  const embedTitle =
+    String(
+      body.embedTitle ||
+      "",
+    )
+      .trim()
+      .slice(0, 256);
+  const embedDescription =
+    String(
+      body.embedDescription ||
+      "",
+    )
+      .trim()
+      .slice(0, 4000);
+  const scheduledAt =
+    new Date(
+      body.scheduledAt,
+    );
+
+  if (
+    !isSnowflake(guildId) ||
+    !isSnowflake(channelId)
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_SCHEDULE_CHANNEL",
+      "Оберіть коректний Discord канал.",
+    );
+  }
+
+  if (
+    !content &&
+    !embedTitle &&
+    !embedDescription
+  ) {
+    return sendError(
+      response,
+      400,
+      "SCHEDULE_CONTENT_REQUIRED",
+      "Додайте текст або Embed.",
+    );
+  }
+
+  if (
+    Number.isNaN(
+      scheduledAt.getTime(),
+    ) ||
+    scheduledAt.getTime() <
+      Date.now() +
+      30000
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_SCHEDULE_TIME",
+      "Час публікації має бути в майбутньому.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const supabase =
+      access.supabase;
+    const account =
+      access.account;
+
+    const {
+      data:
+        scheduled,
+      error,
+    } = await supabase
+      .from(
+        "discord_scheduled_messages",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        channel_id:
+          channelId,
+        content,
+        embed_title:
+          embedTitle,
+        embed_description:
+          embedDescription,
+        scheduled_at:
+          scheduledAt
+            .toISOString(),
+        status:
+          "scheduled",
+        created_by:
+          account.user.id,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    await supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "scheduled_message.created",
+        payload: {
+          scheduled_message_id:
+            scheduled.id,
+          channel_id:
+            channelId,
+          scheduled_at:
+            scheduled
+              .scheduled_at,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        scheduled,
+      });
+  } catch (error) {
+    console.error(
+      "Create scheduled message error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "SCHEDULE_CREATE_FAILED",
+      "Не вдалося запланувати повідомлення.",
+    );
+  }
+}
+
+async function handleCancelScheduledMessage(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const scheduledId =
+    String(
+      body.scheduledId ||
+      "",
+    ).trim();
+
+  if (
+    !isSnowflake(guildId) ||
+    !isUuid(scheduledId)
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_SCHEDULE",
+      "Некоректна запланована публікація.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const supabase =
+      access.supabase;
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from(
+        "discord_scheduled_messages",
+      )
+      .update({
+        status:
+          "cancelled",
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "id",
+        scheduledId,
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "status",
+        "scheduled",
+      )
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return sendError(
+        response,
+        409,
+        "SCHEDULE_NOT_ACTIVE",
+        "Це повідомлення вже не очікує публікації.",
+      );
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Cancel scheduled message error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "SCHEDULE_CANCEL_FAILED",
+      "Не вдалося скасувати публікацію.",
+    );
+  }
+}
+
+function requireWorkerBot(
+  request,
+  response,
+) {
+  const config =
+    readConfig();
+  const auth =
+    String(
+      request.headers
+        ?.authorization ||
+      "",
+    );
+
+  if (
+    !config.botToken ||
+    !safeEqual(
+      auth,
+      "Bot " +
+      config.botToken,
+    )
+  ) {
+    sendError(
+      response,
+      401,
+      "BOT_AUTH_REQUIRED",
+      "Bot authentication required.",
+    );
+
+    return null;
+  }
+
+  return config;
+}
+
+async function handleWorkerPublicationsDue(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: false,
+        maxBodyBytes: 2048,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  if (
+    !requireWorkerBot(
+      request,
+      response,
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+    const now =
+      new Date()
+        .toISOString();
+
+    const [
+      giveawaysResult,
+      scheduledResult,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "discord_giveaways",
+          )
+          .select("*")
+          .eq(
+            "status",
+            "active",
+          )
+          .lte(
+            "ends_at",
+            now,
+          )
+          .order(
+            "ends_at",
+            {
+              ascending:
+                true,
+            },
+          )
+          .limit(8),
+        supabase
+          .from(
+            "discord_scheduled_messages",
+          )
+          .select("*")
+          .eq(
+            "status",
+            "scheduled",
+          )
+          .lte(
+            "scheduled_at",
+            now,
+          )
+          .order(
+            "scheduled_at",
+            {
+              ascending:
+                true,
+            },
+          )
+          .limit(8),
+      ]);
+
+    if (
+      giveawaysResult.error ||
+      scheduledResult.error
+    ) {
+      throw (
+        giveawaysResult.error ||
+        scheduledResult.error
+      );
+    }
+
+    const giveaways = [];
+
+    for (
+      const giveaway
+      of (giveawaysResult.data || [])
+    ) {
+      const {
+        data:
+          participants,
+        error:
+          participantError,
+      } = await supabase
+        .from(
+          "discord_giveaway_participants",
+        )
+        .select(
+          "user_id",
+        )
+        .eq(
+          "giveaway_id",
+          giveaway.id,
+        );
+
+      if (participantError) {
+        throw participantError;
+      }
+
+      let winners =
+        Array.isArray(
+          giveaway
+            .winner_user_ids,
+        )
+          ? giveaway
+              .winner_user_ids
+              .map(
+                (value) =>
+                  String(value),
+              )
+              .filter(
+                (value) =>
+                  isSnowflake(value),
+              )
+          : [];
+
+      if (!winners.length) {
+        winners =
+          pickRandomUserIds(
+            participants,
+            giveaway
+              .winner_count,
+          );
+
+        const {
+          error:
+            winnerError,
+        } = await supabase
+          .from(
+            "discord_giveaways",
+          )
+          .update({
+            winner_user_ids:
+              winners,
+            last_attempt_at:
+              now,
+            updated_at:
+              now,
+          })
+          .eq(
+            "id",
+            giveaway.id,
+          )
+          .eq(
+            "status",
+            "active",
+          );
+
+        if (winnerError) {
+          throw winnerError;
+        }
+      }
+
+      const {
+        data:
+          settingsRow,
+      } = await supabase
+        .from(
+          "discord_guild_settings",
+        )
+        .select(
+          "locale",
+        )
+        .eq(
+          "guild_id",
+          giveaway
+            .guild_id,
+        )
+        .maybeSingle();
+
+      giveaways.push({
+        ...giveaway,
+        winner_user_ids:
+          winners,
+        participant_count:
+          (participants || [])
+            .length,
+        locale:
+          settingsRow
+            ?.locale ===
+            "en"
+            ? "en"
+            : "uk",
+      });
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        giveaways,
+        scheduled:
+          scheduledResult.data ||
+          [],
+      });
+  } catch (error) {
+    console.error(
+      "Worker publications due error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "PUBLICATION_JOBS_FAILED",
+      "Could not load due Discord publications.",
+    );
+  }
+}
+
+async function handleWorkerPublicationResult(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: false,
+        maxBodyBytes: 8192,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  if (
+    !requireWorkerBot(
+      request,
+      response,
+    )
+  ) {
+    return;
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const kind =
+    String(
+      body.kind ||
+      "",
+    );
+  const id =
+    String(
+      body.id ||
+      "",
+    );
+  const ok =
+    body.ok === true;
+  const messageId =
+    String(
+      body.messageId ||
+      "",
+    );
+  const errorMessage =
+    String(
+      body.error ||
+      "",
+    )
+      .slice(0, 1000);
+
+  if (
+    ![
+      "giveaway",
+      "scheduled",
+    ].includes(kind) ||
+    !isUuid(id)
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_PUBLICATION_RESULT",
+      "Invalid publication result.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+    const now =
+      new Date()
+        .toISOString();
+
+    const table =
+      kind === "giveaway"
+        ? "discord_giveaways"
+        : "discord_scheduled_messages";
+
+    const {
+      data:
+        current,
+      error:
+        currentError,
+    } = await supabase
+      .from(table)
+      .select("*")
+      .eq(
+        "id",
+        id,
+      )
+      .maybeSingle();
+
+    if (
+      currentError ||
+      !current
+    ) {
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          ignored: true,
+        });
+    }
+
+    const attempts =
+      Number(
+        current
+          .delivery_attempts ||
+        0,
+      ) + 1;
+
+    let update;
+
+    if (
+      kind ===
+      "scheduled"
+    ) {
+      update = {
+        status:
+          ok
+            ? "sent"
+            : attempts >= 5
+              ? "failed"
+              : "scheduled",
+        sent_message_id:
+          ok
+            ? messageId
+            : current
+                .sent_message_id,
+        error_message:
+          ok
+            ? null
+            : errorMessage,
+        delivery_attempts:
+          attempts,
+        last_attempt_at:
+          now,
+        sent_at:
+          ok
+            ? now
+            : current
+                .sent_at,
+        updated_at:
+          now,
+      };
+    } else {
+      update = {
+        status:
+          ok
+            ? "ended"
+            : attempts >= 5
+              ? "cancelled"
+              : "active",
+        delivery_attempts:
+          attempts,
+        last_error:
+          ok
+            ? null
+            : errorMessage,
+        last_attempt_at:
+          now,
+        ended_at:
+          ok ||
+          attempts >= 5
+            ? now
+            : current
+                .ended_at,
+        updated_at:
+          now,
+      };
+    }
+
+    const {
+      error:
+        updateError,
+    } = await supabase
+      .from(table)
+      .update(update)
+      .eq(
+        "id",
+        id,
+      );
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    await supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          current.guild_id,
+        event_type:
+          kind === "scheduled"
+            ? (
+                ok
+                  ? "scheduled_message.sent"
+                  : "scheduled_message.delivery_failed"
+              )
+            : (
+                ok
+                  ? "giveaway.ended"
+                  : "giveaway.delivery_failed"
+              ),
+        payload: {
+          id,
+          message_id:
+            messageId ||
+            null,
+          attempt:
+            attempts,
+          error:
+            errorMessage ||
+            null,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Worker publication result error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "PUBLICATION_RESULT_FAILED",
+      "Could not persist Discord publication result.",
+    );
+  }
+}
+
 async function handleReleaseLicense(
   request,
   response,
@@ -8070,6 +10150,86 @@ export default async function botPortalHandler(
     "publish-ticket-panel"
   ) {
     return handlePublishTicketPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "publications-list"
+  ) {
+    return handlePublicationsList(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "create-giveaway"
+  ) {
+    return handleCreateGiveaway(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "cancel-giveaway"
+  ) {
+    return handleCancelGiveaway(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "reroll-giveaway"
+  ) {
+    return handleRerollGiveaway(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "create-scheduled-message"
+  ) {
+    return handleCreateScheduledMessage(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "cancel-scheduled-message"
+  ) {
+    return handleCancelScheduledMessage(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "worker-publications-due"
+  ) {
+    return handleWorkerPublicationsDue(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "worker-publication-result"
+  ) {
+    return handleWorkerPublicationResult(
       request,
       response,
     );
