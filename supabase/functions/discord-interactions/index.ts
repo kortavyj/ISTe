@@ -1983,7 +1983,7 @@ async function handleSubscriptionComponent(
     .from(
       "discord_subscription_requests",
     )
-    .select("id")
+    .select("id,metadata")
     .eq(
       "user_id",
       account.user_id,
@@ -2003,6 +2003,16 @@ async function handleSubscriptionComponent(
       .toISOString();
 
   const metadata = {
+    ...(
+      existingRequest
+        ?.metadata &&
+      typeof existingRequest
+        .metadata ===
+        "object"
+        ? existingRequest
+            .metadata
+        : {}
+    ),
     locale:
       lang,
     guild_id:
@@ -2021,7 +2031,15 @@ async function handleSubscriptionComponent(
       null,
     requested_via:
       "discord_button",
+    payment_mode:
+      "discord_shop",
   };
+
+  let requestId =
+    String(
+      existingRequest?.id ||
+      "",
+    );
 
   if (existingRequest) {
     const {
@@ -2056,6 +2074,8 @@ async function handleSubscriptionComponent(
     }
   } else {
     const {
+      data:
+        insertedRequest,
       error,
     } = await adminDb
       .from(
@@ -2076,7 +2096,19 @@ async function handleSubscriptionComponent(
         updated_at:
           now,
         metadata,
-      });
+      })
+      .select(
+        "id,metadata",
+      )
+      .single();
+
+    if (!error) {
+      requestId =
+        String(
+          insertedRequest?.id ||
+          "",
+        );
+    }
 
     if (error) {
       if (
@@ -2112,10 +2144,99 @@ async function handleSubscriptionComponent(
         if (retryError) {
           throw retryError;
         }
+
+        const {
+          data:
+            retryRequest,
+          error:
+            retryFetchError,
+        } = await adminDb
+          .from(
+            "discord_subscription_requests",
+          )
+          .select(
+            "id,metadata",
+          )
+          .eq(
+            "user_id",
+            account.user_id,
+          )
+          .eq(
+            "status",
+            "pending",
+          )
+          .maybeSingle();
+
+        if (
+          retryFetchError ||
+          !retryRequest
+        ) {
+          throw (
+            retryFetchError ||
+            new Error(
+              "SUBSCRIPTION_REQUEST_MISSING",
+            )
+          );
+        }
+
+        requestId =
+          String(
+            retryRequest.id,
+          );
       } else {
         throw error;
       }
     }
+  }
+
+  if (!requestId) {
+    throw new Error(
+      "SUBSCRIPTION_REQUEST_ID_MISSING",
+    );
+  }
+
+  const shopOrder =
+    await upsertSubscriptionShopOrder(
+      requestId,
+      discordUserId,
+      plan,
+      metadata,
+    );
+
+  const finalMetadata = {
+    ...metadata,
+    shop_guild_id:
+      shopOrder.guildId,
+    shop_channel_id:
+      shopOrder.channelId,
+    shop_message_id:
+      shopOrder.messageId,
+  };
+
+  const {
+    error:
+      metadataUpdateError,
+  } = await adminDb
+    .from(
+      "discord_subscription_requests",
+    )
+    .update({
+      metadata:
+        finalMetadata,
+      updated_at:
+        now,
+    })
+    .eq(
+      "id",
+      requestId,
+    )
+    .eq(
+      "status",
+      "pending",
+    );
+
+  if (metadataUpdateError) {
+    throw metadataUpdateError;
   }
 
   return interactionMessage(
@@ -2130,7 +2251,17 @@ async function handleSubscriptionComponent(
       ),
       t.footer,
     ),
-    subscriptionButtons(),
+    [
+      ...subscriptionButtons(),
+      ...linkRow([
+        {
+          label:
+            t.subscriptionOpenShop,
+          url:
+            shopOrder.url,
+        },
+      ]),
+    ],
     true,
   );
 }
