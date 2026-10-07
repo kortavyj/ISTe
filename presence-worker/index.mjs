@@ -244,6 +244,14 @@ let automodEventsProcessed = 0;
 let automodLastEventAt = null;
 let automodLastError = null;
 
+let publicationTimer = null;
+let publicationBusy = false;
+let publicationRuns = 0;
+let publicationGiveawaysEnded = 0;
+let publicationMessagesSent = 0;
+let publicationLastRunAt = null;
+let publicationLastError = null;
+
 function log(event, data = {}) {
   console.log(
     JSON.stringify({
@@ -1691,6 +1699,601 @@ function scheduleRefresh() {
   }, refreshMs);
 }
 
+
+async function publicationApi(
+  action,
+  body = {},
+) {
+  const url =
+    new URL(
+      siteUrl +
+      "/api/owner",
+    );
+
+  url.searchParams.set(
+    "module",
+    "bot-portal",
+  );
+
+  url.searchParams.set(
+    "action",
+    action,
+  );
+
+  const response =
+    await fetch(
+      url,
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          Accept:
+            "application/json",
+          "Content-Type":
+            "application/json",
+          Authorization:
+            "Bot " +
+            token,
+          "User-Agent":
+            "ISTesport-Discord-Worker/2.4",
+        },
+        body:
+          JSON.stringify(
+            body,
+          ),
+        signal:
+          AbortSignal.timeout(
+            FETCH_TIMEOUT_MS,
+          ),
+      },
+    );
+
+  const result =
+    await response
+      .json()
+      .catch(
+        () => null,
+      );
+
+  if (
+    !response.ok ||
+    result?.ok !==
+      true
+  ) {
+    throw new Error(
+      result?.message ||
+      "Publication API " +
+      action +
+      " returned " +
+      String(
+        response.status,
+      ),
+    );
+  }
+
+  return result;
+}
+
+function scheduledDiscordPayload(
+  job,
+) {
+  const embeds = [];
+
+  if (
+    job.embed_title ||
+    job.embed_description
+  ) {
+    embeds.push({
+      title:
+        cleanText(
+          job.embed_title,
+        ).slice(
+          0,
+          256,
+        ) ||
+        undefined,
+      description:
+        cleanText(
+          job.embed_description,
+        ).slice(
+          0,
+          4096,
+        ) ||
+        undefined,
+      color: 0xe30613,
+      footer: {
+        text:
+          "ISTe Bot • istesport.com",
+      },
+      timestamp:
+        new Date()
+          .toISOString(),
+    });
+  }
+
+  return {
+    content:
+      cleanText(
+        job.content,
+      ).slice(
+        0,
+        2000,
+      ) ||
+      undefined,
+    embeds,
+    allowedMentions: {
+      parse: [],
+    },
+  };
+}
+
+function endedGiveawayEmbed(
+  job,
+) {
+  const english =
+    job.locale ===
+    "en";
+
+  const endsAt =
+    new Date(
+      job.ends_at,
+    );
+
+  const unix =
+    Math.floor(
+      endsAt.getTime() /
+      1000,
+    );
+
+  const fields = [
+    {
+      name:
+        english
+          ? "Winners"
+          : "Переможців",
+      value:
+        String(
+          job.winner_count ||
+          1,
+        ),
+      inline: true,
+    },
+    {
+      name:
+        english
+          ? "Participants"
+          : "Учасників",
+      value:
+        String(
+          job.participant_count ||
+          0,
+        ),
+      inline: true,
+    },
+    {
+      name:
+        english
+          ? "Ended"
+          : "Завершено",
+      value:
+        "<t:" +
+        String(unix) +
+        ":f>",
+      inline: true,
+    },
+  ];
+
+  if (
+    cleanText(
+      job.required_role_id,
+    )
+  ) {
+    fields.push({
+      name:
+        english
+          ? "Required role"
+          : "Обов'язкова роль",
+      value:
+        "<@&" +
+        String(
+          job.required_role_id,
+        ) +
+        ">",
+      inline: false,
+    });
+  }
+
+  return {
+    title:
+      "🎁 " +
+      cleanText(
+        job.prize,
+        "ISTe Giveaway",
+      ).slice(
+        0,
+        240,
+      ),
+    description:
+      [
+        cleanText(
+          job.description,
+        ).slice(
+          0,
+          3000,
+        ),
+        english
+          ? "🏁 Giveaway ended"
+          : "🏁 Розіграш завершено",
+      ]
+        .filter(Boolean)
+        .join("\n\n"),
+    color: 0xe30613,
+    fields,
+    footer: {
+      text:
+        "ISTe Giveaways • istesport.com",
+    },
+    timestamp:
+      new Date()
+        .toISOString(),
+  };
+}
+
+async function processScheduledPublication(
+  job,
+) {
+  try {
+    const channel =
+      await client.channels.fetch(
+        String(
+          job.channel_id,
+        ),
+      );
+
+    if (
+      !channel ||
+      typeof channel.send !==
+        "function"
+    ) {
+      throw new Error(
+        "Scheduled channel is not sendable",
+      );
+    }
+
+    const message =
+      await channel.send(
+        scheduledDiscordPayload(
+          job,
+        ),
+      );
+
+    await publicationApi(
+      "worker-publication-result",
+      {
+        kind:
+          "scheduled",
+        id:
+          job.id,
+        ok: true,
+        messageId:
+          message?.id ||
+          "",
+      },
+    );
+
+    publicationMessagesSent +=
+      1;
+  } catch (error) {
+    await publicationApi(
+      "worker-publication-result",
+      {
+        kind:
+          "scheduled",
+        id:
+          job.id,
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+    ).catch(
+      () => null,
+    );
+
+    throw error;
+  }
+}
+
+async function processGiveawayPublication(
+  job,
+) {
+  try {
+    const channel =
+      await client.channels.fetch(
+        String(
+          job.channel_id,
+        ),
+      );
+
+    if (
+      !channel ||
+      typeof channel.send !==
+        "function"
+    ) {
+      throw new Error(
+        "Giveaway channel is not sendable",
+      );
+    }
+
+    if (
+      cleanText(
+        job.message_id,
+      ) &&
+      channel.messages
+    ) {
+      const message =
+        await channel.messages.fetch(
+          String(
+            job.message_id,
+          ),
+        );
+
+      await message.edit({
+        embeds: [
+          endedGiveawayEmbed(
+            job,
+          ),
+        ],
+        components: [],
+        allowedMentions: {
+          parse: [],
+        },
+      });
+    }
+
+    const winners =
+      Array.isArray(
+        job.winner_user_ids,
+      )
+        ? job
+            .winner_user_ids
+            .map(
+              (value) =>
+                String(value),
+            )
+            .filter(Boolean)
+        : [];
+
+    const english =
+      job.locale ===
+      "en";
+
+    const winnerText =
+      winners.length
+        ? winners
+            .map(
+              (id) =>
+                "<@" +
+                id +
+                ">",
+            )
+            .join(" ")
+        : "";
+
+    const content =
+      winners.length
+        ? (
+            english
+              ? "🏆 Giveaway winner"
+              : "🏆 Переможець розіграшу"
+          ) +
+          (
+            winners.length > 1
+              ? (
+                  english
+                    ? "s"
+                    : "і"
+                )
+              : ""
+          ) +
+          ": " +
+          winnerText +
+          "\n🎁 **" +
+          cleanText(
+            job.prize,
+            "ISTe Giveaway",
+          ).slice(
+            0,
+            180,
+          ) +
+          "**"
+        : (
+            english
+              ? "🏁 Giveaway **" +
+                cleanText(
+                  job.prize,
+                  "ISTe Giveaway",
+                ).slice(
+                  0,
+                  180,
+                ) +
+                "** ended without eligible participants."
+              : "🏁 Розіграш **" +
+                cleanText(
+                  job.prize,
+                  "ISTe Giveaway",
+                ).slice(
+                  0,
+                  180,
+                ) +
+                "** завершився без учасників."
+          );
+
+    await channel.send({
+      content,
+      allowedMentions: {
+        parse: [],
+        users:
+          winners,
+      },
+    });
+
+    await publicationApi(
+      "worker-publication-result",
+      {
+        kind:
+          "giveaway",
+        id:
+          job.id,
+        ok: true,
+      },
+    );
+
+    publicationGiveawaysEnded +=
+      1;
+  } catch (error) {
+    await publicationApi(
+      "worker-publication-result",
+      {
+        kind:
+          "giveaway",
+        id:
+          job.id,
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+    ).catch(
+      () => null,
+    );
+
+    throw error;
+  }
+}
+
+async function refreshPublications() {
+  if (
+    publicationBusy ||
+    !client.isReady()
+  ) {
+    return;
+  }
+
+  publicationBusy = true;
+  publicationLastRunAt =
+    new Date()
+      .toISOString();
+
+  try {
+    const due =
+      await publicationApi(
+        "worker-publications-due",
+      );
+
+    for (
+      const job
+      of (due.scheduled || [])
+    ) {
+      try {
+        await processScheduledPublication(
+          job,
+        );
+      } catch (error) {
+        log(
+          "scheduled_publication_failed",
+          {
+            id:
+              job.id,
+            message:
+              error instanceof Error
+                ? error.message
+                : String(error),
+          },
+        );
+      }
+    }
+
+    for (
+      const job
+      of (due.giveaways || [])
+    ) {
+      try {
+        await processGiveawayPublication(
+          job,
+        );
+      } catch (error) {
+        log(
+          "giveaway_publication_failed",
+          {
+            id:
+              job.id,
+            message:
+              error instanceof Error
+                ? error.message
+                : String(error),
+          },
+        );
+      }
+    }
+
+    publicationRuns +=
+      1;
+    publicationLastError =
+      null;
+  } catch (error) {
+    publicationLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "publication_refresh_failed",
+      {
+        message:
+          publicationLastError,
+      },
+    );
+  } finally {
+    publicationBusy = false;
+  }
+}
+
+function schedulePublications() {
+  if (publicationTimer) {
+    clearInterval(
+      publicationTimer,
+    );
+  }
+
+  publicationTimer =
+    setInterval(
+      () => {
+        void refreshPublications();
+      },
+      30000,
+    );
+}
+
+function publicationsHealth() {
+  return {
+    busy:
+      publicationBusy,
+    runs:
+      publicationRuns,
+    giveawaysEnded:
+      publicationGiveawaysEnded,
+    messagesSent:
+      publicationMessagesSent,
+    lastRunAt:
+      publicationLastRunAt,
+    lastError:
+      publicationLastError,
+  };
+}
+
 client.once(Events.ClientReady, async (readyClient) => {
   log("discord_ready", {
     bot: readyClient.user.tag,
@@ -1724,6 +2327,8 @@ client.once(Events.ClientReady, async (readyClient) => {
   await initializePrivateVoice();
   await refreshPresence();
   scheduleRefresh();
+  await refreshPublications();
+  schedulePublications();
 });
 
 async function reportAutoModerationExecution(
@@ -2041,6 +2646,8 @@ const healthServer = createServer((request, response) => {
         welcomeHealth(),
       automod:
         automodHealth(),
+      publications:
+        publicationsHealth(),
       matchAnnouncements:
         matchAnnouncementsHealth(),
       uptimeSeconds: Math.round(process.uptime()),
@@ -2064,6 +2671,13 @@ async function shutdown(signal) {
   if (refreshTimer) {
     clearInterval(refreshTimer);
     refreshTimer = null;
+  }
+
+  if (publicationTimer) {
+    clearInterval(
+      publicationTimer,
+    );
+    publicationTimer = null;
   }
 
   for (const timer of privateDeleteTimers.values()) {
