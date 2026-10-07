@@ -1580,6 +1580,158 @@ function normalizeSettings(
   };
 }
 
+function normalizeSettingsForControlAccess(
+  row,
+  access,
+) {
+  const settings =
+    normalizeSettings(
+      row,
+    );
+
+  if (
+    !settings ||
+    access?.isOwner ===
+      true
+  ) {
+    return settings;
+  }
+
+  const permissions =
+    access?.permissions instanceof
+      Set
+      ? access.permissions
+      : new Set(
+          Array.isArray(
+            access
+              ?.permissionKeys,
+          )
+            ? access
+                .permissionKeys
+            : [],
+        );
+
+  const result = {
+    guildId:
+      settings.guildId,
+    locale:
+      settings.locale,
+    updatedAt:
+      settings.updatedAt,
+  };
+
+  const groups = [
+    [
+      "onboarding.view",
+      [
+        "memberRoleId",
+        "welcomeChannelId",
+        "welcomeTitle",
+        "welcomeMessage",
+        "welcomeMention",
+        "welcomeShowMemberCount",
+        "verificationEnabled",
+        "verificationPanelChannelId",
+        "verificationRoleId",
+        "verificationRemoveRoleId",
+        "verificationPanelTitle",
+        "verificationPanelMessage",
+        "selfRolesEnabled",
+        "selfRolesPanelChannelId",
+        "selfRolesPanelTitle",
+        "selfRolesPanelMessage",
+        "selfRoleIds",
+        "welcomeEnabled",
+        "autoRolesEnabled",
+      ],
+    ],
+    [
+      "moderation.view",
+      [
+        "moderationClearEnabled",
+        "moderationTimeoutEnabled",
+        "automodEnabled",
+        "automodSpamEnabled",
+        "automodInvitesEnabled",
+        "automodMentionEnabled",
+        "automodCapsEnabled",
+        "automodForbiddenWords",
+        "automodAlertChannelId",
+        "automodMentionLimit",
+        "automodEscalationCount",
+        "automodEscalationWindowMinutes",
+        "automodTimeoutMinutes",
+        "automodRuleIds",
+        "moderationEnabled",
+      ],
+    ],
+    [
+      "support.view",
+      [
+        "ticketPanelChannelId",
+        "ticketCategoryId",
+        "ticketSupportRoleId",
+        "ticketLogChannelId",
+        "ticketPanelTitle",
+        "ticketPanelMessage",
+        "ticketMaxOpenPerUser",
+        "ticketsEnabled",
+        "privateVoiceEnabled",
+      ],
+    ],
+    [
+      "security.view",
+      [
+        "securityEnabled",
+        "securityAlertChannelId",
+        "securityQuarantineRoleId",
+        "securityJoinBurstThreshold",
+        "securityJoinBurstWindowSeconds",
+        "securityMinAccountAgeHours",
+        "securityAutoQuarantine",
+        "securityEmergencyMode",
+        "securityIgnoreBots",
+      ],
+    ],
+    [
+      "system.view",
+      [
+        "adminRoleId",
+        "moderatorRoleId",
+        "logChannelId",
+        "matchChannelId",
+      ],
+    ],
+  ];
+
+  for (
+    const [
+      requiredPermission,
+      keys,
+    ]
+    of groups
+  ) {
+    if (
+      !permissionAllows(
+        permissions,
+        requiredPermission,
+      )
+    ) {
+      continue;
+    }
+
+    for (
+      const key
+      of keys
+    ) {
+      result[key] =
+        settings[key];
+    }
+  }
+
+  return result;
+}
+
 function discordGuildIconUrl(
   guildId,
   icon,
@@ -2432,8 +2584,9 @@ async function handleStatus(
               null,
             settings:
               settingsRow
-                ? normalizeSettings(
+                ? normalizeSettingsForControlAccess(
                     settingsRow,
+                    access,
                   )
                 : null,
             access,
@@ -7888,8 +8041,9 @@ async function handleRestoreConfigVersion(
       .json({
         ok: true,
         settings:
-          normalizeSettings(
+          normalizeSettingsForControlAccess(
             restored,
+            access,
           ),
         restoredVersionId:
           version.id,
@@ -8788,8 +8942,9 @@ async function handleSaveSettings(
         ok: true,
         section,
         settings:
-          normalizeSettings(
+          normalizeSettingsForControlAccess(
             data,
+            access,
           ),
       });
   } catch (error) {
