@@ -21,6 +21,10 @@ import {
   handleRolesVerificationComponent,
 } from "./rolesVerification.ts";
 
+import {
+  handleGiveawayComponent,
+} from "./giveaways.ts";
+
 const encoder = new TextEncoder();
 const SITE_URL = (Deno.env.get("SITE_URL") || "https://istesport.com").replace(/\/+$/, "");
 const DISCORD_PUBLIC_KEY =
@@ -2963,6 +2967,17 @@ Deno.serve(async (request) => {
 
   if (interaction?.type === 3) {
     try {
+      const giveawayResponse =
+        await handleGiveawayComponent(
+          interaction,
+        );
+
+      if (giveawayResponse) {
+        return json(
+          giveawayResponse,
+        );
+      }
+
       const roleResponse =
         await handleRolesVerificationComponent(
           interaction,
