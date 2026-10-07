@@ -400,13 +400,26 @@ async function ensureShopSubscriptionPanel() {
           ].includes(
             item.type,
           ) &&
-          String(
-            item.name ||
-            "",
-          )
-            .trim()
-            .toLowerCase() ===
-            SHOP_CHANNEL_NAME,
+          (
+            String(
+              item.name ||
+              "",
+            )
+              .trim()
+              .toLowerCase() ===
+              SHOP_CHANNEL_NAME ||
+            String(
+              item.name ||
+              "",
+            )
+              .normalize("NFKD")
+              .toLowerCase()
+              .replace(
+                /[^a-z0-9а-яіїєґ]+/giu,
+                "",
+              ) ===
+              SHOP_CHANNEL_NAME
+          ),
       );
 
     if (
