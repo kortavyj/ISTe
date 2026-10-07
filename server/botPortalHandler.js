@@ -16087,8 +16087,7 @@ async function handleDiagnosticsOverview(request, response) {
       ) {
         roleIssues.push(
           label +
-            ": роль ISTe Bot має бути вище @" +
-            String(role.name || id),
+            ": hierarchy ролей некоректна",
         );
       }
     }
@@ -16149,36 +16148,6 @@ async function handleDiagnosticsOverview(request, response) {
         ? health.metrics
         : {};
 
-    const pushRuntimeError = (label, value) => {
-      const text = String(value || "").trim();
-
-      if (text) {
-        runtimeErrorItems.push(label + ": " + text);
-      }
-    };
-
-    pushRuntimeError("Presence", metrics.lastError);
-    pushRuntimeError(
-      "Welcome",
-      metrics.welcome?.lastError,
-    );
-    pushRuntimeError(
-      "AutoMod",
-      metrics.automod?.lastError,
-    );
-    pushRuntimeError(
-      "Security",
-      metrics.security?.lastError,
-    );
-    pushRuntimeError(
-      "Private Voice",
-      metrics.privateVoice?.lastError,
-    );
-    pushRuntimeError(
-      "Publications",
-      metrics.publications?.lastError,
-    );
-
     const matchGuild =
       Array.isArray(
         metrics.matchAnnouncements?.guilds,
@@ -16189,10 +16158,23 @@ async function handleDiagnosticsOverview(request, response) {
           )
         : null;
 
-    pushRuntimeError(
-      "LIVE announcements",
-      matchGuild?.lastError,
-    );
+    if (
+      String(
+        matchGuild?.lastError ||
+        "",
+      ).trim()
+    ) {
+      runtimeErrorItems.push(
+        access.isOwner
+          ? "LIVE announcements: " +
+              String(
+                matchGuild.lastError,
+              )
+                .trim()
+                .slice(0, 300)
+          : "LIVE announcements: runtime error",
+      );
+    }
 
     checks.push(
       diagnosticCheck(
@@ -16262,7 +16244,22 @@ async function handleDiagnosticsOverview(request, response) {
       summary,
       checks,
       permissions,
-      worker: health,
+      worker: health
+        ? {
+            ready:
+              health.ready ===
+              true,
+            wsPingMs:
+              health.ws_ping_ms ??
+              null,
+            uptimeSeconds:
+              health.uptime_seconds ??
+              null,
+            capturedAt:
+              health.captured_at ||
+              null,
+          }
+        : null,
       bot: botUser
         ? {
             id: String(botUser.id || ""),
