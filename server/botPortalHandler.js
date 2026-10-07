@@ -1027,6 +1027,414 @@ async function reconcileGuildLicenses(
   }
 }
 
+async function applySelectedGuildLicenses(
+  supabase,
+  userId,
+  plan,
+  expiresAt,
+  selectedGuildIds,
+) {
+  const planConfig =
+    getPlanConfig(plan);
+  const limit =
+    planConfig.maxGuilds;
+
+  const ids =
+    [
+      ...new Set(
+        (
+          Array.isArray(
+            selectedGuildIds,
+          )
+            ? selectedGuildIds
+            : []
+        )
+          .map(
+            (value) =>
+              String(
+                value ||
+                  "",
+              ).trim(),
+          )
+          .filter(
+            (value) =>
+              isSnowflake(
+                value,
+              ),
+          ),
+      ),
+    ];
+
+  if (!ids.length) {
+    await reconcileGuildLicenses(
+      supabase,
+      userId,
+      planConfig.plan,
+      expiresAt,
+    );
+
+    return [];
+  }
+
+  if (
+    limit !== null &&
+    ids.length > limit
+  ) {
+    throw new Error(
+      "GUILD_LIMIT_REACHED",
+    );
+  }
+
+  const [
+    accessResult,
+    selectedLicenseResult,
+    ownedLicenseResult,
+  ] =
+    await Promise.all([
+      supabase
+        .from(
+          "discord_customer_guilds",
+        )
+        .select(
+          "guild_id,guild_name,can_manage",
+        )
+        .eq(
+          "user_id",
+          userId,
+        )
+        .eq(
+          "can_manage",
+          true,
+        )
+        .in(
+          "guild_id",
+          ids,
+        ),
+      supabase
+        .from(
+          "discord_guild_licenses",
+        )
+        .select(
+          "guild_id,user_id,activated_at",
+        )
+        .in(
+          "guild_id",
+          ids,
+        ),
+      supabase
+        .from(
+          "discord_guild_licenses",
+        )
+        .select("*")
+        .eq(
+          "user_id",
+          userId,
+        ),
+    ]);
+
+  if (
+    accessResult.error ||
+    selectedLicenseResult.error ||
+    ownedLicenseResult.error
+  ) {
+    throw (
+      accessResult.error ||
+      selectedLicenseResult.error ||
+      ownedLicenseResult.error
+    );
+  }
+
+  const accessRows =
+    Array.isArray(
+      accessResult.data,
+    )
+      ? accessResult.data
+      : [];
+  const accessMap =
+    new Map(
+      accessRows.map(
+        (row) => [
+          String(
+            row.guild_id,
+          ),
+          row,
+        ],
+      ),
+    );
+
+  if (
+    ids.some(
+      (guildId) =>
+        !accessMap.has(
+          guildId,
+        ),
+    )
+  ) {
+    throw new Error(
+      "GUILD_MANAGE_REQUIRED",
+    );
+  }
+
+  const selectedLicenseRows =
+    Array.isArray(
+      selectedLicenseResult.data,
+    )
+      ? selectedLicenseResult.data
+      : [];
+
+  if (
+    selectedLicenseRows.some(
+      (row) =>
+        String(
+          row.user_id,
+        ) !==
+        String(userId),
+    )
+  ) {
+    throw new Error(
+      "GUILD_LICENSE_OWNED_BY_ANOTHER_USER",
+    );
+  }
+
+  const config =
+    readConfig();
+
+  if (!config.botToken) {
+    throw new Error(
+      "DISCORD_BOT_TOKEN_MISSING",
+    );
+  }
+
+  const guildPayloads =
+    await Promise.all(
+      ids.map(
+        async (
+          guildId,
+        ) => {
+          const guild =
+            await discordRequest(
+              "/guilds/" +
+                guildId +
+                "?with_counts=true",
+              {
+                token:
+                  config.botToken,
+                authType:
+                  "Bot",
+              },
+            );
+
+          return {
+            guildId,
+            guild,
+          };
+        },
+      ),
+    );
+
+  const now =
+    new Date()
+      .toISOString();
+  const ownedRows =
+    Array.isArray(
+      ownedLicenseResult.data,
+    )
+      ? ownedLicenseResult.data
+      : [];
+  const ownedMap =
+    new Map(
+      ownedRows.map(
+        (row) => [
+          String(
+            row.guild_id,
+          ),
+          row,
+        ],
+      ),
+    );
+  const selectedSet =
+    new Set(ids);
+
+  for (
+    const row
+    of ownedRows
+  ) {
+    const guildId =
+      String(
+        row.guild_id,
+      );
+
+    if (
+      selectedSet.has(
+        guildId,
+      )
+    ) {
+      continue;
+    }
+
+    const {
+      error,
+    } = await supabase
+      .from(
+        "discord_guild_licenses",
+      )
+      .update({
+        plan:
+          planConfig.plan,
+        status:
+          "suspended",
+        expires_at:
+          expiresAt,
+        updated_at:
+          now,
+      })
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "user_id",
+        userId,
+      );
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  for (
+    const item
+    of guildPayloads
+  ) {
+    const guildId =
+      item.guildId;
+    const guild =
+      item.guild;
+    const previous =
+      ownedMap.get(
+        guildId,
+      );
+
+    const {
+      error:
+        licenseError,
+    } = await supabase
+      .from(
+        "discord_guild_licenses",
+      )
+      .upsert(
+        {
+          guild_id:
+            guildId,
+          user_id:
+            userId,
+          plan:
+            planConfig.plan,
+          status:
+            "active",
+          activated_at:
+            previous
+              ?.activated_at ||
+            now,
+          expires_at:
+            expiresAt,
+          updated_at:
+            now,
+        },
+        {
+          onConflict:
+            "guild_id",
+        },
+      );
+
+    if (licenseError) {
+      throw licenseError;
+    }
+
+    const {
+      error:
+        settingsError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .upsert(
+        {
+          guild_id:
+            guildId,
+          owner_user_id:
+            userId,
+          updated_at:
+            now,
+        },
+        {
+          onConflict:
+            "guild_id",
+        },
+      );
+
+    if (settingsError) {
+      throw settingsError;
+    }
+
+    const {
+      error:
+        guildError,
+    } = await supabase
+      .from(
+        "discord_guilds",
+      )
+      .upsert(
+        {
+          guild_id:
+            guildId,
+          guild_name:
+            String(
+              guild?.name ||
+              accessMap.get(
+                guildId,
+              )?.guild_name ||
+              "Discord Server",
+            ).slice(
+              0,
+              120,
+            ),
+          guild_icon:
+            guild?.icon
+              ? String(
+                  guild.icon,
+                )
+              : null,
+          active: true,
+          member_count:
+            Number.isFinite(
+              guild
+                ?.approximate_member_count,
+            )
+              ? guild
+                  .approximate_member_count
+              : null,
+          removed_at:
+            null,
+          last_seen_at:
+            now,
+          updated_at:
+            now,
+        },
+        {
+          onConflict:
+            "guild_id",
+        },
+      );
+
+    if (guildError) {
+      throw guildError;
+    }
+  }
+
+  return ids;
+}
+
 function normalizeSettings(
   row,
 ) {
@@ -14844,7 +15252,7 @@ async function handleWorkerSubscriptionDecision(
         "discord_subscription_requests",
       )
       .select(
-        "id,user_id,discord_user_id,plan,status",
+        "id,user_id,discord_user_id,plan,status,metadata",
       )
       .eq(
         "id",
@@ -15084,13 +15492,26 @@ async function handleWorkerSubscriptionDecision(
       throw subscriptionError;
     }
 
-    await reconcileGuildLicenses(
-      supabase,
-      requestRow.user_id,
-      planConfig.plan,
-      expiresAt
-        .toISOString(),
-    );
+    const selectedGuildIds =
+      Array.isArray(
+        requestRow
+          ?.metadata
+          ?.selected_guild_ids,
+      )
+        ? requestRow
+            .metadata
+            .selected_guild_ids
+        : [];
+
+    const activatedGuildIds =
+      await applySelectedGuildLicenses(
+        supabase,
+        requestRow.user_id,
+        planConfig.plan,
+        expiresAt
+          .toISOString(),
+        selectedGuildIds,
+      );
 
     const {
       data: discordAccount,
@@ -15143,6 +15564,8 @@ async function handleWorkerSubscriptionDecision(
           requestId,
           source:
             "discord",
+          guildIds:
+            activatedGuildIds,
         },
       });
 
@@ -15189,6 +15612,8 @@ async function handleWorkerSubscriptionDecision(
         roleSynced:
           roleSync.synced ===
           true,
+        guildIds:
+          activatedGuildIds,
       });
   } catch (error) {
     console.error(
