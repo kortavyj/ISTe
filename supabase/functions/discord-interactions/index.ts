@@ -964,6 +964,10 @@ function subscriptionShopEmbed(
     | "rejected",
   lang: Language,
   expiresAt?: string | null,
+  guilds: Array<{
+    id: string;
+    name: string;
+  }> = [],
 ) {
   const config =
     SUBSCRIPTION_PLANS[
@@ -1047,6 +1051,28 @@ function subscriptionShopEmbed(
           "`",
         inline: false,
       },
+      ...(guilds.length
+        ? [
+            {
+              name:
+                t.subscriptionSelectedServers,
+              value:
+                guilds
+                  .map(
+                    (guild) =>
+                      "• **" +
+                      escapeMarkdown(
+                        guild.name,
+                      ) +
+                      "** (`" +
+                      guild.id +
+                      "`)",
+                  )
+                  .join("\n"),
+              inline: false,
+            },
+          ]
+        : []),
       ...(expiresAt
         ? [
             {
@@ -1139,6 +1165,12 @@ async function upsertSubscriptionShopOrder(
         plan,
         "pending",
         lang,
+        null,
+        Array.isArray(
+          metadata?.selected_guilds,
+        )
+          ? metadata.selected_guilds
+          : [],
       ),
     ],
     components:
@@ -2081,6 +2113,15 @@ async function handleSubscriptionAdminComponent(
                     result
                       ?.expiresAt ||
                       null,
+                    Array.isArray(
+                      requestRow
+                        ?.metadata
+                        ?.selected_guilds,
+                    )
+                      ? requestRow
+                          ?.metadata
+                          ?.selected_guilds
+                      : [],
                   ),
                 ],
                 components: [],
