@@ -349,7 +349,6 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
-    userInstall: true,
     name: "subscription",
     description: "Manage your ISTe Bot subscription",
     ruName: "подписка",
