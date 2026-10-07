@@ -15387,9 +15387,16 @@ async function handleWorkerSubscriptionDecision(
       );
     }
 
+    const internalTestMode =
+      requestRow
+        ?.metadata
+        ?.internal_test_mode ===
+      true;
+
     if (
       targetRole.role ===
-      "owner"
+        "owner" &&
+      !internalTestMode
     ) {
       return sendError(
         response,
@@ -15397,6 +15404,102 @@ async function handleWorkerSubscriptionDecision(
         "OWNER_SUBSCRIPTION_PROTECTED",
         "Owner subscription is protected.",
       );
+    }
+
+    if (
+      internalTestMode
+    ) {
+      const selectedGuildIds =
+        Array.isArray(
+          requestRow
+            ?.metadata
+            ?.selected_guild_ids,
+        )
+          ? requestRow
+              .metadata
+              .selected_guild_ids
+              .map(
+                (value) =>
+                  String(
+                    value ||
+                    "",
+                  ),
+              )
+              .filter(
+                (value) =>
+                  isSnowflake(
+                    value,
+                  ),
+              )
+          : [];
+
+      const {
+        error:
+          requestUpdateError,
+      } = await supabase
+        .from(
+          "discord_subscription_requests",
+        )
+        .update({
+          status:
+            "approved",
+          handled_at:
+            nowIso,
+          handled_by:
+            manager.userId,
+          updated_at:
+            nowIso,
+        })
+        .eq(
+          "id",
+          requestId,
+        )
+        .eq(
+          "status",
+          "pending",
+        );
+
+      if (
+        requestUpdateError
+      ) {
+        throw requestUpdateError;
+      }
+
+      await supabase
+        .from(
+          "discord_subscription_events",
+        )
+        .insert({
+          user_id:
+            requestRow.user_id,
+          actor_user_id:
+            manager.userId,
+          event_type:
+            "test_checkout_approved",
+          plan,
+          metadata: {
+            requestId,
+            source:
+              "discord",
+            testMode: true,
+            guildIds:
+              selectedGuildIds,
+          },
+        });
+
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          decision,
+          requestId,
+          plan,
+          expiresAt: null,
+          roleSynced: false,
+          guildIds:
+            selectedGuildIds,
+          testMode: true,
+        });
     }
 
     const {
