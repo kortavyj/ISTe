@@ -9,7 +9,10 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 
-import { syncDiscordCommands } from "./commands.mjs";
+import {
+  syncDiscordCommands,
+  syncDiscordGuildSubscriptionCommands,
+} from "./commands.mjs";
 import { createMatchAnnouncer } from "./matchAnnouncer.mjs";
 
 const DEFAULT_MATCH_DATA_URL =
@@ -284,6 +287,9 @@ let commandSyncLastAt = null;
 let commandSyncLastError = null;
 let commandSyncCount = null;
 let commandSyncNames = [];
+let guildSubscriptionSyncLastAt = null;
+let guildSubscriptionSyncLastError = null;
+let guildSubscriptionSyncGuilds = [];
 
 function log(event, data = {}) {
   console.log(
@@ -3049,6 +3055,14 @@ async function reportHealthSnapshot() {
             commandSyncLastAt,
           lastError:
             commandSyncLastError,
+          guildSubscriptions: {
+            guildIds:
+              guildSubscriptionSyncGuilds,
+            lastSyncedAt:
+              guildSubscriptionSyncLastAt,
+            lastError:
+              guildSubscriptionSyncLastError,
+          },
         },
       },
     });
@@ -3147,6 +3161,51 @@ client.once(Events.ClientReady, async (readyClient) => {
       null;
 
     log("discord_commands_synced", result);
+
+    try {
+      const guildIds =
+        Array.from(
+          readyClient.guilds.cache.keys(),
+        );
+
+      const guildResult =
+        await syncDiscordGuildSubscriptionCommands(
+          token,
+          readyClient.user.id,
+          guildIds,
+        );
+
+      guildSubscriptionSyncGuilds =
+        guildIds;
+      guildSubscriptionSyncLastAt =
+        new Date()
+          .toISOString();
+      guildSubscriptionSyncLastError =
+        null;
+
+      log(
+        "discord_subscription_guild_commands_synced",
+        guildResult,
+      );
+    } catch (guildSyncError) {
+      guildSubscriptionSyncLastAt =
+        new Date()
+          .toISOString();
+      guildSubscriptionSyncLastError =
+        guildSyncError instanceof Error
+          ? guildSyncError.message
+          : String(
+              guildSyncError,
+            );
+
+      log(
+        "discord_subscription_guild_commands_sync_failed",
+        {
+          message:
+            guildSubscriptionSyncLastError,
+        },
+      );
+    }
   } catch (error) {
     commandSyncLastAt =
       new Date()
@@ -3382,6 +3441,47 @@ client.on(
 
 client.on(Events.GuildCreate, (guild) => {
   void (async () => {
+    try {
+      if (client.user) {
+        await syncDiscordGuildSubscriptionCommands(
+          token,
+          client.user.id,
+          [guild.id],
+        );
+
+        guildSubscriptionSyncGuilds =
+          [
+            ...new Set([
+              ...guildSubscriptionSyncGuilds,
+              guild.id,
+            ]),
+          ];
+        guildSubscriptionSyncLastAt =
+          new Date()
+            .toISOString();
+        guildSubscriptionSyncLastError =
+          null;
+      }
+    } catch (error) {
+      guildSubscriptionSyncLastAt =
+        new Date()
+          .toISOString();
+      guildSubscriptionSyncLastError =
+        error instanceof Error
+          ? error.message
+          : String(error);
+
+      log(
+        "discord_subscription_guild_command_sync_failed",
+        {
+          guildId:
+            guild.id,
+          message:
+            guildSubscriptionSyncLastError,
+        },
+      );
+    }
+
     try {
       const runtime =
         await fetchGuildRuntimeConfig(
