@@ -319,6 +319,67 @@ function normalizeSettings(
           1,
         ),
       ),
+    securityEnabled:
+      config.securityEnabled ===
+      true,
+    securityAlertChannelId:
+      String(
+        config.securityAlertChannelId ||
+        "",
+      ),
+    securityQuarantineRoleId:
+      String(
+        config.securityQuarantineRoleId ||
+        "",
+      ),
+    securityJoinBurstThreshold:
+      Math.max(
+        2,
+        Math.min(
+          100,
+          Number(
+            config
+              .securityJoinBurstThreshold ||
+            8,
+          ) ||
+          8,
+        ),
+      ),
+    securityJoinBurstWindowSeconds:
+      Math.max(
+        10,
+        Math.min(
+          600,
+          Number(
+            config
+              .securityJoinBurstWindowSeconds ||
+            60,
+          ) ||
+          60,
+        ),
+      ),
+    securityMinAccountAgeHours:
+      Math.max(
+        0,
+        Math.min(
+          8760,
+          Number(
+            config
+              .securityMinAccountAgeHours ||
+            0,
+          ) ||
+          0,
+        ),
+      ),
+    securityAutoQuarantine:
+      config.securityAutoQuarantine ===
+      true,
+    securityEmergencyMode:
+      config.securityEmergencyMode ===
+      true,
+    securityIgnoreBots:
+      config.securityIgnoreBots !==
+      false,
     privateVoiceEnabled:
       row
         ?.private_voice_enabled ===
@@ -1244,6 +1305,139 @@ async function handleDue() {
   };
 }
 
+async function handleSecurityEvent(
+  body: any,
+) {
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    );
+  const userId =
+    String(
+      body.userId ||
+      "",
+    );
+  const eventType =
+    String(
+      body.eventType ||
+      "",
+    )
+      .trim()
+      .slice(
+        0,
+        80,
+      );
+  const severity =
+    [
+      "info",
+      "warning",
+      "critical",
+    ].includes(
+      String(
+        body.severity ||
+        "",
+      ),
+    )
+      ? String(
+          body.severity,
+        )
+      : "info";
+  const actionTaken =
+    String(
+      body.actionTaken ||
+      "",
+    )
+      .trim()
+      .slice(
+        0,
+        80,
+      );
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    (
+      userId &&
+      !isSnowflake(
+        userId,
+      )
+    ) ||
+    !eventType
+  ) {
+    return {
+      status: 400,
+      payload: {
+        ok: false,
+        error:
+          "INVALID_SECURITY_EVENT",
+      },
+    };
+  }
+
+  const details =
+    body.details &&
+    typeof body.details ===
+      "object"
+      ? body.details
+      : {};
+
+  const {
+    error,
+  } = await db!
+    .from(
+      "discord_security_events",
+    )
+    .insert({
+      guild_id:
+        guildId,
+      user_id:
+        userId ||
+        null,
+      event_type:
+        eventType,
+      severity,
+      action_taken:
+        actionTaken ||
+        null,
+      details,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  await db!
+    .from(
+      "discord_bot_audit",
+    )
+    .insert({
+      guild_id:
+        guildId,
+      event_type:
+        "security." +
+        eventType,
+      payload: {
+        user_id:
+          userId ||
+          null,
+        severity,
+        action_taken:
+          actionTaken ||
+          null,
+        ...details,
+      },
+    });
+
+  return {
+    status: 200,
+    payload: {
+      ok: true,
+    },
+  };
+}
+
 async function handleResult(
   body: any,
 ) {
@@ -1545,6 +1739,11 @@ Deno.serve(
             ? await handleAutomod(
                 body,
               )
+            : action ===
+                "security-event"
+              ? await handleSecurityEvent(
+                  body,
+                )
             : action ===
                 "publications-due"
               ? await handleDue()
