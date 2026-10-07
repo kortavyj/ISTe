@@ -17990,6 +17990,26 @@ async function handleAdminSetSubscription(
       body.plan,
     );
 
+  const requestId =
+    String(
+      body.requestId ||
+      "",
+    ).trim();
+
+  if (
+    requestId &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      requestId,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_SUBSCRIPTION_REQUEST_ID",
+      "Некоректний ID заявки.",
+    );
+  }
+
   if (
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
       userId,
@@ -18037,6 +18057,52 @@ async function handleAdminSetSubscription(
   try {
     const supabase =
       getSupabaseAdminClient();
+
+    let subscriptionRequest =
+      null;
+
+    if (requestId) {
+      const {
+        data,
+        error,
+      } = await supabase
+        .from(
+          "discord_subscription_requests",
+        )
+        .select(
+          "id,user_id,plan,status",
+        )
+        .eq(
+          "id",
+          requestId,
+        )
+        .maybeSingle();
+
+      if (
+        error ||
+        !data ||
+        data.status !==
+          "pending" ||
+        String(
+          data.user_id,
+        ) !==
+          userId ||
+        normalizePlan(
+          data.plan,
+        ) !==
+          requestedPlan
+      ) {
+        return sendError(
+          response,
+          409,
+          "SUBSCRIPTION_REQUEST_INVALID",
+          "Заявка вже оброблена або не відповідає користувачу та тарифу.",
+        );
+      }
+
+      subscriptionRequest =
+        data;
+    }
 
     const {
       data: targetRole,
@@ -18335,8 +18401,50 @@ async function handleAdminSetSubscription(
           roleSynced:
             roleSync.synced ===
             true,
+          requestId:
+            subscriptionRequest
+              ?.id ||
+            null,
         },
       });
+
+    if (
+      subscriptionRequest
+        ?.id
+    ) {
+      const {
+        error:
+          requestUpdateError,
+      } = await supabase
+        .from(
+          "discord_subscription_requests",
+        )
+        .update({
+          status:
+            "approved",
+          handled_at:
+            now.toISOString(),
+          handled_by:
+            manager.user.id,
+          updated_at:
+            now.toISOString(),
+        })
+        .eq(
+          "id",
+          subscriptionRequest
+            .id,
+        )
+        .eq(
+          "status",
+          "pending",
+        );
+
+      if (
+        requestUpdateError
+      ) {
+        throw requestUpdateError;
+      }
+    }
 
     return response
       .status(200)
@@ -18369,6 +18477,153 @@ async function handleAdminSetSubscription(
       500,
       "SUBSCRIPTION_UPDATE_FAILED",
       "Не вдалося змінити підписку ISTe Bot.",
+    );
+  }
+}
+
+async function handleAdminRejectSubscriptionRequest(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const manager =
+    await requireSubscriptionManager(
+      request,
+      response,
+    );
+
+  if (!manager) return;
+
+  const requestId =
+    String(
+      readJsonBody(request)
+        ?.requestId ||
+      "",
+    ).trim();
+
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      requestId,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_SUBSCRIPTION_REQUEST_ID",
+      "Некоректний ID заявки.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+    const now =
+      new Date()
+        .toISOString();
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from(
+        "discord_subscription_requests",
+      )
+      .update({
+        status:
+          "rejected",
+        handled_at:
+          now,
+        handled_by:
+          manager.user.id,
+        updated_at:
+          now,
+      })
+      .eq(
+        "id",
+        requestId,
+      )
+      .eq(
+        "status",
+        "pending",
+      )
+      .select(
+        "id,user_id,plan,status",
+      )
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return sendError(
+        response,
+        409,
+        "SUBSCRIPTION_REQUEST_ALREADY_HANDLED",
+        "Заявка вже оброблена.",
+      );
+    }
+
+    await supabase
+      .from(
+        "discord_subscription_events",
+      )
+      .insert({
+        user_id:
+          data.user_id,
+        actor_user_id:
+          manager.user.id,
+        event_type:
+          "request_rejected",
+        plan:
+          data.plan,
+        metadata: {
+          requestId:
+            data.id,
+          source:
+            "discord",
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        request: {
+          id:
+            data.id,
+          status:
+            data.status,
+        },
+      });
+  } catch (error) {
+    console.error(
+      "Subscription request reject error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "SUBSCRIPTION_REQUEST_REJECT_FAILED",
+      "Не вдалося відхилити заявку.",
     );
   }
 }
@@ -18421,6 +18676,16 @@ export default async function botPortalHandler(
     "admin-set-subscription"
   ) {
     return handleAdminSetSubscription(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "admin-reject-subscription-request"
+  ) {
+    return handleAdminRejectSubscriptionRequest(
       request,
       response,
     );
