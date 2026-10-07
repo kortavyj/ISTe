@@ -273,6 +273,10 @@ const copy = {
     shopOrderTitle: "🛒 ISTe Bot • Підписка",
     shopPendingDescription:
       "Оплатіть замовлення через захищену сторінку monobank нижче. Після успішної оплати бот перевірить платіж і активує підписку автоматично.",
+    shopPaymentUnavailableDescription:
+      "Приватне замовлення створено, але автоматична оплата ще не налаштована. Owner або Co Owner може обробити замовлення вручну.",
+    shopTestPendingDescription:
+      "Тестове замовлення. Використайте службові кнопки нижче, реальна оплата не проводиться.",
     shopApprovedDescription:
       "Оплату підтверджено, підписку активовано.",
     shopRejectedDescription:
@@ -465,6 +469,10 @@ const copy = {
     shopOrderTitle: "🛒 ISTe Bot • Подписка",
     shopPendingDescription:
       "Оплатите заказ через защищённую страницу monobank ниже. После успешной оплаты бот проверит платёж и активирует подписку автоматически.",
+    shopPaymentUnavailableDescription:
+      "Приватный заказ создан, но автоматическая оплата ещё не настроена. Owner или Co Owner может обработать заказ вручную.",
+    shopTestPendingDescription:
+      "Тестовый заказ. Используйте служебные кнопки ниже, реальная оплата не проводится.",
     shopApprovedDescription:
       "Оплата подтверждена, подписка активирована.",
     shopRejectedDescription:
@@ -657,6 +665,10 @@ const copy = {
     shopOrderTitle: "🛒 ISTe Bot • Subscription",
     shopPendingDescription:
       "Complete payment through the secure monobank page below. After a successful payment, the bot will verify it and activate the subscription automatically.",
+    shopPaymentUnavailableDescription:
+      "The private order was created, but automated payment is not configured yet. Owner or Co Owner can process the order manually.",
+    shopTestPendingDescription:
+      "Test order. Use the staff controls below. No real payment is processed.",
     shopApprovedDescription:
       "Payment confirmed and the subscription is active.",
     shopRejectedDescription:
@@ -1602,7 +1614,11 @@ function subscriptionShopEmbed(
         )
       : status === "rejected"
         ? t.shopRejectedDescription
-        : t.shopPendingDescription;
+        : testMode
+          ? t.shopTestPendingDescription
+          : payment
+            ? t.shopPendingDescription
+            : t.shopPaymentUnavailableDescription;
 
   return {
     title:
@@ -1912,8 +1928,7 @@ async function upsertSubscriptionShopOrder(
           "",
         ),
         metadata?.internal_test_mode ===
-          true ||
-          !payment?.page_url,
+          true,
       ),
     allowed_mentions: {
       users: [
