@@ -248,6 +248,10 @@ const copy = {
     subscriptionInternalTesting:
       "Для owner/internal акаунта доступний **тестовий checkout**. Він проходить весь шлях клієнта, але не змінює внутрішню підписку або реальні ліцензії.",
     shopTestMode: "🧪 ТЕСТОВИЙ РЕЖИМ",
+    shopTestApprovedDescription:
+      "Тестовий checkout успішно завершено. Внутрішню підписку та реальні ліцензії не змінено.",
+    shopDmTestApproved:
+      "🧪 Тестовий checkout для **{{plan}}** успішно завершено. Реальну підписку не змінено.",
     subscriptionUnavailable:
       "Сервіс підписок тимчасово недоступний.",
     subscriptionNoExpiry: "безстроково",
@@ -434,6 +438,10 @@ const copy = {
     subscriptionInternalTesting:
       "Для owner/internal аккаунта доступен **тестовый checkout**. Он проходит весь путь клиента, но не изменяет внутреннюю подписку или реальные лицензии.",
     shopTestMode: "🧪 ТЕСТОВЫЙ РЕЖИМ",
+    shopTestApprovedDescription:
+      "Тестовый checkout успешно завершён. Внутренняя подписка и реальные лицензии не изменены.",
+    shopDmTestApproved:
+      "🧪 Тестовый checkout для **{{plan}}** успешно завершён. Реальная подписка не изменена.",
     subscriptionUnavailable:
       "Сервис подписок временно недоступен.",
     subscriptionNoExpiry: "бессрочно",
@@ -620,6 +628,10 @@ const copy = {
     subscriptionInternalTesting:
       "Owner/internal accounts can use **test checkout**. It follows the full customer flow without changing the internal subscription or real licenses.",
     shopTestMode: "🧪 TEST MODE",
+    shopTestApprovedDescription:
+      "Test checkout completed successfully. The internal subscription and real licenses were not changed.",
+    shopDmTestApproved:
+      "🧪 Test checkout for **{{plan}}** completed successfully. The real subscription was not changed.",
     subscriptionUnavailable:
       "The subscription service is temporarily unavailable.",
     subscriptionNoExpiry: "unlimited",
@@ -995,7 +1007,11 @@ function subscriptionShopEmbed(
 
   const description =
     status === "approved"
-      ? t.shopApprovedDescription
+      ? (
+          testMode
+            ? t.shopTestApprovedDescription
+            : t.shopApprovedDescription
+        )
       : status === "rejected"
         ? t.shopRejectedDescription
         : t.shopPendingDescription;
@@ -1288,6 +1304,7 @@ async function sendSubscriptionDecisionDm(
     | "reject",
   lang: Language,
   expiresAt?: string | null,
+  testMode = false,
 ) {
   if (
     !/^[0-9]{17,20}$/.test(
@@ -1345,7 +1362,11 @@ async function sendSubscriptionDecisionDm(
     const description =
       interpolate(
         decision === "approve"
-          ? t.shopDmApproved
+          ? (
+              testMode
+                ? t.shopDmTestApproved
+                : t.shopDmApproved
+            )
           : t.shopDmRejected,
         {
           plan:
@@ -2338,6 +2359,8 @@ async function handleSubscriptionAdminComponent(
         requestLang,
         result?.expiresAt ||
           null,
+        result?.testMode ===
+          true,
       );
     }
 
