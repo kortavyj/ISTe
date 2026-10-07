@@ -2104,11 +2104,17 @@ async function handleStatus(
         .push(policy);
     }
 
+    const guildCacheComplete =
+      discordAccount
+        ?.guild_cache_complete ===
+      true;
+
     const candidateStaffGuildIds =
       [
         ...policiesByGuild.keys(),
       ].filter(
         (guildId) =>
+          !guildCacheComplete ||
           cachedGuildIds.has(
             guildId,
           ),
@@ -3097,6 +3103,8 @@ async function handleOauthCallback(
             now,
           last_synced_at:
             now,
+          guild_cache_complete:
+            true,
         },
         {
           onConflict:
