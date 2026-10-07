@@ -196,7 +196,7 @@ const copy = {
     subscriptionExpires: "Діє до",
     subscriptionPending: "Очікує підтвердження",
     subscriptionChoose:
-      "Оберіть тариф нижче. Це заявка без автоматичного списання коштів. Після підтвердження адміністратором підписка активується на 30 днів.",
+      "Оберіть тариф нижче. Бот створить замовлення у каналі **Shop**. Після оплати адміністратор підтвердить її, і підписка активується на 30 днів.",
     subscriptionLinkRequired:
       "Спочатку прив'яжіть Discord до акаунта ISTe на сайті. Після цього поверніться до цієї команди.",
     subscriptionOpenDashboard: "Відкрити ISTe Dashboard",
@@ -346,7 +346,7 @@ const copy = {
     subscriptionExpires: "Действует до",
     subscriptionPending: "Ожидает подтверждения",
     subscriptionChoose:
-      "Выберите тариф ниже. Это заявка без автоматического списания денег. После подтверждения администратором подписка активируется на 30 дней.",
+      "Выберите тариф ниже. Бот создаст заказ в канале **Shop**. После оплаты администратор подтвердит её, и подписка активируется на 30 дней.",
     subscriptionLinkRequired:
       "Сначала привяжите Discord к аккаунту ISTe на сайте. После этого вернитесь к этой команде.",
     subscriptionOpenDashboard: "Открыть ISTe Dashboard",
@@ -496,7 +496,7 @@ const copy = {
     subscriptionExpires: "Expires",
     subscriptionPending: "Pending approval",
     subscriptionChoose:
-      "Choose a plan below. This creates a request and does not charge you automatically. The subscription activates for 30 days after ISTe admin approval.",
+      "Choose a plan below. The bot creates an order in the **Shop** channel. After payment, an ISTe admin confirms it and the subscription activates for 30 days.",
     subscriptionLinkRequired:
       "Link Discord to your ISTe website account first, then return to this command.",
     subscriptionOpenDashboard: "Open ISTe Dashboard",
@@ -1782,6 +1782,37 @@ async function handleSubscriptionAdminComponent(
     );
 
   try {
+    let requestRow:
+      | {
+          discord_user_id?: string;
+          plan?: string;
+          metadata?: Record<
+            string,
+            unknown
+          >;
+        }
+      | null = null;
+
+    if (adminDb) {
+      const {
+        data,
+      } = await adminDb
+        .from(
+          "discord_subscription_requests",
+        )
+        .select(
+          "discord_user_id,plan,metadata",
+        )
+        .eq(
+          "id",
+          requestId,
+        )
+        .maybeSingle();
+
+      requestRow =
+        data;
+    }
+
     const result =
       await subscriptionRuntime(
         "decision",
@@ -1791,6 +1822,117 @@ async function handleSubscriptionAdminComponent(
           decision,
         },
       );
+
+    const finalPlan =
+      String(
+        result?.plan ||
+        requestRow?.plan ||
+        "",
+      )
+        .toLowerCase() as
+        SubscriptionPlan;
+    const targetDiscordUserId =
+      String(
+        result
+          ?.discordUserId ||
+        requestRow
+          ?.discord_user_id ||
+        "",
+      );
+    const shopChannelId =
+      String(
+        requestRow
+          ?.metadata
+          ?.shop_channel_id ||
+        "",
+      );
+    const shopMessageId =
+      String(
+        requestRow
+          ?.metadata
+          ?.shop_message_id ||
+        "",
+      );
+
+    if (
+      Object.prototype
+        .hasOwnProperty.call(
+          SUBSCRIPTION_PLANS,
+          finalPlan,
+        )
+    ) {
+      if (
+        /^[0-9]{17,20}$/.test(
+          shopChannelId,
+        ) &&
+        /^[0-9]{17,20}$/.test(
+          shopMessageId,
+        )
+      ) {
+        try {
+          await discordBotRequest(
+            "/channels/" +
+              shopChannelId +
+              "/messages/" +
+              shopMessageId,
+            {
+              method:
+                "PATCH",
+              body: {
+                content:
+                  targetDiscordUserId
+                    ? "<@" +
+                      targetDiscordUserId +
+                      ">"
+                    : "",
+                embeds: [
+                  subscriptionShopEmbed(
+                    requestId,
+                    targetDiscordUserId,
+                    finalPlan,
+                    decision ===
+                      "approve"
+                      ? "approved"
+                      : "rejected",
+                    result
+                      ?.expiresAt ||
+                      null,
+                  ),
+                ],
+                components: [],
+                allowed_mentions: {
+                  users:
+                    targetDiscordUserId
+                      ? [
+                          targetDiscordUserId,
+                        ]
+                      : [],
+                  parse: [],
+                },
+              },
+            },
+          );
+        } catch (
+          error
+        ) {
+          console.error(
+            "subscription Shop status update failed",
+            error,
+          );
+        }
+      }
+
+      await sendSubscriptionDecisionDm(
+        targetDiscordUserId,
+        finalPlan,
+        decision ===
+          "approve"
+          ? "approve"
+          : "reject",
+        result?.expiresAt ||
+          null,
+      );
+    }
 
     if (
       decision ===
