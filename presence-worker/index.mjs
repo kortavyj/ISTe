@@ -321,6 +321,7 @@ let healthSnapshotTimer = null;
 let healthSnapshotsSent = 0;
 let healthSnapshotLastAt = null;
 let healthSnapshotLastError = null;
+let donatelloReconcileTimer = null;
 
 let commandSyncLastAt = null;
 let commandSyncLastError = null;
@@ -1266,6 +1267,77 @@ async function reconcileDonatelloSubscriptions() {
       },
     );
   }
+}
+
+async function reconcileActiveDonatelloMembers() {
+  const guild =
+    client.guilds.cache.get(
+      INTERNAL_GUILD_ID,
+    );
+
+  if (!guild) {
+    return;
+  }
+
+  try {
+    const members =
+      await guild.members.fetch();
+
+    for (
+      const member
+      of members.values()
+    ) {
+      if (
+        member.user?.bot ||
+        !donatelloPlanForMember(
+          member,
+        )
+      ) {
+        continue;
+      }
+
+      await syncDonatelloMember(
+        member,
+        {
+          reason:
+            "scheduled-reconcile",
+          force: true,
+        },
+      );
+    }
+  } catch (error) {
+    donatelloSyncLastAt =
+      new Date()
+        .toISOString();
+    donatelloSyncLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "donatello_active_reconcile_failed",
+      {
+        message:
+          donatelloSyncLastError,
+      },
+    );
+  }
+}
+
+function scheduleDonatelloReconcile() {
+  if (donatelloReconcileTimer) {
+    clearInterval(
+      donatelloReconcileTimer,
+    );
+  }
+
+  donatelloReconcileTimer =
+    setInterval(
+      () => {
+        void reconcileActiveDonatelloMembers();
+      },
+      5 * 60 * 1000,
+    );
 }
 
 function donatelloHealth() {
@@ -3989,6 +4061,7 @@ client.once(Events.ClientReady, async (readyClient) => {
 
   await ensureShopSubscriptionPanel();
   await reconcileDonatelloSubscriptions();
+  scheduleDonatelloReconcile();
   await initializePrivateVoice();
   await refreshPresence();
   scheduleRefresh();
@@ -4435,6 +4508,13 @@ async function shutdown(signal) {
       healthSnapshotTimer,
     );
     healthSnapshotTimer = null;
+  }
+
+  if (donatelloReconcileTimer) {
+    clearInterval(
+      donatelloReconcileTimer,
+    );
+    donatelloReconcileTimer = null;
   }
 
   for (const timer of privateDeleteTimers.values()) {
