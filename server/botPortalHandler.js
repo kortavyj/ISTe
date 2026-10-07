@@ -6216,11 +6216,6 @@ const DISCORD_COMMAND_CATALOG =
       label: "Help",
     },
     {
-      name: "subscription",
-      category: "iste",
-      label: "Subscription",
-    },
-    {
       name: "poll",
       category: "community",
       label: "Poll",
