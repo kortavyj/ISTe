@@ -290,6 +290,8 @@ const copy = {
       "Тестовий checkout успішно завершено. Внутрішню підписку та реальні ліцензії не змінено.",
     shopDmTestApproved:
       "🧪 Тестовий checkout для **{{plan}}** успішно завершено. Реальну підписку не змінено.",
+    subscriptionPaddleAlreadyActive:
+      "У вас уже є активна автоматична підписка Paddle **{{plan}}**. Щоб уникнути подвійного списання, нове замовлення не створено.",
     subscriptionUnavailable:
       "Сервіс підписок тимчасово недоступний.",
     subscriptionNoExpiry: "безстроково",
@@ -486,6 +488,8 @@ const copy = {
       "Тестовый checkout успешно завершён. Внутренняя подписка и реальные лицензии не изменены.",
     shopDmTestApproved:
       "🧪 Тестовый checkout для **{{plan}}** успешно завершён. Реальная подписка не изменена.",
+    subscriptionPaddleAlreadyActive:
+      "У вас уже есть активная автоматическая подписка Paddle **{{plan}}**. Чтобы избежать двойного списания, новый заказ не создан.",
     subscriptionUnavailable:
       "Сервис подписок временно недоступен.",
     subscriptionNoExpiry: "бессрочно",
@@ -682,6 +686,8 @@ const copy = {
       "Test checkout completed successfully. The internal subscription and real licenses were not changed.",
     shopDmTestApproved:
       "🧪 Test checkout for **{{plan}}** completed successfully. The real subscription was not changed.",
+    subscriptionPaddleAlreadyActive:
+      "You already have an active recurring Paddle **{{plan}}** subscription. A new order was not created to prevent duplicate billing.",
     subscriptionUnavailable:
       "The subscription service is temporarily unavailable.",
     subscriptionNoExpiry: "unlimited",
@@ -3289,7 +3295,7 @@ async function handleSubscriptionComponent(
       "discord_subscriptions",
     )
     .select(
-      "plan,status,expires_at",
+      "plan,status,expires_at,provider,provider_subscription_id",
     )
     .eq(
       "user_id",
@@ -3304,6 +3310,45 @@ async function handleSubscriptionComponent(
   const internalTestMode =
     subscription?.plan ===
     "internal";
+
+  const activePaddleSubscription =
+    subscription?.provider ===
+      "paddle" &&
+    Boolean(
+      subscription
+        ?.provider_subscription_id,
+    ) &&
+    subscription?.status ===
+      "active" &&
+    (
+      !subscription
+        ?.expires_at ||
+      Date.parse(
+        String(
+          subscription.expires_at,
+        ),
+      ) >
+        Date.now()
+    );
+
+  if (
+    activePaddleSubscription &&
+    !internalTestMode
+  ) {
+    return ephemeralText(
+      interpolate(
+        t.subscriptionPaddleAlreadyActive,
+        {
+          plan:
+            String(
+              subscription?.plan ||
+              "paid",
+            )
+              .toUpperCase(),
+        },
+      ),
+    );
+  }
 
   const guilds =
     await eligibleSubscriptionGuilds(
@@ -3448,6 +3493,69 @@ async function handleSubscriptionGuildComponent(
         t.subscriptionOpenDashboard,
       ),
       true,
+    );
+  }
+
+  const {
+    data:
+      currentSubscription,
+    error:
+      currentSubscriptionError,
+  } = await adminDb
+    .from(
+      "discord_subscriptions",
+    )
+    .select(
+      "plan,status,expires_at,provider,provider_subscription_id",
+    )
+    .eq(
+      "user_id",
+      account.user_id,
+    )
+    .maybeSingle();
+
+  if (currentSubscriptionError) {
+    throw currentSubscriptionError;
+  }
+
+  if (
+    currentSubscription
+      ?.provider ===
+      "paddle" &&
+    Boolean(
+      currentSubscription
+        ?.provider_subscription_id,
+    ) &&
+    currentSubscription
+      ?.status ===
+      "active" &&
+    (
+      !currentSubscription
+        ?.expires_at ||
+      Date.parse(
+        String(
+          currentSubscription.expires_at,
+        ),
+      ) >
+        Date.now()
+    ) &&
+    currentSubscription
+      ?.plan !==
+      "internal"
+  ) {
+    return ephemeralText(
+      interpolate(
+        t.subscriptionPaddleAlreadyActive,
+        {
+          plan:
+            String(
+              currentSubscription
+                ?.plan ||
+              "paid",
+            )
+              .toUpperCase(),
+        },
+      ),
     );
   }
 
