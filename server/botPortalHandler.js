@@ -4127,13 +4127,23 @@ async function handleIncidentCenterOverview(
       ...(
         auditResult.data ||
         []
-      ).map(
-        (row) =>
-          incidentEventFromRow(
-            "audit",
-            row,
-          ),
-      ),
+      )
+        .filter(
+          (row) =>
+            !String(
+              row.event_type ||
+              "",
+            ).startsWith(
+              "incident.",
+            ),
+        )
+        .map(
+          (row) =>
+            incidentEventFromRow(
+              "audit",
+              row,
+            ),
+        ),
       ...(
         securityResult.data ||
         []
