@@ -27,6 +27,13 @@ import {
 
 const encoder = new TextEncoder();
 const SITE_URL = (Deno.env.get("SITE_URL") || "https://istesport.com").replace(/\/+$/, "");
+const BOT_PORTAL_URL =
+  (
+    Deno.env.get(
+      "BOT_PORTAL_URL",
+    ) ||
+    "https://www.istesport.com/api/owner"
+  ).replace(/\/+$/, "");
 const DISCORD_PUBLIC_KEY =
   Deno.env.get("DISCORD_PUBLIC_KEY") ||
   "65365ccdf33b5d411932191201b26eb21a4d479757d93ff021704b9a118ee86a";
@@ -756,8 +763,8 @@ async function subscriptionRuntime(
 
   const response =
     await fetch(
-      SITE_URL +
-        "/api/owner?module=bot-portal&action=worker-subscription-" +
+      BOT_PORTAL_URL +
+        "?module=bot-portal&action=worker-subscription-" +
         action,
       {
         method: "POST",
