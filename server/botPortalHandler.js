@@ -3797,6 +3797,7 @@ async function handleGuildResources(
     const [
       roles,
       channels,
+      botMember,
     ] =
       await Promise.all([
         discordRequest(
@@ -3815,7 +3816,52 @@ async function handleGuildResources(
             authType: "Bot",
           },
         ),
+        discordRequest(
+          `/guilds/${guildId}/members/${config.clientId}`,
+          {
+            token:
+              config.botToken,
+            authType: "Bot",
+          },
+        ),
       ]);
+
+    const botRoleIds =
+      new Set(
+        (
+          Array.isArray(
+            botMember?.roles,
+          )
+            ? botMember.roles
+            : []
+        ).map(
+          (value) =>
+            String(value),
+        ),
+      );
+
+    const botHighestRolePosition =
+      (
+        Array.isArray(roles)
+          ? roles
+          : []
+      ).reduce(
+        (highest, role) =>
+          botRoleIds.has(
+            String(
+              role.id,
+            ),
+          )
+            ? Math.max(
+                highest,
+                Number(
+                  role.position ||
+                  0,
+                ),
+              )
+            : highest,
+        0,
+      );
 
     const normalizedRoles =
       (
@@ -3860,6 +3906,12 @@ async function handleGuildResources(
                 role.position ||
                 0,
               ),
+            manageable:
+              Number(
+                role.position ||
+                0,
+              ) <
+              botHighestRolePosition,
           }),
         );
 
