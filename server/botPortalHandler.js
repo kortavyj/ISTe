@@ -15578,8 +15578,13 @@ async function handleWorkerSubscriptionDecision(
             expiresAt
               .toISOString(),
           provider:
-            existing?.provider ||
-            "manual",
+            String(
+              requestRow
+                ?.metadata
+                ?.payment_provider ||
+              existing?.provider ||
+              "manual",
+            ),
           updated_at:
             nowIso,
         },
