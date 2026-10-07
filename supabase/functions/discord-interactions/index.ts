@@ -61,32 +61,11 @@ const SHOP_OWNER_ROLE_ID =
 const SHOP_CO_OWNER_ROLE_ID =
   Deno.env.get("ISTE_SHOP_CO_OWNER_ROLE_ID") ||
   "";
-const PADDLE_API_KEY =
-  Deno.env.get("PADDLE_API_KEY") ||
-  "";
-const PADDLE_ENVIRONMENT =
+const DONATELLO_TIERS_URL =
   (
-    Deno.env.get("PADDLE_ENVIRONMENT") ||
-    "live"
-  )
-    .trim()
-    .toLowerCase();
-const PADDLE_API =
-  (
-    Deno.env.get("PADDLE_API_URL") ||
-    (
-      PADDLE_ENVIRONMENT === "sandbox"
-        ? "https://sandbox-api.paddle.com"
-        : "https://api.paddle.com"
-    )
-  ).replace(/\/+$/, "");
-const PADDLE_CHECKOUT_URL =
-  (
-    Deno.env.get("PADDLE_CHECKOUT_URL") ||
-    SITE_URL + "/bot/checkout"
+    Deno.env.get("ISTE_DONATELLO_TIERS_URL") ||
+    ""
   ).trim();
-const PADDLE_CURRENCY_CODE = "USD";
-const PADDLE_CURRENCY_NUMERIC = 840;
 const BRAND_COLOR = 0xe30613;
 const BOT_VERSION = "2.5.0";
 
@@ -253,9 +232,9 @@ const copy = {
       "Замовлення на **{{plan}}** відхилено.",
     shopOrderTitle: "🛒 ISTe Bot • Підписка",
     shopPendingDescription:
-      "Оплатіть замовлення через захищену сторінку Paddle нижче. Після успішної оплати бот перевірить платіж і активує підписку автоматично.",
+      "Відкрийте Donatello нижче та оформіть підписку потрібного рівня. Після успішної оплати Donatello автоматично видасть Discord-роль, а ISTe Bot активує відповідний тариф.",
     shopPaymentUnavailableDescription:
-      "Приватне замовлення створено, але автоматична оплата ще не налаштована. Платежі Paddle ще не налаштовані для цього середовища.",
+      "Приватне замовлення створено, але автоматична оплата ще не налаштована. Посилання на сторінку підписок Donatello ще не налаштоване.",
     shopTestPendingDescription:
       "Тестове замовлення. Використайте службові кнопки нижче, реальна оплата не проводиться.",
     shopApprovedDescription:
@@ -275,7 +254,7 @@ const copy = {
     shopStatusRejected: "🔴 ВІДХИЛЕНО",
     shopApprovePayment: "Підтвердити оплату",
     shopRejectPayment: "Відхилити",
-    shopPayNow: "Оплатити через Paddle",
+    shopPayNow: "Відкрити Donatello",
     shopPaymentAmount: "До сплати",
     shopDmApproved:
       "✅ Оплату підтверджено. Тариф **{{plan}}** активовано{{expires}}.",
@@ -451,9 +430,9 @@ const copy = {
       "Заказ на **{{plan}}** отклонён.",
     shopOrderTitle: "🛒 ISTe Bot • Подписка",
     shopPendingDescription:
-      "Оплатите заказ через защищённую страницу Paddle ниже. После успешной оплаты бот проверит платёж и активирует подписку автоматически.",
+      "Откройте Donatello ниже и оформите подписку нужного уровня. После успешной оплаты Donatello автоматически выдаст Discord-роль, а ISTe Bot активирует соответствующий тариф.",
     shopPaymentUnavailableDescription:
-      "Приватный заказ создан, но автоматическая оплата ещё не настроена. Платежи Paddle ещё не настроены для этого окружения.",
+      "Приватный заказ создан, но автоматическая оплата ещё не настроена. Ссылка на страницу подписок Donatello ещё не настроена.",
     shopTestPendingDescription:
       "Тестовый заказ. Используйте служебные кнопки ниже, реальная оплата не проводится.",
     shopApprovedDescription:
@@ -473,7 +452,7 @@ const copy = {
     shopStatusRejected: "🔴 ОТКЛОНЕНО",
     shopApprovePayment: "Подтвердить оплату",
     shopRejectPayment: "Отклонить",
-    shopPayNow: "Оплатить через Paddle",
+    shopPayNow: "Открыть Donatello",
     shopPaymentAmount: "К оплате",
     shopDmApproved:
       "✅ Оплата подтверждена. Тариф **{{plan}}** активирован{{expires}}.",
@@ -649,9 +628,9 @@ const copy = {
       "The **{{plan}}** order was rejected.",
     shopOrderTitle: "🛒 ISTe Bot • Subscription",
     shopPendingDescription:
-      "Complete payment through the secure Paddle page below. After a successful payment, the bot will verify it and activate the subscription automatically.",
+      "Open Donatello below and subscribe to the matching level. After successful payment Donatello assigns the Discord role and ISTe Bot activates the matching plan automatically.",
     shopPaymentUnavailableDescription:
-      "The private order was created, but automated payment is not configured yet. Paddle payments are not configured for this environment yet.",
+      "The private order was created, but automated payment is not configured yet. The Donatello subscription page is not configured for this environment yet.",
     shopTestPendingDescription:
       "Test order. Use the staff controls below. No real payment is processed.",
     shopApprovedDescription:
@@ -671,7 +650,7 @@ const copy = {
     shopStatusRejected: "🔴 REJECTED",
     shopApprovePayment: "Confirm payment",
     shopRejectPayment: "Reject",
-    shopPayNow: "Pay with Paddle",
+    shopPayNow: "Open Donatello",
     shopPaymentAmount: "Amount due",
     shopDmApproved:
       "✅ Payment confirmed. **{{plan}}** is active{{expires}}.",
@@ -1338,307 +1317,41 @@ async function createPrivateShopOrderChannel(
   return channelId;
 }
 
-function paddleAmountMinor(
-  plan: SubscriptionPlan,
-) {
-  const amount =
-    Math.round(
-      Number(
-        SUBSCRIPTION_PLANS[
-          plan
-        ]?.priceUsd ||
-        0,
-      ) * 100,
-    );
-
-  return (
-    Number.isSafeInteger(
-      amount,
-    ) &&
-    amount > 0
-  )
-    ? amount
-    : 0;
-}
-
-async function createPaddleTransaction(
+function createDonatelloCheckout(
   requestId: string,
-  discordUserId: string,
+  _discordUserId: string,
   plan: SubscriptionPlan,
-  orderChannelId: string,
+  _orderChannelId: string,
   testMode = false,
 ) {
   if (
     testMode ||
-    !adminDb ||
-    !PADDLE_API_KEY ||
-    !/^https:\/\//i.test(
-      PADDLE_CHECKOUT_URL,
+    !/^https:\/\/donatello\.to\//i.test(
+      DONATELLO_TIERS_URL,
     )
   ) {
     return null;
-  }
-
-  const amountMinor =
-    paddleAmountMinor(
-      plan,
-    );
-
-  if (!amountMinor) {
-    return null;
-  }
-
-  const {
-    data:
-      existing,
-  } = await adminDb
-    .from(
-      "discord_subscription_payments",
-    )
-    .select("*")
-    .eq(
-      "request_id",
-      requestId,
-    )
-    .maybeSingle();
-
-  if (
-    existing &&
-    existing.provider ===
-      "paddle" &&
-    [
-      "created",
-      "processing",
-      "success",
-    ].includes(
-      String(
-        existing.status ||
-        "",
-      ),
-    ) &&
-    existing.page_url
-  ) {
-    return {
-      ...existing,
-      currency_code:
-        PADDLE_CURRENCY_CODE,
-    };
-  }
-
-  const {
-    data:
-      requestRow,
-    error:
-      requestError,
-  } = await adminDb
-    .from(
-      "discord_subscription_requests",
-    )
-    .select(
-      "id,user_id,metadata",
-    )
-    .eq(
-      "id",
-      requestId,
-    )
-    .maybeSingle();
-
-  if (
-    requestError ||
-    !requestRow?.user_id
-  ) {
-    throw new Error(
-      "PADDLE_SUBSCRIPTION_REQUEST_NOT_FOUND",
-    );
-  }
-
-  const response =
-    await fetch(
-      PADDLE_API +
-        "/transactions",
-      {
-        method: "POST",
-        headers: {
-          Authorization:
-            "Bearer " +
-            PADDLE_API_KEY,
-          "Paddle-Version":
-            "1",
-          "Content-Type":
-            "application/json",
-          Accept:
-            "application/json",
-        },
-        body:
-          JSON.stringify({
-            items: [
-              {
-                quantity: 1,
-                price: {
-                  description:
-                    "ISTe Bot " +
-                    plan.toUpperCase() +
-                    " monthly subscription",
-                  name:
-                    "Monthly",
-                  billing_cycle: {
-                    interval:
-                      "month",
-                    frequency:
-                      1,
-                  },
-                  unit_price: {
-                    amount:
-                      String(
-                        amountMinor,
-                      ),
-                    currency_code:
-                      PADDLE_CURRENCY_CODE,
-                  },
-                  product: {
-                    name:
-                      "ISTe Bot " +
-                      plan.toUpperCase(),
-                    tax_category:
-                      "saas",
-                    description:
-                      "Monthly access to the ISTe Bot " +
-                      plan.toUpperCase() +
-                      " plan.",
-                  },
-                },
-              },
-            ],
-            collection_mode:
-              "automatic",
-            custom_data: {
-              request_id:
-                requestId,
-              user_id:
-                String(
-                  requestRow.user_id,
-                ),
-              discord_user_id:
-                discordUserId,
-              plan,
-              source:
-                "iste_discord",
-              order_channel_id:
-                orderChannelId,
-            },
-            checkout: {
-              url:
-                PADDLE_CHECKOUT_URL,
-            },
-          }),
-      },
-    );
-
-  const payload =
-    await response
-      .json()
-      .catch(
-        () => null,
-      );
-  const transaction =
-    payload?.data ||
-    null;
-  const transactionId =
-    String(
-      transaction?.id ||
-      "",
-    );
-  const checkoutUrl =
-    String(
-      transaction
-        ?.checkout
-        ?.url ||
-      "",
-    );
-
-  if (
-    !response.ok ||
-    !/^txn_[a-z\d]{26}$/i.test(
-      transactionId,
-    ) ||
-    !/^https:\/\//i.test(
-      checkoutUrl,
-    )
-  ) {
-    console.error(
-      "Paddle transaction creation failed",
-      {
-        status:
-          response.status,
-        error:
-          payload?.error ||
-          null,
-      },
-    );
-
-    throw new Error(
-      "PADDLE_TRANSACTION_CREATE_FAILED",
-    );
-  }
-
-  const now =
-    new Date()
-      .toISOString();
-  const row = {
-    request_id:
-      requestId,
-    provider:
-      "paddle",
-    invoice_id:
-      transactionId,
-    amount_minor:
-      amountMinor,
-    currency:
-      PADDLE_CURRENCY_NUMERIC,
-    status:
-      "created",
-    page_url:
-      checkoutUrl,
-    app_url:
-      "",
-    provider_modified_at:
-      transaction
-        ?.updated_at ||
-      transaction
-        ?.created_at ||
-      null,
-    provider_payload:
-      transaction,
-    updated_at:
-      now,
-  };
-
-  const {
-    data:
-      saved,
-    error,
-  } = await adminDb
-    .from(
-      "discord_subscription_payments",
-    )
-    .upsert(
-      row,
-      {
-        onConflict:
-          "request_id",
-      },
-    )
-    .select("*")
-    .single();
-
-  if (error) {
-    throw error;
   }
 
   return {
-    ...saved,
+    provider:
+      "donatello",
+    invoice_id:
+      "donatello:" +
+      requestId,
+    status:
+      "awaiting_subscription",
+    page_url:
+      DONATELLO_TIERS_URL,
+    app_url:
+      "",
+    amount_minor:
+      0,
+    currency:
+      980,
     currency_code:
-      PADDLE_CURRENCY_CODE,
+      "UAH",
+    plan,
   };
 }
 
@@ -1727,16 +1440,21 @@ function subscriptionShopEmbed(
           plan.toUpperCase(),
         inline: true,
       },
-      {
-        name:
-          t.shopPrice,
-        value:
-          "$" +
-          config.priceUsd.toFixed(
-            2,
-          ),
-        inline: true,
-      },
+      ...(payment?.provider ===
+          "donatello"
+        ? []
+        : [
+            {
+              name:
+                t.shopPrice,
+              value:
+                "$" +
+                config.priceUsd.toFixed(
+                  2,
+                ),
+              inline: true,
+            },
+          ]),
       {
         name:
           t.shopPeriod,
@@ -1760,7 +1478,11 @@ function subscriptionShopEmbed(
           "`",
         inline: false,
       },
-      ...(payment
+      ...(payment &&
+          Number(
+            payment.amount_minor ||
+            0,
+          ) > 0
         ? [
             {
               name:
@@ -1954,7 +1676,7 @@ async function upsertSubscriptionShopOrder(
 
   try {
     payment =
-      await createPaddleTransaction(
+      await createDonatelloCheckout(
         requestId,
         discordUserId,
         plan,
@@ -1966,7 +1688,7 @@ async function upsertSubscriptionShopOrder(
     error
   ) {
     console.error(
-      "Paddle transaction creation failed",
+      "Donatello checkout creation failed",
       error,
     );
   }
@@ -2228,11 +1950,7 @@ function subscriptionButtons() {
             "iste:subscription:" +
             plan,
           label:
-            plan.toUpperCase() +
-            " · $" +
-            config.priceUsd.toFixed(
-              2,
-            ),
+            plan.toUpperCase(),
         }),
       ),
     },
@@ -3834,7 +3552,10 @@ async function handleSubscriptionGuildComponent(
       shopOrder.messageId,
     payment_provider:
       shopOrder.payment
-        ? "paddle"
+        ? String(
+            shopOrder.payment?.provider ||
+            "donatello",
+          )
         : (
             metadata
               ?.payment_provider ||

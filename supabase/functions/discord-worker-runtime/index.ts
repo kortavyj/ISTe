@@ -26,6 +26,18 @@ const INTERNAL_GUILD_ID =
 const API =
   "https://discord.com/api/v10";
 
+const DONATELLO_PLAN_LIMITS = {
+  starter: 1,
+  pro: 3,
+  max: 10,
+} as const;
+
+type DonatelloPlan =
+  keyof typeof DONATELLO_PLAN_LIMITS;
+
+const SUBSCRIBER_ROLE_NAME =
+  "ISTe Bot Subscriber";
+
 const db =
   SUPABASE_URL &&
   SERVICE_ROLE
@@ -1649,6 +1661,1325 @@ async function handleResult(
   };
 }
 
+function normalizePaidPlan(
+  value: unknown,
+): DonatelloPlan | "" {
+  const plan =
+    String(
+      value ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+
+  return Object.prototype
+    .hasOwnProperty.call(
+      DONATELLO_PLAN_LIMITS,
+      plan,
+    )
+    ? plan as DonatelloPlan
+    : "";
+}
+
+async function subscriberRoleId() {
+  const configured =
+    String(
+      Deno.env.get(
+        "DISCORD_SUBSCRIBER_ROLE_ID",
+      ) ||
+      "",
+    ).trim();
+
+  if (
+    isSnowflake(
+      configured,
+    )
+  ) {
+    return configured;
+  }
+
+  const roles =
+    await discord(
+      "/guilds/" +
+        INTERNAL_GUILD_ID +
+        "/roles",
+    );
+
+  const found =
+    (
+      Array.isArray(
+        roles,
+      )
+        ? roles
+        : []
+    ).find(
+      (role: any) =>
+        String(
+          role?.name ||
+          "",
+        )
+          .trim()
+          .toLowerCase() ===
+        SUBSCRIBER_ROLE_NAME
+          .toLowerCase(),
+    );
+
+  return isSnowflake(
+    found?.id,
+  )
+    ? String(
+        found.id,
+      )
+    : "";
+}
+
+function discordLocale(
+  value: unknown,
+) {
+  const locale =
+    String(
+      value ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    locale.startsWith(
+      "uk",
+    )
+  ) {
+    return "uk";
+  }
+
+  if (
+    locale.startsWith(
+      "ru",
+    )
+  ) {
+    return "ru";
+  }
+
+  return "en";
+}
+
+async function updateDonatelloOrderMessage(
+  requestRow: any,
+  plan: DonatelloPlan,
+  discordUserId: string,
+) {
+  const metadata =
+    requestRow
+      ?.metadata &&
+    typeof requestRow
+      .metadata ===
+      "object"
+      ? requestRow.metadata
+      : {};
+  const channelId =
+    String(
+      metadata
+        ?.shop_channel_id ||
+      "",
+    );
+  const messageId =
+    String(
+      metadata
+        ?.shop_message_id ||
+      "",
+    );
+
+  if (
+    !isSnowflake(
+      channelId,
+    ) ||
+    !isSnowflake(
+      messageId,
+    )
+  ) {
+    return false;
+  }
+
+  const lang =
+    discordLocale(
+      metadata?.locale,
+    );
+  const text =
+    {
+      uk: {
+        title:
+          "🛒 ISTe Bot • Підписка",
+        description:
+          "Donatello підтвердив активну підписку через Discord-роль. ISTe Bot активував тариф автоматично.",
+        plan:
+          "Тариф",
+        status:
+          "Статус",
+        active:
+          "🟢 DONATELLO ACTIVE",
+        order:
+          "ID замовлення",
+      },
+      ru: {
+        title:
+          "🛒 ISTe Bot • Подписка",
+        description:
+          "Donatello подтвердил активную подписку через Discord-роль. ISTe Bot активировал тариф автоматически.",
+        plan:
+          "Тариф",
+        status:
+          "Статус",
+        active:
+          "🟢 DONATELLO ACTIVE",
+        order:
+          "ID заказа",
+      },
+      en: {
+        title:
+          "🛒 ISTe Bot • Subscription",
+        description:
+          "Donatello confirmed the active subscription through the Discord role. ISTe Bot activated the plan automatically.",
+        plan:
+          "Plan",
+        status:
+          "Status",
+        active:
+          "🟢 DONATELLO ACTIVE",
+        order:
+          "Order ID",
+      },
+    }[lang];
+
+  try {
+    await discord(
+      "/channels/" +
+        channelId +
+        "/messages/" +
+        messageId,
+      "PATCH",
+      {
+        content:
+          "<@" +
+          discordUserId +
+          ">",
+        embeds: [
+          {
+            title:
+              text.title,
+            description:
+              text.description,
+            color:
+              0x2ecc71,
+            fields: [
+              {
+                name:
+                  text.plan,
+                value:
+                  plan.toUpperCase(),
+                inline:
+                  true,
+              },
+              {
+                name:
+                  text.status,
+                value:
+                  text.active,
+                inline:
+                  true,
+              },
+              {
+                name:
+                  text.order,
+                value:
+                  "`" +
+                  String(
+                    requestRow
+                      ?.id ||
+                    "",
+                  ) +
+                  "`",
+                inline:
+                  false,
+              },
+            ],
+            footer: {
+              text:
+                "ISTe Shop • Donatello • ISTe Bot",
+            },
+            timestamp:
+              new Date()
+                .toISOString(),
+          },
+        ],
+        components: [],
+        allowed_mentions: {
+          users: [
+            discordUserId,
+          ],
+          parse: [],
+        },
+      },
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Donatello order message update failed",
+      error,
+    );
+    return false;
+  }
+}
+
+async function sendDonatelloActivationDm(
+  discordUserId: string,
+  plan: DonatelloPlan,
+  locale: unknown,
+) {
+  if (
+    !isSnowflake(
+      discordUserId,
+    )
+  ) {
+    return false;
+  }
+
+  const lang =
+    discordLocale(
+      locale,
+    );
+  const description =
+    lang === "uk"
+      ? "✅ Donatello підтвердив підписку. Тариф **" +
+        plan.toUpperCase() +
+        "** активовано автоматично."
+      : lang === "ru"
+        ? "✅ Donatello подтвердил подписку. Тариф **" +
+          plan.toUpperCase() +
+          "** активирован автоматически."
+        : "✅ Donatello confirmed your subscription. **" +
+          plan.toUpperCase() +
+          "** was activated automatically.";
+
+  try {
+    const dm =
+      await discord(
+        "/users/@me/channels",
+        "POST",
+        {
+          recipient_id:
+            discordUserId,
+        },
+      );
+    const channelId =
+      String(
+        dm?.id ||
+        "",
+      );
+
+    if (
+      !isSnowflake(
+        channelId,
+      )
+    ) {
+      return false;
+    }
+
+    await discord(
+      "/channels/" +
+        channelId +
+        "/messages",
+      "POST",
+      {
+        embeds: [
+          {
+            title:
+              "ISTe Bot • Donatello",
+            description,
+            color:
+              0x2ecc71,
+            footer: {
+              text:
+                "ISTe Bot • istesport.com",
+            },
+            timestamp:
+              new Date()
+                .toISOString(),
+          },
+        ],
+        allowed_mentions: {
+          parse: [],
+        },
+      },
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Donatello activation DM failed",
+      error,
+    );
+    return false;
+  }
+}
+
+async function syncSubscriberRole(
+  discordUserId: string,
+  active: boolean,
+) {
+  if (
+    !isSnowflake(
+      discordUserId,
+    )
+  ) {
+    return false;
+  }
+
+  const roleId =
+    await subscriberRoleId();
+
+  if (!roleId) {
+    return false;
+  }
+
+  try {
+    await discord(
+      "/guilds/" +
+        INTERNAL_GUILD_ID +
+        "/members/" +
+        discordUserId +
+        "/roles/" +
+        roleId,
+      active
+        ? "PUT"
+        : "DELETE",
+    );
+
+    return active;
+  } catch (error) {
+    console.error(
+      "subscriber role sync failed",
+      error,
+    );
+    return false;
+  }
+}
+
+async function reconcileDonatelloLicenses(
+  userId: string,
+  plan: DonatelloPlan,
+  selectedGuildIds: string[] = [],
+) {
+  const limit =
+    DONATELLO_PLAN_LIMITS[
+      plan
+    ];
+  const selected =
+    [
+      ...new Set(
+        (
+          Array.isArray(
+            selectedGuildIds,
+          )
+            ? selectedGuildIds
+            : []
+        )
+          .map(
+            (value) =>
+              String(
+                value ||
+                "",
+              ).trim(),
+          )
+          .filter(
+            (value) =>
+              isSnowflake(
+                value,
+              ),
+          ),
+      ),
+    ];
+
+  if (
+    selected.length >
+      limit
+  ) {
+    throw new Error(
+      "GUILD_LIMIT_REACHED",
+    );
+  }
+
+  const {
+    data:
+      ownedRows,
+    error:
+      ownedError,
+  } = await db!
+    .from(
+      "discord_guild_licenses",
+    )
+    .select("*")
+    .eq(
+      "user_id",
+      userId,
+    )
+    .order(
+      "activated_at",
+      {
+        ascending: true,
+      },
+    );
+
+  if (ownedError) {
+    throw ownedError;
+  }
+
+  const owned =
+    Array.isArray(
+      ownedRows,
+    )
+      ? ownedRows
+      : [];
+  const now =
+    new Date()
+      .toISOString();
+
+  if (!selected.length) {
+    for (
+      let index = 0;
+      index <
+        owned.length;
+      index += 1
+    ) {
+      const row =
+        owned[index];
+      const {
+        error,
+      } = await db!
+        .from(
+          "discord_guild_licenses",
+        )
+        .update({
+          plan,
+          status:
+            index < limit
+              ? "active"
+              : "suspended",
+          expires_at:
+            null,
+          updated_at:
+            now,
+        })
+        .eq(
+          "guild_id",
+          row.guild_id,
+        )
+        .eq(
+          "user_id",
+          userId,
+        );
+
+      if (error) {
+        throw error;
+      }
+    }
+
+    return owned
+      .slice(
+        0,
+        limit,
+      )
+      .map(
+        (row) =>
+          String(
+            row.guild_id,
+          ),
+      );
+  }
+
+  const [
+    accessResult,
+    licenseResult,
+  ] =
+    await Promise.all([
+      db!
+        .from(
+          "discord_customer_guilds",
+        )
+        .select(
+          "guild_id,guild_name,can_manage",
+        )
+        .eq(
+          "user_id",
+          userId,
+        )
+        .eq(
+          "can_manage",
+          true,
+        )
+        .in(
+          "guild_id",
+          selected,
+        ),
+      db!
+        .from(
+          "discord_guild_licenses",
+        )
+        .select(
+          "guild_id,user_id",
+        )
+        .in(
+          "guild_id",
+          selected,
+        ),
+    ]);
+
+  if (
+    accessResult.error ||
+    licenseResult.error
+  ) {
+    throw (
+      accessResult.error ||
+      licenseResult.error
+    );
+  }
+
+  const accessRows =
+    Array.isArray(
+      accessResult.data,
+    )
+      ? accessResult.data
+      : [];
+  const accessMap =
+    new Map(
+      accessRows.map(
+        (row: any) => [
+          String(
+            row.guild_id,
+          ),
+          row,
+        ],
+      ),
+    );
+
+  if (
+    selected.some(
+      (guildId) =>
+        !accessMap.has(
+          guildId,
+        ),
+    )
+  ) {
+    throw new Error(
+      "GUILD_MANAGE_REQUIRED",
+    );
+  }
+
+  const selectedLicenses =
+    Array.isArray(
+      licenseResult.data,
+    )
+      ? licenseResult.data
+      : [];
+
+  if (
+    selectedLicenses.some(
+      (row: any) =>
+        String(
+          row.user_id,
+        ) !==
+        userId,
+    )
+  ) {
+    throw new Error(
+      "GUILD_LICENSE_OWNED_BY_ANOTHER_USER",
+    );
+  }
+
+  for (
+    const guildId
+    of selected
+  ) {
+    await discord(
+      "/guilds/" +
+        guildId,
+    );
+  }
+
+  const selectedSet =
+    new Set(
+      selected,
+    );
+
+  for (
+    const row
+    of owned
+  ) {
+    const guildId =
+      String(
+        row.guild_id,
+      );
+
+    if (
+      selectedSet.has(
+        guildId,
+      )
+    ) {
+      continue;
+    }
+
+    const {
+      error,
+    } = await db!
+      .from(
+        "discord_guild_licenses",
+      )
+      .update({
+        plan,
+        status:
+          "suspended",
+        expires_at:
+          null,
+        updated_at:
+          now,
+      })
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "user_id",
+        userId,
+      );
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  const ownedMap =
+    new Map(
+      owned.map(
+        (row: any) => [
+          String(
+            row.guild_id,
+          ),
+          row,
+        ],
+      ),
+    );
+
+  for (
+    const guildId
+    of selected
+  ) {
+    const previous =
+      ownedMap.get(
+        guildId,
+      );
+    const {
+      error:
+        licenseError,
+    } = await db!
+      .from(
+        "discord_guild_licenses",
+      )
+      .upsert(
+        {
+          guild_id:
+            guildId,
+          user_id:
+            userId,
+          plan,
+          status:
+            "active",
+          activated_at:
+            previous
+              ?.activated_at ||
+            now,
+          expires_at:
+            null,
+          updated_at:
+            now,
+        },
+        {
+          onConflict:
+            "guild_id",
+        },
+      );
+
+    if (
+      licenseError
+    ) {
+      throw licenseError;
+    }
+
+    const {
+      error:
+        settingsError,
+    } = await db!
+      .from(
+        "discord_guild_settings",
+      )
+      .upsert(
+        {
+          guild_id:
+            guildId,
+          owner_user_id:
+            userId,
+          updated_at:
+            now,
+        },
+        {
+          onConflict:
+            "guild_id",
+        },
+      );
+
+    if (
+      settingsError
+    ) {
+      throw settingsError;
+    }
+  }
+
+  return selected;
+}
+
+async function suspendDonatelloLicenses(
+  userId: string,
+  plan: DonatelloPlan,
+) {
+  const now =
+    new Date()
+      .toISOString();
+  const {
+    error,
+  } = await db!
+    .from(
+      "discord_guild_licenses",
+    )
+    .update({
+      plan,
+      status:
+        "suspended",
+      expires_at:
+        null,
+      updated_at:
+        now,
+    })
+    .eq(
+      "user_id",
+      userId,
+    );
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function handleDonatelloSubscriptionSync(
+  body: any,
+) {
+  const discordUserId =
+    String(
+      body.discordUserId ||
+      "",
+    ).trim();
+  const requestedPlan =
+    normalizePaidPlan(
+      body.plan,
+    );
+  const providerStatus =
+    String(
+      body.providerStatus ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+  const active =
+    providerStatus ===
+      "active";
+
+  if (
+    !isSnowflake(
+      discordUserId,
+    ) ||
+    ![
+      "active",
+      "canceled",
+    ].includes(
+      providerStatus,
+    ) ||
+    (
+      active &&
+      !requestedPlan
+    )
+  ) {
+    return {
+      status: 400,
+      payload: {
+        ok: false,
+        error:
+          "INVALID_DONATELLO_SYNC",
+      },
+    };
+  }
+
+  const {
+    data:
+      account,
+    error:
+      accountError,
+  } = await db!
+    .from(
+      "discord_customer_accounts",
+    )
+    .select(
+      "user_id",
+    )
+    .eq(
+      "discord_user_id",
+      discordUserId,
+    )
+    .maybeSingle();
+
+  if (
+    accountError
+  ) {
+    throw accountError;
+  }
+
+  if (
+    !account?.user_id
+  ) {
+    return {
+      status: 200,
+      payload: {
+        ok: true,
+        ignored: true,
+        reason:
+          "DISCORD_ACCOUNT_NOT_LINKED",
+      },
+    };
+  }
+
+  const userId =
+    String(
+      account.user_id,
+    );
+
+  const [
+    roleResult,
+    subscriptionResult,
+  ] =
+    await Promise.all([
+      db!
+        .from(
+          "user_roles",
+        )
+        .select(
+          "role",
+        )
+        .eq(
+          "user_id",
+          userId,
+        )
+        .maybeSingle(),
+      db!
+        .from(
+          "discord_subscriptions",
+        )
+        .select("*")
+        .eq(
+          "user_id",
+          userId,
+        )
+        .maybeSingle(),
+    ]);
+
+  if (
+    roleResult.error ||
+    subscriptionResult.error
+  ) {
+    throw (
+      roleResult.error ||
+      subscriptionResult.error
+    );
+  }
+
+  if (
+    roleResult.data
+      ?.role ===
+      "owner"
+  ) {
+    return {
+      status: 200,
+      payload: {
+        ok: true,
+        ignored: true,
+        reason:
+          "OWNER_SUBSCRIPTION_PROTECTED",
+      },
+    };
+  }
+
+  const existing =
+    subscriptionResult.data;
+  let plan =
+    requestedPlan;
+
+  if (
+    !active
+  ) {
+    if (
+      existing
+        ?.provider !==
+        "donatello"
+    ) {
+      return {
+        status: 200,
+        payload: {
+          ok: true,
+          ignored: true,
+          reason:
+            "NO_DONATELLO_SUBSCRIPTION",
+        },
+      };
+    }
+
+    plan =
+      normalizePaidPlan(
+        existing.plan,
+      );
+
+    if (!plan) {
+      return {
+        status: 200,
+        payload: {
+          ok: true,
+          ignored: true,
+          reason:
+            "NO_DONATELLO_PLAN",
+        },
+      };
+    }
+  }
+
+  let pendingRequest:
+    any =
+    null;
+
+  if (active) {
+    const {
+      data,
+      error,
+    } = await db!
+      .from(
+        "discord_subscription_requests",
+      )
+      .select(
+        "id,user_id,discord_user_id,plan,status,metadata",
+      )
+      .eq(
+        "user_id",
+        userId,
+      )
+      .eq(
+        "plan",
+        plan,
+      )
+      .eq(
+        "status",
+        "pending",
+      )
+      .order(
+        "requested_at",
+        {
+          ascending:
+            false,
+        },
+      )
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    pendingRequest =
+      data ||
+      null;
+  }
+
+  const nextStatus =
+    active
+      ? "active"
+      : "canceled";
+  const stateChanged =
+    existing?.provider !==
+      "donatello" ||
+    normalizePaidPlan(
+      existing?.plan,
+    ) !==
+      plan ||
+    String(
+      existing?.status ||
+      "",
+    ) !==
+      nextStatus;
+
+  const now =
+    new Date()
+      .toISOString();
+  const {
+    data:
+      subscription,
+    error:
+      subscriptionError,
+  } = await db!
+    .from(
+      "discord_subscriptions",
+    )
+    .upsert(
+      {
+        user_id:
+          userId,
+        plan,
+        status:
+          nextStatus,
+        starts_at:
+          (
+            active &&
+            existing?.provider ===
+              "donatello" &&
+            existing?.status ===
+              "active"
+          )
+            ? (
+                existing
+                  ?.starts_at ||
+                now
+              )
+            : now,
+        expires_at:
+          null,
+        max_guilds:
+          DONATELLO_PLAN_LIMITS[
+            plan
+          ],
+        subscriber_role_synced:
+          existing
+            ?.subscriber_role_synced ===
+          true,
+        subscriber_role_expires_at:
+          null,
+        provider:
+          "donatello",
+        provider_customer_id:
+          discordUserId,
+        provider_subscription_id:
+          "discord-role:" +
+          plan,
+        updated_at:
+          now,
+      },
+      {
+        onConflict:
+          "user_id",
+      },
+    )
+    .select("*")
+    .single();
+
+  if (
+    subscriptionError
+  ) {
+    throw subscriptionError;
+  }
+
+  let guildIds:
+    string[] = [];
+
+  if (active) {
+    const selectedGuildIds =
+      Array.isArray(
+        pendingRequest
+          ?.metadata
+          ?.selected_guild_ids,
+      )
+        ? pendingRequest
+            .metadata
+            .selected_guild_ids
+        : [];
+
+    guildIds =
+      await reconcileDonatelloLicenses(
+        userId,
+        plan,
+        selectedGuildIds,
+      );
+  } else {
+    await suspendDonatelloLicenses(
+      userId,
+      plan,
+    );
+  }
+
+  const roleSynced =
+    await syncSubscriberRole(
+      discordUserId,
+      active,
+    );
+
+  const requestWasPending =
+    active &&
+    pendingRequest
+      ?.status ===
+      "pending";
+
+  if (
+    requestWasPending
+  ) {
+    const metadata =
+      pendingRequest
+        ?.metadata &&
+      typeof pendingRequest
+        .metadata ===
+        "object"
+        ? pendingRequest
+            .metadata
+        : {};
+
+    const {
+      error:
+        requestError,
+    } = await db!
+      .from(
+        "discord_subscription_requests",
+      )
+      .update({
+        status:
+          "approved",
+        handled_at:
+          now,
+        handled_by:
+          null,
+        metadata: {
+          ...metadata,
+          payment_provider:
+            "donatello",
+          payment_status:
+            "active_role",
+          provider_customer_id:
+            discordUserId,
+          provider_subscription_id:
+            "discord-role:" +
+            plan,
+        },
+        updated_at:
+          now,
+      })
+      .eq(
+        "id",
+        pendingRequest.id,
+      )
+      .eq(
+        "status",
+        "pending",
+      );
+
+    if (
+      requestError
+    ) {
+      throw requestError;
+    }
+
+    await Promise.all([
+      updateDonatelloOrderMessage(
+        pendingRequest,
+        plan,
+        discordUserId,
+      ),
+      sendDonatelloActivationDm(
+        discordUserId,
+        plan,
+        pendingRequest
+          ?.metadata
+          ?.locale,
+      ),
+    ]);
+  }
+
+  if (
+    stateChanged ||
+    requestWasPending
+  ) {
+    const {
+      error:
+        eventError,
+    } = await db!
+      .from(
+        "discord_subscription_events",
+      )
+      .insert({
+        user_id:
+          userId,
+        actor_user_id:
+          null,
+        event_type:
+          active
+            ? "donatello_active"
+            : "donatello_canceled",
+        plan,
+        starts_at:
+          subscription
+            ?.starts_at ||
+          now,
+        expires_at:
+          null,
+        metadata: {
+          provider:
+            "donatello",
+          discordUserId,
+          requestId:
+            pendingRequest
+              ?.id ||
+            null,
+          roleSynced,
+          guildIds,
+        },
+      });
+
+    if (
+      eventError
+    ) {
+      throw eventError;
+    }
+  }
+
+  return {
+    status: 200,
+    payload: {
+      ok: true,
+      userId,
+      discordUserId,
+      plan,
+      provider:
+        "donatello",
+      status:
+        nextStatus,
+      requestId:
+        pendingRequest
+          ?.id ||
+        null,
+      roleSynced,
+      guildIds,
+      stateChanged,
+    },
+  };
+}
+
 Deno.serve(
   async (
     request: Request,
@@ -1742,6 +3073,11 @@ Deno.serve(
             : action ===
                 "security-event"
               ? await handleSecurityEvent(
+                  body,
+                )
+            : action ===
+                "donatello-subscription-sync"
+              ? await handleDonatelloSubscriptionSync(
                   body,
                 )
             : action ===

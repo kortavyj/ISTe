@@ -44,6 +44,35 @@ const INTERNAL_GUILD_ID = String(
     "1334264628695404556",
 ).trim();
 
+const DONATELLO_TIERS_URL = String(
+  process.env.ISTE_DONATELLO_TIERS_URL ||
+    "",
+).trim();
+
+const DONATELLO_ROLE_IDS = {
+  starter: String(
+    process.env.ISTE_DONATELLO_STARTER_ROLE_ID ||
+      "",
+  ).trim(),
+  pro: String(
+    process.env.ISTE_DONATELLO_PRO_ROLE_ID ||
+      "",
+  ).trim(),
+  max: String(
+    process.env.ISTE_DONATELLO_MAX_ROLE_ID ||
+      "",
+  ).trim(),
+};
+
+const DONATELLO_ROLE_NAMES = {
+  starter:
+    "iste starter",
+  pro:
+    "iste pro",
+  max:
+    "iste max",
+};
+
 const SHOP_CHANNEL_NAME = String(
   process.env.ISTE_SHOP_CHANNEL_NAME ||
     "shop",
@@ -292,6 +321,7 @@ let healthSnapshotTimer = null;
 let healthSnapshotsSent = 0;
 let healthSnapshotLastAt = null;
 let healthSnapshotLastError = null;
+let donatelloReconcileTimer = null;
 
 let commandSyncLastAt = null;
 let commandSyncLastError = null;
@@ -305,6 +335,13 @@ let shopPanelMessageId = null;
 let shopPanelChannelId = null;
 let shopPanelLastSyncedAt = null;
 let shopPanelLastError = null;
+
+let donatelloSyncProcessed = 0;
+let donatelloSyncIgnored = 0;
+let donatelloSyncLastAt = null;
+let donatelloSyncLastError = null;
+const donatelloMemberPlanCache =
+  new Map();
 
 function shopPanelLocale(value) {
   const locale =
@@ -344,17 +381,17 @@ function shopSubscriptionPanelPayload(
       title:
         "🛒 ISTe SHOP — ISTe Bot Premium",
       intro:
-        "**Офіційна підписка ISTe Bot.**\nОбери тариф, створи замовлення та заверши оплату прямо в нашому Discord.",
+        "**Офіційна підписка ISTe Bot через Donatello.**\nОбери тариф і сервери для ліцензії, після чого заверши підписку на Donatello.",
       starter:
-        "**STARTER — $2.99 / 30 днів**\n1 Discord-сервер",
+        "**STARTER**\n1 Discord-сервер",
       pro:
-        "**PRO — $4.99 / 30 днів**\nДо 3 Discord-серверів",
+        "**PRO**\nДо 3 Discord-серверів",
       max:
-        "**MAX — $6.99 / 30 днів**\nДо 10 Discord-серверів",
+        "**MAX**\nДо 10 Discord-серверів",
       how:
-        "**Як придбати**\n1️⃣ Натисни **Оформити підписку**.\n2️⃣ Обери Starter, Pro або Max.\n3️⃣ Обери Discord-сервер для ліцензії.\n4️⃣ ISTe Bot створить персональне замовлення в цьому каналі.\n5️⃣ Після оплати адміністрація ISTe підтвердить замовлення.\n6️⃣ Підписка активується автоматично на 30 днів.",
+        "**Як придбати**\n1️⃣ Натисни **Оформити підписку**.\n2️⃣ Обери Starter, Pro або Max.\n3️⃣ Обери Discord-сервери для ліцензії.\n4️⃣ Відкрий персональне замовлення та перейди на Donatello.\n5️⃣ На Donatello увійди через Discord і оформи той самий рівень підписки.\n6️⃣ Donatello видасть роль, а ISTe Bot активує тариф автоматично.",
       important:
-        "⚠️ **Важливо:** ISTe Bot не списує кошти автоматично. Підписка вмикається лише після підтвердження оплати адміністрацією ISTe.",
+        "⚠️ **Важливо:** Discord-акаунт на Donatello має бути тим самим, що прив'язаний до ISTe. Активною вважається підписка, поки Donatello тримає відповідну роль.",
       button:
         "Оформити підписку",
     },
@@ -362,17 +399,17 @@ function shopSubscriptionPanelPayload(
       title:
         "🛒 ISTe SHOP — ISTe Bot Premium",
       intro:
-        "**Официальная подписка ISTe Bot.**\nВыбери тариф, создай заказ и заверши оплату прямо в нашем Discord.",
+        "**Официальная подписка ISTe Bot через Donatello.**\nВыбери тариф и серверы для лицензии, после чего заверши подписку на Donatello.",
       starter:
-        "**STARTER — $2.99 / 30 дней**\n1 Discord-сервер",
+        "**STARTER**\n1 Discord-сервер",
       pro:
-        "**PRO — $4.99 / 30 дней**\nДо 3 Discord-серверов",
+        "**PRO**\nДо 3 Discord-серверов",
       max:
-        "**MAX — $6.99 / 30 дней**\nДо 10 Discord-серверов",
+        "**MAX**\nДо 10 Discord-серверов",
       how:
-        "**Как купить**\n1️⃣ Нажми **Оформить подписку**.\n2️⃣ Выбери Starter, Pro или Max.\n3️⃣ Выбери Discord-сервер для лицензии.\n4️⃣ ISTe Bot создаст персональный заказ в этом канале.\n5️⃣ После оплаты администрация ISTe подтвердит заказ.\n6️⃣ Подписка активируется автоматически на 30 дней.",
+        "**Как купить**\n1️⃣ Нажми **Оформить подписку**.\n2️⃣ Выбери Starter, Pro или Max.\n3️⃣ Выбери Discord-серверы для лицензии.\n4️⃣ Открой персональный заказ и перейди на Donatello.\n5️⃣ На Donatello войди через Discord и оформи тот же уровень подписки.\n6️⃣ Donatello выдаст роль, а ISTe Bot активирует тариф автоматически.",
       important:
-        "⚠️ **Важно:** ISTe Bot не списывает деньги автоматически. Подписка включается только после подтверждения оплаты администрацией ISTe.",
+        "⚠️ **Важно:** Discord-аккаунт на Donatello должен быть тем же, который привязан к ISTe. Подписка активна, пока Donatello сохраняет соответствующую роль.",
       button:
         "Оформить подписку",
     },
@@ -380,17 +417,17 @@ function shopSubscriptionPanelPayload(
       title:
         "🛒 ISTe SHOP — ISTe Bot Premium",
       intro:
-        "**Official ISTe Bot subscription.**\nChoose a plan, create an order and complete payment directly in our Discord.",
+        "**Official ISTe Bot subscription through Donatello.**\nChoose a plan and license servers, then complete the subscription on Donatello.",
       starter:
-        "**STARTER — $2.99 / 30 days**\n1 Discord server",
+        "**STARTER**\n1 Discord server",
       pro:
-        "**PRO — $4.99 / 30 days**\nUp to 3 Discord servers",
+        "**PRO**\nUp to 3 Discord servers",
       max:
-        "**MAX — $6.99 / 30 days**\nUp to 10 Discord servers",
+        "**MAX**\nUp to 10 Discord servers",
       how:
-        "**How to subscribe**\n1️⃣ Press **Get subscription**.\n2️⃣ Choose Starter, Pro or Max.\n3️⃣ Choose the Discord server for the license.\n4️⃣ ISTe Bot creates your personal order in this channel.\n5️⃣ After payment, ISTe administration confirms the order.\n6️⃣ The subscription activates automatically for 30 days.",
+        "**How to subscribe**\n1️⃣ Press **Get subscription**.\n2️⃣ Choose Starter, Pro or Max.\n3️⃣ Choose the Discord servers for the license.\n4️⃣ Open your private order and continue to Donatello.\n5️⃣ Sign in to Donatello with the same Discord account and subscribe to the matching level.\n6️⃣ Donatello assigns the role and ISTe Bot activates the plan automatically.",
       important:
-        "⚠️ **Important:** ISTe Bot does not charge you automatically. The subscription activates only after payment is confirmed by ISTe administration.",
+        "⚠️ **Important:** Your Donatello Discord account must match the account linked to ISTe. The subscription stays active while Donatello keeps the matching role.",
       button:
         "Get subscription",
     },
@@ -860,6 +897,406 @@ async function workerRuntimeApi(
   }
 
   return result;
+}
+
+function normalizeRoleName(
+  value,
+) {
+  return String(
+    value ||
+    "",
+  )
+    .trim()
+    .toLowerCase()
+    .replace(
+      /[_-]+/g,
+      " ",
+    )
+    .replace(
+      /\s+/g,
+      " ",
+    );
+}
+
+function donatelloPlanForMember(
+  member,
+) {
+  if (
+    !member ||
+    member.guild?.id !==
+      INTERNAL_GUILD_ID
+  ) {
+    return "";
+  }
+
+  const roles =
+    member.roles?.cache;
+
+  if (!roles) {
+    return "";
+  }
+
+  for (
+    const plan
+    of [
+      "max",
+      "pro",
+      "starter",
+    ]
+  ) {
+    const configuredId =
+      DONATELLO_ROLE_IDS[
+        plan
+      ];
+
+    if (
+      configuredId &&
+      roles.has(
+        configuredId,
+      )
+    ) {
+      return plan;
+    }
+
+    const expectedName =
+      DONATELLO_ROLE_NAMES[
+        plan
+      ];
+
+    if (
+      roles.some(
+        (role) =>
+          normalizeRoleName(
+            role?.name,
+          ) ===
+          expectedName,
+      )
+    ) {
+      return plan;
+    }
+  }
+
+  return "";
+}
+
+async function donatelloProviderSyncApi(
+  {
+    discordUserId,
+    plan = "",
+    status,
+    reason = "",
+  },
+) {
+  return workerRuntimeApi(
+    "donatello-subscription-sync",
+    {
+      discordUserId,
+      plan,
+      providerStatus:
+        status,
+      reason,
+    },
+  );
+}
+
+async function syncDonatelloMember(
+  member,
+  {
+    reason =
+      "member-update",
+    previousPlan =
+      "",
+    force = false,
+  } = {},
+) {
+  if (
+    !member ||
+    member.guild?.id !==
+      INTERNAL_GUILD_ID ||
+    member.user?.bot
+  ) {
+    return null;
+  }
+
+  const plan =
+    donatelloPlanForMember(
+      member,
+    );
+  const cachedPlan =
+    donatelloMemberPlanCache.get(
+      member.id,
+    );
+
+  if (
+    !force &&
+    cachedPlan === plan
+  ) {
+    return null;
+  }
+
+  const status =
+    plan
+      ? "active"
+      : "canceled";
+  const syncPlan =
+    plan ||
+    previousPlan ||
+    cachedPlan ||
+    "";
+
+  try {
+    const result =
+      await donatelloProviderSyncApi(
+        {
+          discordUserId:
+            member.id,
+          plan:
+            syncPlan,
+          status,
+          reason,
+        },
+      );
+
+    donatelloMemberPlanCache.set(
+      member.id,
+      plan,
+    );
+    donatelloSyncLastAt =
+      new Date()
+        .toISOString();
+    donatelloSyncLastError =
+      null;
+
+    if (
+      result?.ignored ===
+      true
+    ) {
+      donatelloSyncIgnored +=
+        1;
+    } else {
+      donatelloSyncProcessed +=
+        1;
+    }
+
+    log(
+      "donatello_subscription_synced",
+      {
+        discordUserId:
+          member.id,
+        plan:
+          plan ||
+          null,
+        previousPlan:
+          previousPlan ||
+          null,
+        status,
+        reason,
+        ignored:
+          result?.ignored ===
+          true,
+        requestId:
+          result?.requestId ||
+          null,
+      },
+    );
+
+    return result;
+  } catch (error) {
+    donatelloSyncLastAt =
+      new Date()
+        .toISOString();
+    donatelloSyncLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "donatello_subscription_sync_failed",
+      {
+        discordUserId:
+          member.id,
+        plan:
+          plan ||
+          null,
+        previousPlan:
+          previousPlan ||
+          null,
+        status,
+        reason,
+        message:
+          donatelloSyncLastError,
+      },
+    );
+
+    return null;
+  }
+}
+
+async function reconcileDonatelloSubscriptions() {
+  const guild =
+    client.guilds.cache.get(
+      INTERNAL_GUILD_ID,
+    );
+
+  if (!guild) {
+    return;
+  }
+
+  try {
+    const members =
+      await guild.members.fetch();
+
+    for (
+      const member
+      of members.values()
+    ) {
+      if (
+        member.user?.bot
+      ) {
+        continue;
+      }
+
+      await syncDonatelloMember(
+        member,
+        {
+          reason:
+            "startup-reconcile",
+          force: true,
+        },
+      );
+    }
+
+    log(
+      "donatello_subscription_reconcile_complete",
+      {
+        guildId:
+          guild.id,
+        memberCount:
+          members.size,
+      },
+    );
+  } catch (error) {
+    donatelloSyncLastAt =
+      new Date()
+        .toISOString();
+    donatelloSyncLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "donatello_subscription_reconcile_failed",
+      {
+        guildId:
+          guild?.id ||
+          INTERNAL_GUILD_ID,
+        message:
+          donatelloSyncLastError,
+      },
+    );
+  }
+}
+
+async function reconcileActiveDonatelloMembers() {
+  const guild =
+    client.guilds.cache.get(
+      INTERNAL_GUILD_ID,
+    );
+
+  if (!guild) {
+    return;
+  }
+
+  try {
+    const members =
+      await guild.members.fetch();
+
+    for (
+      const member
+      of members.values()
+    ) {
+      if (
+        member.user?.bot ||
+        !donatelloPlanForMember(
+          member,
+        )
+      ) {
+        continue;
+      }
+
+      await syncDonatelloMember(
+        member,
+        {
+          reason:
+            "scheduled-reconcile",
+          force: true,
+        },
+      );
+    }
+  } catch (error) {
+    donatelloSyncLastAt =
+      new Date()
+        .toISOString();
+    donatelloSyncLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "donatello_active_reconcile_failed",
+      {
+        message:
+          donatelloSyncLastError,
+      },
+    );
+  }
+}
+
+function scheduleDonatelloReconcile() {
+  if (donatelloReconcileTimer) {
+    clearInterval(
+      donatelloReconcileTimer,
+    );
+  }
+
+  donatelloReconcileTimer =
+    setInterval(
+      () => {
+        void reconcileActiveDonatelloMembers();
+      },
+      5 * 60 * 1000,
+    );
+}
+
+function donatelloHealth() {
+  return {
+    tiersUrlConfigured:
+      /^https:\/\/donatello\.to\//i.test(
+        DONATELLO_TIERS_URL,
+      ),
+    roleIds: {
+      starter:
+        DONATELLO_ROLE_IDS
+          .starter ||
+        null,
+      pro:
+        DONATELLO_ROLE_IDS
+          .pro ||
+        null,
+      max:
+        DONATELLO_ROLE_IDS
+          .max ||
+        null,
+    },
+    processed:
+      donatelloSyncProcessed,
+    ignored:
+      donatelloSyncIgnored,
+    lastSyncedAt:
+      donatelloSyncLastAt,
+    lastError:
+      donatelloSyncLastError,
+  };
 }
 
 async function fetchGuildRuntimeConfig(
@@ -3551,6 +3988,8 @@ client.once(Events.ClientReady, async (readyClient) => {
   }
 
   await ensureShopSubscriptionPanel();
+  await reconcileDonatelloSubscriptions();
+  scheduleDonatelloReconcile();
   await initializePrivateVoice();
   await refreshPresence();
   scheduleRefresh();
@@ -3746,11 +4185,54 @@ client.on(Events.GuildMemberAdd, (member) => {
       member,
     );
 
+    await syncDonatelloMember(
+      member,
+      {
+        reason:
+          "member-join",
+        force: true,
+      },
+    );
+
     await sendWelcomeMessage(
       member,
     );
   })();
 });
+
+client.on(
+  Events.GuildMemberUpdate,
+  (
+    oldMember,
+    newMember,
+  ) => {
+    const previousPlan =
+      donatelloPlanForMember(
+        oldMember,
+      );
+    const nextPlan =
+      donatelloPlanForMember(
+        newMember,
+      );
+
+    if (
+      previousPlan ===
+        nextPlan
+    ) {
+      return;
+    }
+
+    void syncDonatelloMember(
+      newMember,
+      {
+        reason:
+          "role-update",
+        previousPlan,
+        force: true,
+      },
+    );
+  },
+);
 
 client.on(
   Events.GuildMemberRemove,
@@ -3917,6 +4399,8 @@ const healthServer = createServer((request, response) => {
         telemetryHealth(),
       matchAnnouncements:
         matchAnnouncementsHealth(),
+      donatello:
+        donatelloHealth(),
       uptimeSeconds: Math.round(process.uptime()),
     }),
   );
@@ -3952,6 +4436,13 @@ async function shutdown(signal) {
       healthSnapshotTimer,
     );
     healthSnapshotTimer = null;
+  }
+
+  if (donatelloReconcileTimer) {
+    clearInterval(
+      donatelloReconcileTimer,
+    );
+    donatelloReconcileTimer = null;
   }
 
   for (const timer of privateDeleteTimers.values()) {
