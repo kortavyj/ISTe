@@ -1733,6 +1733,296 @@ async function subscriberRoleId() {
     : "";
 }
 
+function discordLocale(
+  value: unknown,
+) {
+  const locale =
+    String(
+      value ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    locale.startsWith(
+      "uk",
+    )
+  ) {
+    return "uk";
+  }
+
+  if (
+    locale.startsWith(
+      "ru",
+    )
+  ) {
+    return "ru";
+  }
+
+  return "en";
+}
+
+async function updateDonatelloOrderMessage(
+  requestRow: any,
+  plan: DonatelloPlan,
+  discordUserId: string,
+) {
+  const metadata =
+    requestRow
+      ?.metadata &&
+    typeof requestRow
+      .metadata ===
+      "object"
+      ? requestRow.metadata
+      : {};
+  const channelId =
+    String(
+      metadata
+        ?.shop_channel_id ||
+      "",
+    );
+  const messageId =
+    String(
+      metadata
+        ?.shop_message_id ||
+      "",
+    );
+
+  if (
+    !isSnowflake(
+      channelId,
+    ) ||
+    !isSnowflake(
+      messageId,
+    )
+  ) {
+    return false;
+  }
+
+  const lang =
+    discordLocale(
+      metadata?.locale,
+    );
+  const text =
+    {
+      uk: {
+        title:
+          "🛒 ISTe Bot • Підписка",
+        description:
+          "Donatello підтвердив активну підписку через Discord-роль. ISTe Bot активував тариф автоматично.",
+        plan:
+          "Тариф",
+        status:
+          "Статус",
+        active:
+          "🟢 DONATELLO ACTIVE",
+        order:
+          "ID замовлення",
+      },
+      ru: {
+        title:
+          "🛒 ISTe Bot • Подписка",
+        description:
+          "Donatello подтвердил активную подписку через Discord-роль. ISTe Bot активировал тариф автоматически.",
+        plan:
+          "Тариф",
+        status:
+          "Статус",
+        active:
+          "🟢 DONATELLO ACTIVE",
+        order:
+          "ID заказа",
+      },
+      en: {
+        title:
+          "🛒 ISTe Bot • Subscription",
+        description:
+          "Donatello confirmed the active subscription through the Discord role. ISTe Bot activated the plan automatically.",
+        plan:
+          "Plan",
+        status:
+          "Status",
+        active:
+          "🟢 DONATELLO ACTIVE",
+        order:
+          "Order ID",
+      },
+    }[lang];
+
+  try {
+    await discord(
+      "/channels/" +
+        channelId +
+        "/messages/" +
+        messageId,
+      "PATCH",
+      {
+        content:
+          "<@" +
+          discordUserId +
+          ">",
+        embeds: [
+          {
+            title:
+              text.title,
+            description:
+              text.description,
+            color:
+              0x2ecc71,
+            fields: [
+              {
+                name:
+                  text.plan,
+                value:
+                  plan.toUpperCase(),
+                inline:
+                  true,
+              },
+              {
+                name:
+                  text.status,
+                value:
+                  text.active,
+                inline:
+                  true,
+              },
+              {
+                name:
+                  text.order,
+                value:
+                  "`" +
+                  String(
+                    requestRow
+                      ?.id ||
+                    "",
+                  ) +
+                  "`",
+                inline:
+                  false,
+              },
+            ],
+            footer: {
+              text:
+                "ISTe Shop • Donatello • ISTe Bot",
+            },
+            timestamp:
+              new Date()
+                .toISOString(),
+          },
+        ],
+        components: [],
+        allowed_mentions: {
+          users: [
+            discordUserId,
+          ],
+          parse: [],
+        },
+      },
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Donatello order message update failed",
+      error,
+    );
+    return false;
+  }
+}
+
+async function sendDonatelloActivationDm(
+  discordUserId: string,
+  plan: DonatelloPlan,
+  locale: unknown,
+) {
+  if (
+    !isSnowflake(
+      discordUserId,
+    )
+  ) {
+    return false;
+  }
+
+  const lang =
+    discordLocale(
+      locale,
+    );
+  const description =
+    lang === "uk"
+      ? "✅ Donatello підтвердив підписку. Тариф **" +
+        plan.toUpperCase() +
+        "** активовано автоматично."
+      : lang === "ru"
+        ? "✅ Donatello подтвердил подписку. Тариф **" +
+          plan.toUpperCase() +
+          "** активирован автоматически."
+        : "✅ Donatello confirmed your subscription. **" +
+          plan.toUpperCase() +
+          "** was activated automatically.";
+
+  try {
+    const dm =
+      await discord(
+        "/users/@me/channels",
+        "POST",
+        {
+          recipient_id:
+            discordUserId,
+        },
+      );
+    const channelId =
+      String(
+        dm?.id ||
+        "",
+      );
+
+    if (
+      !isSnowflake(
+        channelId,
+      )
+    ) {
+      return false;
+    }
+
+    await discord(
+      "/channels/" +
+        channelId +
+        "/messages",
+      "POST",
+      {
+        embeds: [
+          {
+            title:
+              "ISTe Bot • Donatello",
+            description,
+            color:
+              0x2ecc71,
+            footer: {
+              text:
+                "ISTe Bot • istesport.com",
+            },
+            timestamp:
+              new Date()
+                .toISOString(),
+          },
+        ],
+        allowed_mentions: {
+          parse: [],
+        },
+      },
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Donatello activation DM failed",
+      error,
+    );
+    return false;
+  }
+}
+
 async function syncSubscriberRole(
   discordUserId: string,
   active: boolean,
@@ -2389,7 +2679,7 @@ async function handleDonatelloSubscriptionSync(
         "discord_subscription_requests",
       )
       .select(
-        "id,user_id,plan,status,metadata",
+        "id,user_id,discord_user_id,plan,status,metadata",
       )
       .eq(
         "user_id",
@@ -2604,6 +2894,21 @@ async function handleDonatelloSubscriptionSync(
     ) {
       throw requestError;
     }
+
+    await Promise.all([
+      updateDonatelloOrderMessage(
+        pendingRequest,
+        plan,
+        discordUserId,
+      ),
+      sendDonatelloActivationDm(
+        discordUserId,
+        plan,
+        pendingRequest
+          ?.metadata
+          ?.locale,
+      ),
+    ]);
   }
 
   if (
