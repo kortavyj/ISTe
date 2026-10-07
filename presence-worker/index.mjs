@@ -283,6 +283,7 @@ let healthSnapshotLastError = null;
 let commandSyncLastAt = null;
 let commandSyncLastError = null;
 let commandSyncCount = null;
+let commandSyncNames = [];
 
 function log(event, data = {}) {
   console.log(
@@ -3042,6 +3043,8 @@ async function reportHealthSnapshot() {
         commands: {
           count:
             commandSyncCount,
+          names:
+            commandSyncNames,
           lastSyncedAt:
             commandSyncLastAt,
           lastError:
@@ -3123,6 +3126,20 @@ client.once(Events.ClientReady, async (readyClient) => {
       Number(
         result?.count,
       ) || 0;
+    commandSyncNames =
+      Array.isArray(
+        result?.commands,
+      )
+        ? result.commands
+            .map(
+              (item) =>
+                String(
+                  item?.name ||
+                  "",
+                ),
+            )
+            .filter(Boolean)
+        : [];
     commandSyncLastAt =
       new Date()
         .toISOString();
@@ -3459,6 +3476,8 @@ const healthServer = createServer((request, response) => {
       commands: {
         count:
           commandSyncCount,
+        names:
+          commandSyncNames,
         lastSyncedAt:
           commandSyncLastAt,
         lastError:
