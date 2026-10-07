@@ -15155,6 +15155,618 @@ async function handleWorkerSubscriptionRequests(
   }
 }
 
+async function handleWorkerSubscriptionProviderSync(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: false,
+        maxBodyBytes: 8192,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  if (
+    !requireWorkerBot(
+      request,
+      response,
+    )
+  ) {
+    return;
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const userId =
+    String(
+      body.userId ||
+      "",
+    ).trim();
+  const requestId =
+    String(
+      body.requestId ||
+      "",
+    ).trim();
+  const plan =
+    normalizePlan(
+      body.plan,
+    );
+  const provider =
+    String(
+      body.provider ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+  const providerStatus =
+    String(
+      body.providerStatus ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+  const providerCustomerId =
+    String(
+      body.providerCustomerId ||
+      "",
+    ).trim();
+  const providerSubscriptionId =
+    String(
+      body.providerSubscriptionId ||
+      "",
+    ).trim();
+  const providerTransactionId =
+    String(
+      body.providerTransactionId ||
+      "",
+    ).trim();
+  const providerEventId =
+    String(
+      body.providerEventId ||
+      "",
+    ).trim();
+  const currentPeriodStart =
+    body.currentPeriodStart
+      ? String(
+          body.currentPeriodStart,
+        )
+      : "";
+  const currentPeriodEnd =
+    body.currentPeriodEnd
+      ? String(
+          body.currentPeriodEnd,
+        )
+      : "";
+
+  const allowedStatuses =
+    new Set([
+      "active",
+      "trialing",
+      "past_due",
+      "paused",
+      "canceled",
+    ]);
+
+  if (
+    !isUuid(
+      userId,
+    ) ||
+    !PAID_PLANS.has(
+      plan,
+    ) ||
+    provider !==
+      "paddle" ||
+    !allowedStatuses.has(
+      providerStatus,
+    ) ||
+    (
+      requestId &&
+      !isUuid(
+        requestId,
+      )
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_PROVIDER_SUBSCRIPTION_SYNC",
+      "Invalid provider subscription payload.",
+    );
+  }
+
+  const periodStartMs =
+    currentPeriodStart
+      ? Date.parse(
+          currentPeriodStart,
+        )
+      : NaN;
+  const periodEndMs =
+    currentPeriodEnd
+      ? Date.parse(
+          currentPeriodEnd,
+        )
+      : NaN;
+  const paidActive =
+    [
+      "active",
+      "trialing",
+    ].includes(
+      providerStatus,
+    );
+
+  if (
+    paidActive &&
+    !Number.isFinite(
+      periodEndMs,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "PROVIDER_PERIOD_REQUIRED",
+      "Active subscriptions require a current billing period.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+    const now =
+      new Date();
+    const nowIso =
+      now.toISOString();
+
+    const {
+      data:
+        targetRole,
+      error:
+        targetRoleError,
+    } = await supabase
+      .from(
+        "user_roles",
+      )
+      .select(
+        "role",
+      )
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle();
+
+    if (
+      targetRoleError ||
+      !targetRole
+    ) {
+      return sendError(
+        response,
+        404,
+        "SUBSCRIPTION_USER_NOT_FOUND",
+        "Subscription user not found.",
+      );
+    }
+
+    if (
+      targetRole.role ===
+        "owner"
+    ) {
+      return sendError(
+        response,
+        403,
+        "OWNER_SUBSCRIPTION_PROTECTED",
+        "Owner subscription is protected.",
+      );
+    }
+
+    const {
+      data:
+        existing,
+      error:
+        existingError,
+    } = await supabase
+      .from(
+        "discord_subscriptions",
+      )
+      .select("*")
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle();
+
+    if (existingError) {
+      throw existingError;
+    }
+
+    let requestRow =
+      null;
+
+    if (requestId) {
+      const {
+        data,
+        error,
+      } = await supabase
+        .from(
+          "discord_subscription_requests",
+        )
+        .select(
+          "id,user_id,status,metadata",
+        )
+        .eq(
+          "id",
+          requestId,
+        )
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (
+        !data ||
+        String(
+          data.user_id,
+        ) !==
+          userId
+      ) {
+        return sendError(
+          response,
+          409,
+          "SUBSCRIPTION_REQUEST_USER_MISMATCH",
+          "Subscription request does not belong to this user.",
+        );
+      }
+
+      requestRow =
+        data;
+    }
+
+    if (
+      existing
+        ?.provider_subscription_id &&
+      providerSubscriptionId &&
+      existing
+        .provider_subscription_id !==
+        providerSubscriptionId &&
+      existing.provider ===
+        "paddle" &&
+      subscriptionActive(
+        existing,
+      )
+    ) {
+      return sendError(
+        response,
+        409,
+        "PROVIDER_SUBSCRIPTION_CONFLICT",
+        "A different active Paddle subscription is already linked.",
+      );
+    }
+
+    const config =
+      getPlanConfig(
+        plan,
+      );
+    const expiresAt =
+      Number.isFinite(
+        periodEndMs,
+      )
+        ? new Date(
+            periodEndMs,
+          ).toISOString()
+        : existing
+            ?.expires_at ||
+          null;
+    const startsAt =
+      Number.isFinite(
+        periodStartMs,
+      )
+        ? new Date(
+            periodStartMs,
+          ).toISOString()
+        : existing
+            ?.starts_at ||
+          nowIso;
+    const localStatus =
+      paidActive
+        ? "active"
+        : providerStatus;
+
+    const {
+      data:
+        subscription,
+      error:
+        subscriptionError,
+    } = await supabase
+      .from(
+        "discord_subscriptions",
+      )
+      .upsert(
+        {
+          user_id:
+            userId,
+          plan:
+            config.plan,
+          status:
+            localStatus,
+          starts_at:
+            startsAt,
+          expires_at:
+            expiresAt,
+          max_guilds:
+            config.maxGuilds,
+          subscriber_role_synced:
+            existing
+              ?.subscriber_role_synced ===
+            true,
+          subscriber_role_expires_at:
+            paidActive
+              ? expiresAt
+              : null,
+          provider:
+            "paddle",
+          provider_customer_id:
+            providerCustomerId ||
+            existing
+              ?.provider_customer_id ||
+            "",
+          provider_subscription_id:
+            providerSubscriptionId ||
+            existing
+              ?.provider_subscription_id ||
+            "",
+          updated_at:
+            nowIso,
+        },
+        {
+          onConflict:
+            "user_id",
+        },
+      )
+      .select("*")
+      .single();
+
+    if (subscriptionError) {
+      throw subscriptionError;
+    }
+
+    let guildIds =
+      [];
+
+    if (paidActive) {
+      const selectedGuildIds =
+        Array.isArray(
+          requestRow
+            ?.metadata
+            ?.selected_guild_ids,
+        )
+          ? requestRow
+              .metadata
+              .selected_guild_ids
+          : [];
+
+      if (
+        selectedGuildIds
+          .length
+      ) {
+        guildIds =
+          await applySelectedGuildLicenses(
+            supabase,
+            userId,
+            config.plan,
+            expiresAt,
+            selectedGuildIds,
+          );
+      } else {
+        await reconcileGuildLicenses(
+          supabase,
+          userId,
+          config.plan,
+          expiresAt,
+        );
+      }
+    } else {
+      const {
+        error:
+          suspendError,
+      } = await supabase
+        .from(
+          "discord_guild_licenses",
+        )
+        .update({
+          plan:
+            config.plan,
+          status:
+            "suspended",
+          expires_at:
+            expiresAt,
+          updated_at:
+            nowIso,
+        })
+        .eq(
+          "user_id",
+          userId,
+        );
+
+      if (suspendError) {
+        throw suspendError;
+      }
+    }
+
+    const {
+      data:
+        discordAccount,
+    } = await supabase
+      .from(
+        "discord_customer_accounts",
+      )
+      .select("*")
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle();
+
+    const roleSync =
+      await syncSubscriberRole(
+        supabase,
+        subscription,
+        discordAccount,
+      );
+
+    if (
+      paidActive &&
+      requestRow?.status ===
+        "pending"
+    ) {
+      const metadata =
+        requestRow
+          ?.metadata &&
+        typeof requestRow
+          .metadata ===
+          "object"
+          ? requestRow
+              .metadata
+          : {};
+
+      const {
+        error:
+          requestUpdateError,
+      } = await supabase
+        .from(
+          "discord_subscription_requests",
+        )
+        .update({
+          status:
+            "approved",
+          handled_at:
+            nowIso,
+          handled_by:
+            null,
+          metadata: {
+            ...metadata,
+            payment_provider:
+              "paddle",
+            payment_status:
+              "success",
+            provider_customer_id:
+              providerCustomerId ||
+              null,
+            provider_subscription_id:
+              providerSubscriptionId ||
+              null,
+            provider_transaction_id:
+              providerTransactionId ||
+              null,
+            provider_event_id:
+              providerEventId ||
+              null,
+          },
+          updated_at:
+            nowIso,
+        })
+        .eq(
+          "id",
+          requestId,
+        )
+        .eq(
+          "status",
+          "pending",
+        );
+
+      if (requestUpdateError) {
+        throw requestUpdateError;
+      }
+    }
+
+    await supabase
+      .from(
+        "discord_subscription_events",
+      )
+      .insert({
+        user_id:
+          userId,
+        actor_user_id:
+          null,
+        event_type:
+          "provider_" +
+          providerStatus,
+        plan:
+          config.plan,
+        starts_at:
+          startsAt,
+        expires_at:
+          expiresAt,
+        metadata: {
+          provider:
+            "paddle",
+          providerStatus,
+          requestId:
+            requestId ||
+            null,
+          providerCustomerId:
+            providerCustomerId ||
+            null,
+          providerSubscriptionId:
+            providerSubscriptionId ||
+            null,
+          providerTransactionId:
+            providerTransactionId ||
+            null,
+          providerEventId:
+            providerEventId ||
+            null,
+          roleSynced:
+            roleSync.synced ===
+            true,
+          guildIds,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        userId,
+        plan:
+          config.plan,
+        status:
+          localStatus,
+        expiresAt,
+        provider:
+          "paddle",
+        providerSubscriptionId,
+        roleSynced:
+          roleSync.synced ===
+          true,
+        guildIds,
+      });
+  } catch (error) {
+    console.error(
+      "Provider subscription sync error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "PROVIDER_SUBSCRIPTION_SYNC_FAILED",
+      "Could not synchronize provider subscription.",
+    );
+  }
+}
+
 async function handleWorkerSubscriptionDecision(
   request,
   response,
@@ -15584,6 +16196,24 @@ async function handleWorkerSubscriptionDecision(
                 ?.payment_provider ||
               existing?.provider ||
               "manual",
+            ),
+          provider_customer_id:
+            String(
+              requestRow
+                ?.metadata
+                ?.provider_customer_id ||
+              existing
+                ?.provider_customer_id ||
+              "",
+            ),
+          provider_subscription_id:
+            String(
+              requestRow
+                ?.metadata
+                ?.provider_subscription_id ||
+              existing
+                ?.provider_subscription_id ||
+              "",
             ),
           updated_at:
             nowIso,
@@ -20345,6 +20975,16 @@ export default async function botPortalHandler(
     "worker-subscription-decision"
   ) {
     return handleWorkerSubscriptionDecision(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "worker-subscription-provider-sync"
+  ) {
+    return handleWorkerSubscriptionProviderSync(
       request,
       response,
     );
