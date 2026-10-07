@@ -1953,10 +1953,6 @@ async function handleStatus(
             "user_id",
             account.user.id,
           )
-          .eq(
-            "can_manage",
-            true,
-          )
           .order(
             "guild_name",
             {
@@ -2009,12 +2005,30 @@ async function handleStatus(
       }
     }
 
-    const guilds =
+    const cachedGuilds =
       Array.isArray(
         guildsResult.data,
       )
         ? guildsResult.data
         : [];
+
+    const guilds =
+      cachedGuilds.filter(
+        (guild) =>
+          guild.can_manage ===
+          true,
+      );
+
+    const cachedGuildIds =
+      new Set(
+        cachedGuilds.map(
+          (guild) =>
+            String(
+              guild.guild_id ||
+              "",
+            ),
+        ),
+      );
 
     const ownLicenses =
       Array.isArray(
@@ -2093,7 +2107,12 @@ async function handleStatus(
     const candidateStaffGuildIds =
       [
         ...policiesByGuild.keys(),
-      ];
+      ].filter(
+        (guildId) =>
+          cachedGuildIds.has(
+            guildId,
+          ),
+      );
 
     let candidateLicenses = [];
     let candidateSettings = [];
@@ -3089,7 +3108,7 @@ async function handleOauthCallback(
       throw accountError;
     }
 
-    const manageable =
+    const linkedGuilds =
       (
         Array.isArray(
           discordGuilds,
@@ -3161,10 +3180,6 @@ async function handleOauthCallback(
                 now,
             };
           },
-        )
-        .filter(
-          (guild) =>
-            guild.can_manage,
         );
 
     const {
@@ -3184,7 +3199,7 @@ async function handleOauthCallback(
     }
 
     if (
-      manageable.length
+      linkedGuilds.length
     ) {
       const {
         error: insertError,
@@ -3193,7 +3208,7 @@ async function handleOauthCallback(
           "discord_customer_guilds",
         )
         .insert(
-          manageable,
+          linkedGuilds,
         );
 
       if (insertError) {
