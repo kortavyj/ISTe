@@ -14510,6 +14510,706 @@ function requireWorkerBot(
   return config;
 }
 
+async function handleWorkerSubscriptionRequests(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: false,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  if (
+    !requireWorkerBot(
+      request,
+      response,
+    )
+  ) {
+    return;
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const actorDiscordUserId =
+    String(
+      body.actorDiscordUserId ||
+      "",
+    ).trim();
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+    const manager =
+      await resolveDiscordSubscriptionManager(
+        supabase,
+        actorDiscordUserId,
+      );
+
+    if (!manager) {
+      return sendError(
+        response,
+        403,
+        "SUBSCRIPTION_MANAGER_REQUIRED",
+        "Admin or owner access required.",
+      );
+    }
+
+    const {
+      data: requests,
+      error: requestsError,
+    } = await supabase
+      .from(
+        "discord_subscription_requests",
+      )
+      .select(
+        "id,user_id,discord_user_id,plan,status,requested_at",
+      )
+      .eq(
+        "status",
+        "pending",
+      )
+      .order(
+        "requested_at",
+        {
+          ascending: true,
+        },
+      )
+      .limit(10);
+
+    if (requestsError) {
+      throw requestsError;
+    }
+
+    const rows =
+      Array.isArray(requests)
+        ? requests
+        : [];
+    const userIds =
+      [
+        ...new Set(
+          rows.map(
+            (row) =>
+              row.user_id,
+          ),
+        ),
+      ];
+
+    const [
+      accountsResult,
+      subscriptionsResult,
+    ] =
+      userIds.length
+        ? await Promise.all([
+            supabase
+              .from(
+                "discord_customer_accounts",
+              )
+              .select(
+                "user_id,discord_username,discord_global_name",
+              )
+              .in(
+                "user_id",
+                userIds,
+              ),
+            supabase
+              .from(
+                "discord_subscriptions",
+              )
+              .select(
+                "user_id,plan,status,expires_at",
+              )
+              .in(
+                "user_id",
+                userIds,
+              ),
+          ])
+        : [
+            {
+              data: [],
+              error: null,
+            },
+            {
+              data: [],
+              error: null,
+            },
+          ];
+
+    if (
+      accountsResult.error ||
+      subscriptionsResult.error
+    ) {
+      throw (
+        accountsResult.error ||
+        subscriptionsResult.error
+      );
+    }
+
+    const accountMap =
+      new Map(
+        (
+          accountsResult.data ||
+          []
+        ).map(
+          (item) => [
+            item.user_id,
+            item,
+          ],
+        ),
+      );
+    const subscriptionMap =
+      new Map(
+        (
+          subscriptionsResult
+            .data ||
+          []
+        ).map(
+          (item) => [
+            item.user_id,
+            item,
+          ],
+        ),
+      );
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        requests:
+          rows.map(
+            (row) => {
+              const account =
+                accountMap.get(
+                  row.user_id,
+                );
+              const current =
+                subscriptionMap.get(
+                  row.user_id,
+                );
+
+              return {
+                id:
+                  row.id,
+                userId:
+                  row.user_id,
+                discordUserId:
+                  row.discord_user_id,
+                discordUsername:
+                  account
+                    ?.discord_username ||
+                  "",
+                discordGlobalName:
+                  account
+                    ?.discord_global_name ||
+                  "",
+                plan:
+                  normalizePlan(
+                    row.plan,
+                  ),
+                requestedAt:
+                  row.requested_at,
+                currentPlan:
+                  normalizePlan(
+                    current?.plan ||
+                    "free",
+                  ),
+                currentStatus:
+                  current?.status ||
+                  "free",
+                currentExpiresAt:
+                  current
+                    ?.expires_at ||
+                  null,
+              };
+            },
+          ),
+      });
+  } catch (error) {
+    console.error(
+      "Worker subscription requests error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "SUBSCRIPTION_REQUESTS_FAILED",
+      "Could not load subscription requests.",
+    );
+  }
+}
+
+async function handleWorkerSubscriptionDecision(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: false,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  if (
+    !requireWorkerBot(
+      request,
+      response,
+    )
+  ) {
+    return;
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const actorDiscordUserId =
+    String(
+      body.actorDiscordUserId ||
+      "",
+    ).trim();
+  const requestId =
+    String(
+      body.requestId ||
+      "",
+    ).trim();
+  const decision =
+    String(
+      body.decision ||
+      "",
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    !isUuid(
+      requestId,
+    ) ||
+    ![
+      "approve",
+      "reject",
+    ].includes(
+      decision,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_SUBSCRIPTION_DECISION",
+      "Invalid subscription decision.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+    const manager =
+      await resolveDiscordSubscriptionManager(
+        supabase,
+        actorDiscordUserId,
+      );
+
+    if (!manager) {
+      return sendError(
+        response,
+        403,
+        "SUBSCRIPTION_MANAGER_REQUIRED",
+        "Admin or owner access required.",
+      );
+    }
+
+    const {
+      data: requestRow,
+      error: requestError,
+    } = await supabase
+      .from(
+        "discord_subscription_requests",
+      )
+      .select(
+        "id,user_id,discord_user_id,plan,status",
+      )
+      .eq(
+        "id",
+        requestId,
+      )
+      .maybeSingle();
+
+    if (
+      requestError ||
+      !requestRow ||
+      requestRow.status !==
+        "pending"
+    ) {
+      return sendError(
+        response,
+        409,
+        "SUBSCRIPTION_REQUEST_NOT_PENDING",
+        "Subscription request is no longer pending.",
+      );
+    }
+
+    const plan =
+      normalizePlan(
+        requestRow.plan,
+      );
+
+    if (
+      !PAID_PLANS.has(
+        plan,
+      )
+    ) {
+      return sendError(
+        response,
+        400,
+        "INVALID_SUBSCRIPTION_PLAN",
+        "Invalid subscription plan.",
+      );
+    }
+
+    const now =
+      new Date();
+    const nowIso =
+      now.toISOString();
+
+    if (
+      decision ===
+      "reject"
+    ) {
+      const {
+        error,
+      } = await supabase
+        .from(
+          "discord_subscription_requests",
+        )
+        .update({
+          status:
+            "rejected",
+          handled_at:
+            nowIso,
+          handled_by:
+            manager.userId,
+          updated_at:
+            nowIso,
+        })
+        .eq(
+          "id",
+          requestId,
+        )
+        .eq(
+          "status",
+          "pending",
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      await supabase
+        .from(
+          "discord_subscription_events",
+        )
+        .insert({
+          user_id:
+            requestRow.user_id,
+          actor_user_id:
+            manager.userId,
+          event_type:
+            "request_rejected",
+          plan,
+          metadata: {
+            requestId,
+            source:
+              "discord",
+          },
+        });
+
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          decision,
+          requestId,
+          plan,
+        });
+    }
+
+    const {
+      data: targetRole,
+      error: targetRoleError,
+    } = await supabase
+      .from(
+        "user_roles",
+      )
+      .select(
+        "role",
+      )
+      .eq(
+        "user_id",
+        requestRow.user_id,
+      )
+      .maybeSingle();
+
+    if (
+      targetRoleError ||
+      !targetRole
+    ) {
+      return sendError(
+        response,
+        404,
+        "SUBSCRIPTION_USER_NOT_FOUND",
+        "Subscription user not found.",
+      );
+    }
+
+    if (
+      targetRole.role ===
+      "owner"
+    ) {
+      return sendError(
+        response,
+        403,
+        "OWNER_SUBSCRIPTION_PROTECTED",
+        "Owner subscription is protected.",
+      );
+    }
+
+    const {
+      data: existing,
+      error: existingError,
+    } = await supabase
+      .from(
+        "discord_subscriptions",
+      )
+      .select("*")
+      .eq(
+        "user_id",
+        requestRow.user_id,
+      )
+      .maybeSingle();
+
+    if (existingError) {
+      throw existingError;
+    }
+
+    const existingExpiry =
+      existing?.expires_at
+        ? new Date(
+            existing.expires_at,
+          )
+        : null;
+    const baseDate =
+      existingExpiry &&
+      existingExpiry.getTime() >
+        now.getTime()
+        ? existingExpiry
+        : now;
+    const expiresAt =
+      new Date(
+        baseDate.getTime() +
+          30 *
+            24 *
+            60 *
+            60 *
+            1000,
+      );
+    const startsAt =
+      existing
+        ?.starts_at ||
+      nowIso;
+    const planConfig =
+      getPlanConfig(
+        plan,
+      );
+
+    const {
+      data: subscription,
+      error: subscriptionError,
+    } = await supabase
+      .from(
+        "discord_subscriptions",
+      )
+      .upsert(
+        {
+          user_id:
+            requestRow.user_id,
+          plan:
+            planConfig.plan,
+          status:
+            "active",
+          starts_at:
+            startsAt,
+          expires_at:
+            expiresAt
+              .toISOString(),
+          max_guilds:
+            planConfig.maxGuilds,
+          subscriber_role_synced:
+            false,
+          subscriber_role_expires_at:
+            expiresAt
+              .toISOString(),
+          provider:
+            existing?.provider ||
+            "manual",
+          updated_at:
+            nowIso,
+        },
+        {
+          onConflict:
+            "user_id",
+        },
+      )
+      .select("*")
+      .single();
+
+    if (subscriptionError) {
+      throw subscriptionError;
+    }
+
+    await reconcileGuildLicenses(
+      supabase,
+      requestRow.user_id,
+      planConfig.plan,
+      expiresAt
+        .toISOString(),
+    );
+
+    const {
+      data: discordAccount,
+    } = await supabase
+      .from(
+        "discord_customer_accounts",
+      )
+      .select("*")
+      .eq(
+        "user_id",
+        requestRow.user_id,
+      )
+      .maybeSingle();
+
+    const roleSync =
+      await syncSubscriberRole(
+        supabase,
+        subscription,
+        discordAccount,
+      );
+
+    await supabase
+      .from(
+        "discord_subscription_events",
+      )
+      .insert({
+        user_id:
+          requestRow.user_id,
+        actor_user_id:
+          manager.userId,
+        event_type:
+          existingExpiry &&
+          existingExpiry.getTime() >
+            now.getTime()
+            ? "extended"
+            : "activated",
+        plan:
+          planConfig.plan,
+        starts_at:
+          startsAt,
+        expires_at:
+          expiresAt
+            .toISOString(),
+        metadata: {
+          priceUsd:
+            planConfig.priceUsd,
+          roleSynced:
+            roleSync.synced ===
+            true,
+          requestId,
+          source:
+            "discord",
+        },
+      });
+
+    const {
+      error: requestUpdateError,
+    } = await supabase
+      .from(
+        "discord_subscription_requests",
+      )
+      .update({
+        status:
+          "approved",
+        handled_at:
+          nowIso,
+        handled_by:
+          manager.userId,
+        updated_at:
+          nowIso,
+      })
+      .eq(
+        "id",
+        requestId,
+      )
+      .eq(
+        "status",
+        "pending",
+      );
+
+    if (requestUpdateError) {
+      throw requestUpdateError;
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        decision,
+        requestId,
+        plan:
+          planConfig.plan,
+        expiresAt:
+          expiresAt
+            .toISOString(),
+        roleSynced:
+          roleSync.synced ===
+          true,
+      });
+  } catch (error) {
+    console.error(
+      "Worker subscription decision error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "SUBSCRIPTION_DECISION_FAILED",
+      "Could not process subscription request.",
+    );
+  }
+}
+
 async function handleWorkerPublicationsDue(
   request,
   response,
@@ -17500,6 +18200,83 @@ async function requireSubscriptionManager(
   return access;
 }
 
+async function resolveDiscordSubscriptionManager(
+  supabase,
+  discordUserId,
+) {
+  if (
+    !isSnowflake(
+      discordUserId,
+    )
+  ) {
+    return null;
+  }
+
+  const {
+    data: account,
+    error: accountError,
+  } = await supabase
+    .from(
+      "discord_customer_accounts",
+    )
+    .select(
+      "user_id,discord_user_id,discord_username,discord_global_name",
+    )
+    .eq(
+      "discord_user_id",
+      discordUserId,
+    )
+    .maybeSingle();
+
+  if (
+    accountError ||
+    !account?.user_id
+  ) {
+    return null;
+  }
+
+  const {
+    data: access,
+    error: accessError,
+  } = await supabase
+    .from(
+      "user_roles",
+    )
+    .select(
+      "role,is_blocked",
+    )
+    .eq(
+      "user_id",
+      account.user_id,
+    )
+    .maybeSingle();
+
+  if (
+    accessError ||
+    access?.is_blocked ===
+      true ||
+    ![
+      "owner",
+      "admin",
+    ].includes(
+      String(
+        access?.role ||
+        "",
+      ),
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    userId:
+      account.user_id,
+    role:
+      access.role,
+    account,
+  };
+}
+
 async function handleAdminSubscriptions(
   request,
   response,
@@ -19050,6 +19827,26 @@ export default async function botPortalHandler(
     "cancel-scheduled-message"
   ) {
     return handleCancelScheduledMessage(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "worker-subscription-requests"
+  ) {
+    return handleWorkerSubscriptionRequests(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "worker-subscription-decision"
+  ) {
+    return handleWorkerSubscriptionDecision(
       request,
       response,
     );
