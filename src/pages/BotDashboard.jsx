@@ -64,6 +64,13 @@ const EMPTY_PUBLICATIONS = {
   scheduled: [],
 };
 
+const EMPTY_CONFIG_HISTORY = {
+  current: {
+    updatedAt: null,
+  },
+  versions: [],
+};
+
 const EMPTY_DIAGNOSTICS = {
   overallStatus: "warning",
   checkedAt: null,
@@ -422,6 +429,33 @@ const copy = {
     serverControls: "Керування сервером",
     serverControlsText:
       "Службові ролі та інтеграції ISTe для цього Discord-сервера.",
+    configHistory: "Configuration History",
+    configHistoryText:
+      "Автоматичні rollback points перед Save та ручні snapshots для безпечного відновлення конфігурації.",
+    configCurrent: "Поточна конфігурація",
+    configVersions: "Точки відновлення",
+    configSnapshotLabel: "Назва snapshot",
+    configSnapshotPlaceholder: "Наприклад: Перед зміною AutoMod",
+    configCreateSnapshot: "Створити snapshot",
+    configCreatingSnapshot: "Створення...",
+    configSnapshotCreated: "Snapshot конфігурації створено.",
+    configRestore: "Відновити",
+    configRestoring: "Відновлення...",
+    configRestoreConfirm:
+      "Відновити цю версію? Поточна конфігурація автоматично буде збережена як rollback point.",
+    configRestored:
+      "Конфігурацію відновлено. Поточний стан збережено як rollback point.",
+    configHistoryEmpty: "Історія конфігурації поки порожня.",
+    configHistoryError: "Не вдалося завантажити історію конфігурації.",
+    configSourceSave: "AUTO",
+    configSourceManual: "MANUAL",
+    configSourceRestore: "ROLLBACK",
+    configChanged: "змін",
+    configNoDifference: "Без відмінностей від поточної",
+    configGroupGeneral: "Основне",
+    configGroupOnboarding: "Онбординг",
+    configGroupModeration: "Модерація",
+    configGroupSupport: "Підтримка",
     moduleOn: "Увімкнено",
     moduleOff: "Вимкнено",
     adminRoleId: "Роль адміністратора",
@@ -755,6 +789,33 @@ const copy = {
     serverControls: "Server management",
     serverControlsText:
       "Service roles and ISTe integrations for this Discord server.",
+    configHistory: "Configuration History",
+    configHistoryText:
+      "Automatic rollback points before Save and manual snapshots for safe configuration recovery.",
+    configCurrent: "Current configuration",
+    configVersions: "Restore points",
+    configSnapshotLabel: "Snapshot label",
+    configSnapshotPlaceholder: "Example: Before AutoMod changes",
+    configCreateSnapshot: "Create snapshot",
+    configCreatingSnapshot: "Creating...",
+    configSnapshotCreated: "Configuration snapshot created.",
+    configRestore: "Restore",
+    configRestoring: "Restoring...",
+    configRestoreConfirm:
+      "Restore this version? The current configuration will automatically be saved as a rollback point.",
+    configRestored:
+      "Configuration restored. The previous current state was saved as a rollback point.",
+    configHistoryEmpty: "Configuration history is empty.",
+    configHistoryError: "Could not load configuration history.",
+    configSourceSave: "AUTO",
+    configSourceManual: "MANUAL",
+    configSourceRestore: "ROLLBACK",
+    configChanged: "changes",
+    configNoDifference: "No difference from current",
+    configGroupGeneral: "General",
+    configGroupOnboarding: "Onboarding",
+    configGroupModeration: "Moderation",
+    configGroupSupport: "Support",
     moduleOn: "Enabled",
     moduleOff: "Disabled",
     adminRoleId: "Administrator role",
@@ -1178,6 +1239,28 @@ export default function BotDashboard() {
   ] = useState("");
 
   const [
+    configHistory,
+    setConfigHistory,
+  ] = useState(
+    EMPTY_CONFIG_HISTORY,
+  );
+
+  const [
+    configHistoryLoading,
+    setConfigHistoryLoading,
+  ] = useState(false);
+
+  const [
+    configHistoryError,
+    setConfigHistoryError,
+  ] = useState("");
+
+  const [
+    configSnapshotLabel,
+    setConfigSnapshotLabel,
+  ] = useState("");
+
+  const [
     diagnostics,
     setDiagnostics,
   ] = useState(
@@ -1386,6 +1469,57 @@ export default function BotDashboard() {
             0,
         ),
       );
+  }
+
+  async function loadConfigHistory(
+    guildId =
+      selectedGuildId,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setConfigHistoryLoading(
+      true,
+    );
+    setConfigHistoryError("");
+
+    try {
+      const result =
+        await api(
+          "config-history-list",
+          {
+            method: "POST",
+            body: {
+              guildId,
+            },
+          },
+        );
+
+      setConfigHistory({
+        current: {
+          updatedAt:
+            result.current
+              ?.updatedAt ||
+            null,
+        },
+        versions:
+          Array.isArray(
+            result.versions,
+          )
+            ? result.versions
+            : [],
+      });
+    } catch (loadError) {
+      setConfigHistoryError(
+        loadError?.message ||
+          c.configHistoryError,
+      );
+    } finally {
+      setConfigHistoryLoading(
+        false,
+      );
+    }
   }
 
   async function loadDiagnostics(
@@ -1684,6 +1818,11 @@ export default function BotDashboard() {
       audit: [],
     });
     setModerationError("");
+    setConfigHistory(
+      EMPTY_CONFIG_HISTORY,
+    );
+    setConfigHistoryError("");
+    setConfigSnapshotLabel("");
     setDiagnostics(
       EMPTY_DIAGNOSTICS,
     );
@@ -1710,6 +1849,10 @@ export default function BotDashboard() {
       guild.guildId,
       "",
       "",
+    );
+
+    void loadConfigHistory(
+      guild.guildId,
     );
 
     void loadDiagnostics(
@@ -1924,6 +2067,116 @@ export default function BotDashboard() {
     }
   }
 
+  async function createConfigSnapshot() {
+    if (!selectedGuild) {
+      return;
+    }
+
+    setBusy(
+      "config-snapshot",
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "create-config-snapshot",
+        {
+          method: "POST",
+          body: {
+            guildId:
+              selectedGuild
+                .guildId,
+            label:
+              configSnapshotLabel,
+          },
+        },
+      );
+
+      setConfigSnapshotLabel("");
+      setNotice(
+        c.configSnapshotCreated,
+      );
+
+      await loadConfigHistory(
+        selectedGuild
+          .guildId,
+      );
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function restoreConfigVersion(
+    versionId,
+  ) {
+    if (
+      !selectedGuild ||
+      !window.confirm(
+        c.configRestoreConfirm,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      "config-restore:" +
+      versionId,
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      const result =
+        await api(
+          "restore-config-version",
+          {
+            method: "POST",
+            body: {
+              guildId:
+                selectedGuild
+                  .guildId,
+              versionId,
+            },
+          },
+        );
+
+      setSettings({
+        ...EMPTY_SETTINGS,
+        ...(result.settings ||
+          {}),
+      });
+
+      setNotice(
+        c.configRestored,
+      );
+
+      await Promise.all([
+        load(),
+        loadConfigHistory(
+          selectedGuild
+            .guildId,
+        ),
+        loadDiagnostics(
+          selectedGuild
+            .guildId,
+        ),
+      ]);
+    } catch (actionError) {
+      setError(
+        actionError?.message ||
+          c.actionFailed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function saveSettings(
     event,
   ) {
@@ -1962,7 +2215,13 @@ export default function BotDashboard() {
         c.saved,
       );
 
-      await load();
+      await Promise.all([
+        load(),
+        loadConfigHistory(
+          selectedGuild
+            .guildId,
+        ),
+      ]);
     } catch (actionError) {
       setError(
         actionError?.message ||
@@ -2907,6 +3166,13 @@ export default function BotDashboard() {
                         "diagnostics"
                       ) {
                         void loadDiagnostics();
+                      }
+
+                      if (
+                        key ===
+                        "system"
+                      ) {
+                        void loadConfigHistory();
                       }
                     }}
                   >
@@ -5080,6 +5346,236 @@ export default function BotDashboard() {
                           )}
                         </select>
                       </label>
+                    </div>
+                  </article>
+
+                  <article className="bot-dashboard-module-card module-system module-config-history">
+                    <header>
+                      <div>
+                        <strong>
+                          {c.configHistory}
+                        </strong>
+                        <small>
+                          {c.configHistoryText}
+                        </small>
+                      </div>
+
+                      <span className="bot-dashboard-history-count">
+                        {
+                          configHistory
+                            .versions
+                            .length
+                        }
+                        /50
+                      </span>
+                    </header>
+
+                    {configHistoryError ? (
+                      <div className="bot-dashboard-inline-error">
+                        {configHistoryError}
+                      </div>
+                    ) : null}
+
+                    <div className="bot-dashboard-history-current">
+                      <div>
+                        <span>
+                          {c.configCurrent}
+                        </span>
+                        <strong>
+                          {configHistory
+                            .current
+                            .updatedAt
+                            ? formatKyivDateTime(
+                                configHistory
+                                  .current
+                                  .updatedAt,
+                                language,
+                              )
+                            : "—"}
+                        </strong>
+                      </div>
+
+                      <div className="bot-dashboard-history-create">
+                        <label>
+                          <span>
+                            {c.configSnapshotLabel}
+                          </span>
+                          <input
+                            type="text"
+                            maxLength={100}
+                            placeholder={
+                              c.configSnapshotPlaceholder
+                            }
+                            value={
+                              configSnapshotLabel
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              setConfigSnapshotLabel(
+                                event
+                                  .target
+                                  .value,
+                              )
+                            }
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={
+                            createConfigSnapshot
+                          }
+                          disabled={
+                            busy ===
+                            "config-snapshot"
+                          }
+                        >
+                          {busy ===
+                          "config-snapshot"
+                            ? c.configCreatingSnapshot
+                            : c.configCreateSnapshot}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bot-dashboard-history-list">
+                      {configHistoryLoading ? (
+                        <p className="bot-dashboard-log-empty">
+                          {c.resourcesLoading}
+                        </p>
+                      ) : configHistory
+                          .versions
+                          .length ? (
+                        configHistory.versions.map(
+                          (
+                            version,
+                          ) => {
+                            const sourceLabel =
+                              version.source ===
+                              "manual"
+                                ? c.configSourceManual
+                                : version.source ===
+                                    "restore"
+                                  ? c.configSourceRestore
+                                  : c.configSourceSave;
+
+                            const groupLabel =
+                              (
+                                group,
+                              ) =>
+                                group ===
+                                "general"
+                                  ? c.configGroupGeneral
+                                  : group ===
+                                      "onboarding"
+                                    ? c.configGroupOnboarding
+                                    : group ===
+                                        "moderation"
+                                      ? c.configGroupModeration
+                                      : c.configGroupSupport;
+
+                            return (
+                              <div
+                                key={
+                                  version.id
+                                }
+                                className="bot-dashboard-history-row"
+                              >
+                                <div className="version-main">
+                                  <div>
+                                    <span
+                                      className={
+                                        `source ${version.source}`
+                                      }
+                                    >
+                                      {
+                                        sourceLabel
+                                      }
+                                    </span>
+                                    <strong>
+                                      {version.label ||
+                                        formatKyivDateTime(
+                                          version
+                                            .createdAt,
+                                          language,
+                                        )}
+                                    </strong>
+                                  </div>
+
+                                  <small>
+                                    {formatKyivDateTime(
+                                      version
+                                        .createdAt,
+                                      language,
+                                    )}
+                                  </small>
+
+                                  <div className="groups">
+                                    {version
+                                      .changedGroups
+                                      ?.length
+                                      ? version.changedGroups.map(
+                                          (
+                                            group,
+                                          ) => (
+                                            <span
+                                              key={
+                                                group
+                                              }
+                                            >
+                                              {groupLabel(
+                                                group,
+                                              )}
+                                            </span>
+                                          ),
+                                        )
+                                      : (
+                                          <span>
+                                            {c.configNoDifference}
+                                          </span>
+                                        )}
+                                  </div>
+                                </div>
+
+                                <div className="version-meta">
+                                  <span>
+                                    {
+                                      version
+                                        .changedCount
+                                    }{" "}
+                                    {c.configChanged}
+                                  </span>
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      void restoreConfigVersion(
+                                        version.id,
+                                      )
+                                    }
+                                    disabled={
+                                      busy ===
+                                      "config-restore:" +
+                                        version.id
+                                    }
+                                  >
+                                    {busy ===
+                                    "config-restore:" +
+                                      version.id
+                                      ? c.configRestoring
+                                      : c.configRestore}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          },
+                        )
+                      ) : (
+                        <p className="bot-dashboard-log-empty">
+                          {c.configHistoryEmpty}
+                        </p>
+                      )}
                     </div>
                   </article>
                 </div>

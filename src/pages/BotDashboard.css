@@ -2892,3 +2892,237 @@
     display: grid;
   }
 }
+
+
+/* Bot dashboard v14: configuration history and recovery */
+.bot-dashboard-module-card.module-config-history {
+  grid-column: 1 / -1;
+}
+
+.bot-dashboard-history-count {
+  padding: 4px 7px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 999px;
+  color: rgba(255,255,255,.32);
+  font-size: .44rem;
+  font-weight: 900;
+}
+
+.bot-dashboard-inline-error {
+  margin: 0 0 10px;
+  padding: 8px 9px;
+  border: 1px solid rgba(255,104,114,.16);
+  border-radius: 8px;
+  background: rgba(255,104,114,.04);
+  color: #ff939a;
+  font-size: .5rem;
+}
+
+.bot-dashboard-history-current {
+  display: grid;
+  grid-template-columns: minmax(180px,.45fr) minmax(0,1.55fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 9px;
+  background: #080c10;
+}
+
+.bot-dashboard-history-current > div:first-child {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+}
+
+.bot-dashboard-history-current > div:first-child span,
+.bot-dashboard-history-create label > span {
+  color: rgba(255,255,255,.3);
+  font-size: .46rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.bot-dashboard-history-current > div:first-child strong {
+  font-size: .61rem;
+}
+
+.bot-dashboard-history-create {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.bot-dashboard-history-create label {
+  display: grid;
+  gap: 5px;
+}
+
+.bot-dashboard-history-create input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px;
+  outline: 0;
+  background: #060a0e;
+  color: #fff;
+  font: inherit;
+  font-size: .58rem;
+}
+
+.bot-dashboard-history-create input:focus {
+  border-color: rgba(227,6,19,.42);
+  box-shadow: 0 0 0 3px rgba(227,6,19,.055);
+}
+
+.bot-dashboard-history-create button {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid rgba(227,6,19,.22);
+  border-radius: 8px;
+  background: rgba(227,6,19,.065);
+  color: #fff;
+  font: inherit;
+  font-size: .5rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.bot-dashboard-history-list {
+  display: grid;
+  max-height: 420px;
+  margin-top: 10px;
+  overflow: auto;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 9px;
+  background: #080c10;
+}
+
+.bot-dashboard-history-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 70px;
+  padding: 10px 11px;
+  border-bottom: 1px solid rgba(255,255,255,.045);
+}
+
+.bot-dashboard-history-row:last-child {
+  border-bottom: 0;
+}
+
+.bot-dashboard-history-row .version-main {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.bot-dashboard-history-row .version-main > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.bot-dashboard-history-row .version-main strong {
+  overflow: hidden;
+  font-size: .56rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bot-dashboard-history-row .source {
+  flex: 0 0 auto;
+  padding: 3px 5px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 5px;
+  color: rgba(255,255,255,.35);
+  font-size: .39rem;
+  font-weight: 900;
+}
+
+.bot-dashboard-history-row .source.manual {
+  border-color: rgba(75,213,139,.16);
+  color: #75dda2;
+}
+
+.bot-dashboard-history-row .source.restore {
+  border-color: rgba(234,182,107,.17);
+  color: #eab66b;
+}
+
+.bot-dashboard-history-row .version-main > small {
+  color: rgba(255,255,255,.25);
+  font-size: .44rem;
+}
+
+.bot-dashboard-history-row .groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bot-dashboard-history-row .groups span {
+  padding: 3px 5px;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 5px;
+  color: rgba(255,255,255,.32);
+  font-size: .4rem;
+}
+
+.bot-dashboard-history-row .version-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bot-dashboard-history-row .version-meta > span {
+  color: rgba(255,255,255,.29);
+  font-size: .45rem;
+  white-space: nowrap;
+}
+
+.bot-dashboard-history-row .version-meta button {
+  min-height: 31px;
+  padding: 0 8px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 7px;
+  background: rgba(255,255,255,.025);
+  color: rgba(255,255,255,.72);
+  font: inherit;
+  font-size: .46rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.bot-dashboard-history-row .version-meta button:hover {
+  border-color: rgba(227,6,19,.28);
+  background: rgba(227,6,19,.055);
+  color: #fff;
+}
+
+.bot-dashboard-history-row button:disabled,
+.bot-dashboard-history-create button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+@media (max-width: 760px) {
+  .bot-dashboard-history-current {
+    grid-template-columns: 1fr;
+  }
+
+  .bot-dashboard-history-create {
+    grid-template-columns: 1fr;
+  }
+
+  .bot-dashboard-history-row {
+    grid-template-columns: 1fr;
+  }
+
+  .bot-dashboard-history-row .version-meta {
+    justify-content: space-between;
+  }
+}
