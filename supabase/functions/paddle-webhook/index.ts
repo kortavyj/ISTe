@@ -339,7 +339,9 @@ async function beginEvent(
 
   if (
     existing?.status ===
-      "processed"
+      "processed" ||
+    existing?.status ===
+      "processing"
   ) {
     return {
       duplicate: true,
