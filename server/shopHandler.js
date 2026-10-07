@@ -1,5 +1,6 @@
 import {
   createHmac,
+  randomBytes,
   randomUUID,
 } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
@@ -1400,6 +1401,236 @@ async function handleOwnerPreorders(
   }
 }
 
+async function handleOwnerUploadImage(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(request, {
+      methods: ["POST"],
+      requireJson: true,
+      requireOrigin: true,
+      maxBodyBytes:
+        4 * 1024 * 1024,
+    });
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  response.setHeader(
+    "Cache-Control",
+    "no-store, private",
+  );
+
+  const owner =
+    await getOwner(
+      request,
+      response,
+    );
+
+  if (!owner) {
+    return;
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+
+  const mimeType =
+    typeof body.mimeType ===
+      "string"
+      ? body.mimeType
+          .trim()
+          .toLowerCase()
+      : "";
+
+  const data =
+    typeof body.data ===
+      "string"
+      ? body.data.trim()
+      : "";
+
+  const fileName =
+    typeof body.fileName ===
+      "string"
+      ? body.fileName.trim()
+      : "product";
+
+  const allowed =
+    new Set([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ]);
+
+  if (
+    !allowed.has(
+      mimeType,
+    ) ||
+    !data
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_PRODUCT_IMAGE",
+      "Поддерживаются JPG, PNG и WEBP.",
+    );
+  }
+
+  let bytes;
+
+  try {
+    bytes =
+      Buffer.from(
+        data,
+        "base64",
+      );
+  } catch {
+    bytes = null;
+  }
+
+  if (
+    !bytes?.length ||
+    bytes.length >
+      2_621_440
+  ) {
+    return sendError(
+      response,
+      413,
+      "PRODUCT_IMAGE_TOO_LARGE",
+      "Изображение должно быть не больше 2.5 MB.",
+    );
+  }
+
+  const extension =
+    mimeType ===
+      "image/png"
+      ? "png"
+      : mimeType ===
+          "image/webp"
+        ? "webp"
+        : "jpg";
+
+  const safeBase =
+    fileName
+      .replace(
+        /\.[^.]+$/,
+        "",
+      )
+      .replace(
+        /[^a-zA-Z0-9_-]+/g,
+        "-",
+      )
+      .replace(
+        /^-+|-+$/g,
+        "",
+      )
+      .slice(
+        0,
+        48,
+      ) ||
+    "product";
+
+  const path =
+    `products/${Date.now()}-${randomBytes(6).toString("hex")}-${safeBase}.${extension}`;
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const {
+      error,
+    } = await supabase
+      .storage
+      .from(
+        "iste-shop-products",
+      )
+      .upload(
+        path,
+        bytes,
+        {
+          contentType:
+            mimeType,
+          cacheControl:
+            "31536000",
+          upsert: false,
+        },
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    const {
+      data: publicData,
+    } = supabase
+      .storage
+      .from(
+        "iste-shop-products",
+      )
+      .getPublicUrl(path);
+
+    const imageUrl =
+      publicData?.publicUrl ||
+      "";
+
+    if (!imageUrl) {
+      throw new Error(
+        "PRODUCT_IMAGE_PUBLIC_URL_MISSING",
+      );
+    }
+
+    const auditResult =
+      await supabase
+        .from(
+          "shop_admin_audit",
+        )
+        .insert({
+          actor_id:
+            owner.user.id,
+          action:
+            "product.image_upload",
+          product_id: null,
+          metadata: {
+            path,
+            mimeType,
+          },
+        });
+
+    if (
+      auditResult.error
+    ) {
+      console.error(
+        "Shop image audit insert error:",
+        auditResult.error,
+      );
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        imageUrl,
+      });
+  } catch (error) {
+    console.error(
+      "Shop product image upload error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "PRODUCT_IMAGE_UPLOAD_FAILED",
+      "Не удалось загрузить изображение товара.",
+    );
+  }
+}
+
 async function handleOwnerSaveProduct(
   request,
   response,
@@ -1614,6 +1845,16 @@ export default async function shopHandler(
     "owner-preorders"
   ) {
     return handleOwnerPreorders(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "owner-upload-image"
+  ) {
+    return handleOwnerUploadImage(
       request,
       response,
     );
