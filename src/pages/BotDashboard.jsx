@@ -1804,6 +1804,87 @@ export default function BotDashboard() {
       ],
     );
 
+  function guildPermissionAllows(
+    guild,
+    permission,
+  ) {
+    const access =
+      guild?.access ||
+      {};
+
+    if (
+      access.isOwner ===
+        true ||
+      access.permissionKeys
+        ?.includes("*")
+    ) {
+      return true;
+    }
+
+    const permissions =
+      new Set(
+        Array.isArray(
+          access.permissionKeys,
+        )
+          ? access.permissionKeys
+          : [],
+      );
+
+    if (!permission) {
+      return permissions.size > 0;
+    }
+
+    if (
+      permissions.has(
+        permission,
+      )
+    ) {
+      return true;
+    }
+
+    if (
+      permission.endsWith(
+        ".view",
+      )
+    ) {
+      const group =
+        permission.split(
+          ".",
+        )[0];
+
+      return (
+        permissions.has(
+          group +
+            ".manage",
+        ) ||
+        permissions.has(
+          group +
+            ".restore",
+        ) ||
+        permissions.has(
+          group +
+            ".emergency",
+        )
+      );
+    }
+
+    return false;
+  }
+
+  const canControl =
+    (permission) =>
+      guildPermissionAllows(
+        selectedGuild,
+        permission,
+      );
+
+  const controlOwner =
+    selectedGuild
+      ?.access
+      ?.isOwner ===
+    true;
+
+
   function patch(
     field,
     value,
@@ -2743,41 +2824,97 @@ export default function BotDashboard() {
     setNotice("");
     setError("");
 
-    void loadModerationHistory(
-      guild.guildId,
-      "",
-      "",
-    );
+    if (
+      guildPermissionAllows(
+        guild,
+        "moderation.view",
+      )
+    ) {
+      void loadModerationHistory(
+        guild.guildId,
+        "",
+        "",
+      );
+    }
 
-    void loadIncidentCenter(
-      guild.guildId,
-    );
-
-    void loadSecurityOverview(
-      guild.guildId,
-    );
-
-    void loadCommandCenter(
-      guild.guildId,
-    );
-
-    void loadConfigHistory(
-      guild.guildId,
-    );
-
-    void loadDiagnostics(
-      guild.guildId,
-    );
-
-    void loadAnalytics(
-      guild.guildId,
-      7,
-    );
-
-    void loadPublications(
-      guild.guildId,
-    );
-
+    if (
+      guildPermissionAllows(
+        guild,
+        "incidents.view",
+      )
+    ) {
+      void loadIncidentCenter(
+        guild.guildId,
+      );
+  
+    }
+    if (
+      guildPermissionAllows(
+        guild,
+        "security.view",
+      )
+    ) {
+      void loadSecurityOverview(
+        guild.guildId,
+      );
+  
+    }
+    if (
+      guildPermissionAllows(
+        guild,
+        "commands.view",
+      )
+    ) {
+      void loadCommandCenter(
+        guild.guildId,
+      );
+  
+    }
+    if (
+      guildPermissionAllows(
+        guild,
+        "system.view",
+      )
+    ) {
+      void loadConfigHistory(
+        guild.guildId,
+      );
+  
+    }
+    if (
+      guildPermissionAllows(
+        guild,
+        "diagnostics.view",
+      )
+    ) {
+      void loadDiagnostics(
+        guild.guildId,
+      );
+  
+    }
+    if (
+      guildPermissionAllows(
+        guild,
+        "analytics.view",
+      )
+    ) {
+      void loadAnalytics(
+        guild.guildId,
+        7,
+      );
+  
+    }
+    if (
+      guildPermissionAllows(
+        guild,
+        "publishing.view",
+      )
+    ) {
+      void loadPublications(
+        guild.guildId,
+      );
+  
+    }
     try {
       const result =
         await api(
@@ -3111,6 +3248,8 @@ export default function BotDashboard() {
             body: {
               guildId:
                 selectedGuild.guildId,
+              section:
+                settingsTab,
               ...settings,
             },
           },
@@ -3440,6 +3579,8 @@ export default function BotDashboard() {
             body: {
               guildId:
                 selectedGuild.guildId,
+              section:
+                "onboarding",
               ...settings,
             },
           },
@@ -3494,6 +3635,8 @@ export default function BotDashboard() {
             body: {
               guildId:
                 selectedGuild.guildId,
+              section:
+                "onboarding",
               ...settings,
             },
           },
@@ -3548,6 +3691,8 @@ export default function BotDashboard() {
             body: {
               guildId:
                 selectedGuild.guildId,
+              section:
+                "moderation",
               ...settings,
             },
           },
@@ -3606,6 +3751,8 @@ export default function BotDashboard() {
             body: {
               guildId:
                 selectedGuild.guildId,
+              section:
+                "support",
               ...settings,
             },
           },
@@ -3662,13 +3809,43 @@ export default function BotDashboard() {
       [],
     );
 
+  const selectedLicensePlan =
+    selectedGuild
+      ?.license
+      ?.plan ||
+    subscription
+      ?.plan ||
+    "free";
+
+  const selectedPlan =
+    data?.planCatalog?.find(
+      (item) =>
+        item.plan ===
+        selectedLicensePlan,
+    );
+
+  const selectedEntitlements =
+    new Set(
+      selectedLicensePlan ===
+        "internal"
+        ? ["*"]
+        : (
+            selectedPlan
+              ?.features ||
+            subscription
+              ?.features ||
+            []
+          ),
+    );
+
   const hasFeature =
     (feature) =>
-      subscription
-        ?.fullAccess ===
-        true ||
-      entitlements.has("*") ||
-      entitlements.has(
+      selectedLicensePlan ===
+        "internal" ||
+      selectedEntitlements.has(
+        "*",
+      ) ||
+      selectedEntitlements.has(
         feature,
       );
 
@@ -4052,7 +4229,40 @@ export default function BotDashboard() {
                   c.tabDiagnostics,
                   "11",
                 ],
-              ].map(
+              ]
+                .filter(
+                  ([
+                    key,
+                  ]) => {
+                    const permission =
+                      key === "overview"
+                        ? "overview.view"
+                        : key === "analytics"
+                          ? "analytics.view"
+                          : key === "commands"
+                            ? "commands.view"
+                            : key === "security"
+                              ? "security.view"
+                              : key === "incidents"
+                                ? "incidents.view"
+                                : key === "onboarding"
+                                  ? "onboarding.view"
+                                  : key === "moderation"
+                                    ? "moderation.view"
+                                    : key === "support"
+                                      ? "support.view"
+                                      : key === "publishing"
+                                        ? "publishing.view"
+                                        : key === "system"
+                                          ? "system.view"
+                                          : "diagnostics.view";
+
+                    return canControl(
+                      permission,
+                    );
+                  },
+                )
+                .map(
                 ([
                   key,
                   label,
@@ -6519,6 +6729,11 @@ export default function BotDashboard() {
                             settings
                               .securityEmergencyMode
                           }
+                          disabled={
+                            !canControl(
+                              "security.emergency",
+                            )
+                          }
                           onChange={(
                             event,
                           ) =>
@@ -7086,7 +7301,20 @@ export default function BotDashboard() {
                   className="bot-dashboard-save"
                   disabled={
                     busy ===
-                    "settings"
+                      "settings" ||
+                    ![
+                      "onboarding",
+                      "moderation",
+                      "support",
+                      "security",
+                      "system",
+                    ].includes(
+                      settingsTab,
+                    ) ||
+                    !canControl(
+                      settingsTab +
+                        ".manage",
+                    )
                   }
                 >
                   {busy ===
