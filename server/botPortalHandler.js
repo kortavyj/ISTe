@@ -11896,7 +11896,14 @@ async function handleDiagnosticsOverview(request, response) {
     const roleFeaturesEnabled =
       settings.autoRolesEnabled ||
       settings.verificationEnabled ||
-      settings.selfRolesEnabled;
+      settings.selfRolesEnabled ||
+      (
+        settings.securityEnabled &&
+        (
+          settings.securityAutoQuarantine ||
+          settings.securityEmergencyMode
+        )
+      );
 
     const channelsFeatureEnabled =
       settings.ticketsEnabled ||
@@ -12140,6 +12147,16 @@ async function handleDiagnosticsOverview(request, response) {
         false,
       ],
       [
+        "Security quarantine role",
+        settings.securityQuarantineRoleId,
+        settings.securityEnabled &&
+          (
+            settings.securityAutoQuarantine ||
+            settings.securityEmergencyMode
+          ),
+        true,
+      ],
+      [
         "Ticket support role",
         settings.ticketSupportRoleId,
         settings.ticketsEnabled,
@@ -12265,6 +12282,10 @@ async function handleDiagnosticsOverview(request, response) {
     pushRuntimeError(
       "AutoMod",
       metrics.automod?.lastError,
+    );
+    pushRuntimeError(
+      "Security",
+      metrics.security?.lastError,
     );
     pushRuntimeError(
       "Private Voice",
