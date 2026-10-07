@@ -34,6 +34,15 @@ const EMPTY_SETTINGS = {
   automodEscalationWindowMinutes: 10,
   automodTimeoutMinutes: 10,
   automodRuleIds: {},
+  securityEnabled: false,
+  securityAlertChannelId: "",
+  securityQuarantineRoleId: "",
+  securityJoinBurstThreshold: 8,
+  securityJoinBurstWindowSeconds: 60,
+  securityMinAccountAgeHours: 24,
+  securityAutoQuarantine: false,
+  securityEmergencyMode: false,
+  securityIgnoreBots: true,
   verificationEnabled: false,
   verificationPanelChannelId: "",
   verificationRoleId: "",
@@ -62,6 +71,18 @@ const EMPTY_SETTINGS = {
 const EMPTY_PUBLICATIONS = {
   giveaways: [],
   scheduled: [],
+};
+
+const EMPTY_SECURITY = {
+  summary: {
+    events: 0,
+    warnings: 0,
+    critical: 0,
+    quarantined: 0,
+    raidBursts: 0,
+    newAccounts: 0,
+  },
+  events: [],
 };
 
 const EMPTY_COMMAND_CENTER = {
@@ -185,6 +206,7 @@ const copy = {
     tabOverview: "Огляд",
     tabAnalytics: "Аналітика",
     tabCommands: "Команди",
+    tabSecurity: "Безпека",
     tabOnboarding: "Онбординг",
     tabModeration: "Модерація",
     tabSupport: "Підтримка",
@@ -248,6 +270,37 @@ const copy = {
     commandLastUsed: "Останній виклик",
     commandUses: "викликів",
     commandSelectMultiple: "Ctrl / Cmd для кількох значень",
+    securityTitle: "Security & Raid Protection",
+    securityText:
+      "Захист від raid join bursts і підозріло нових Discord-акаунтів. За замовчуванням лише спостерігає.",
+    securityModule: "Raid Guard",
+    securityModuleText:
+      "Правила перевірки нових учасників та автоматична quarantine дія.",
+    securityEnabledLabel: "Увімкнути Security Center",
+    securityAlertChannel: "Канал security alerts",
+    securityQuarantineRole: "Quarantine роль",
+    securityJoinThreshold: "Join burst threshold",
+    securityJoinWindow: "Вікно burst, секунд",
+    securityAccountAge: "Мінімальний вік акаунта, годин",
+    securityAutoQuarantine: "Автоматичний quarantine підозрілих входів",
+    securityEmergencyMode: "Emergency mode",
+    securityEmergencyText:
+      "Усі нові учасники проходять quarantine, поки режим активний.",
+    securityIgnoreBots: "Ігнорувати bot accounts",
+    securityObserveHint:
+      "Auto quarantine вимкнений = бот лише зафіксує подію та надішле alert.",
+    securityEvents: "Security events · 7d",
+    securityWarnings: "Warnings",
+    securityCritical: "Critical",
+    securityQuarantined: "Quarantined",
+    securityRaidBursts: "Raid bursts",
+    securityNewAccounts: "Нові акаунти",
+    securityRecentEvents: "Останні security events",
+    securityNoEvents: "Підозрілих подій поки немає.",
+    securityLoading: "Завантаження...",
+    securityError: "Не вдалося завантажити Security Center.",
+    securityActionObserved: "OBSERVED",
+    securityActionQuarantine: "QUARANTINE",
     diagnosticsTitle: "Diagnostics & Alerts",
     diagnosticsText:
       "Перевірка Discord permissions, ролей, каналів, worker runtime та помилок активних модулів.",
@@ -592,6 +645,7 @@ const copy = {
     tabOverview: "Overview",
     tabAnalytics: "Analytics",
     tabCommands: "Commands",
+    tabSecurity: "Security",
     tabOnboarding: "Onboarding",
     tabModeration: "Moderation",
     tabSupport: "Support",
@@ -655,6 +709,37 @@ const copy = {
     commandLastUsed: "Last used",
     commandUses: "uses",
     commandSelectMultiple: "Ctrl / Cmd for multiple values",
+    securityTitle: "Security & Raid Protection",
+    securityText:
+      "Protect against raid join bursts and suspiciously new Discord accounts. Observation only by default.",
+    securityModule: "Raid Guard",
+    securityModuleText:
+      "New-member risk checks and optional automatic quarantine action.",
+    securityEnabledLabel: "Enable Security Center",
+    securityAlertChannel: "Security alert channel",
+    securityQuarantineRole: "Quarantine role",
+    securityJoinThreshold: "Join burst threshold",
+    securityJoinWindow: "Burst window, seconds",
+    securityAccountAge: "Minimum account age, hours",
+    securityAutoQuarantine: "Auto quarantine suspicious joins",
+    securityEmergencyMode: "Emergency mode",
+    securityEmergencyText:
+      "Every new member is quarantined while emergency mode is active.",
+    securityIgnoreBots: "Ignore bot accounts",
+    securityObserveHint:
+      "Auto quarantine off = ISTe only records the event and sends an alert.",
+    securityEvents: "Security events · 7d",
+    securityWarnings: "Warnings",
+    securityCritical: "Critical",
+    securityQuarantined: "Quarantined",
+    securityRaidBursts: "Raid bursts",
+    securityNewAccounts: "New accounts",
+    securityRecentEvents: "Recent security events",
+    securityNoEvents: "No suspicious events yet.",
+    securityLoading: "Loading...",
+    securityError: "Could not load Security Center.",
+    securityActionObserved: "OBSERVED",
+    securityActionQuarantine: "QUARANTINE",
     diagnosticsTitle: "Diagnostics & Alerts",
     diagnosticsText:
       "Check Discord permissions, roles, channels, worker runtime and active module errors.",
@@ -1349,6 +1434,23 @@ export default function BotDashboard() {
   ] = useState("");
 
   const [
+    securityOverview,
+    setSecurityOverview,
+  ] = useState(
+    EMPTY_SECURITY,
+  );
+
+  const [
+    securityLoading,
+    setSecurityLoading,
+  ] = useState(false);
+
+  const [
+    securityError,
+    setSecurityError,
+  ] = useState("");
+
+  const [
     commandCenter,
     setCommandCenter,
   ] = useState(
@@ -1611,6 +1713,57 @@ export default function BotDashboard() {
             0,
         ),
       );
+  }
+
+  async function loadSecurityOverview(
+    guildId =
+      selectedGuildId,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setSecurityLoading(
+      true,
+    );
+    setSecurityError("");
+
+    try {
+      const result =
+        await api(
+          "security-overview",
+          {
+            method: "POST",
+            body: {
+              guildId,
+            },
+          },
+        );
+
+      setSecurityOverview({
+        summary: {
+          ...EMPTY_SECURITY
+            .summary,
+          ...(result.summary ||
+            {}),
+        },
+        events:
+          Array.isArray(
+            result.events,
+          )
+            ? result.events
+            : [],
+      });
+    } catch (loadError) {
+      setSecurityError(
+        loadError?.message ||
+          c.securityError,
+      );
+    } finally {
+      setSecurityLoading(
+        false,
+      );
+    }
   }
 
   async function loadCommandCenter(
@@ -2154,6 +2307,10 @@ export default function BotDashboard() {
       audit: [],
     });
     setModerationError("");
+    setSecurityOverview(
+      EMPTY_SECURITY,
+    );
+    setSecurityError("");
     setCommandCenter(
       EMPTY_COMMAND_CENTER,
     );
@@ -2192,6 +2349,10 @@ export default function BotDashboard() {
       guild.guildId,
       "",
       "",
+    );
+
+    void loadSecurityOverview(
+      guild.guildId,
     );
 
     void loadCommandCenter(
@@ -3450,34 +3611,39 @@ export default function BotDashboard() {
                   "03",
                 ],
                 [
+                  "security",
+                  c.tabSecurity,
+                  "04",
+                ],
+                [
                   "onboarding",
                   c.tabOnboarding,
-                  "04",
+                  "05",
                 ],
                 [
                   "moderation",
                   c.tabModeration,
-                  "05",
+                  "06",
                 ],
                 [
                   "support",
                   c.tabSupport,
-                  "06",
+                  "07",
                 ],
                 [
                   "publishing",
                   c.tabPublishing,
-                  "07",
+                  "08",
                 ],
                 [
                   "system",
                   c.tabSystem,
-                  "08",
+                  "09",
                 ],
                 [
                   "diagnostics",
                   c.tabDiagnostics,
-                  "09",
+                  "10",
                 ],
               ].map(
                 ([
@@ -3511,6 +3677,13 @@ export default function BotDashboard() {
                         "commands"
                       ) {
                         void loadCommandCenter();
+                      }
+
+                      if (
+                        key ===
+                        "security"
+                      ) {
+                        void loadSecurityOverview();
                       }
 
                       if (
@@ -3597,8 +3770,21 @@ export default function BotDashboard() {
                     },
                     {
                       key:
-                        "onboarding",
+                        "security",
                       index: "04",
+                      title:
+                        c.tabSecurity,
+                      enabled:
+                        settings
+                          .securityEnabled
+                          ? 1
+                          : 0,
+                      total: 1,
+                    },
+                    {
+                      key:
+                        "onboarding",
+                      index: "05",
                       title:
                         c.tabOnboarding,
                       enabled: [
@@ -3618,7 +3804,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "moderation",
-                      index: "05",
+                      index: "06",
                       title:
                         c.tabModeration,
                       enabled: [
@@ -3634,7 +3820,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "support",
-                      index: "06",
+                      index: "07",
                       title:
                         c.tabSupport,
                       enabled: [
@@ -3650,7 +3836,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "publishing",
-                      index: "07",
+                      index: "08",
                       title:
                         c.tabPublishing,
                       enabled:
@@ -3681,7 +3867,7 @@ export default function BotDashboard() {
                     {
                       key:
                         "system",
-                      index: "08",
+                      index: "09",
                       title:
                         c.tabSystem,
                       enabled: [
@@ -5629,6 +5815,479 @@ export default function BotDashboard() {
                     </div>
                   </article>
 
+                  <article
+                    className={
+                      `bot-dashboard-module-card module-security module-raidguard${settings.securityEnabled ? " active" : ""}`
+                    }
+                  >
+                    <header>
+                      <div>
+                        <strong>
+                          {c.securityModule}
+                        </strong>
+                        <small>
+                          {c.securityModuleText}
+                        </small>
+                      </div>
+
+                      <label className="bot-dashboard-switch">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .securityEnabled
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityEnabled",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {settings.securityEnabled
+                            ? c.moduleOn
+                            : c.moduleOff}
+                        </span>
+                      </label>
+                    </header>
+
+                    <div className="bot-dashboard-module-fields">
+                      <label>
+                        <span>
+                          {c.securityAlertChannel}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .securityAlertChannelId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityAlertChannelId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseChannel}
+                          </option>
+                          {resources.channels.map(
+                            (
+                              channel,
+                            ) => (
+                              <option
+                                key={
+                                  channel.id
+                                }
+                                value={
+                                  channel.id
+                                }
+                              >
+                                #
+                                {
+                                  channel.name
+                                }
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.securityQuarantineRole}
+                        </span>
+                        <select
+                          value={
+                            settings
+                              .securityQuarantineRoleId
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityQuarantineRoleId",
+                              event
+                                .target
+                                .value,
+                            )
+                          }
+                        >
+                          <option value="">
+                            {c.chooseRole}
+                          </option>
+                          {resources.roles.map(
+                            (
+                              role,
+                            ) => (
+                              <option
+                                key={
+                                  role.id
+                                }
+                                value={
+                                  role.id
+                                }
+                              >
+                                @
+                                {
+                                  role.name
+                                }
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.securityJoinThreshold}
+                        </span>
+                        <input
+                          type="number"
+                          min={2}
+                          max={100}
+                          value={
+                            settings
+                              .securityJoinBurstThreshold
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityJoinBurstThreshold",
+                              Number(
+                                event
+                                  .target
+                                  .value,
+                              ) ||
+                                8,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.securityJoinWindow}
+                        </span>
+                        <input
+                          type="number"
+                          min={10}
+                          max={600}
+                          value={
+                            settings
+                              .securityJoinBurstWindowSeconds
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityJoinBurstWindowSeconds",
+                              Number(
+                                event
+                                  .target
+                                  .value,
+                              ) ||
+                                60,
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          {c.securityAccountAge}
+                        </span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={8760}
+                          value={
+                            settings
+                              .securityMinAccountAgeHours
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityMinAccountAgeHours",
+                              Math.max(
+                                0,
+                                Number(
+                                  event
+                                    .target
+                                    .value,
+                                ) ||
+                                  0,
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="bot-dashboard-checkbox-line">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .securityAutoQuarantine
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityAutoQuarantine",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {c.securityAutoQuarantine}
+                        </span>
+                      </label>
+
+                      <label className="bot-dashboard-checkbox-line">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .securityIgnoreBots
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityIgnoreBots",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          {c.securityIgnoreBots}
+                        </span>
+                      </label>
+
+                      <label className="bot-dashboard-checkbox-line security-emergency">
+                        <input
+                          type="checkbox"
+                          checked={
+                            settings
+                              .securityEmergencyMode
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            patch(
+                              "securityEmergencyMode",
+                              event
+                                .target
+                                .checked,
+                            )
+                          }
+                        />
+                        <span>
+                          <strong>
+                            {c.securityEmergencyMode}
+                          </strong>
+                          <small>
+                            {c.securityEmergencyText}
+                          </small>
+                        </span>
+                      </label>
+
+                      <p className="bot-dashboard-security-hint full">
+                        {c.securityObserveHint}
+                      </p>
+                    </div>
+                  </article>
+
+                  <article className="bot-dashboard-module-card module-security module-security-events">
+                    <header>
+                      <div>
+                        <strong>
+                          {c.securityRecentEvents}
+                        </strong>
+                        <small>
+                          {c.securityEvents}
+                        </small>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="bot-dashboard-module-action"
+                        onClick={() =>
+                          void loadSecurityOverview()
+                        }
+                        disabled={
+                          securityLoading
+                        }
+                      >
+                        {securityLoading
+                          ? c.securityLoading
+                          : c.commandCenterRefresh}
+                      </button>
+                    </header>
+
+                    {securityError ? (
+                      <div className="bot-dashboard-inline-error">
+                        {securityError}
+                      </div>
+                    ) : null}
+
+                    <div className="bot-dashboard-security-kpis">
+                      {[
+                        [
+                          c.securityWarnings,
+                          securityOverview
+                            .summary
+                            .warnings,
+                          "warning",
+                        ],
+                        [
+                          c.securityCritical,
+                          securityOverview
+                            .summary
+                            .critical,
+                          "critical",
+                        ],
+                        [
+                          c.securityQuarantined,
+                          securityOverview
+                            .summary
+                            .quarantined,
+                          "quarantine",
+                        ],
+                        [
+                          c.securityRaidBursts,
+                          securityOverview
+                            .summary
+                            .raidBursts,
+                          "raid",
+                        ],
+                        [
+                          c.securityNewAccounts,
+                          securityOverview
+                            .summary
+                            .newAccounts,
+                          "account",
+                        ],
+                      ].map(
+                        ([
+                          label,
+                          value,
+                          tone,
+                        ]) => (
+                          <div
+                            key={
+                              label
+                            }
+                            className={
+                              tone
+                            }
+                          >
+                            <span>
+                              {label}
+                            </span>
+                            <strong>
+                              {value}
+                            </strong>
+                          </div>
+                        ),
+                      )}
+                    </div>
+
+                    <div className="bot-dashboard-security-feed">
+                      {securityOverview
+                        .events
+                        .length ? (
+                        securityOverview.events
+                          .slice(
+                            0,
+                            40,
+                          )
+                          .map(
+                            (
+                              item,
+                            ) => (
+                              <div
+                                key={
+                                  item.id
+                                }
+                                className={
+                                  `security-event ${item.severity}`
+                                }
+                              >
+                                <span className="security-dot" />
+                                <div>
+                                  <strong>
+                                    {
+                                      item.event_type
+                                    }
+                                  </strong>
+                                  <small>
+                                    {item.user_id
+                                      ? "User " +
+                                        item.user_id
+                                      : "Guild event"}
+                                  </small>
+                                  {Array.isArray(
+                                    item
+                                      .details
+                                      ?.reasons,
+                                  ) &&
+                                  item
+                                    .details
+                                    .reasons
+                                    .length ? (
+                                    <p>
+                                      {item.details.reasons.join(
+                                        " · ",
+                                      )}
+                                    </p>
+                                  ) : null}
+                                </div>
+                                <div className="event-meta">
+                                  <span>
+                                    {item.action_taken ===
+                                    "quarantine"
+                                      ? c.securityActionQuarantine
+                                      : String(
+                                          item.action_taken ||
+                                            c.securityActionObserved,
+                                        ).toUpperCase()}
+                                  </span>
+                                  <time>
+                                    {formatKyivDateTime(
+                                      item
+                                        .created_at,
+                                      language,
+                                    )}
+                                  </time>
+                                </div>
+                              </div>
+                            ),
+                          )
+                      ) : (
+                        <p className="bot-dashboard-log-empty">
+                          {c.securityNoEvents}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+
                   <article className="bot-dashboard-module-card module-system module-server">
                     <header>
                       <div>
@@ -5969,7 +6628,10 @@ export default function BotDashboard() {
                           "analytics"
                         ? c.tabAnalytics
                         : settingsTab ===
-                            "onboarding"
+                            "security"
+                          ? c.tabSecurity
+                          : settingsTab ===
+                              "onboarding"
                           ? c.tabOnboarding
                         : settingsTab ===
                             "moderation"
