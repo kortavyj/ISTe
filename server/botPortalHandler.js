@@ -7538,6 +7538,30 @@ async function handleSaveSettings(
     );
   }
 
+  const requestedSection =
+    String(
+      body.section ||
+      "system",
+    )
+      .trim()
+      .toLowerCase();
+
+  const allowedSections =
+    new Set([
+      "onboarding",
+      "moderation",
+      "support",
+      "security",
+      "system",
+    ]);
+
+  const section =
+    allowedSections.has(
+      requestedSection,
+    )
+      ? requestedSection
+      : "system";
+
   const locale =
     body.locale ===
       "en"
@@ -7851,111 +7875,29 @@ async function handleSaveSettings(
   }
 
   try {
+    const requiredPermission =
+      section +
+      ".manage";
+
+    const access =
+      await requireGuildControlAccess(
+        request,
+        response,
+        guildId,
+        requiredPermission,
+        "save-settings:" +
+          section,
+        true,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
     const supabase =
-      getSupabaseAdminClient();
-
-    const owned =
-      await readOwnedLicense(
-        supabase,
-        account.user.id,
-        guildId,
-      );
-
-    if (
-      !owned.ok ||
-      !owned.license ||
-      !licenseActive(
-        owned.license,
-      )
-    ) {
-      return sendError(
-        response,
-        403,
-        "GUILD_LICENSE_REQUIRED",
-        "Немає активної ліцензії для цього сервера.",
-      );
-    }
-
-    let subscription =
-      await ensureSubscription(
-        supabase,
-        account.user.id,
-        account.role,
-      );
-
-    subscription =
-      await expireSubscriptionIfNeeded(
-        supabase,
-        subscription,
-      );
-
-    const featureChecks = [
-      [
-        body.autoRolesEnabled,
-        "auto_roles",
-      ],
-      [
-        body.privateVoiceEnabled,
-        "private_voice",
-      ],
-      [
-        body.welcomeEnabled,
-        "welcome",
-      ],
-      [
-        body.moderationEnabled,
-        "moderation",
-      ],
-      [
-        body.ticketsEnabled,
-        "tickets",
-      ],
-    ];
-
-    const lockedFeature =
-      featureChecks.find(
-        ([
-          enabled,
-          feature,
-        ]) =>
-          enabled === true &&
-          !hasPlanFeature(
-            subscription.plan,
-            feature,
-          ),
-      );
-
-    if (lockedFeature) {
-      return sendError(
-        response,
-        402,
-        "FEATURE_REQUIRES_PLAN",
-        "Ця функція недоступна на поточному тарифі ISTe Bot.",
-      );
-    }
-
-    const {
-      data:
-        existingSettings,
-      error:
-        existingSettingsError,
-    } = await supabase
-      .from(
-        "discord_guild_settings",
-      )
-      .select("*")
-      .eq(
-        "guild_id",
-        guildId,
-      )
-      .maybeSingle();
-
-    if (
-      existingSettingsError
-    ) {
-      throw existingSettingsError;
-    }
-
+      access.supabase;
+    const existingSettings =
+      access.settingsRow;
     const existingConfig =
       existingSettings
         ?.config &&
@@ -7966,8 +7908,93 @@ async function handleSaveSettings(
             .config
         : {};
 
-    const nextConfig = {
-      ...existingConfig,
+    if (
+      section ===
+        "security" &&
+      body.securityEmergencyMode !==
+        undefined &&
+      (
+        body.securityEmergencyMode ===
+        true
+      ) !==
+        (
+          existingConfig
+            .securityEmergencyMode ===
+          true
+        ) &&
+      !access.isOwner &&
+      !permissionAllows(
+        access.permissions,
+        "security.emergency",
+      )
+    ) {
+      return sendError(
+        response,
+        403,
+        "SECURITY_EMERGENCY_PERMISSION_REQUIRED",
+        "Для зміни Emergency Mode потрібен окремий security.emergency permission.",
+      );
+    }
+
+    const featureChecks =
+      section ===
+        "onboarding"
+        ? [
+            [
+              body.autoRolesEnabled,
+              "auto_roles",
+            ],
+            [
+              body.welcomeEnabled,
+              "welcome",
+            ],
+          ]
+        : section ===
+            "moderation"
+          ? [
+              [
+                body.moderationEnabled,
+                "moderation",
+              ],
+            ]
+          : section ===
+              "support"
+            ? [
+                [
+                  body.privateVoiceEnabled,
+                  "private_voice",
+                ],
+                [
+                  body.ticketsEnabled,
+                  "tickets",
+                ],
+              ]
+            : [];
+
+    const lockedFeature =
+      featureChecks.find(
+        ([
+          enabled,
+          feature,
+        ]) =>
+          enabled === true &&
+          !hasPlanFeature(
+            access.license
+              ?.plan,
+            feature,
+          ),
+      );
+
+    if (lockedFeature) {
+      return sendError(
+        response,
+        402,
+        "FEATURE_REQUIRES_PLAN",
+        "Ця функція недоступна для поточної ліцензії ISTe Bot.",
+      );
+    }
+
+    const desiredConfig = {
       matchChannelId:
         fields
           .matchChannelId
@@ -8084,24 +8111,200 @@ async function handleSaveSettings(
       ticketMaxOpenPerUser,
     };
 
-    const now =
-      new Date()
-        .toISOString();
+    const configKeysBySection = {
+      onboarding: [
+        "welcomeTitle",
+        "welcomeMessage",
+        "welcomeMention",
+        "welcomeShowMemberCount",
+        "verificationEnabled",
+        "verificationPanelChannelId",
+        "verificationRoleId",
+        "verificationRemoveRoleId",
+        "verificationPanelTitle",
+        "verificationPanelMessage",
+        "selfRolesEnabled",
+        "selfRolesPanelChannelId",
+        "selfRolesPanelTitle",
+        "selfRolesPanelMessage",
+        "selfRoleIds",
+      ],
+      moderation: [
+        "moderationClearEnabled",
+        "moderationTimeoutEnabled",
+        "automodEnabled",
+        "automodSpamEnabled",
+        "automodInvitesEnabled",
+        "automodMentionEnabled",
+        "automodCapsEnabled",
+        "automodForbiddenWords",
+        "automodAlertChannelId",
+        "automodMentionLimit",
+        "automodEscalationCount",
+        "automodEscalationWindowMinutes",
+        "automodTimeoutMinutes",
+      ],
+      support: [
+        "ticketPanelChannelId",
+        "ticketCategoryId",
+        "ticketSupportRoleId",
+        "ticketLogChannelId",
+        "ticketPanelTitle",
+        "ticketPanelMessage",
+        "ticketMaxOpenPerUser",
+      ],
+      security: [
+        "securityEnabled",
+        "securityAlertChannelId",
+        "securityQuarantineRoleId",
+        "securityJoinBurstThreshold",
+        "securityJoinBurstWindowSeconds",
+        "securityMinAccountAgeHours",
+        "securityAutoQuarantine",
+        "securityEmergencyMode",
+        "securityIgnoreBots",
+      ],
+      system: [
+        "matchChannelId",
+      ],
+    };
 
-    if (existingSettings) {
-      await createGuildConfigVersion(
-        supabase,
-        existingSettings,
-        {
-          actorUserId:
-            account.user.id,
-          source:
-            "save",
-          label:
-            "Before save",
-        },
-      );
+    const nextConfig = {
+      ...existingConfig,
+    };
+
+    for (
+      const key
+      of (
+        configKeysBySection[
+          section
+        ] ||
+        []
+      )
+    ) {
+      nextConfig[key] =
+        desiredConfig[key];
     }
+
+    const nextRow = {
+      guild_id:
+        guildId,
+      owner_user_id:
+        existingSettings
+          .owner_user_id,
+      locale:
+        existingSettings.locale,
+      admin_role_id:
+        existingSettings
+          .admin_role_id,
+      moderator_role_id:
+        existingSettings
+          .moderator_role_id,
+      member_role_id:
+        existingSettings
+          .member_role_id,
+      log_channel_id:
+        existingSettings
+          .log_channel_id,
+      welcome_channel_id:
+        existingSettings
+          .welcome_channel_id,
+      config:
+        nextConfig,
+      welcome_enabled:
+        existingSettings
+          .welcome_enabled ===
+        true,
+      moderation_enabled:
+        existingSettings
+          .moderation_enabled ===
+        true,
+      tickets_enabled:
+        existingSettings
+          .tickets_enabled ===
+        true,
+      private_voice_enabled:
+        existingSettings
+          .private_voice_enabled ===
+        true,
+      auto_roles_enabled:
+        existingSettings
+          .auto_roles_enabled ===
+        true,
+      updated_at:
+        new Date()
+          .toISOString(),
+    };
+
+    if (
+      section ===
+      "onboarding"
+    ) {
+      nextRow.member_role_id =
+        fields
+          .memberRoleId
+          .value;
+      nextRow.welcome_channel_id =
+        fields
+          .welcomeChannelId
+          .value;
+      nextRow.welcome_enabled =
+        body.welcomeEnabled ===
+        true;
+      nextRow.auto_roles_enabled =
+        body.autoRolesEnabled ===
+        true;
+    } else if (
+      section ===
+      "moderation"
+    ) {
+      nextRow.moderation_enabled =
+        body.moderationEnabled ===
+        true;
+    } else if (
+      section ===
+      "support"
+    ) {
+      nextRow.tickets_enabled =
+        body.ticketsEnabled ===
+        true;
+      nextRow.private_voice_enabled =
+        body.privateVoiceEnabled ===
+        true;
+    } else if (
+      section ===
+      "system"
+    ) {
+      nextRow.locale =
+        locale;
+      nextRow.admin_role_id =
+        fields
+          .adminRoleId
+          .value;
+      nextRow.moderator_role_id =
+        fields
+          .moderatorRoleId
+          .value;
+      nextRow.log_channel_id =
+        fields
+          .logChannelId
+          .value;
+    }
+
+    await createGuildConfigVersion(
+      supabase,
+      existingSettings,
+      {
+        actorUserId:
+          account.user.id,
+        source:
+          "save",
+        label:
+          "Before " +
+          section +
+          " save",
+      },
+    );
 
     const {
       data,
@@ -8111,57 +8314,7 @@ async function handleSaveSettings(
         "discord_guild_settings",
       )
       .upsert(
-        {
-          guild_id:
-            guildId,
-          owner_user_id:
-            account.user.id,
-          locale,
-          admin_role_id:
-            fields
-              .adminRoleId
-              .value,
-          moderator_role_id:
-            fields
-              .moderatorRoleId
-              .value,
-          member_role_id:
-            fields
-              .memberRoleId
-              .value,
-          log_channel_id:
-            fields
-              .logChannelId
-              .value,
-          welcome_channel_id:
-            fields
-              .welcomeChannelId
-              .value,
-          config:
-            nextConfig,
-          welcome_enabled:
-            body
-              .welcomeEnabled ===
-            true,
-          moderation_enabled:
-            body
-              .moderationEnabled ===
-            true,
-          tickets_enabled:
-            body
-              .ticketsEnabled ===
-            true,
-          private_voice_enabled:
-            body
-              .privateVoiceEnabled ===
-            true,
-          auto_roles_enabled:
-            body
-              .autoRolesEnabled ===
-            true,
-          updated_at:
-            now,
-        },
+        nextRow,
         {
           onConflict:
             "guild_id",
@@ -8186,6 +8339,11 @@ async function handleSaveSettings(
         payload: {
           updated_at:
             data.updated_at,
+          section,
+          actor_user_id:
+            account.user.id,
+          delegated:
+            !access.isOwner,
         },
       });
 
@@ -8193,6 +8351,7 @@ async function handleSaveSettings(
       .status(200)
       .json({
         ok: true,
+        section,
         settings:
           normalizeSettings(
             data,
