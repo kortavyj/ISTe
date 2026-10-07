@@ -1712,6 +1712,37 @@ async function subscriptionsAdminCommand(
   }
 }
 
+async function handleSubscriptionShopOpenComponent(
+  interaction: any,
+) {
+  const customId =
+    String(
+      interaction
+        ?.data
+        ?.custom_id ||
+      "",
+    );
+
+  if (
+    customId !==
+    "iste:subscription-shop-open"
+  ) {
+    return null;
+  }
+
+  const lang =
+    localeFamily(
+      interaction?.locale ||
+      interaction
+        ?.guild_locale,
+    ) as Language;
+
+  return subscriptionCommand(
+    interaction,
+    lang,
+  );
+}
+
 async function handleSubscriptionAdminComponent(
   interaction: any,
 ) {
@@ -5352,6 +5383,17 @@ Deno.serve(async (request) => {
 
   if (interaction?.type === 3) {
     try {
+      const subscriptionShopOpenResponse =
+        await handleSubscriptionShopOpenComponent(
+          interaction,
+        );
+
+      if (subscriptionShopOpenResponse) {
+        return json(
+          subscriptionShopOpenResponse,
+        );
+      }
+
       const subscriptionAdminResponse =
         await handleSubscriptionAdminComponent(
           interaction,
