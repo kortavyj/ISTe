@@ -2439,7 +2439,7 @@ function scheduleHealthSnapshots() {
       () => {
         void reportHealthSnapshot();
       },
-      300000,
+      60000,
     );
 }
 
@@ -2488,6 +2488,13 @@ client.once(Events.ClientReady, async (readyClient) => {
   schedulePublications();
   await reportHealthSnapshot();
   scheduleHealthSnapshots();
+
+  setTimeout(
+    () => {
+      void reportHealthSnapshot();
+    },
+    15000,
+  ).unref();
 });
 
 async function reportAutoModerationExecution(
