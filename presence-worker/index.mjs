@@ -987,88 +987,16 @@ async function donatelloProviderSyncApi(
     reason = "",
   },
 ) {
-  const url =
-    new URL(
-      "/api/owner",
-      siteUrl,
-    );
-
-  url.searchParams.set(
-    "module",
-    "bot-portal",
+  return workerRuntimeApi(
+    "donatello-subscription-sync",
+    {
+      discordUserId,
+      plan,
+      providerStatus:
+        status,
+      reason,
+    },
   );
-  url.searchParams.set(
-    "action",
-    "worker-subscription-provider-sync",
-  );
-
-  const response =
-    await fetch(
-      url,
-      {
-        method: "POST",
-        cache: "no-store",
-        headers: {
-          Accept:
-            "application/json",
-          "Content-Type":
-            "application/json",
-          Authorization:
-            "Bot " +
-            token,
-          "User-Agent":
-            "ISTesport-Discord-Worker/2.7",
-        },
-        body:
-          JSON.stringify({
-            discordUserId,
-            plan,
-            provider:
-              "donatello",
-            providerStatus:
-              status,
-            providerCustomerId:
-              discordUserId,
-            providerSubscriptionId:
-              plan
-                ? "discord-role:" +
-                  plan
-                : "",
-            providerEventId:
-              reason
-                ? "discord:" +
-                  reason
-                : "",
-          }),
-        signal:
-          AbortSignal.timeout(
-            FETCH_TIMEOUT_MS,
-          ),
-      },
-    );
-
-  const result =
-    await response
-      .json()
-      .catch(
-        () => null,
-      );
-
-  if (
-    !response.ok ||
-    result?.ok !==
-      true
-  ) {
-    throw new Error(
-      result?.error ||
-      "Donatello subscription sync returned " +
-      String(
-        response.status,
-      ),
-    );
-  }
-
-  return result;
 }
 
 async function syncDonatelloMember(
