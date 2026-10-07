@@ -19439,36 +19439,6 @@ export default async function botPortalHandler(
   }
 
   if (
-    action ===
-    "admin-subscriptions"
-  ) {
-    return handleAdminSubscriptions(
-      request,
-      response,
-    );
-  }
-
-  if (
-    action ===
-    "admin-set-subscription"
-  ) {
-    return handleAdminSetSubscription(
-      request,
-      response,
-    );
-  }
-
-  if (
-    action ===
-    "admin-reject-subscription-request"
-  ) {
-    return handleAdminRejectSubscriptionRequest(
-      request,
-      response,
-    );
-  }
-
-  if (
     action === "oauth-start"
   ) {
     return handleOauthStart(
