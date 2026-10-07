@@ -188,6 +188,19 @@ const copy = {
       "Сервіс підписок тимчасово недоступний.",
     subscriptionNoExpiry: "безстроково",
     subscriptionFree: "FREE",
+    subscriptionAdminTitle: "Заявки на підписку",
+    subscriptionAdminEmpty: "Нових заявок немає.",
+    subscriptionAdminDenied:
+      "Ця команда доступна лише адміністратору або власнику ISTe.",
+    subscriptionAdminApprove: "Активувати",
+    subscriptionAdminReject: "Відхилити",
+    subscriptionAdminApproved:
+      "Підписку **{{plan}}** активовано до {{expires}}.",
+    subscriptionAdminRejected:
+      "Заявку на **{{plan}}** відхилено.",
+    subscriptionAdminUser: "Користувач",
+    subscriptionAdminRequested: "Запит",
+    subscriptionAdminCurrent: "Зараз",
     pollPermission:
       "ISTe Bot не має права **Надсилати опитування** в цьому каналі.",
     pollInvalid:
@@ -317,6 +330,19 @@ const copy = {
       "Сервис подписок временно недоступен.",
     subscriptionNoExpiry: "бессрочно",
     subscriptionFree: "FREE",
+    subscriptionAdminTitle: "Заявки на подписку",
+    subscriptionAdminEmpty: "Новых заявок нет.",
+    subscriptionAdminDenied:
+      "Эта команда доступна только администратору или владельцу ISTe.",
+    subscriptionAdminApprove: "Активировать",
+    subscriptionAdminReject: "Отклонить",
+    subscriptionAdminApproved:
+      "Подписка **{{plan}}** активирована до {{expires}}.",
+    subscriptionAdminRejected:
+      "Заявка на **{{plan}}** отклонена.",
+    subscriptionAdminUser: "Пользователь",
+    subscriptionAdminRequested: "Запрос",
+    subscriptionAdminCurrent: "Сейчас",
     pollPermission:
       "У ISTe Bot нет права **Отправлять опросы** в этом канале.",
     pollInvalid:
@@ -446,6 +472,19 @@ const copy = {
       "The subscription service is temporarily unavailable.",
     subscriptionNoExpiry: "unlimited",
     subscriptionFree: "FREE",
+    subscriptionAdminTitle: "Subscription requests",
+    subscriptionAdminEmpty: "There are no new requests.",
+    subscriptionAdminDenied:
+      "This command is available only to an ISTe administrator or owner.",
+    subscriptionAdminApprove: "Activate",
+    subscriptionAdminReject: "Reject",
+    subscriptionAdminApproved:
+      "**{{plan}}** activated until {{expires}}.",
+    subscriptionAdminRejected:
+      "The **{{plan}}** request was rejected.",
+    subscriptionAdminUser: "User",
+    subscriptionAdminRequested: "Requested",
+    subscriptionAdminCurrent: "Current",
     pollPermission:
       "ISTe Bot is missing the **Send Polls** permission in this channel.",
     pollInvalid:
@@ -699,6 +738,75 @@ function subscriptionExpiryText(
     : t.subscriptionNoExpiry;
 }
 
+async function subscriptionRuntime(
+  action:
+    | "requests"
+    | "decision",
+  actorDiscordUserId: string,
+  body: Record<
+    string,
+    unknown
+  > = {},
+) {
+  if (!DISCORD_BOT_TOKEN) {
+    throw new Error(
+      "DISCORD_BOT_TOKEN missing",
+    );
+  }
+
+  const response =
+    await fetch(
+      SITE_URL +
+        "/api/owner?module=bot-portal&action=worker-subscription-" +
+        action,
+      {
+        method: "POST",
+        headers: {
+          Authorization:
+            "Bot " +
+            DISCORD_BOT_TOKEN,
+          Accept:
+            "application/json",
+          "Content-Type":
+            "application/json",
+        },
+        body:
+          JSON.stringify({
+            actorDiscordUserId,
+            ...body,
+          }),
+      },
+    );
+
+  const payload =
+    await response
+      .json()
+      .catch(
+        () => null,
+      );
+
+  if (
+    !response.ok ||
+    payload?.ok !==
+      true
+  ) {
+    const error =
+      new Error(
+        payload?.error ||
+          "SUBSCRIPTION_RUNTIME_FAILED",
+      ) as Error & {
+        status?: number;
+      };
+
+    error.status =
+      response.status;
+
+    throw error;
+  }
+
+  return payload;
+}
+
 async function readDiscordSubscriptionAccount(
   discordUserId: string,
 ) {
@@ -901,6 +1009,315 @@ async function subscriptionCommand(
     subscriptionButtons(),
     true,
   );
+}
+
+async function subscriptionsAdminCommand(
+  interaction: any,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const actor =
+    getActor(
+      interaction,
+    );
+  const actorDiscordUserId =
+    String(
+      actor?.id ||
+      "",
+    );
+
+  try {
+    const result =
+      await subscriptionRuntime(
+        "requests",
+        actorDiscordUserId,
+      );
+
+    const rows =
+      Array.isArray(
+        result?.requests,
+      )
+        ? result.requests
+            .slice(0, 5)
+        : [];
+
+    if (!rows.length) {
+      return interactionMessage(
+        baseEmbed(
+          t.subscriptionAdminTitle,
+          t.subscriptionAdminEmpty,
+          t.footer,
+        ),
+        [],
+        true,
+      );
+    }
+
+    const description =
+      rows
+        .map(
+          (
+            row: any,
+            index: number,
+          ) => {
+            const name =
+              row
+                .discordGlobalName ||
+              row
+                .discordUsername ||
+              row
+                .discordUserId ||
+              "Discord user";
+
+            return [
+              "**" +
+                String(
+                  index + 1,
+                ) +
+                ". " +
+                escapeMarkdown(
+                  name,
+                ) +
+                "**",
+              t.subscriptionAdminRequested +
+                ": **" +
+                String(
+                  row.plan ||
+                  "free",
+                )
+                  .toUpperCase() +
+                "**",
+              t.subscriptionAdminCurrent +
+                ": **" +
+                String(
+                  row.currentPlan ||
+                  "free",
+                )
+                  .toUpperCase() +
+                "**",
+              row.requestedAt
+                ? discordTimestamp(
+                    row.requestedAt,
+                  )
+                : "",
+            ]
+              .filter(Boolean)
+              .join("\n");
+          },
+        )
+        .join(
+          "\n\n",
+        );
+
+    const components =
+      rows.map(
+        (row: any) => ({
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 3,
+              custom_id:
+                "iste:subscription-admin:approve:" +
+                String(
+                  row.id,
+                ),
+              label:
+                t.subscriptionAdminApprove,
+            },
+            {
+              type: 2,
+              style: 4,
+              custom_id:
+                "iste:subscription-admin:reject:" +
+                String(
+                  row.id,
+                ),
+              label:
+                t.subscriptionAdminReject,
+            },
+          ],
+        }),
+      );
+
+    return interactionMessage(
+      baseEmbed(
+        t.subscriptionAdminTitle,
+        description,
+        t.footer,
+      ),
+      components,
+      true,
+    );
+  } catch (error) {
+    if (
+      (
+        error as
+          Error & {
+            status?: number;
+          }
+      ).status ===
+      403
+    ) {
+      return ephemeralText(
+        t.subscriptionAdminDenied,
+      );
+    }
+
+    console.error(
+      "subscription admin command failed",
+      error,
+    );
+
+    return ephemeralText(
+      t.subscriptionUnavailable,
+    );
+  }
+}
+
+async function handleSubscriptionAdminComponent(
+  interaction: any,
+) {
+  const customId =
+    String(
+      interaction
+        ?.data
+        ?.custom_id ||
+      "",
+    );
+  const prefix =
+    "iste:subscription-admin:";
+
+  if (
+    !customId.startsWith(
+      prefix,
+    )
+  ) {
+    return null;
+  }
+
+  const [
+    decision,
+    requestId,
+  ] =
+    customId
+      .slice(
+        prefix.length,
+      )
+      .split(
+        ":",
+        2,
+      );
+
+  if (
+    ![
+      "approve",
+      "reject",
+    ].includes(
+      decision,
+    ) ||
+    !/^[0-9a-f-]{36}$/i.test(
+      requestId ||
+      "",
+    )
+  ) {
+    return ephemeralText(
+      "Invalid subscription request.",
+    );
+  }
+
+  const lang =
+    localeFamily(
+      interaction?.locale ||
+      interaction
+        ?.guild_locale,
+    ) as Language;
+  const t =
+    copy[lang];
+  const actor =
+    getActor(
+      interaction,
+    );
+  const actorDiscordUserId =
+    String(
+      actor?.id ||
+      "",
+    );
+
+  try {
+    const result =
+      await subscriptionRuntime(
+        "decision",
+        actorDiscordUserId,
+        {
+          requestId,
+          decision,
+        },
+      );
+
+    if (
+      decision ===
+      "approve"
+    ) {
+      return ephemeralText(
+        interpolate(
+          t.subscriptionAdminApproved,
+          {
+            plan:
+              String(
+                result?.plan ||
+                "",
+              )
+                .toUpperCase(),
+            expires:
+              result?.expiresAt
+                ? discordTimestamp(
+                    result.expiresAt,
+                  )
+                : "—",
+          },
+        ),
+      );
+    }
+
+    return ephemeralText(
+      interpolate(
+        t.subscriptionAdminRejected,
+        {
+          plan:
+            String(
+              result?.plan ||
+              "",
+            )
+              .toUpperCase(),
+        },
+      ),
+    );
+  } catch (error) {
+    if (
+      (
+        error as
+          Error & {
+            status?: number;
+          }
+      ).status ===
+      403
+    ) {
+      return ephemeralText(
+        t.subscriptionAdminDenied,
+      );
+    }
+
+    console.error(
+      "subscription admin decision failed",
+      error,
+    );
+
+    return ephemeralText(
+      t.subscriptionUnavailable,
+    );
+  }
 }
 
 async function handleSubscriptionComponent(
@@ -3878,6 +4295,13 @@ async function handleCommand(
     );
   }
 
+  if (command === "subscriptions") {
+    return await subscriptionsAdminCommand(
+      interaction,
+      lang,
+    );
+  }
+
   if (command === "poll") {
     return pollCommand(interaction, lang);
   }
@@ -4119,6 +4543,17 @@ Deno.serve(async (request) => {
 
   if (interaction?.type === 3) {
     try {
+      const subscriptionAdminResponse =
+        await handleSubscriptionAdminComponent(
+          interaction,
+        );
+
+      if (subscriptionAdminResponse) {
+        return json(
+          subscriptionAdminResponse,
+        );
+      }
+
       const subscriptionResponse =
         await handleSubscriptionComponent(
           interaction,
