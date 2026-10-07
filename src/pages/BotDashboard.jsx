@@ -3639,7 +3639,10 @@ export default function BotDashboard() {
               guildId:
                 selectedGuild.guildId,
               section:
-                settingsTab,
+                settingsTab ===
+                  "overview"
+                  ? "system"
+                  : settingsTab,
               ...settings,
             },
           },
@@ -5724,6 +5727,9 @@ export default function BotDashboard() {
                         disabled={
                           busy ===
                             "verification-panel" ||
+                          !canControl(
+                            "onboarding.manage",
+                          ) ||
                           !settings
                             .verificationEnabled ||
                           !settings
@@ -5985,6 +5991,9 @@ export default function BotDashboard() {
                         disabled={
                           busy ===
                             "self-roles-panel" ||
+                          !canControl(
+                            "onboarding.manage",
+                          ) ||
                           !settings
                             .selfRolesEnabled ||
                           !settings
@@ -6528,7 +6537,10 @@ export default function BotDashboard() {
                           }
                           disabled={
                             busy ===
-                            "automod"
+                              "automod" ||
+                            !canControl(
+                              "moderation.manage",
+                            )
                           }
                         >
                           {busy ===
@@ -6547,7 +6559,8 @@ export default function BotDashboard() {
                           }
                           disabled={
                             busy ===
-                            `activate:${selectedGuild.guildId}`
+                              `activate:${selectedGuild.guildId}` ||
+                            !controlOwner
                           }
                         >
                           {c.updateBotPermissions}
@@ -6889,6 +6902,9 @@ export default function BotDashboard() {
                         disabled={
                           busy ===
                             "ticket-panel" ||
+                          !canControl(
+                            "support.manage",
+                          ) ||
                           !settings
                             .ticketsEnabled ||
                           !settings
@@ -7755,6 +7771,7 @@ export default function BotDashboard() {
                     busy ===
                       "settings" ||
                     ![
+                      "overview",
                       "onboarding",
                       "moderation",
                       "support",
@@ -7764,7 +7781,12 @@ export default function BotDashboard() {
                       settingsTab,
                     ) ||
                     !canControl(
-                      settingsTab +
+                      (
+                        settingsTab ===
+                          "overview"
+                          ? "system"
+                          : settingsTab
+                      ) +
                         ".manage",
                     )
                   }
@@ -8161,6 +8183,11 @@ export default function BotDashboard() {
                                     checked={
                                       command.enabled
                                     }
+                                    disabled={
+                                      !canControl(
+                                        "commands.manage",
+                                      )
+                                    }
                                     onChange={(
                                       event,
                                     ) =>
@@ -8210,6 +8237,11 @@ export default function BotDashboard() {
                                         command
                                           .cooldownSeconds
                                       }
+                                      disabled={
+                                        !canControl(
+                                          "commands.manage",
+                                        )
+                                      }
                                       onChange={(
                                         event,
                                       ) =>
@@ -8245,6 +8277,11 @@ export default function BotDashboard() {
                                       value={
                                         command
                                           .allowedRoleIds
+                                      }
+                                      disabled={
+                                        !canControl(
+                                          "commands.manage",
+                                        )
                                       }
                                       onChange={(
                                         event,
@@ -8299,6 +8336,11 @@ export default function BotDashboard() {
                                       value={
                                         command
                                           .allowedChannelIds
+                                      }
+                                      disabled={
+                                        !canControl(
+                                          "commands.manage",
+                                        )
                                       }
                                       onChange={(
                                         event,
@@ -9232,7 +9274,10 @@ export default function BotDashboard() {
                                       )
                                     }
                                     disabled={
-                                      createBusy
+                                      createBusy ||
+                                      !canControl(
+                                        "incidents.manage",
+                                      )
                                     }
                                   >
                                     {createBusy
@@ -9381,6 +9426,11 @@ export default function BotDashboard() {
                                     value={
                                       incident.status
                                     }
+                                    disabled={
+                                      !canControl(
+                                        "incidents.manage",
+                                      )
+                                    }
                                     onChange={(
                                       event,
                                     ) =>
@@ -9414,6 +9464,11 @@ export default function BotDashboard() {
                                   <select
                                     value={
                                       incident.severity
+                                    }
+                                    disabled={
+                                      !canControl(
+                                        "incidents.manage",
+                                      )
                                     }
                                     onChange={(
                                       event,
@@ -9457,6 +9512,11 @@ export default function BotDashboard() {
                                       .resolutionNote ||
                                     ""
                                   }
+                                  disabled={
+                                    !canControl(
+                                      "incidents.manage",
+                                    )
+                                  }
                                   onChange={(
                                     event,
                                   ) =>
@@ -9482,7 +9542,10 @@ export default function BotDashboard() {
                                   )
                                 }
                                 disabled={
-                                  saveBusy
+                                  saveBusy ||
+                                  !canControl(
+                                    "incidents.manage",
+                                  )
                                 }
                               >
                                 {saveBusy
@@ -9537,6 +9600,11 @@ export default function BotDashboard() {
                                       ] ||
                                       ""
                                     }
+                                    disabled={
+                                      !canControl(
+                                        "incidents.manage",
+                                      )
+                                    }
                                     onChange={(
                                       event,
                                     ) =>
@@ -9563,6 +9631,9 @@ export default function BotDashboard() {
                                     }
                                     disabled={
                                       noteBusy ||
+                                      !canControl(
+                                        "incidents.manage",
+                                      ) ||
                                       !String(
                                         incidentNoteDrafts[
                                           incident.id
@@ -10887,6 +10958,9 @@ export default function BotDashboard() {
                       disabled={
                         busy ===
                           "create-giveaway" ||
+                        !canControl(
+                          "publishing.manage",
+                        ) ||
                         !giveawayDraft
                           .channelId ||
                         !giveawayDraft
@@ -11138,6 +11212,9 @@ export default function BotDashboard() {
                       disabled={
                         busy ===
                           "schedule-message" ||
+                        !canControl(
+                          "publishing.manage",
+                        ) ||
                         !scheduleDraft
                           .channelId ||
                         !scheduleDraft
