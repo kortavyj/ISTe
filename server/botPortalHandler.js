@@ -15534,6 +15534,27 @@ async function handleWorkerSubscriptionProviderSync(
     if (
       provider ===
         "donatello" &&
+      !paidActive &&
+      existing?.provider !==
+        "donatello"
+    ) {
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          ignored: true,
+          reason:
+            "NON_DONATELLO_SUBSCRIPTION",
+          userId,
+          discordUserId:
+            discordUserId ||
+            null,
+        });
+    }
+
+    if (
+      provider ===
+        "donatello" &&
       paidActive &&
       existing?.provider ===
         "paddle" &&
@@ -15701,6 +15722,30 @@ async function handleWorkerSubscriptionProviderSync(
       paidActive
         ? "active"
         : providerStatus;
+    const stateChanged =
+      existing?.provider !==
+        provider ||
+      normalizePlan(
+        existing?.plan,
+      ) !==
+        config.plan ||
+      String(
+        existing?.status ||
+        "",
+      ) !==
+        localStatus ||
+      String(
+        existing?.expires_at ||
+        "",
+      ) !==
+        String(
+          expiresAt ||
+          "",
+        );
+    const requestWasPending =
+      paidActive &&
+      requestRow?.status ===
+        "pending";
 
     const {
       data:
@@ -15862,9 +15907,7 @@ async function handleWorkerSubscriptionProviderSync(
       );
 
     if (
-      paidActive &&
-      requestRow?.status ===
-        "pending"
+      requestWasPending
     ) {
       const metadata =
         requestRow
@@ -15945,61 +15988,66 @@ async function handleWorkerSubscriptionProviderSync(
       }
     }
 
-    await supabase
-      .from(
-        "discord_subscription_events",
-      )
-      .insert({
-        user_id:
-          userId,
-        actor_user_id:
-          null,
-        event_type:
-          provider +
-          "_" +
-          providerStatus,
-        plan:
-          config.plan,
-        starts_at:
-          startsAt,
-        expires_at:
-          expiresAt,
-        metadata: {
-          provider,
-          providerStatus,
-          requestId:
-            requestRow?.id ||
-            requestId ||
+    if (
+      stateChanged ||
+      requestWasPending
+    ) {
+      await supabase
+        .from(
+          "discord_subscription_events",
+        )
+        .insert({
+          user_id:
+            userId,
+          actor_user_id:
             null,
-          discordUserId:
-            discordUserId ||
-            null,
-          providerCustomerId:
-            providerCustomerId ||
-            null,
-          providerSubscriptionId:
-            provider ===
-              "donatello"
-              ? (
-                  "discord-role:" +
-                  config.plan
-                )
-              : (
-                  providerSubscriptionId ||
-                  null
-                ),
-          providerTransactionId:
-            providerTransactionId ||
-            null,
-          providerEventId:
-            providerEventId ||
-            null,
-          roleSynced:
-            roleSync.synced ===
-            true,
-          guildIds,
-        },
-      });
+          event_type:
+            provider +
+            "_" +
+            providerStatus,
+          plan:
+            config.plan,
+          starts_at:
+            startsAt,
+          expires_at:
+            expiresAt,
+          metadata: {
+            provider,
+            providerStatus,
+            requestId:
+              requestRow?.id ||
+              requestId ||
+              null,
+            discordUserId:
+              discordUserId ||
+              null,
+            providerCustomerId:
+              providerCustomerId ||
+              null,
+            providerSubscriptionId:
+              provider ===
+                "donatello"
+                ? (
+                    "discord-role:" +
+                    config.plan
+                  )
+                : (
+                    providerSubscriptionId ||
+                    null
+                  ),
+            providerTransactionId:
+              providerTransactionId ||
+              null,
+            providerEventId:
+              providerEventId ||
+              null,
+            roleSynced:
+              roleSync.synced ===
+              true,
+            guildIds,
+          },
+        });
+    };
 
     return response
       .status(200)
