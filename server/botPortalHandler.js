@@ -16887,28 +16887,31 @@ async function handleAnalyticsOverview(
                 analyticsEventLabel(
                   row.event_type,
                 ),
-              payload: {
-                user_id:
-                  String(
-                    payload.user_id ||
-                    "",
-                  ),
-                target_id:
-                  String(
-                    payload.target_id ||
-                    "",
-                  ),
-                opener_id:
-                  String(
-                    payload.opener_id ||
-                    "",
-                  ),
-                channel_id:
-                  String(
-                    payload.channel_id ||
-                    "",
-                  ),
-              },
+              payload:
+                access.isOwner
+                  ? {
+                      user_id:
+                        String(
+                          payload.user_id ||
+                          "",
+                        ),
+                      target_id:
+                        String(
+                          payload.target_id ||
+                          "",
+                        ),
+                      opener_id:
+                        String(
+                          payload.opener_id ||
+                          "",
+                        ),
+                      channel_id:
+                        String(
+                          payload.channel_id ||
+                          "",
+                        ),
+                    }
+                  : {},
               createdAt:
                 row.created_at,
             };
@@ -16986,10 +16989,14 @@ async function handleAnalyticsOverview(
                       .uptime_seconds ??
                     null,
                   guild_count:
-                    latestHealthResult
-                      .data
-                      .guild_count ??
-                    null,
+                    access.isOwner
+                      ? (
+                          latestHealthResult
+                            .data
+                            .guild_count ??
+                          null
+                        )
+                      : null,
                   captured_at:
                     latestHealthResult
                       .data
