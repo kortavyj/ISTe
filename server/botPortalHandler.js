@@ -10788,6 +10788,14 @@ function permissionAllows(
   }
 
   if (
+    required ===
+      "overview.view" &&
+    set.size > 0
+  ) {
+    return true;
+  }
+
+  if (
     required.endsWith(
       ".view",
     )

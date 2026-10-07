@@ -4961,7 +4961,18 @@ export default function BotDashboard() {
                       ).length,
                       total: 2,
                     },
-                  ].map(
+                  ]
+                    .filter(
+                      (item) =>
+                        item.key ===
+                          "staff"
+                          ? controlOwner
+                          : canControl(
+                              item.key +
+                                ".view",
+                            ),
+                    )
+                    .map(
                     (item) => (
                       <button
                         key={
@@ -7544,7 +7555,10 @@ export default function BotDashboard() {
                           }
                           disabled={
                             busy ===
-                            "config-snapshot"
+                              "config-snapshot" ||
+                            !canControl(
+                              "system.snapshot",
+                            )
                           }
                         >
                           {busy ===
@@ -7675,8 +7689,11 @@ export default function BotDashboard() {
                                     }
                                     disabled={
                                       busy ===
-                                      "config-restore:" +
-                                        version.id
+                                        "config-restore:" +
+                                          version.id ||
+                                      !canControl(
+                                        "system.restore",
+                                      )
                                     }
                                   >
                                     {busy ===
@@ -7787,7 +7804,10 @@ export default function BotDashboard() {
                     }
                     disabled={
                       busy ===
-                      "command-center-reset"
+                        "command-center-reset" ||
+                      !canControl(
+                        "commands.manage",
+                      )
                     }
                   >
                     {c.commandCenterReset}
@@ -7815,7 +7835,10 @@ export default function BotDashboard() {
                     }
                     disabled={
                       busy ===
-                      "command-center"
+                        "command-center" ||
+                      !canControl(
+                        "commands.manage",
+                      )
                     }
                   >
                     {busy ===
@@ -11782,6 +11805,11 @@ export default function BotDashboard() {
                       busy ===
                       `verify:${guild.guildId}`;
 
+                    const delegated =
+                      guild.access
+                        ?.delegated ===
+                      true;
+
                     return (
                       <article
                         key={
@@ -11862,6 +11890,7 @@ export default function BotDashboard() {
 
                         <div className="bot-dashboard-server-actions">
                           {!guild.licensed ? (
+                            !delegated ? (
                             <button
                               type="button"
                               onClick={() =>
@@ -11875,56 +11904,59 @@ export default function BotDashboard() {
                             >
                               {c.license}
                             </button>
+                            ) : null
                           ) : !guild.installed ? (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  activateGuild(
-                                    guild,
-                                  )
-                                }
-                                disabled={
-                                  activating
-                                }
-                              >
-                                {c.addBot}
-                              </button>
-
-                              <button
-                                type="button"
-                                className="secondary"
-                                onClick={() =>
-                                  verifyGuild(
-                                    guild,
-                                  )
-                                }
-                                disabled={
-                                  verifying
-                                }
-                              >
-                                {c.verify}
-                              </button>
-
-                              {guild.guildId !==
-                              "1334264628695404556" ? (
+                            !delegated ? (
+                              <>
                                 <button
                                   type="button"
-                                  className="danger"
                                   onClick={() =>
-                                    releaseLicense(
+                                    activateGuild(
                                       guild,
                                     )
                                   }
                                   disabled={
-                                    busy ===
-                                    `release:${guild.guildId}`
+                                    activating
                                   }
                                 >
-                                  {c.releaseLicense}
+                                  {c.addBot}
                                 </button>
-                              ) : null}
-                            </>
+
+                                <button
+                                  type="button"
+                                  className="secondary"
+                                  onClick={() =>
+                                    verifyGuild(
+                                      guild,
+                                    )
+                                  }
+                                  disabled={
+                                    verifying
+                                  }
+                                >
+                                  {c.verify}
+                                </button>
+
+                                {guild.guildId !==
+                                "1334264628695404556" ? (
+                                  <button
+                                    type="button"
+                                    className="danger"
+                                    onClick={() =>
+                                      releaseLicense(
+                                        guild,
+                                      )
+                                    }
+                                    disabled={
+                                      busy ===
+                                      `release:${guild.guildId}`
+                                    }
+                                  >
+                                    {c.releaseLicense}
+                                  </button>
+                                ) : null}
+                              </>
+                            ) : null
                           ) : (
                             <>
                               <button
@@ -11938,38 +11970,42 @@ export default function BotDashboard() {
                                 {c.manage}
                               </button>
 
-                              <button
-                                type="button"
-                                className="secondary"
-                                onClick={() =>
-                                  verifyGuild(
-                                    guild,
-                                  )
-                                }
-                                disabled={
-                                  verifying
-                                }
-                              >
-                                {c.verify}
-                              </button>
+                              {!delegated ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="secondary"
+                                    onClick={() =>
+                                      verifyGuild(
+                                        guild,
+                                      )
+                                    }
+                                    disabled={
+                                      verifying
+                                    }
+                                  >
+                                    {c.verify}
+                                  </button>
 
-                              {guild.guildId !==
-                              "1334264628695404556" ? (
-                                <button
-                                  type="button"
-                                  className="danger"
-                                  onClick={() =>
-                                    releaseLicense(
-                                      guild,
-                                    )
-                                  }
-                                  disabled={
-                                    busy ===
-                                    `release:${guild.guildId}`
-                                  }
-                                >
-                                  {c.releaseLicense}
-                                </button>
+                                  {guild.guildId !==
+                                  "1334264628695404556" ? (
+                                    <button
+                                      type="button"
+                                      className="danger"
+                                      onClick={() =>
+                                        releaseLicense(
+                                          guild,
+                                        )
+                                      }
+                                      disabled={
+                                        busy ===
+                                        `release:${guild.guildId}`
+                                      }
+                                    >
+                                      {c.releaseLicense}
+                                    </button>
+                                  ) : null}
+                                </>
                               ) : null}
                             </>
                           )}

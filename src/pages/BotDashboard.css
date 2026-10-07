@@ -4662,3 +4662,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.bot-dashboard-settings.tab-staff > * {
+  display: none !important;
+}
