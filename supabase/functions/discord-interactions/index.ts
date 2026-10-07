@@ -55,6 +55,57 @@ const SHOP_CHANNEL_NAME =
   )
     .trim()
     .toLowerCase();
+const SHOP_OWNER_ROLE_ID =
+  Deno.env.get("ISTE_SHOP_OWNER_ROLE_ID") ||
+  "";
+const SHOP_CO_OWNER_ROLE_ID =
+  Deno.env.get("ISTE_SHOP_CO_OWNER_ROLE_ID") ||
+  "";
+const MONOBANK_TOKEN =
+  Deno.env.get("MONOBANK_TOKEN") ||
+  "";
+const MONOBANK_API =
+  (
+    Deno.env.get("MONOBANK_API_URL") ||
+    "https://api.monobank.ua"
+  ).replace(/\/+$/, "");
+const MONOBANK_WEBHOOK_URL =
+  Deno.env.get("MONOBANK_WEBHOOK_URL") ||
+  (
+    SUPABASE_URL
+      ? SUPABASE_URL +
+        "/functions/v1/monobank-webhook"
+      : ""
+  );
+const MONOBANK_CCY =
+  Number.parseInt(
+    Deno.env.get("ISTE_MONO_CCY") ||
+    "980",
+    10,
+  );
+const MONOBANK_PLAN_AMOUNTS_MINOR = {
+  starter:
+    Number.parseInt(
+      Deno.env.get(
+        "ISTE_MONO_STARTER_AMOUNT_MINOR",
+      ) || "0",
+      10,
+    ),
+  pro:
+    Number.parseInt(
+      Deno.env.get(
+        "ISTE_MONO_PRO_AMOUNT_MINOR",
+      ) || "0",
+      10,
+    ),
+  max:
+    Number.parseInt(
+      Deno.env.get(
+        "ISTE_MONO_MAX_AMOUNT_MINOR",
+      ) || "0",
+      10,
+    ),
+} as const;
 const BRAND_COLOR = 0xe30613;
 const BOT_VERSION = "2.5.0";
 
@@ -210,8 +261,8 @@ const copy = {
       "Спочатку прив'яжіть Discord до акаунта ISTe на сайті. Після цього поверніться до цієї команди.",
     subscriptionOpenDashboard: "Відкрити ISTe Dashboard",
     subscriptionRequested:
-      "Замовлення на **{{plan}}** створено. Перейдіть у канал **Shop** для оплати. Підписка активується лише після підтвердження оплати адміністратором ISTe.",
-    subscriptionOpenShop: "Перейти в Shop",
+      "Приватне замовлення на **{{plan}}** створено. Відкрийте його, оплатіть рахунок і бот активує підписку автоматично після підтвердження платежу.",
+    subscriptionOpenShop: "Відкрити замовлення",
     subscriptionPaymentPending: "Очікує оплату",
     subscriptionPaymentApprove: "Підтвердити оплату",
     subscriptionPaymentReject: "Відхилити",
@@ -221,7 +272,7 @@ const copy = {
       "Замовлення на **{{plan}}** відхилено.",
     shopOrderTitle: "🛒 ISTe Bot • Підписка",
     shopPendingDescription:
-      "Після отримання оплати адміністратор ISTe підтвердить замовлення кнопкою нижче.",
+      "Оплатіть замовлення через захищену сторінку monobank нижче. Після успішної оплати бот перевірить платіж і активує підписку автоматично.",
     shopApprovedDescription:
       "Оплату підтверджено, підписку активовано.",
     shopRejectedDescription:
@@ -239,6 +290,8 @@ const copy = {
     shopStatusRejected: "🔴 ВІДХИЛЕНО",
     shopApprovePayment: "Підтвердити оплату",
     shopRejectPayment: "Відхилити",
+    shopPayNow: "Оплатити через monobank",
+    shopPaymentAmount: "До сплати",
     shopDmApproved:
       "✅ Оплату підтверджено. Тариф **{{plan}}** активовано{{expires}}.",
     shopDmRejected:
@@ -400,8 +453,8 @@ const copy = {
       "Сначала привяжите Discord к аккаунту ISTe на сайте. После этого вернитесь к этой команде.",
     subscriptionOpenDashboard: "Открыть ISTe Dashboard",
     subscriptionRequested:
-      "Заказ на **{{plan}}** создан. Перейдите в канал **Shop** для оплаты. Подписка активируется только после подтверждения оплаты администратором ISTe.",
-    subscriptionOpenShop: "Перейти в Shop",
+      "Приватный заказ на **{{plan}}** создан. Откройте его, оплатите счёт, и бот активирует подписку автоматически после подтверждения платежа.",
+    subscriptionOpenShop: "Открыть заказ",
     subscriptionPaymentPending: "Ожидает оплату",
     subscriptionPaymentApprove: "Подтвердить оплату",
     subscriptionPaymentReject: "Отклонить",
@@ -411,7 +464,7 @@ const copy = {
       "Заказ на **{{plan}}** отклонён.",
     shopOrderTitle: "🛒 ISTe Bot • Подписка",
     shopPendingDescription:
-      "После получения оплаты администратор ISTe подтвердит заказ кнопкой ниже.",
+      "Оплатите заказ через защищённую страницу monobank ниже. После успешной оплаты бот проверит платёж и активирует подписку автоматически.",
     shopApprovedDescription:
       "Оплата подтверждена, подписка активирована.",
     shopRejectedDescription:
@@ -429,6 +482,8 @@ const copy = {
     shopStatusRejected: "🔴 ОТКЛОНЕНО",
     shopApprovePayment: "Подтвердить оплату",
     shopRejectPayment: "Отклонить",
+    shopPayNow: "Оплатить через monobank",
+    shopPaymentAmount: "К оплате",
     shopDmApproved:
       "✅ Оплата подтверждена. Тариф **{{plan}}** активирован{{expires}}.",
     shopDmRejected:
@@ -590,8 +645,8 @@ const copy = {
       "Link Discord to your ISTe website account first, then return to this command.",
     subscriptionOpenDashboard: "Open ISTe Dashboard",
     subscriptionRequested:
-      "Your **{{plan}}** order was created. Open the **Shop** channel to complete payment. The subscription activates only after an ISTe admin confirms payment.",
-    subscriptionOpenShop: "Open Shop",
+      "A private **{{plan}}** order was created. Open it, complete payment, and the bot will activate the subscription automatically after payment confirmation.",
+    subscriptionOpenShop: "Open order",
     subscriptionPaymentPending: "Awaiting payment",
     subscriptionPaymentApprove: "Confirm payment",
     subscriptionPaymentReject: "Reject",
@@ -601,7 +656,7 @@ const copy = {
       "The **{{plan}}** order was rejected.",
     shopOrderTitle: "🛒 ISTe Bot • Subscription",
     shopPendingDescription:
-      "After payment is received, an ISTe administrator confirms the order with the button below.",
+      "Complete payment through the secure monobank page below. After a successful payment, the bot will verify it and activate the subscription automatically.",
     shopApprovedDescription:
       "Payment confirmed and the subscription is active.",
     shopRejectedDescription:
@@ -619,6 +674,8 @@ const copy = {
     shopStatusRejected: "🔴 REJECTED",
     shopApprovePayment: "Confirm payment",
     shopRejectPayment: "Reject",
+    shopPayNow: "Pay with monobank",
+    shopPaymentAmount: "Amount due",
     shopDmApproved:
       "✅ Payment confirmed. **{{plan}}** is active{{expires}}.",
     shopDmRejected:
@@ -975,6 +1032,536 @@ function shopChannelUrl(
   );
 }
 
+function normalizeShopRoleName(
+  value: unknown,
+) {
+  return String(value || "")
+    .normalize("NFKD")
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9а-яіїєґ]+/giu,
+      "",
+    );
+}
+
+function findShopRoleId(
+  roles: any[],
+  configuredId: string,
+  names: string[],
+) {
+  if (
+    /^[0-9]{17,20}$/.test(
+      configuredId,
+    )
+  ) {
+    return configuredId;
+  }
+
+  const wanted =
+    new Set(
+      names.map(
+        normalizeShopRoleName,
+      ),
+    );
+
+  const role =
+    roles.find(
+      (item: any) =>
+        wanted.has(
+          normalizeShopRoleName(
+            item?.name,
+          ),
+        ),
+    );
+
+  return String(
+    role?.id ||
+    "",
+  );
+}
+
+async function resolvePrivateShopAccess() {
+  const [
+    rolesPayload,
+    botUser,
+    guild,
+  ] =
+    await Promise.all([
+      discordBotRequest(
+        "/guilds/" +
+          INTERNAL_GUILD_ID +
+          "/roles",
+      ),
+      discordBotRequest(
+        "/users/@me",
+      ),
+      discordBotRequest(
+        "/guilds/" +
+          INTERNAL_GUILD_ID,
+      ),
+    ]);
+
+  const roles =
+    Array.isArray(
+      rolesPayload,
+    )
+      ? rolesPayload
+      : [];
+
+  return {
+    ownerRoleId:
+      findShopRoleId(
+        roles,
+        SHOP_OWNER_ROLE_ID,
+        [
+          "owner",
+          "project owner",
+          "владелец",
+          "овнер",
+        ],
+      ),
+    coOwnerRoleId:
+      findShopRoleId(
+        roles,
+        SHOP_CO_OWNER_ROLE_ID,
+        [
+          "co owner",
+          "co-owner",
+          "coowner",
+          "project co owner",
+          "совладелец",
+          "со овнер",
+        ],
+      ),
+    guildOwnerId:
+      String(
+        guild?.owner_id ||
+        "",
+      ),
+    botUserId:
+      String(
+        botUser?.id ||
+        "",
+      ),
+  };
+}
+
+async function createPrivateShopOrderChannel(
+  requestId: string,
+  discordUserId: string,
+  rootShopChannelId: string,
+) {
+  const rootChannel =
+    await discordBotRequest(
+      "/channels/" +
+        rootShopChannelId,
+    );
+  const access =
+    await resolvePrivateShopAccess();
+
+  if (
+    !access.ownerRoleId &&
+    !access.guildOwnerId
+  ) {
+    throw new Error(
+      "ISTe Shop owner access is not configured",
+    );
+  }
+
+  const viewChannel =
+    1n << 10n;
+  const sendMessages =
+    1n << 11n;
+  const embedLinks =
+    1n << 14n;
+  const attachFiles =
+    1n << 15n;
+  const readHistory =
+    1n << 16n;
+  const allowed =
+    (
+      viewChannel |
+      sendMessages |
+      embedLinks |
+      attachFiles |
+      readHistory
+    ).toString();
+
+  const overwrites: Array<{
+    id: string;
+    type: 0 | 1;
+    allow?: string;
+    deny?: string;
+  }> = [
+    {
+      id:
+        INTERNAL_GUILD_ID,
+      type: 0,
+      allow: "0",
+      deny:
+        viewChannel
+          .toString(),
+    },
+    {
+      id:
+        discordUserId,
+      type: 1,
+      allow:
+        allowed,
+      deny: "0",
+    },
+  ];
+
+  const addMember =
+    (
+      id: string,
+    ) => {
+      if (
+        /^[0-9]{17,20}$/.test(
+          id,
+        ) &&
+        !overwrites.some(
+          (item) =>
+            item.id === id &&
+            item.type === 1,
+        )
+      ) {
+        overwrites.push({
+          id,
+          type: 1,
+          allow:
+            allowed,
+          deny: "0",
+        });
+      }
+    };
+
+  const addRole =
+    (
+      id: string,
+    ) => {
+      if (
+        /^[0-9]{17,20}$/.test(
+          id,
+        ) &&
+        id !==
+          INTERNAL_GUILD_ID &&
+        !overwrites.some(
+          (item) =>
+            item.id === id &&
+            item.type === 0,
+        )
+      ) {
+        overwrites.push({
+          id,
+          type: 0,
+          allow:
+            allowed,
+          deny: "0",
+        });
+      }
+    };
+
+  addMember(
+    access.guildOwnerId,
+  );
+  addMember(
+    access.botUserId,
+  );
+  addRole(
+    access.ownerRoleId,
+  );
+  addRole(
+    access.coOwnerRoleId,
+  );
+
+  const shortId =
+    requestId
+      .replace(
+        /[^a-z0-9]/gi,
+        "",
+      )
+      .slice(0, 8)
+      .toLowerCase();
+
+  const channel =
+    await discordBotRequest(
+      "/guilds/" +
+        INTERNAL_GUILD_ID +
+        "/channels",
+      {
+        method: "POST",
+        body: {
+          name:
+            "order-" +
+            shortId,
+          type: 0,
+          topic:
+            "ISTe Shop order " +
+            requestId +
+            " | buyer " +
+            discordUserId,
+          parent_id:
+            /^[0-9]{17,20}$/.test(
+              String(
+                rootChannel
+                  ?.parent_id ||
+                "",
+              ),
+            )
+              ? String(
+                  rootChannel
+                    .parent_id,
+                )
+              : undefined,
+          permission_overwrites:
+            overwrites,
+        },
+      },
+    );
+
+  const channelId =
+    String(
+      channel?.id ||
+      "",
+    );
+
+  if (
+    !/^[0-9]{17,20}$/.test(
+      channelId,
+    )
+  ) {
+    throw new Error(
+      "ISTe private Shop order channel was not created",
+    );
+  }
+
+  return channelId;
+}
+
+function monobankAmountMinor(
+  plan: SubscriptionPlan,
+) {
+  const value =
+    Number(
+      MONOBANK_PLAN_AMOUNTS_MINOR[
+        plan
+      ] ||
+      0,
+    );
+
+  return (
+    Number.isSafeInteger(
+      value,
+    ) &&
+    value > 0
+  )
+    ? value
+    : 0;
+}
+
+async function createMonobankInvoice(
+  requestId: string,
+  discordUserId: string,
+  plan: SubscriptionPlan,
+  orderChannelId: string,
+  testMode = false,
+) {
+  if (
+    testMode ||
+    !adminDb ||
+    !MONOBANK_TOKEN ||
+    !MONOBANK_WEBHOOK_URL
+  ) {
+    return null;
+  }
+
+  const amountMinor =
+    monobankAmountMinor(
+      plan,
+    );
+
+  if (
+    !amountMinor ||
+    !Number.isInteger(
+      MONOBANK_CCY,
+    ) ||
+    MONOBANK_CCY <= 0
+  ) {
+    return null;
+  }
+
+  const {
+    data:
+      existing,
+  } = await adminDb
+    .from(
+      "discord_subscription_payments",
+    )
+    .select("*")
+    .eq(
+      "request_id",
+      requestId,
+    )
+    .maybeSingle();
+
+  if (
+    existing &&
+    existing.provider ===
+      "monobank" &&
+    [
+      "created",
+      "processing",
+      "hold",
+      "success",
+    ].includes(
+      String(
+        existing.status ||
+        "",
+      ),
+    ) &&
+    Number(
+      existing.amount_minor,
+    ) ===
+      amountMinor &&
+    Number(
+      existing.currency,
+    ) ===
+      MONOBANK_CCY &&
+    existing.page_url
+  ) {
+    return existing;
+  }
+
+  const response =
+    await fetch(
+      MONOBANK_API +
+        "/api/merchant/invoice/create",
+      {
+        method: "POST",
+        headers: {
+          "X-Token":
+            MONOBANK_TOKEN,
+          "Content-Type":
+            "application/json",
+          Accept:
+            "application/json",
+        },
+        body:
+          JSON.stringify({
+            amount:
+              amountMinor,
+            ccy:
+              MONOBANK_CCY,
+            merchantPaymInfo: {
+              reference:
+                requestId,
+              destination:
+                "ISTe Bot " +
+                plan.toUpperCase() +
+                " subscription",
+              comment:
+                "Discord " +
+                discordUserId,
+              metadata: {
+                requestId,
+                discordUserId,
+                plan,
+              },
+            },
+            redirectUrl:
+              shopChannelUrl(
+                orderChannelId,
+              ),
+            webHookUrl:
+              MONOBANK_WEBHOOK_URL,
+            validity:
+              3600,
+            paymentType:
+              "debit",
+            withAppUrl:
+              true,
+          }),
+      },
+    );
+
+  const payload =
+    await response
+      .json()
+      .catch(
+        () => null,
+      );
+
+  if (
+    !response.ok ||
+    !payload?.invoiceId ||
+    !payload?.pageUrl
+  ) {
+    throw new Error(
+      "MONOBANK_INVOICE_CREATE_FAILED",
+    );
+  }
+
+  const now =
+    new Date()
+      .toISOString();
+  const row = {
+    request_id:
+      requestId,
+    provider:
+      "monobank",
+    invoice_id:
+      String(
+        payload.invoiceId,
+      ),
+    amount_minor:
+      amountMinor,
+    currency:
+      MONOBANK_CCY,
+    status:
+      "created",
+    page_url:
+      String(
+        payload.pageUrl,
+      ),
+    app_url:
+      String(
+        payload.appUrl ||
+        "",
+      ),
+    provider_modified_at:
+      null,
+    provider_payload:
+      payload,
+    updated_at:
+      now,
+  };
+
+  const {
+    data:
+      saved,
+    error,
+  } = await adminDb
+    .from(
+      "discord_subscription_payments",
+    )
+    .upsert(
+      row,
+      {
+        onConflict:
+          "request_id",
+      },
+    )
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return saved;
+}
+
 function subscriptionShopEmbed(
   requestId: string,
   discordUserId: string,
@@ -990,6 +1577,7 @@ function subscriptionShopEmbed(
     name: string;
   }> = [],
   testMode = false,
+  payment: any = null,
 ) {
   const config =
     SUBSCRIPTION_PLANS[
@@ -1088,6 +1676,34 @@ function subscriptionShopEmbed(
           "`",
         inline: false,
       },
+      ...(payment
+        ? [
+            {
+              name:
+                t.shopPaymentAmount,
+              value:
+                (
+                  Number(
+                    payment.amount_minor ||
+                    0,
+                  ) /
+                  100
+                ).toFixed(2) +
+                " " +
+                (
+                  Number(
+                    payment.currency,
+                  ) === 980
+                    ? "UAH"
+                    : "CCY " +
+                      String(
+                        payment.currency,
+                      )
+                ),
+              inline: false,
+            },
+          ]
+        : []),
       ...(guilds.length
         ? [
             {
@@ -1137,12 +1753,35 @@ function subscriptionShopEmbed(
 function subscriptionShopComponents(
   requestId: string,
   lang: Language,
+  paymentUrl = "",
+  manualControls = false,
 ) {
   const t =
     copy[lang];
+  const rows: any[] = [];
 
-  return [
-    {
+  if (
+    /^https:\/\//i.test(
+      paymentUrl,
+    )
+  ) {
+    rows.push({
+      type: 1,
+      components: [
+        {
+          type: 2,
+          style: 5,
+          url:
+            paymentUrl,
+          label:
+            t.shopPayNow,
+        },
+      ],
+    });
+  }
+
+  if (manualControls) {
+    rows.push({
       type: 1,
       components: [
         {
@@ -1164,8 +1803,10 @@ function subscriptionShopComponents(
             t.shopRejectPayment,
         },
       ],
-    },
-  ];
+    });
+  }
+
+  return rows;
 }
 
 async function upsertSubscriptionShopOrder(
@@ -1181,12 +1822,61 @@ async function upsertSubscriptionShopOrder(
     localeFamily(
       metadata?.locale,
     ) as Language;
-  const channelId =
+  const rootShopChannelId =
     await resolveShopChannelId();
 
-  if (!channelId) {
+  if (!rootShopChannelId) {
     throw new Error(
       "ISTe Shop channel not found",
+    );
+  }
+
+  const existingChannelId =
+    String(
+      metadata
+        ?.shop_channel_id ||
+      "",
+    );
+  const existingMessageId =
+    String(
+      metadata
+        ?.shop_message_id ||
+      "",
+    );
+  const canReusePrivateChannel =
+    /^[0-9]{17,20}$/.test(
+      existingChannelId,
+    ) &&
+    existingChannelId !==
+      rootShopChannelId;
+  const channelId =
+    canReusePrivateChannel
+      ? existingChannelId
+      : await createPrivateShopOrderChannel(
+          requestId,
+          discordUserId,
+          rootShopChannelId,
+        );
+
+  let payment: any =
+    null;
+
+  try {
+    payment =
+      await createMonobankInvoice(
+        requestId,
+        discordUserId,
+        plan,
+        channelId,
+        metadata?.internal_test_mode ===
+          true,
+      );
+  } catch (
+    error
+  ) {
+    console.error(
+      "monobank invoice creation failed",
+      error,
     );
   }
 
@@ -1210,12 +1900,20 @@ async function upsertSubscriptionShopOrder(
           : [],
         metadata?.internal_test_mode ===
           true,
+        payment,
       ),
     ],
     components:
       subscriptionShopComponents(
         requestId,
         lang,
+        String(
+          payment?.page_url ||
+          "",
+        ),
+        metadata?.internal_test_mode ===
+          true ||
+          !payment?.page_url,
       ),
     allowed_mentions: {
       users: [
@@ -1224,19 +1922,6 @@ async function upsertSubscriptionShopOrder(
       parse: [],
     },
   };
-
-  const existingChannelId =
-    String(
-      metadata
-        ?.shop_channel_id ||
-      "",
-    );
-  const existingMessageId =
-    String(
-      metadata
-        ?.shop_message_id ||
-      "",
-    );
 
   let message;
 
@@ -1293,6 +1978,9 @@ async function upsertSubscriptionShopOrder(
       shopChannelUrl(
         channelId,
       ),
+    rootChannelId:
+      rootShopChannelId,
+    payment,
   };
 }
 
@@ -2946,10 +3634,44 @@ async function handleSubscriptionGuildComponent(
     ...metadata,
     shop_guild_id:
       shopOrder.guildId,
+    shop_root_channel_id:
+      shopOrder.rootChannelId,
     shop_channel_id:
       shopOrder.channelId,
     shop_message_id:
       shopOrder.messageId,
+    payment_provider:
+      shopOrder.payment
+        ? "monobank"
+        : (
+            metadata
+              ?.payment_provider ||
+            null
+          ),
+    payment_invoice_id:
+      shopOrder.payment
+        ?.invoice_id ||
+      metadata
+        ?.payment_invoice_id ||
+      null,
+    payment_status:
+      shopOrder.payment
+        ?.status ||
+      metadata
+        ?.payment_status ||
+      null,
+    payment_amount_minor:
+      shopOrder.payment
+        ?.amount_minor ||
+      metadata
+        ?.payment_amount_minor ||
+      null,
+    payment_ccy:
+      shopOrder.payment
+        ?.currency ||
+      metadata
+        ?.payment_ccy ||
+      null,
   };
 
   const {
