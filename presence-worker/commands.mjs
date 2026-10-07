@@ -908,9 +908,42 @@ async function upsertGuildCommand(
           "application/json",
       },
       body:
-        JSON.stringify(
-          command,
-        ),
+        JSON.stringify({
+          type:
+            command.type,
+          name:
+            command.name,
+          description:
+            command.description,
+          name_localizations:
+            command
+              .name_localizations,
+          description_localizations:
+            command
+              .description_localizations,
+          ...(
+            Array.isArray(
+              command.options,
+            ) &&
+            command.options
+              .length
+              ? {
+                  options:
+                    command.options,
+                }
+              : {}
+          ),
+          ...(
+            command
+              .default_member_permissions
+              ? {
+                  default_member_permissions:
+                    command
+                      .default_member_permissions,
+                }
+              : {}
+          ),
+        }),
     },
   );
 
