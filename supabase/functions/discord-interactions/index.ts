@@ -2730,6 +2730,446 @@ async function timeoutCommand(
   }
 }
 
+
+type CommandPolicyResult = {
+  allowed: boolean;
+  reason?: string;
+  retrySeconds?: number;
+};
+
+function commandPolicyText(
+  interaction: any,
+  reason = "",
+  retrySeconds = 0,
+) {
+  const lang =
+    localeFamily(
+      interaction?.locale ||
+      interaction?.guild_locale,
+    );
+
+  const messages = {
+    uk: {
+      disabled:
+        "Цю команду вимкнено на цьому Discord-сервері.",
+      channel:
+        "Ця команда недоступна в цьому каналі.",
+      role:
+        "Для цієї команди потрібна дозволена роль.",
+      cooldown:
+        "Команда на cooldown. Спробуй ще раз через {{seconds}} с.",
+    },
+    ru: {
+      disabled:
+        "Эта команда отключена на этом Discord-сервере.",
+      channel:
+        "Эта команда недоступна в этом канале.",
+      role:
+        "Для этой команды нужна разрешённая роль.",
+      cooldown:
+        "Команда на cooldown. Попробуй снова через {{seconds}} с.",
+    },
+    en: {
+      disabled:
+        "This command is disabled on this Discord server.",
+      channel:
+        "This command is not available in this channel.",
+      role:
+        "You need an allowed role to use this command.",
+      cooldown:
+        "This command is on cooldown. Try again in {{seconds}}s.",
+    },
+  } as const;
+
+  const family =
+    lang === "uk"
+      ? "uk"
+      : lang === "ru"
+        ? "ru"
+        : "en";
+
+  return interpolate(
+    messages[family][
+      reason as
+        keyof typeof messages.uk
+    ] ||
+      messages[family]
+        .disabled,
+    {
+      seconds:
+        Math.max(
+          1,
+          Math.ceil(
+            retrySeconds,
+          ),
+        ),
+    },
+  );
+}
+
+async function loadCommandPolicy(
+  interaction: any,
+  command: string,
+): Promise<CommandPolicyResult> {
+  const guildId =
+    String(
+      interaction?.guild_id ||
+      "",
+    );
+
+  if (
+    !adminDb ||
+    !guildId ||
+    !command
+  ) {
+    return {
+      allowed: true,
+    };
+  }
+
+  try {
+    const {
+      data:
+        policy,
+      error,
+    } = await adminDb
+      .from(
+        "discord_command_settings",
+      )
+      .select(
+        "enabled,allowed_role_ids,allowed_channel_ids,cooldown_seconds",
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "command_name",
+        command,
+      )
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!policy) {
+      return {
+        allowed: true,
+      };
+    }
+
+    if (
+      policy.enabled ===
+      false
+    ) {
+      return {
+        allowed: false,
+        reason:
+          "disabled",
+      };
+    }
+
+    const allowedChannels =
+      Array.isArray(
+        policy
+          .allowed_channel_ids,
+      )
+        ? policy
+            .allowed_channel_ids
+            .map(
+              (
+                value:
+                  unknown,
+              ) =>
+                String(value),
+            )
+            .filter(Boolean)
+        : [];
+
+    if (
+      allowedChannels.length &&
+      !allowedChannels.includes(
+        String(
+          interaction
+            ?.channel_id ||
+          "",
+        ),
+      )
+    ) {
+      return {
+        allowed: false,
+        reason:
+          "channel",
+      };
+    }
+
+    const allowedRoles =
+      Array.isArray(
+        policy
+          .allowed_role_ids,
+      )
+        ? policy
+            .allowed_role_ids
+            .map(
+              (
+                value:
+                  unknown,
+              ) =>
+                String(value),
+            )
+            .filter(Boolean)
+        : [];
+
+    if (allowedRoles.length) {
+      const memberRoles =
+        Array.isArray(
+          interaction
+            ?.member
+            ?.roles,
+        )
+          ? interaction
+              .member
+              .roles
+              .map(
+                (
+                  value:
+                    unknown,
+                ) =>
+                  String(value),
+              )
+          : [];
+
+      const matchesRole =
+        allowedRoles.some(
+          (roleId) =>
+            memberRoles.includes(
+              roleId,
+            ),
+        );
+
+      if (!matchesRole) {
+        return {
+          allowed: false,
+          reason:
+            "role",
+        };
+      }
+    }
+
+    const cooldownSeconds =
+      Math.max(
+        0,
+        Math.min(
+          86400,
+          Math.round(
+            Number(
+              policy
+                .cooldown_seconds ||
+              0,
+            ) ||
+            0,
+          ),
+        ),
+      );
+
+    if (cooldownSeconds > 0) {
+      const actor =
+        getActor(
+          interaction,
+        );
+      const userId =
+        String(
+          actor?.id ||
+          "",
+        );
+
+      if (userId) {
+        const {
+          data:
+            lastUsage,
+          error:
+            cooldownError,
+        } = await adminDb
+          .from(
+            "discord_command_usage",
+          )
+          .select(
+            "created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .eq(
+            "command_name",
+            command,
+          )
+          .eq(
+            "user_id",
+            userId,
+          )
+          .eq(
+            "outcome",
+            "allowed",
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(1)
+          .maybeSingle();
+
+        if (cooldownError) {
+          throw cooldownError;
+        }
+
+        if (
+          lastUsage
+            ?.created_at
+        ) {
+          const elapsedSeconds =
+            (
+              Date.now() -
+              new Date(
+                lastUsage
+                  .created_at,
+              ).getTime()
+            ) /
+            1000;
+
+          if (
+            elapsedSeconds <
+            cooldownSeconds
+          ) {
+            return {
+              allowed: false,
+              reason:
+                "cooldown",
+              retrySeconds:
+                cooldownSeconds -
+                elapsedSeconds,
+            };
+          }
+        }
+      }
+    }
+
+    return {
+      allowed: true,
+    };
+  } catch (error) {
+    console.error(
+      "command policy load failed",
+      error,
+    );
+
+    return {
+      allowed: true,
+    };
+  }
+}
+
+async function writeCommandUsage(
+  interaction: any,
+  command: string,
+  outcome:
+    | "allowed"
+    | "denied"
+    | "error",
+  {
+    reason = "",
+    durationMs = null,
+  }: {
+    reason?: string;
+    durationMs?: number | null;
+  } = {},
+) {
+  if (!adminDb) {
+    return;
+  }
+
+  const guildId =
+    String(
+      interaction?.guild_id ||
+      "",
+    );
+  const actor =
+    getActor(
+      interaction,
+    );
+  const userId =
+    String(
+      actor?.id ||
+      "",
+    );
+
+  if (
+    !guildId ||
+    !userId ||
+    !command
+  ) {
+    return;
+  }
+
+  try {
+    await adminDb
+      .from(
+        "discord_command_usage",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        command_name:
+          command,
+        user_id:
+          userId,
+        channel_id:
+          String(
+            interaction
+              ?.channel_id ||
+            "",
+          ) ||
+          null,
+        outcome,
+        denied_reason:
+          String(
+            reason ||
+            "",
+          )
+            .trim()
+            .slice(
+              0,
+              80,
+            ) ||
+          null,
+        duration_ms:
+          Number.isFinite(
+            Number(
+              durationMs,
+            ),
+          )
+            ? Math.max(
+                0,
+                Math.round(
+                  Number(
+                    durationMs,
+                  ),
+                ),
+              )
+            : null,
+      });
+  } catch (error) {
+    console.error(
+      "command usage insert failed",
+      error,
+    );
+  }
+}
+
 async function handleCommand(
   interaction: any,
   startedAt: number,
@@ -2942,24 +3382,98 @@ Deno.serve(async (request) => {
   }
 
   if (interaction?.type === 2) {
-    try {
-      return json(
-        await handleCommand(
-          interaction,
-          startedAt,
-        ),
-      );
-    } catch (error) {
-      console.error("discord command failed", error);
+    const command =
+      String(
+        interaction
+          ?.data
+          ?.name ||
+        "",
+      )
+        .toLowerCase();
 
-      const lang = localeFamily(
-        interaction?.locale ||
-          interaction?.guild_locale,
-      ) as Language;
+    const policy =
+      await loadCommandPolicy(
+        interaction,
+        command,
+      );
+
+    if (!policy.allowed) {
+      await writeCommandUsage(
+        interaction,
+        command,
+        "denied",
+        {
+          reason:
+            policy.reason ||
+            "policy",
+          durationMs:
+            Date.now() -
+            startedAt,
+        },
+      );
 
       return json(
         ephemeralText(
-          copy[lang].genericError,
+          commandPolicyText(
+            interaction,
+            policy.reason,
+            policy.retrySeconds,
+          ),
+        ),
+      );
+    }
+
+    try {
+      const result =
+        await handleCommand(
+          interaction,
+          startedAt,
+        );
+
+      await writeCommandUsage(
+        interaction,
+        command,
+        "allowed",
+        {
+          durationMs:
+            Date.now() -
+            startedAt,
+        },
+      );
+
+      return json(result);
+    } catch (error) {
+      console.error(
+        "discord command failed",
+        error,
+      );
+
+      await writeCommandUsage(
+        interaction,
+        command,
+        "error",
+        {
+          reason:
+            error instanceof Error
+              ? error.message
+              : "command_error",
+          durationMs:
+            Date.now() -
+            startedAt,
+        },
+      );
+
+      const lang =
+        localeFamily(
+          interaction?.locale ||
+          interaction
+            ?.guild_locale,
+        ) as Language;
+
+      return json(
+        ephemeralText(
+          copy[lang]
+            .genericError,
         ),
       );
     }
