@@ -1445,6 +1445,109 @@ function normalizeSettings(
             ),
           )
         : 1,
+    securityEnabled:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .securityEnabled ===
+          true
+        : false,
+    securityAlertChannelId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .securityAlertChannelId ||
+            "",
+          )
+        : "",
+    securityQuarantineRoleId:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? String(
+            row.config
+              .securityQuarantineRoleId ||
+            "",
+          )
+        : "",
+    securityJoinBurstThreshold:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? Math.max(
+            2,
+            Math.min(
+              100,
+              Number(
+                row.config
+                  .securityJoinBurstThreshold ||
+                8,
+              ) ||
+              8,
+            ),
+          )
+        : 8,
+    securityJoinBurstWindowSeconds:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? Math.max(
+            10,
+            Math.min(
+              600,
+              Number(
+                row.config
+                  .securityJoinBurstWindowSeconds ||
+                60,
+              ) ||
+              60,
+            ),
+          )
+        : 60,
+    securityMinAccountAgeHours:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? Math.max(
+            0,
+            Math.min(
+              8760,
+              Number(
+                row.config
+                  .securityMinAccountAgeHours ||
+                24,
+              ) ||
+              0,
+            ),
+          )
+        : 24,
+    securityAutoQuarantine:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .securityAutoQuarantine ===
+          true
+        : false,
+    securityEmergencyMode:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .securityEmergencyMode ===
+          true
+        : false,
+    securityIgnoreBots:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+            .securityIgnoreBots !==
+          false
+        : true,
     welcomeEnabled:
       row?.welcome_enabled ===
       true,
@@ -3043,6 +3146,153 @@ function readSnowflakeOrEmpty(
 
 
 
+async function handleSecurityOverview(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const since =
+      new Date(
+        Date.now() -
+        7 *
+          86400000,
+      ).toISOString();
+
+    const {
+      data,
+      error,
+    } = await access.supabase
+      .from(
+        "discord_security_events",
+      )
+      .select(
+        "id,user_id,event_type,severity,action_taken,details,created_at",
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .gte(
+        "created_at",
+        since,
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        },
+      )
+      .limit(250);
+
+    if (error) {
+      throw error;
+    }
+
+    const events =
+      data || [];
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        summary: {
+          events:
+            events.length,
+          warnings:
+            events.filter(
+              (item) =>
+                item.severity ===
+                "warning",
+            ).length,
+          critical:
+            events.filter(
+              (item) =>
+                item.severity ===
+                "critical",
+            ).length,
+          quarantined:
+            events.filter(
+              (item) =>
+                item.action_taken ===
+                "quarantine",
+            ).length,
+          raidBursts:
+            events.filter(
+              (item) =>
+                item.event_type ===
+                "join_burst",
+            ).length,
+          newAccounts:
+            events.filter(
+              (item) =>
+                item.event_type ===
+                "new_account",
+            ).length,
+        },
+        events,
+      });
+  } catch (error) {
+    console.error(
+      "Security overview error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "SECURITY_OVERVIEW_FAILED",
+      "Не вдалося завантажити Security Center.",
+    );
+  }
+}
+
 const DISCORD_COMMAND_CATALOG =
   Object.freeze([
     {
@@ -4216,6 +4466,17 @@ const CONFIG_HISTORY_GROUPS =
       "automodEscalationWindowMinutes",
       "automodTimeoutMinutes",
     ],
+    security: [
+      "securityEnabled",
+      "securityAlertChannelId",
+      "securityQuarantineRoleId",
+      "securityJoinBurstThreshold",
+      "securityJoinBurstWindowSeconds",
+      "securityMinAccountAgeHours",
+      "securityAutoQuarantine",
+      "securityEmergencyMode",
+      "securityIgnoreBots",
+    ],
     support: [
       "privateVoiceEnabled",
       "ticketsEnabled",
@@ -5166,6 +5427,51 @@ async function handleSaveSettings(
       ),
     );
 
+  const securityJoinBurstThreshold =
+    Math.max(
+      2,
+      Math.min(
+        100,
+        Math.round(
+          Number(
+            body.securityJoinBurstThreshold ||
+            8,
+          ) ||
+          8,
+        ),
+      ),
+    );
+
+  const securityJoinBurstWindowSeconds =
+    Math.max(
+      10,
+      Math.min(
+        600,
+        Math.round(
+          Number(
+            body.securityJoinBurstWindowSeconds ||
+            60,
+          ) ||
+          60,
+        ),
+      ),
+    );
+
+  const securityMinAccountAgeHours =
+    Math.max(
+      0,
+      Math.min(
+        8760,
+        Math.round(
+          Number(
+            body.securityMinAccountAgeHours ||
+            0,
+          ) ||
+          0,
+        ),
+      ),
+    );
+
   const fields = {
     adminRoleId:
       readSnowflakeOrEmpty(
@@ -5206,6 +5512,14 @@ async function handleSaveSettings(
     ticketLogChannelId:
       readSnowflakeOrEmpty(
         body.ticketLogChannelId,
+      ),
+    securityAlertChannelId:
+      readSnowflakeOrEmpty(
+        body.securityAlertChannelId,
+      ),
+    securityQuarantineRoleId:
+      readSnowflakeOrEmpty(
+        body.securityQuarantineRoleId,
       ),
     automodAlertChannelId:
       readSnowflakeOrEmpty(
@@ -5435,6 +5749,29 @@ async function handleSaveSettings(
       selfRolesPanelTitle,
       selfRolesPanelMessage,
       selfRoleIds,
+      securityEnabled:
+        body.securityEnabled ===
+        true,
+      securityAlertChannelId:
+        fields
+          .securityAlertChannelId
+          .value,
+      securityQuarantineRoleId:
+        fields
+          .securityQuarantineRoleId
+          .value,
+      securityJoinBurstThreshold,
+      securityJoinBurstWindowSeconds,
+      securityMinAccountAgeHours,
+      securityAutoQuarantine:
+        body.securityAutoQuarantine ===
+        true,
+      securityEmergencyMode:
+        body.securityEmergencyMode ===
+        true,
+      securityIgnoreBots:
+        body.securityIgnoreBots !==
+        false,
       ticketPanelChannelId:
         fields
           .ticketPanelChannelId
@@ -14057,6 +14394,16 @@ export default async function botPortalHandler(
     "publish-ticket-panel"
   ) {
     return handlePublishTicketPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "security-overview"
+  ) {
+    return handleSecurityOverview(
       request,
       response,
     );
