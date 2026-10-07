@@ -5,6 +5,7 @@ const GUILD_CONTEXT = [0];
 
 const KICK_MEMBERS = "2";
 const BAN_MEMBERS = "4";
+const ADMINISTRATOR = "8";
 const MANAGE_CHANNELS = "16";
 const MANAGE_MESSAGES = "8192";
 const MODERATE_MEMBERS = "1099511627776";
@@ -355,6 +356,16 @@ export const ISTE_COMMANDS = [
     ukName: "підписка",
     ruDescription: "Посмотреть статус и запросить подписку ISTe Bot",
     ukDescription: "Переглянути статус і запросити підписку ISTe Bot",
+  }),
+
+  command({
+    name: "subscriptions",
+    description: "Review ISTe Bot subscription requests",
+    ruName: "подписки",
+    ukName: "підписки",
+    ruDescription: "Просмотреть заявки на подписку ISTe Bot",
+    ukDescription: "Переглянути заявки на підписку ISTe Bot",
+    defaultMemberPermissions: ADMINISTRATOR,
   }),
 
   command({
