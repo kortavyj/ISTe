@@ -48,6 +48,28 @@ function parseSizes(value) {
   )];
 }
 
+async function fileToBase64(file) {
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  let binary = "";
+
+  for (
+    let offset = 0;
+    offset < bytes.length;
+    offset += chunkSize
+  ) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(
+        offset,
+        offset + chunkSize,
+      ),
+    );
+  }
+
+  return btoa(binary);
+}
+
 function formatDate(value) {
   if (!value) return "—";
 
@@ -118,6 +140,7 @@ export default function OwnerShop() {
   const [form, setForm] = useState(EMPTY_PRODUCT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -161,6 +184,86 @@ export default function OwnerShop() {
     setSuccess("");
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function uploadProductImage(file) {
+    if (
+      !file ||
+      uploadingImage
+    ) {
+      return;
+    }
+
+    if (
+      ![
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+      ].includes(file.type)
+    ) {
+      setError(
+        "Поддерживаются JPG, PNG и WEBP.",
+      );
+      return;
+    }
+
+    if (
+      file.size >
+      2_621_440
+    ) {
+      setError(
+        "Изображение должно быть не больше 2.5 MB.",
+      );
+      return;
+    }
+
+    setUploadingImage(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const result =
+        await apiRequest(
+          "owner-upload-image",
+          {
+            method: "POST",
+            body: {
+              fileName:
+                file.name,
+              mimeType:
+                file.type,
+              data:
+                await fileToBase64(
+                  file,
+                ),
+            },
+          },
+        );
+
+      setForm(
+        (current) => ({
+          ...current,
+          imageUrl:
+            result.imageUrl ||
+            "",
+        }),
+      );
+
+      setSuccess(
+        "Изображение загружено. Сохрани товар, чтобы закрепить его в карточке.",
+      );
+    } catch (
+      uploadError
+    ) {
+      setError(
+        uploadError?.message ||
+          "Не удалось загрузить изображение товара.",
+      );
+    } finally {
+      setUploadingImage(
+        false,
+      );
+    }
   }
 
   async function saveProduct(event) {
@@ -399,16 +502,72 @@ export default function OwnerShop() {
             />
           </label>
 
-          <label>
-            <span>URL изображения, необязательно</span>
-            <input
-              type="text"
-              maxLength={1000}
-              value={form.imageUrl}
-              placeholder="/shop/hoodie.webp или https://..."
-              onChange={(event) => setForm((current) => ({ ...current, imageUrl: event.target.value }))}
-            />
-          </label>
+          <section className="owner-shop-image-editor">
+            <div className="owner-shop-image-editor__head">
+              <div>
+                <span>Изображение товара</span>
+                <small>JPG, PNG или WEBP до 2.5 MB</small>
+              </div>
+
+              <label className="owner-shop-upload">
+                <span>
+                  {uploadingImage
+                    ? "ЗАГРУЖАЕМ..."
+                    : "ЗАГРУЗИТЬ ФАЙЛ"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={uploadingImage}
+                  onChange={(event) => {
+                    const file =
+                      event.target.files?.[0];
+
+                    if (file) {
+                      void uploadProductImage(
+                        file,
+                      );
+                    }
+
+                    event.target.value =
+                      "";
+                  }}
+                />
+              </label>
+            </div>
+
+            <div className="owner-shop-image-editor__body">
+              <div className="owner-shop-image-preview">
+                {form.imageUrl ? (
+                  <img
+                    src={form.imageUrl}
+                    alt=""
+                  />
+                ) : (
+                  <span>ISTe</span>
+                )}
+              </div>
+
+              <label className="owner-shop-image-url">
+                <span>URL изображения</span>
+                <input
+                  type="text"
+                  maxLength={1000}
+                  value={form.imageUrl}
+                  placeholder="/shop/hoodie.webp или https://..."
+                  onChange={(event) =>
+                    setForm(
+                      (current) => ({
+                        ...current,
+                        imageUrl:
+                          event.target.value,
+                      }),
+                    )
+                  }
+                />
+              </label>
+            </div>
+          </section>
 
           <button className="owner-shop-save" type="submit" disabled={saving}>
             {saving ? "СОХРАНЯЕМ..." : "СОХРАНИТЬ ТОВАР"}
