@@ -18,6 +18,8 @@ const DEFAULT_MATCH_DATA_URL =
 const DEFAULT_SITE_URL = "https://istesport.com";
 const DEFAULT_TELEMETRY_URL =
   "https://niwgrrprbcgbdaloijhq.supabase.co/functions/v1/discord-worker-telemetry";
+const DEFAULT_RUNTIME_URL =
+  "https://niwgrrprbcgbdaloijhq.supabase.co/functions/v1/discord-worker-runtime";
 const DEFAULT_IDLE_ACTIVITY = "ISTesport | istesport.com";
 const DEFAULT_REFRESH_MS = 60_000;
 const MIN_REFRESH_MS = 30_000;
@@ -206,6 +208,11 @@ const siteUrl = cleanText(
 const telemetryUrl = cleanText(
   process.env.ISTE_TELEMETRY_URL,
   DEFAULT_TELEMETRY_URL,
+);
+
+const runtimeUrl = cleanText(
+  process.env.ISTE_RUNTIME_URL,
+  DEFAULT_RUNTIME_URL,
 );
 
 const fallbackMatchAnnouncementChannelId = cleanText(
@@ -439,6 +446,65 @@ function defaultGuildRuntimeConfig(guildId) {
   };
 }
 
+async function workerRuntimeApi(
+  action,
+  body = {},
+) {
+  const response =
+    await fetch(
+      runtimeUrl,
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          Accept:
+            "application/json",
+          "Content-Type":
+            "application/json",
+          Authorization:
+            "Bot " +
+            token,
+          "User-Agent":
+            "ISTesport-Discord-Worker/2.6",
+        },
+        body:
+          JSON.stringify({
+            action,
+            ...body,
+          }),
+        signal:
+          AbortSignal.timeout(
+            FETCH_TIMEOUT_MS,
+          ),
+      },
+    );
+
+  const result =
+    await response
+      .json()
+      .catch(
+        () => null,
+      );
+
+  if (
+    !response.ok ||
+    result?.ok !==
+      true
+  ) {
+    throw new Error(
+      result?.error ||
+      "Worker runtime " +
+      action +
+      " returned " +
+      String(
+        response.status,
+      ),
+    );
+  }
+
+  return result;
+}
+
 async function fetchGuildRuntimeConfig(
   guildId,
   {
@@ -466,63 +532,13 @@ async function fetchGuildRuntimeConfig(
     );
 
   try {
-    const url =
-      new URL(
-        `${siteUrl}/api/owner`,
-      );
-
-    url.searchParams.set(
-      "module",
-      "bot-portal",
-    );
-
-    url.searchParams.set(
-      "action",
-      "worker-config",
-    );
-
-    url.searchParams.set(
-      "guildId",
-      guildId,
-    );
-
-    const response =
-      await fetch(
-        url,
+    const result =
+      await workerRuntimeApi(
+        "config",
         {
-          cache: "no-store",
-          headers: {
-            Accept:
-              "application/json",
-            Authorization:
-              `Bot ${token}`,
-            "User-Agent":
-              "ISTesport-Discord-Worker/2.1",
-          },
-          signal:
-            AbortSignal.timeout(
-              FETCH_TIMEOUT_MS,
-            ),
+          guildId,
         },
       );
-
-    const result =
-      await response
-        .json()
-        .catch(
-          () => null,
-        );
-
-    if (
-      !response.ok ||
-      result?.ok !==
-        true
-    ) {
-      throw new Error(
-        result?.message ||
-        `Bot config returned ${response.status}`,
-      );
-    }
 
     const value = {
       active:
@@ -1716,74 +1732,19 @@ async function publicationApi(
   action,
   body = {},
 ) {
-  const url =
-    new URL(
-      siteUrl +
-      "/api/owner",
-    );
+  const mappedAction =
+    action ===
+      "worker-publications-due"
+      ? "publications-due"
+      : action ===
+          "worker-publication-result"
+        ? "publication-result"
+        : action;
 
-  url.searchParams.set(
-    "module",
-    "bot-portal",
+  return workerRuntimeApi(
+    mappedAction,
+    body,
   );
-
-  url.searchParams.set(
-    "action",
-    action,
-  );
-
-  const response =
-    await fetch(
-      url,
-      {
-        method: "POST",
-        cache: "no-store",
-        headers: {
-          Accept:
-            "application/json",
-          "Content-Type":
-            "application/json",
-          Authorization:
-            "Bot " +
-            token,
-          "User-Agent":
-            "ISTesport-Discord-Worker/2.4",
-        },
-        body:
-          JSON.stringify(
-            body,
-          ),
-        signal:
-          AbortSignal.timeout(
-            FETCH_TIMEOUT_MS,
-          ),
-      },
-    );
-
-  const result =
-    await response
-      .json()
-      .catch(
-        () => null,
-      );
-
-  if (
-    !response.ok ||
-    result?.ok !==
-      true
-  ) {
-    throw new Error(
-      result?.message ||
-      "Publication API " +
-      action +
-      " returned " +
-      String(
-        response.status,
-      ),
-    );
-  }
-
-  return result;
 }
 
 function scheduledDiscordPayload(
@@ -2621,78 +2582,26 @@ async function reportAutoModerationExecution(
       return;
     }
 
-    const url =
-      new URL(
-        `${siteUrl}/api/owner`,
-      );
-
-    url.searchParams.set(
-      "module",
-      "bot-portal",
-    );
-
-    url.searchParams.set(
-      "action",
-      "worker-automod-event",
-    );
-
-    const response =
-      await fetch(
-        url,
+    const result =
+      await workerRuntimeApi(
+        "automod-event",
         {
-          method: "POST",
-          cache: "no-store",
-          headers: {
-            Accept:
-              "application/json",
-            "Content-Type":
-              "application/json",
-            Authorization:
-              `Bot ${token}`,
-            "User-Agent":
-              "ISTesport-Discord-Worker/2.3",
-          },
-          body:
-            JSON.stringify({
-              guildId,
-              userId,
-              channelId,
-              ruleId,
-              actionType,
-              matchedKeyword:
-                cleanText(
-                  execution
-                    ?.matchedKeyword,
-                )
-                  .slice(
-                    0,
-                    120,
-                  ),
-            }),
-          signal:
-            AbortSignal.timeout(
-              FETCH_TIMEOUT_MS,
-            ),
+          guildId,
+          userId,
+          channelId,
+          ruleId,
+          actionType,
+          matchedKeyword:
+            cleanText(
+              execution
+                ?.matchedKeyword,
+            )
+              .slice(
+                0,
+                120,
+              ),
         },
       );
-
-    const result =
-      await response
-        .json()
-        .catch(
-          () => null,
-        );
-
-    if (
-      !response.ok ||
-      result?.ok !==
-        true
-    ) {
-      throw new Error(
-        result?.message ||
-        `AutoMod event endpoint returned ${response.status}`,
-      );
-    }
 
     automodEventsProcessed +=
       1;
