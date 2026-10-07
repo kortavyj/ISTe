@@ -8813,6 +8813,1226 @@ async function handleWorkerPublicationResult(
   }
 }
 
+
+function analyticsDayKey(
+  value,
+) {
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return "";
+  }
+
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "Europe/Kyiv",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      },
+    )
+      .formatToParts(
+        date,
+      )
+      .reduce(
+        (
+          result,
+          part,
+        ) => {
+          if (
+            part.type !==
+            "literal"
+          ) {
+            result[
+              part.type
+            ] =
+              part.value;
+          }
+
+          return result;
+        },
+        {},
+      );
+
+  return (
+    String(
+      parts.year ||
+      "",
+    ) +
+    "-" +
+    String(
+      parts.month ||
+      "",
+    ) +
+    "-" +
+    String(
+      parts.day ||
+      "",
+    )
+  );
+}
+
+function analyticsTimeline(
+  days,
+  auditRows,
+  moderationRows,
+) {
+  const result = [];
+  const map = new Map();
+
+  for (
+    let offset =
+      days - 1;
+    offset >= 0;
+    offset -= 1
+  ) {
+    const date =
+      new Date(
+        Date.now() -
+          offset *
+            86400000,
+      );
+    const key =
+      analyticsDayKey(
+        date,
+      );
+
+    const item = {
+      date: key,
+      joins: 0,
+      leaves: 0,
+      moderation: 0,
+      tickets: 0,
+      verification: 0,
+      roles: 0,
+      giveaways: 0,
+      publications: 0,
+      recruitment: 0,
+      total: 0,
+    };
+
+    result.push(item);
+    map.set(
+      key,
+      item,
+    );
+  }
+
+  for (
+    const row
+    of (
+      Array.isArray(
+        auditRows,
+      )
+        ? auditRows
+        : []
+    )
+  ) {
+    const key =
+      analyticsDayKey(
+        row.created_at,
+      );
+    const item =
+      map.get(key);
+
+    if (!item) {
+      continue;
+    }
+
+    const event =
+      String(
+        row.event_type ||
+        "",
+      );
+
+    item.total += 1;
+
+    if (
+      event ===
+      "member.join"
+    ) {
+      item.joins += 1;
+    } else if (
+      event ===
+      "member.leave"
+    ) {
+      item.leaves += 1;
+    } else if (
+      event.startsWith(
+        "ticket.",
+      )
+    ) {
+      item.tickets += 1;
+    } else if (
+      event ===
+      "verification.completed"
+    ) {
+      item.verification += 1;
+    } else if (
+      event.startsWith(
+        "self_role.",
+      )
+    ) {
+      item.roles += 1;
+    } else if (
+      event.startsWith(
+        "giveaway.",
+      )
+    ) {
+      item.giveaways += 1;
+    } else if (
+      event.startsWith(
+        "scheduled_message.",
+      )
+    ) {
+      item.publications += 1;
+    } else if (
+      event.startsWith(
+        "recruitment.",
+      )
+    ) {
+      item.recruitment += 1;
+    }
+  }
+
+  for (
+    const row
+    of (
+      Array.isArray(
+        moderationRows,
+      )
+        ? moderationRows
+        : []
+    )
+  ) {
+    const key =
+      analyticsDayKey(
+        row.created_at,
+      );
+    const item =
+      map.get(key);
+
+    if (item) {
+      item.moderation +=
+        1;
+      item.total += 1;
+    }
+  }
+
+  return result;
+}
+
+function analyticsEventLabel(
+  eventType,
+) {
+  const labels = {
+    "member.join":
+      "Member joined",
+    "member.leave":
+      "Member left",
+    "verification.completed":
+      "Verification completed",
+    "self_role.added":
+      "Self role added",
+    "self_role.removed":
+      "Self role removed",
+    "ticket.created":
+      "Ticket created",
+    "ticket.closed":
+      "Ticket closed",
+    "ticket.reopened":
+      "Ticket reopened",
+    "ticket.deleted":
+      "Ticket deleted",
+    "giveaway.created":
+      "Giveaway created",
+    "giveaway.joined":
+      "Giveaway joined",
+    "giveaway.left":
+      "Giveaway left",
+    "giveaway.ended":
+      "Giveaway ended",
+    "giveaway.rerolled":
+      "Giveaway rerolled",
+    "scheduled_message.created":
+      "Scheduled message created",
+    "scheduled_message.sent":
+      "Scheduled message sent",
+    "automod.warn":
+      "AutoMod warning",
+    "automod.timeout":
+      "AutoMod timeout",
+  };
+
+  return (
+    labels[eventType] ||
+    String(
+      eventType ||
+      "event",
+    )
+  );
+}
+
+async function handleWorkerMemberEvent(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: false,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  if (
+    !requireWorkerBot(
+      request,
+      response,
+    )
+  ) {
+    return;
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const userId =
+    String(
+      body.userId ||
+      "",
+    ).trim();
+  const type =
+    String(
+      body.type ||
+      "",
+    ).trim();
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    !isSnowflake(
+      userId,
+    ) ||
+    ![
+      "join",
+      "leave",
+    ].includes(type)
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_MEMBER_EVENT",
+      "Invalid member event.",
+    );
+  }
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    await supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "member." +
+          type,
+        payload: {
+          user_id:
+            userId,
+          member_count:
+            Number(
+              body.memberCount ||
+              0,
+            ) ||
+            null,
+          is_bot:
+            body.isBot ===
+            true,
+          account_created_at:
+            String(
+              body.accountCreatedAt ||
+              "",
+            ) ||
+            null,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Worker member event error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "MEMBER_EVENT_FAILED",
+      "Could not record member event.",
+    );
+  }
+}
+
+async function handleWorkerHealthSnapshot(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: false,
+        maxBodyBytes: 12000,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  if (
+    !requireWorkerBot(
+      request,
+      response,
+    )
+  ) {
+    return;
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+
+  try {
+    const supabase =
+      getSupabaseAdminClient();
+
+    const snapshot = {
+      worker_id:
+        String(
+          body.workerId ||
+          "discord-primary",
+        )
+          .trim()
+          .slice(
+            0,
+            80,
+          ),
+      ready:
+        body.ready ===
+        true,
+      ws_ping_ms:
+        Number.isFinite(
+          Number(
+            body.wsPingMs,
+          ),
+        )
+          ? Math.max(
+              0,
+              Math.round(
+                Number(
+                  body.wsPingMs,
+                ),
+              ),
+            )
+          : null,
+      uptime_seconds:
+        Math.max(
+          0,
+          Math.round(
+            Number(
+              body.uptimeSeconds ||
+              0,
+            ) ||
+            0,
+          ),
+        ),
+      guild_count:
+        Math.max(
+          0,
+          Math.round(
+            Number(
+              body.guildCount ||
+              0,
+            ) ||
+            0,
+          ),
+        ),
+      metrics:
+        body.metrics &&
+        typeof body.metrics ===
+          "object"
+          ? body.metrics
+          : {},
+    };
+
+    const {
+      error,
+    } = await supabase
+      .from(
+        "discord_bot_health_snapshots",
+      )
+      .insert(
+        snapshot,
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    if (
+      Math.random() <
+      0.05
+    ) {
+      const cutoff =
+        new Date(
+          Date.now() -
+            30 *
+              86400000,
+        ).toISOString();
+
+      await supabase
+        .from(
+          "discord_bot_health_snapshots",
+        )
+        .delete()
+        .lt(
+          "captured_at",
+          cutoff,
+        );
+    }
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Worker health snapshot error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "HEALTH_SNAPSHOT_FAILED",
+      "Could not store worker health snapshot.",
+    );
+  }
+}
+
+async function handleAnalyticsOverview(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const requestedDays =
+    Number(
+      body.days ||
+      7,
+    );
+  const days =
+    requestedDays ===
+      30
+      ? 30
+      : 7;
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const supabase =
+      access.supabase;
+    const since =
+      new Date(
+        Date.now() -
+          days *
+            86400000,
+      ).toISOString();
+    const healthSince =
+      new Date(
+        Date.now() -
+          24 *
+            3600000,
+      ).toISOString();
+
+    const [
+      auditResult,
+      moderationResult,
+      openWarningsResult,
+      ticketResult,
+      openTicketsResult,
+      giveawaysResult,
+      participantResult,
+      scheduledResult,
+      healthResult,
+      latestHealthResult,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "discord_bot_audit",
+          )
+          .select(
+            "id,event_type,payload,created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(4000),
+        supabase
+          .from(
+            "discord_moderation_cases",
+          )
+          .select(
+            "id,action,status,target_user_id,moderator_user_id,reason,duration_minutes,created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(1000),
+        supabase
+          .from(
+            "discord_moderation_cases",
+          )
+          .select(
+            "id",
+            {
+              count: "exact",
+              head: true,
+            },
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .eq(
+            "action",
+            "warn",
+          )
+          .eq(
+            "status",
+            "active",
+          ),
+        supabase
+          .from(
+            "discord_tickets",
+          )
+          .select(
+            "id,status,opener_id,created_at,closed_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(1000),
+        supabase
+          .from(
+            "discord_tickets",
+          )
+          .select(
+            "id",
+            {
+              count: "exact",
+              head: true,
+            },
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .eq(
+            "status",
+            "open",
+          ),
+        supabase
+          .from(
+            "discord_giveaways",
+          )
+          .select(
+            "id,status,prize,winner_count,winner_user_ids,created_at,ends_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(500),
+        supabase
+          .from(
+            "discord_giveaway_participants",
+          )
+          .select(
+            "giveaway_id,user_id,joined_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "joined_at",
+            since,
+          )
+          .limit(3000),
+        supabase
+          .from(
+            "discord_scheduled_messages",
+          )
+          .select(
+            "id,status,created_at,sent_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(1000),
+        supabase
+          .from(
+            "discord_bot_health_snapshots",
+          )
+          .select(
+            "ready,ws_ping_ms,uptime_seconds,guild_count,metrics,captured_at",
+          )
+          .gte(
+            "captured_at",
+            healthSince,
+          )
+          .order(
+            "captured_at",
+            {
+              ascending:
+                true,
+            },
+          )
+          .limit(500),
+        supabase
+          .from(
+            "discord_bot_health_snapshots",
+          )
+          .select(
+            "ready,ws_ping_ms,uptime_seconds,guild_count,metrics,captured_at",
+          )
+          .order(
+            "captured_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+    const queryResults = [
+      auditResult,
+      moderationResult,
+      openWarningsResult,
+      ticketResult,
+      openTicketsResult,
+      giveawaysResult,
+      participantResult,
+      scheduledResult,
+      healthResult,
+      latestHealthResult,
+    ];
+
+    for (
+      const result
+      of queryResults
+    ) {
+      if (result.error) {
+        throw result.error;
+      }
+    }
+
+    const auditRows =
+      auditResult.data ||
+      [];
+    const moderationRows =
+      moderationResult.data ||
+      [];
+    const ticketRows =
+      ticketResult.data ||
+      [];
+    const giveawayRows =
+      giveawaysResult.data ||
+      [];
+    const participantRows =
+      participantResult.data ||
+      [];
+    const scheduledRows =
+      scheduledResult.data ||
+      [];
+    const healthRows =
+      healthResult.data ||
+      [];
+
+    const joins =
+      auditRows.filter(
+        (row) =>
+          row.event_type ===
+          "member.join",
+      ).length;
+    const leaves =
+      auditRows.filter(
+        (row) =>
+          row.event_type ===
+          "member.leave",
+      ).length;
+    const verified =
+      auditRows.filter(
+        (row) =>
+          row.event_type ===
+          "verification.completed",
+      ).length;
+    const selfRoleChanges =
+      auditRows.filter(
+        (row) =>
+          String(
+            row.event_type ||
+            "",
+          ).startsWith(
+            "self_role.",
+          ),
+      ).length;
+    const automodActions =
+      auditRows.filter(
+        (row) =>
+          String(
+            row.event_type ||
+            "",
+          ).startsWith(
+            "automod.",
+          ),
+      ).length;
+    const recruitment =
+      auditRows.filter(
+        (row) =>
+          String(
+            row.event_type ||
+            "",
+          ).startsWith(
+            "recruitment.",
+          ),
+      ).length;
+
+    const roleCounts = {};
+
+    for (
+      const row
+      of auditRows
+    ) {
+      if (
+        row.event_type !==
+        "self_role.added"
+      ) {
+        continue;
+      }
+
+      const roleId =
+        String(
+          row.payload
+            ?.role_id ||
+          "",
+        );
+
+      if (isSnowflake(roleId)) {
+        roleCounts[roleId] =
+          (
+            roleCounts[
+              roleId
+            ] ||
+            0
+          ) + 1;
+      }
+    }
+
+    let currentMembers =
+      null;
+    let roleNames = {};
+
+    try {
+      const config =
+        readConfig();
+
+      if (config.botToken) {
+        const [
+          guild,
+          roles,
+        ] =
+          await Promise.all([
+            discordRequest(
+              "/guilds/" +
+              guildId +
+              "?with_counts=true",
+              {
+                token:
+                  config.botToken,
+                authType: "Bot",
+              },
+            ),
+            discordRequest(
+              "/guilds/" +
+              guildId +
+              "/roles",
+              {
+                token:
+                  config.botToken,
+                authType: "Bot",
+              },
+            ),
+          ]);
+
+        currentMembers =
+          Number(
+            guild
+              ?.approximate_member_count,
+          ) ||
+          null;
+
+        roleNames =
+          (
+            Array.isArray(roles)
+              ? roles
+              : []
+          ).reduce(
+            (
+              result,
+              role,
+            ) => {
+              result[
+                String(
+                  role.id,
+                )
+              ] =
+                String(
+                  role.name ||
+                  role.id,
+                );
+
+              return result;
+            },
+            {},
+          );
+      }
+    } catch (error) {
+      console.warn(
+        "Analytics Discord enrichment failed:",
+        error,
+      );
+    }
+
+    const topSelfRoles =
+      Object.entries(
+        roleCounts,
+      )
+        .map(
+          ([
+            roleId,
+            count,
+          ]) => ({
+            roleId,
+            name:
+              roleNames[
+                roleId
+              ] ||
+              roleId,
+            count,
+          }),
+        )
+        .sort(
+          (
+            left,
+            right,
+          ) =>
+            right.count -
+            left.count,
+        )
+        .slice(0, 5);
+
+    const healthReady =
+      healthRows.filter(
+        (row) =>
+          row.ready ===
+          true,
+      ).length;
+    const pingValues =
+      healthRows
+        .map(
+          (row) =>
+            Number(
+              row.ws_ping_ms,
+            ),
+        )
+        .filter(
+          (value) =>
+            Number.isFinite(
+              value,
+            ) &&
+            value >= 0,
+        );
+    const uptime24h =
+      healthRows.length
+        ? Math.round(
+            (
+              healthReady /
+              healthRows.length
+            ) *
+              10000,
+          ) /
+          100
+        : null;
+    const avgPing24h =
+      pingValues.length
+        ? Math.round(
+            pingValues.reduce(
+              (
+                total,
+                value,
+              ) =>
+                total +
+                value,
+              0,
+            ) /
+              pingValues.length,
+          )
+        : null;
+
+    const recentActivity =
+      auditRows
+        .slice(0, 30)
+        .map(
+          (row) => ({
+            id:
+              row.id,
+            type:
+              row.event_type,
+            label:
+              analyticsEventLabel(
+                row.event_type,
+              ),
+            payload:
+              row.payload ||
+              {},
+            createdAt:
+              row.created_at,
+          }),
+        );
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        days,
+        summary: {
+          currentMembers,
+          joins,
+          leaves,
+          netGrowth:
+            joins -
+            leaves,
+          moderationCases:
+            moderationRows.length,
+          activeWarnings:
+            openWarningsResult
+              .count ||
+            0,
+          ticketsCreated:
+            ticketRows.length,
+          openTickets:
+            openTicketsResult
+              .count ||
+            0,
+          giveaways:
+            giveawayRows.length,
+          giveawayEntries:
+            participantRows.length,
+          scheduledMessages:
+            scheduledRows.length,
+          sentMessages:
+            scheduledRows.filter(
+              (row) =>
+                row.status ===
+                "sent",
+            ).length,
+          verified,
+          selfRoleChanges,
+          automodActions,
+          recruitmentEvents:
+            recruitment,
+        },
+        timeline:
+          analyticsTimeline(
+            days,
+            auditRows,
+            moderationRows,
+          ),
+        topSelfRoles,
+        recentActivity,
+        health: {
+          latest:
+            latestHealthResult
+              .data ||
+            null,
+          uptime24h,
+          avgPing24h,
+          samples24h:
+            healthRows.length,
+        },
+      });
+  } catch (error) {
+    console.error(
+      "Analytics overview error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "ANALYTICS_LOAD_FAILED",
+      "Не вдалося завантажити Discord analytics.",
+    );
+  }
+}
+
 async function handleReleaseLicense(
   request,
   response,
@@ -10150,6 +11370,36 @@ export default async function botPortalHandler(
     "publish-ticket-panel"
   ) {
     return handlePublishTicketPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "analytics-overview"
+  ) {
+    return handleAnalyticsOverview(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "worker-member-event"
+  ) {
+    return handleWorkerMemberEvent(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "worker-health-snapshot"
+  ) {
+    return handleWorkerHealthSnapshot(
       request,
       response,
     );
