@@ -15,6 +15,12 @@ create index if not exists discord_staff_role_permissions_guild_idx
 
 alter table public.discord_staff_role_permissions enable row level security;
 
+revoke all on table public.discord_staff_role_permissions from anon, authenticated;
+
+grant select, insert, update, delete
+on table public.discord_staff_role_permissions
+to service_role;
+
 comment on table public.discord_staff_role_permissions is
   'Owner-defined website Control Center permissions granted through live Discord guild roles. Service-role access only.';
 
@@ -35,6 +41,12 @@ create index if not exists discord_staff_access_audit_guild_created_idx
   on public.discord_staff_access_audit (guild_id, created_at desc);
 
 alter table public.discord_staff_access_audit enable row level security;
+
+revoke all on table public.discord_staff_access_audit from anon, authenticated;
+
+grant select, insert, update, delete
+on table public.discord_staff_access_audit
+to service_role;
 
 comment on table public.discord_staff_access_audit is
   'Audit trail for delegated ISTe Discord Control Center access decisions. Service-role access only.';
