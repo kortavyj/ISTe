@@ -15189,9 +15189,14 @@ async function handleWorkerSubscriptionProviderSync(
   const body =
     readJsonBody(request) ||
     {};
-  const userId =
+  const requestedUserId =
     String(
       body.userId ||
+      "",
+    ).trim();
+  const discordUserId =
+    String(
+      body.discordUserId ||
       "",
     ).trim();
   const requestId =
@@ -15199,7 +15204,7 @@ async function handleWorkerSubscriptionProviderSync(
       body.requestId ||
       "",
     ).trim();
-  const plan =
+  const requestedPlan =
     normalizePlan(
       body.plan,
     );
@@ -15250,6 +15255,11 @@ async function handleWorkerSubscriptionProviderSync(
         )
       : "";
 
+  const allowedProviders =
+    new Set([
+      "paddle",
+      "donatello",
+    ]);
   const allowedStatuses =
     new Set([
       "active",
@@ -15260,16 +15270,19 @@ async function handleWorkerSubscriptionProviderSync(
     ]);
 
   if (
-    !isUuid(
-      userId,
+    !allowedProviders.has(
+      provider,
     ) ||
-    !PAID_PLANS.has(
-      plan,
-    ) ||
-    provider !==
-      "paddle" ||
     !allowedStatuses.has(
       providerStatus,
+    ) ||
+    (
+      !isUuid(
+        requestedUserId,
+      ) &&
+      !isSnowflake(
+        discordUserId,
+      )
     ) ||
     (
       requestId &&
@@ -15307,16 +15320,41 @@ async function handleWorkerSubscriptionProviderSync(
     );
 
   if (
-    paidActive &&
-    !Number.isFinite(
-      periodEndMs,
+    provider ===
+      "paddle" &&
+    (
+      !PAID_PLANS.has(
+        requestedPlan,
+      ) ||
+      (
+        paidActive &&
+        !Number.isFinite(
+          periodEndMs,
+        )
+      )
     )
   ) {
     return sendError(
       response,
       400,
-      "PROVIDER_PERIOD_REQUIRED",
-      "Active subscriptions require a current billing period.",
+      "INVALID_PADDLE_SUBSCRIPTION_SYNC",
+      "Invalid Paddle subscription payload.",
+    );
+  }
+
+  if (
+    provider ===
+      "donatello" &&
+    paidActive &&
+    !PAID_PLANS.has(
+      requestedPlan,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_DONATELLO_PLAN",
+      "Active Donatello subscriptions require a paid plan.",
     );
   }
 
@@ -15327,6 +15365,53 @@ async function handleWorkerSubscriptionProviderSync(
       new Date();
     const nowIso =
       now.toISOString();
+
+    let userId =
+      isUuid(
+        requestedUserId,
+      )
+        ? requestedUserId
+        : "";
+
+    if (!userId) {
+      const {
+        data:
+          account,
+        error:
+          accountError,
+      } = await supabase
+        .from(
+          "discord_customer_accounts",
+        )
+        .select(
+          "user_id",
+        )
+        .eq(
+          "discord_user_id",
+          discordUserId,
+        )
+        .maybeSingle();
+
+      if (
+        accountError ||
+        !account?.user_id
+      ) {
+        return response
+          .status(200)
+          .json({
+            ok: true,
+            ignored: true,
+            reason:
+              "DISCORD_ACCOUNT_NOT_LINKED",
+            discordUserId,
+          });
+      }
+
+      userId =
+        String(
+          account.user_id,
+        );
+    }
 
     const {
       data:
@@ -15362,12 +15447,15 @@ async function handleWorkerSubscriptionProviderSync(
       targetRole.role ===
         "owner"
     ) {
-      return sendError(
-        response,
-        403,
-        "OWNER_SUBSCRIPTION_PROTECTED",
-        "Owner subscription is protected.",
-      );
+      return response
+        .status(200)
+        .json({
+          ok: true,
+          ignored: true,
+          reason:
+            "OWNER_SUBSCRIPTION_PROTECTED",
+          userId,
+        });
     }
 
     const {
@@ -15388,6 +15476,100 @@ async function handleWorkerSubscriptionProviderSync(
 
     if (existingError) {
       throw existingError;
+    }
+
+    let plan =
+      requestedPlan;
+
+    if (
+      !PAID_PLANS.has(
+        plan,
+      ) &&
+      provider ===
+        "donatello" &&
+      !paidActive
+    ) {
+      if (
+        existing?.provider ===
+          "donatello" &&
+        PAID_PLANS.has(
+          normalizePlan(
+            existing.plan,
+          ),
+        )
+      ) {
+        plan =
+          normalizePlan(
+            existing.plan,
+          );
+      } else {
+        return response
+          .status(200)
+          .json({
+            ok: true,
+            ignored: true,
+            reason:
+              "NO_DONATELLO_SUBSCRIPTION",
+            userId,
+            discordUserId:
+              discordUserId ||
+              null,
+          });
+      }
+    }
+
+    if (
+      !PAID_PLANS.has(
+        plan,
+      )
+    ) {
+      return sendError(
+        response,
+        400,
+        "INVALID_SUBSCRIPTION_PLAN",
+        "Invalid subscription plan.",
+      );
+    }
+
+    if (
+      provider ===
+        "donatello" &&
+      paidActive &&
+      existing?.provider ===
+        "paddle" &&
+      subscriptionActive(
+        existing,
+      )
+    ) {
+      return sendError(
+        response,
+        409,
+        "PROVIDER_SUBSCRIPTION_CONFLICT",
+        "An active Paddle subscription is already linked.",
+      );
+    }
+
+    if (
+      provider ===
+        "paddle" &&
+      existing
+        ?.provider_subscription_id &&
+      providerSubscriptionId &&
+      existing
+        .provider_subscription_id !==
+        providerSubscriptionId &&
+      existing.provider ===
+        "paddle" &&
+      subscriptionActive(
+        existing,
+      )
+    ) {
+      return sendError(
+        response,
+        409,
+        "PROVIDER_SUBSCRIPTION_CONFLICT",
+        "A different active Paddle subscription is already linked.",
+      );
     }
 
     let requestRow =
@@ -15431,27 +15613,49 @@ async function handleWorkerSubscriptionProviderSync(
 
       requestRow =
         data;
-    }
-
-    if (
-      existing
-        ?.provider_subscription_id &&
-      providerSubscriptionId &&
-      existing
-        .provider_subscription_id !==
-        providerSubscriptionId &&
-      existing.provider ===
-        "paddle" &&
-      subscriptionActive(
-        existing,
-      )
+    } else if (
+      provider ===
+        "donatello" &&
+      paidActive
     ) {
-      return sendError(
-        response,
-        409,
-        "PROVIDER_SUBSCRIPTION_CONFLICT",
-        "A different active Paddle subscription is already linked.",
-      );
+      const {
+        data,
+        error,
+      } = await supabase
+        .from(
+          "discord_subscription_requests",
+        )
+        .select(
+          "id,user_id,status,metadata",
+        )
+        .eq(
+          "user_id",
+          userId,
+        )
+        .eq(
+          "plan",
+          plan,
+        )
+        .eq(
+          "status",
+          "pending",
+        )
+        .order(
+          "requested_at",
+          {
+            ascending: false,
+          },
+        )
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      requestRow =
+        data ||
+        null;
     }
 
     const config =
@@ -15459,25 +15663,40 @@ async function handleWorkerSubscriptionProviderSync(
         plan,
       );
     const expiresAt =
-      Number.isFinite(
-        periodEndMs,
-      )
-        ? new Date(
-            periodEndMs,
-          ).toISOString()
-        : existing
-            ?.expires_at ||
-          null;
+      provider ===
+        "donatello"
+        ? null
+        : Number.isFinite(
+              periodEndMs,
+            )
+          ? new Date(
+              periodEndMs,
+            ).toISOString()
+          : existing
+              ?.expires_at ||
+            null;
     const startsAt =
-      Number.isFinite(
-        periodStartMs,
-      )
-        ? new Date(
-            periodStartMs,
-          ).toISOString()
-        : existing
-            ?.starts_at ||
-          nowIso;
+      provider ===
+        "donatello"
+        ? (
+            existing?.provider ===
+              "donatello" &&
+            existing?.status ===
+              "active"
+              ? existing
+                  ?.starts_at ||
+                nowIso
+              : nowIso
+          )
+        : Number.isFinite(
+              periodStartMs,
+            )
+          ? new Date(
+              periodStartMs,
+            ).toISOString()
+          : existing
+              ?.starts_at ||
+            nowIso;
     const localStatus =
       paidActive
         ? "active"
@@ -15514,18 +15733,35 @@ async function handleWorkerSubscriptionProviderSync(
             paidActive
               ? expiresAt
               : null,
-          provider:
-            "paddle",
+          provider,
           provider_customer_id:
-            providerCustomerId ||
-            existing
-              ?.provider_customer_id ||
-            "",
+            provider ===
+              "donatello"
+              ? (
+                  discordUserId ||
+                  existing
+                    ?.provider_customer_id ||
+                  ""
+                )
+              : (
+                  providerCustomerId ||
+                  existing
+                    ?.provider_customer_id ||
+                  ""
+                ),
           provider_subscription_id:
-            providerSubscriptionId ||
-            existing
-              ?.provider_subscription_id ||
-            "",
+            provider ===
+              "donatello"
+              ? (
+                  "discord-role:" +
+                  config.plan
+                )
+              : (
+                  providerSubscriptionId ||
+                  existing
+                    ?.provider_subscription_id ||
+                  ""
+                ),
           updated_at:
             nowIso,
         },
@@ -15657,15 +15893,34 @@ async function handleWorkerSubscriptionProviderSync(
           metadata: {
             ...metadata,
             payment_provider:
-              "paddle",
+              provider,
             payment_status:
-              "success",
+              provider ===
+                "donatello"
+                ? "active_role"
+                : "success",
             provider_customer_id:
-              providerCustomerId ||
-              null,
+              provider ===
+                "donatello"
+                ? (
+                    discordUserId ||
+                    null
+                  )
+                : (
+                    providerCustomerId ||
+                    null
+                  ),
             provider_subscription_id:
-              providerSubscriptionId ||
-              null,
+              provider ===
+                "donatello"
+                ? (
+                    "discord-role:" +
+                    config.plan
+                  )
+                : (
+                    providerSubscriptionId ||
+                    null
+                  ),
             provider_transaction_id:
               providerTransactionId ||
               null,
@@ -15678,7 +15933,7 @@ async function handleWorkerSubscriptionProviderSync(
         })
         .eq(
           "id",
-          requestId,
+          requestRow.id,
         )
         .eq(
           "status",
@@ -15700,7 +15955,8 @@ async function handleWorkerSubscriptionProviderSync(
         actor_user_id:
           null,
         event_type:
-          "provider_" +
+          provider +
+          "_" +
           providerStatus,
         plan:
           config.plan,
@@ -15709,18 +15965,29 @@ async function handleWorkerSubscriptionProviderSync(
         expires_at:
           expiresAt,
         metadata: {
-          provider:
-            "paddle",
+          provider,
           providerStatus,
           requestId:
+            requestRow?.id ||
             requestId ||
+            null,
+          discordUserId:
+            discordUserId ||
             null,
           providerCustomerId:
             providerCustomerId ||
             null,
           providerSubscriptionId:
-            providerSubscriptionId ||
-            null,
+            provider ===
+              "donatello"
+              ? (
+                  "discord-role:" +
+                  config.plan
+                )
+              : (
+                  providerSubscriptionId ||
+                  null
+                ),
           providerTransactionId:
             providerTransactionId ||
             null,
@@ -15739,18 +16006,33 @@ async function handleWorkerSubscriptionProviderSync(
       .json({
         ok: true,
         userId,
+        discordUserId:
+          discordUserId ||
+          discordAccount
+            ?.discord_user_id ||
+          null,
         plan:
           config.plan,
         status:
           localStatus,
         expiresAt,
-        provider:
-          "paddle",
-        providerSubscriptionId,
+        provider,
+        providerSubscriptionId:
+          provider ===
+            "donatello"
+            ? (
+                "discord-role:" +
+                config.plan
+              )
+            : providerSubscriptionId,
         roleSynced:
           roleSync.synced ===
           true,
         guildIds,
+        requestId:
+          requestRow?.id ||
+          requestId ||
+          null,
       });
   } catch (error) {
     console.error(
