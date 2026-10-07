@@ -16,6 +16,8 @@ const DEFAULT_MATCH_DATA_URL =
   "https://istesport.com/data/faceit-stats.json";
 
 const DEFAULT_SITE_URL = "https://istesport.com";
+const DEFAULT_TELEMETRY_URL =
+  "https://niwgrrprbcgbdaloijhq.supabase.co/functions/v1/discord-worker-telemetry";
 const DEFAULT_IDLE_ACTIVITY = "ISTesport | istesport.com";
 const DEFAULT_REFRESH_MS = 60_000;
 const MIN_REFRESH_MS = 30_000;
@@ -199,6 +201,11 @@ const matchDataUrl = cleanText(
 const siteUrl = cleanText(
   process.env.ISTE_SITE_URL,
   DEFAULT_SITE_URL,
+);
+
+const telemetryUrl = cleanText(
+  process.env.ISTE_TELEMETRY_URL,
+  DEFAULT_TELEMETRY_URL,
 );
 
 const fallbackMatchAnnouncementChannelId = cleanText(
@@ -2300,32 +2307,87 @@ function publicationsHealth() {
 }
 
 
+
+async function telemetryApi(
+  body,
+) {
+  const response =
+    await fetch(
+      telemetryUrl,
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          Accept:
+            "application/json",
+          "Content-Type":
+            "application/json",
+          Authorization:
+            "Bot " +
+            token,
+          "User-Agent":
+            "ISTesport-Discord-Worker/2.5",
+        },
+        body:
+          JSON.stringify(
+            body,
+          ),
+        signal:
+          AbortSignal.timeout(
+            FETCH_TIMEOUT_MS,
+          ),
+      },
+    );
+
+  const result =
+    await response
+      .json()
+      .catch(
+        () => null,
+      );
+
+  if (
+    !response.ok ||
+    result?.ok !==
+      true
+  ) {
+    throw new Error(
+      result?.error ||
+      "Telemetry endpoint returned " +
+      String(
+        response.status,
+      ),
+    );
+  }
+
+  return result;
+}
+
 async function reportMemberLifecycle(
   member,
   type,
 ) {
   try {
-    await publicationApi(
-      "worker-member-event",
-      {
-        guildId:
-          member.guild.id,
-        userId:
-          member.id,
-        type,
-        memberCount:
-          member.guild
-            .memberCount,
-        isBot:
-          member.user?.bot ===
-          true,
-        accountCreatedAt:
-          member.user
-            ?.createdAt
-            ?.toISOString?.() ||
-          null,
-      },
-    );
+    await telemetryApi({
+      action:
+        "member",
+      guildId:
+        member.guild.id,
+      userId:
+        member.id,
+      type,
+      memberCount:
+        member.guild
+          .memberCount,
+      isBot:
+        member.user?.bot ===
+        true,
+      accountCreatedAt:
+        member.user
+          ?.createdAt
+          ?.toISOString?.() ||
+        null,
+    });
 
     log(
       "member_lifecycle_reported",
@@ -2365,44 +2427,43 @@ async function reportHealthSnapshot() {
   }
 
   try {
-    await publicationApi(
-      "worker-health-snapshot",
-      {
-        workerId:
-          "discord-primary",
-        ready: true,
-        wsPingMs:
-          Number(
-            client.ws.ping,
-          ) ||
-          0,
-        uptimeSeconds:
-          Math.round(
-            process.uptime(),
-          ),
-        guildCount:
-          client.guilds.cache
-            .size,
-        metrics: {
-          lastPresence:
-            lastPresenceName ||
-            null,
-          lastRefreshAt,
-          lastSuccessfulFetchAt,
-          lastError,
-          privateVoice:
-            privateVoiceHealth(),
-          welcome:
-            welcomeHealth(),
-          automod:
-            automodHealth(),
-          publications:
-            publicationsHealth(),
-          matchAnnouncements:
-            matchAnnouncementsHealth(),
-        },
+    await telemetryApi({
+      action:
+        "health",
+      workerId:
+        "discord-primary",
+      ready: true,
+      wsPingMs:
+        Number(
+          client.ws.ping,
+        ) ||
+        0,
+      uptimeSeconds:
+        Math.round(
+          process.uptime(),
+        ),
+      guildCount:
+        client.guilds.cache
+          .size,
+      metrics: {
+        lastPresence:
+          lastPresenceName ||
+          null,
+        lastRefreshAt,
+        lastSuccessfulFetchAt,
+        lastError,
+        privateVoice:
+          privateVoiceHealth(),
+        welcome:
+          welcomeHealth(),
+        automod:
+          automodHealth(),
+        publications:
+          publicationsHealth(),
+        matchAnnouncements:
+          matchAnnouncementsHealth(),
       },
-    );
+    });
 
     healthSnapshotsSent +=
       1;
