@@ -381,7 +381,7 @@ function shopSubscriptionPanelPayload(
       title:
         "🛒 ISTe SHOP — ISTe Bot Premium",
       intro:
-        "**Офіційна підписка ISTe Bot.**\nОбери тариф, створи замовлення та заверши оплату прямо в нашому Discord.",
+        "**Офіційна підписка ISTe Bot через Donatello.**\nОбери тариф і сервери для ліцензії, після чого заверши підписку на Donatello.",
       starter:
         "**STARTER — $2.99 / 30 днів**\n1 Discord-сервер",
       pro:
@@ -389,9 +389,9 @@ function shopSubscriptionPanelPayload(
       max:
         "**MAX — $6.99 / 30 днів**\nДо 10 Discord-серверів",
       how:
-        "**Як придбати**\n1️⃣ Натисни **Оформити підписку**.\n2️⃣ Обери Starter, Pro або Max.\n3️⃣ Обери Discord-сервер для ліцензії.\n4️⃣ ISTe Bot створить персональне замовлення в цьому каналі.\n5️⃣ Після оплати адміністрація ISTe підтвердить замовлення.\n6️⃣ Підписка активується автоматично на 30 днів.",
+        "**Як придбати**\n1️⃣ Натисни **Оформити підписку**.\n2️⃣ Обери Starter, Pro або Max.\n3️⃣ Обери Discord-сервери для ліцензії.\n4️⃣ Відкрий персональне замовлення та перейди на Donatello.\n5️⃣ На Donatello увійди через Discord і оформи той самий рівень підписки.\n6️⃣ Donatello видасть роль, а ISTe Bot активує тариф автоматично.",
       important:
-        "⚠️ **Важливо:** ISTe Bot не списує кошти автоматично. Підписка вмикається лише після підтвердження оплати адміністрацією ISTe.",
+        "⚠️ **Важливо:** Discord-акаунт на Donatello має бути тим самим, що прив'язаний до ISTe. Активною вважається підписка, поки Donatello тримає відповідну роль.",
       button:
         "Оформити підписку",
     },
@@ -399,7 +399,7 @@ function shopSubscriptionPanelPayload(
       title:
         "🛒 ISTe SHOP — ISTe Bot Premium",
       intro:
-        "**Официальная подписка ISTe Bot.**\nВыбери тариф, создай заказ и заверши оплату прямо в нашем Discord.",
+        "**Официальная подписка ISTe Bot через Donatello.**\nВыбери тариф и серверы для лицензии, после чего заверши подписку на Donatello.",
       starter:
         "**STARTER — $2.99 / 30 дней**\n1 Discord-сервер",
       pro:
@@ -407,9 +407,9 @@ function shopSubscriptionPanelPayload(
       max:
         "**MAX — $6.99 / 30 дней**\nДо 10 Discord-серверов",
       how:
-        "**Как купить**\n1️⃣ Нажми **Оформить подписку**.\n2️⃣ Выбери Starter, Pro или Max.\n3️⃣ Выбери Discord-сервер для лицензии.\n4️⃣ ISTe Bot создаст персональный заказ в этом канале.\n5️⃣ После оплаты администрация ISTe подтвердит заказ.\n6️⃣ Подписка активируется автоматически на 30 дней.",
+        "**Как купить**\n1️⃣ Нажми **Оформить подписку**.\n2️⃣ Выбери Starter, Pro или Max.\n3️⃣ Выбери Discord-серверы для лицензии.\n4️⃣ Открой персональный заказ и перейди на Donatello.\n5️⃣ На Donatello войди через Discord и оформи тот же уровень подписки.\n6️⃣ Donatello выдаст роль, а ISTe Bot активирует тариф автоматически.",
       important:
-        "⚠️ **Важно:** ISTe Bot не списывает деньги автоматически. Подписка включается только после подтверждения оплаты администрацией ISTe.",
+        "⚠️ **Важно:** Discord-аккаунт на Donatello должен быть тем же, который привязан к ISTe. Подписка активна, пока Donatello сохраняет соответствующую роль.",
       button:
         "Оформить подписку",
     },
@@ -417,7 +417,7 @@ function shopSubscriptionPanelPayload(
       title:
         "🛒 ISTe SHOP — ISTe Bot Premium",
       intro:
-        "**Official ISTe Bot subscription.**\nChoose a plan, create an order and complete payment directly in our Discord.",
+        "**Official ISTe Bot subscription through Donatello.**\nChoose a plan and license servers, then complete the subscription on Donatello.",
       starter:
         "**STARTER — $2.99 / 30 days**\n1 Discord server",
       pro:
@@ -425,9 +425,9 @@ function shopSubscriptionPanelPayload(
       max:
         "**MAX — $6.99 / 30 days**\nUp to 10 Discord servers",
       how:
-        "**How to subscribe**\n1️⃣ Press **Get subscription**.\n2️⃣ Choose Starter, Pro or Max.\n3️⃣ Choose the Discord server for the license.\n4️⃣ ISTe Bot creates your personal order in this channel.\n5️⃣ After payment, ISTe administration confirms the order.\n6️⃣ The subscription activates automatically for 30 days.",
+        "**How to subscribe**\n1️⃣ Press **Get subscription**.\n2️⃣ Choose Starter, Pro or Max.\n3️⃣ Choose the Discord servers for the license.\n4️⃣ Open your private order and continue to Donatello.\n5️⃣ Sign in to Donatello with the same Discord account and subscribe to the matching level.\n6️⃣ Donatello assigns the role and ISTe Bot activates the plan automatically.",
       important:
-        "⚠️ **Important:** ISTe Bot does not charge you automatically. The subscription activates only after payment is confirmed by ISTe administration.",
+        "⚠️ **Important:** Your Donatello Discord account must match the account linked to ISTe. The subscription stays active while Donatello keeps the matching role.",
       button:
         "Get subscription",
     },
