@@ -44,6 +44,35 @@ const INTERNAL_GUILD_ID = String(
     "1334264628695404556",
 ).trim();
 
+const DONATELLO_TIERS_URL = String(
+  process.env.ISTE_DONATELLO_TIERS_URL ||
+    "",
+).trim();
+
+const DONATELLO_ROLE_IDS = {
+  starter: String(
+    process.env.ISTE_DONATELLO_STARTER_ROLE_ID ||
+      "",
+  ).trim(),
+  pro: String(
+    process.env.ISTE_DONATELLO_PRO_ROLE_ID ||
+      "",
+  ).trim(),
+  max: String(
+    process.env.ISTE_DONATELLO_MAX_ROLE_ID ||
+      "",
+  ).trim(),
+};
+
+const DONATELLO_ROLE_NAMES = {
+  starter:
+    "iste starter",
+  pro:
+    "iste pro",
+  max:
+    "iste max",
+};
+
 const SHOP_CHANNEL_NAME = String(
   process.env.ISTE_SHOP_CHANNEL_NAME ||
     "shop",
@@ -305,6 +334,13 @@ let shopPanelMessageId = null;
 let shopPanelChannelId = null;
 let shopPanelLastSyncedAt = null;
 let shopPanelLastError = null;
+
+let donatelloSyncProcessed = 0;
+let donatelloSyncIgnored = 0;
+let donatelloSyncLastAt = null;
+let donatelloSyncLastError = null;
+const donatelloMemberPlanCache =
+  new Map();
 
 function shopPanelLocale(value) {
   const locale =
@@ -860,6 +896,407 @@ async function workerRuntimeApi(
   }
 
   return result;
+}
+
+function normalizeRoleName(
+  value,
+) {
+  return String(
+    value ||
+    "",
+  )
+    .trim()
+    .toLowerCase()
+    .replace(
+      /[_-]+/g,
+      " ",
+    )
+    .replace(
+      /\s+/g,
+      " ",
+    );
+}
+
+function donatelloPlanForMember(
+  member,
+) {
+  if (
+    !member ||
+    member.guild?.id !==
+      INTERNAL_GUILD_ID
+  ) {
+    return "";
+  }
+
+  const roles =
+    member.roles?.cache;
+
+  if (!roles) {
+    return "";
+  }
+
+  for (
+    const plan
+    of [
+      "max",
+      "pro",
+      "starter",
+    ]
+  ) {
+    const configuredId =
+      DONATELLO_ROLE_IDS[
+        plan
+      ];
+
+    if (
+      configuredId &&
+      roles.has(
+        configuredId,
+      )
+    ) {
+      return plan;
+    }
+
+    const expectedName =
+      DONATELLO_ROLE_NAMES[
+        plan
+      ];
+
+    if (
+      roles.some(
+        (role) =>
+          normalizeRoleName(
+            role?.name,
+          ) ===
+          expectedName,
+      )
+    ) {
+      return plan;
+    }
+  }
+
+  return "";
+}
+
+async function donatelloProviderSyncApi(
+  {
+    discordUserId,
+    plan = "",
+    status,
+    reason = "",
+  },
+) {
+  const url =
+    new URL(
+      "/api/owner",
+      siteUrl,
+    );
+
+  url.searchParams.set(
+    "module",
+    "bot-portal",
+  );
+  url.searchParams.set(
+    "action",
+    "worker-subscription-provider-sync",
+  );
+
+  const response =
+    await fetch(
+      url,
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          Accept:
+            "application/json",
+          "Content-Type":
+            "application/json",
+          Authorization:
+            "Bot " +
+            token,
+          "User-Agent":
+            "ISTesport-Discord-Worker/2.7",
+        },
+        body:
+          JSON.stringify({
+            discordUserId,
+            plan,
+            provider:
+              "donatello",
+            providerStatus:
+              status,
+            providerCustomerId:
+              discordUserId,
+            providerSubscriptionId:
+              plan
+                ? "discord-role:" +
+                  plan
+                : "",
+            providerEventId:
+              reason
+                ? "discord:" +
+                  reason
+                : "",
+          }),
+        signal:
+          AbortSignal.timeout(
+            FETCH_TIMEOUT_MS,
+          ),
+      },
+    );
+
+  const result =
+    await response
+      .json()
+      .catch(
+        () => null,
+      );
+
+  if (
+    !response.ok ||
+    result?.ok !==
+      true
+  ) {
+    throw new Error(
+      result?.error ||
+      "Donatello subscription sync returned " +
+      String(
+        response.status,
+      ),
+    );
+  }
+
+  return result;
+}
+
+async function syncDonatelloMember(
+  member,
+  {
+    reason =
+      "member-update",
+    previousPlan =
+      "",
+    force = false,
+  } = {},
+) {
+  if (
+    !member ||
+    member.guild?.id !==
+      INTERNAL_GUILD_ID ||
+    member.user?.bot
+  ) {
+    return null;
+  }
+
+  const plan =
+    donatelloPlanForMember(
+      member,
+    );
+  const cachedPlan =
+    donatelloMemberPlanCache.get(
+      member.id,
+    );
+
+  if (
+    !force &&
+    cachedPlan === plan
+  ) {
+    return null;
+  }
+
+  const status =
+    plan
+      ? "active"
+      : "canceled";
+  const syncPlan =
+    plan ||
+    previousPlan ||
+    cachedPlan ||
+    "";
+
+  try {
+    const result =
+      await donatelloProviderSyncApi(
+        {
+          discordUserId:
+            member.id,
+          plan:
+            syncPlan,
+          status,
+          reason,
+        },
+      );
+
+    donatelloMemberPlanCache.set(
+      member.id,
+      plan,
+    );
+    donatelloSyncLastAt =
+      new Date()
+        .toISOString();
+    donatelloSyncLastError =
+      null;
+
+    if (
+      result?.ignored ===
+      true
+    ) {
+      donatelloSyncIgnored +=
+        1;
+    } else {
+      donatelloSyncProcessed +=
+        1;
+    }
+
+    log(
+      "donatello_subscription_synced",
+      {
+        discordUserId:
+          member.id,
+        plan:
+          plan ||
+          null,
+        previousPlan:
+          previousPlan ||
+          null,
+        status,
+        reason,
+        ignored:
+          result?.ignored ===
+          true,
+        requestId:
+          result?.requestId ||
+          null,
+      },
+    );
+
+    return result;
+  } catch (error) {
+    donatelloSyncLastAt =
+      new Date()
+        .toISOString();
+    donatelloSyncLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "donatello_subscription_sync_failed",
+      {
+        discordUserId:
+          member.id,
+        plan:
+          plan ||
+          null,
+        previousPlan:
+          previousPlan ||
+          null,
+        status,
+        reason,
+        message:
+          donatelloSyncLastError,
+      },
+    );
+
+    return null;
+  }
+}
+
+async function reconcileDonatelloSubscriptions() {
+  const guild =
+    client.guilds.cache.get(
+      INTERNAL_GUILD_ID,
+    );
+
+  if (!guild) {
+    return;
+  }
+
+  try {
+    const members =
+      await guild.members.fetch();
+
+    for (
+      const member
+      of members.values()
+    ) {
+      if (
+        member.user?.bot
+      ) {
+        continue;
+      }
+
+      await syncDonatelloMember(
+        member,
+        {
+          reason:
+            "startup-reconcile",
+          force: true,
+        },
+      );
+    }
+
+    log(
+      "donatello_subscription_reconcile_complete",
+      {
+        guildId:
+          guild.id,
+        memberCount:
+          members.size,
+      },
+    );
+  } catch (error) {
+    donatelloSyncLastAt =
+      new Date()
+        .toISOString();
+    donatelloSyncLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "donatello_subscription_reconcile_failed",
+      {
+        guildId:
+          guild?.id ||
+          INTERNAL_GUILD_ID,
+        message:
+          donatelloSyncLastError,
+      },
+    );
+  }
+}
+
+function donatelloHealth() {
+  return {
+    tiersUrlConfigured:
+      /^https:\/\/donatello\.to\//i.test(
+        DONATELLO_TIERS_URL,
+      ),
+    roleIds: {
+      starter:
+        DONATELLO_ROLE_IDS
+          .starter ||
+        null,
+      pro:
+        DONATELLO_ROLE_IDS
+          .pro ||
+        null,
+      max:
+        DONATELLO_ROLE_IDS
+          .max ||
+        null,
+    },
+    processed:
+      donatelloSyncProcessed,
+    ignored:
+      donatelloSyncIgnored,
+    lastSyncedAt:
+      donatelloSyncLastAt,
+    lastError:
+      donatelloSyncLastError,
+  };
 }
 
 async function fetchGuildRuntimeConfig(
@@ -3551,6 +3988,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   }
 
   await ensureShopSubscriptionPanel();
+  await reconcileDonatelloSubscriptions();
   await initializePrivateVoice();
   await refreshPresence();
   scheduleRefresh();
@@ -3746,11 +4184,54 @@ client.on(Events.GuildMemberAdd, (member) => {
       member,
     );
 
+    await syncDonatelloMember(
+      member,
+      {
+        reason:
+          "member-join",
+        force: true,
+      },
+    );
+
     await sendWelcomeMessage(
       member,
     );
   })();
 });
+
+client.on(
+  Events.GuildMemberUpdate,
+  (
+    oldMember,
+    newMember,
+  ) => {
+    const previousPlan =
+      donatelloPlanForMember(
+        oldMember,
+      );
+    const nextPlan =
+      donatelloPlanForMember(
+        newMember,
+      );
+
+    if (
+      previousPlan ===
+        nextPlan
+    ) {
+      return;
+    }
+
+    void syncDonatelloMember(
+      newMember,
+      {
+        reason:
+          "role-update",
+        previousPlan,
+        force: true,
+      },
+    );
+  },
+);
 
 client.on(
   Events.GuildMemberRemove,
@@ -3917,6 +4398,8 @@ const healthServer = createServer((request, response) => {
         telemetryHealth(),
       matchAnnouncements:
         matchAnnouncementsHealth(),
+      donatello:
+        donatelloHealth(),
       uptimeSeconds: Math.round(process.uptime()),
     }),
   );
