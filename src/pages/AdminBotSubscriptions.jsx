@@ -31,6 +31,19 @@ const copy = {
     failed: "Не вдалося змінити підписку.",
     confirmRevoke:
       "Скасувати підписку ISTe Bot для цього користувача?",
+    requestsTitle: "Заявки з Discord",
+    requestsIntro:
+      "Користувач обирає тариф прямо в ISTe Bot. Підписка активується тільки після вашого підтвердження.",
+    requestedPlan: "Запитаний тариф",
+    currentPlan: "Поточний тариф",
+    requestedAt: "Заявка",
+    approveRequest: "Активувати",
+    rejectRequest: "Відхилити",
+    noRequests: "Нових заявок немає.",
+    requestApproved: "Заявку схвалено, підписку активовано.",
+    requestRejected: "Заявку відхилено.",
+    confirmReject:
+      "Відхилити цю заявку на підписку?",
   },
   en: {
     eyebrow: "ISTe BOT BILLING",
@@ -54,6 +67,19 @@ const copy = {
     failed: "Could not update subscription.",
     confirmRevoke:
       "Revoke this user's ISTe Bot subscription?",
+    requestsTitle: "Discord requests",
+    requestsIntro:
+      "Users choose a plan directly in ISTe Bot. The subscription activates only after your approval.",
+    requestedPlan: "Requested plan",
+    currentPlan: "Current plan",
+    requestedAt: "Requested",
+    approveRequest: "Activate",
+    rejectRequest: "Reject",
+    noRequests: "No new requests.",
+    requestApproved: "Request approved and subscription activated.",
+    requestRejected: "Request rejected.",
+    confirmReject:
+      "Reject this subscription request?",
   },
 };
 
@@ -165,6 +191,11 @@ export default function AdminBotSubscriptions() {
   ] = useState([]);
 
   const [
+    requests,
+    setRequests,
+  ] = useState([]);
+
+  const [
     plans,
     setPlans,
   ] = useState([]);
@@ -220,6 +251,14 @@ export default function AdminBotSubscriptions() {
           result.subscriptions,
         )
           ? result.subscriptions
+          : [],
+      );
+
+      setRequests(
+        Array.isArray(
+          result.requests,
+        )
+          ? result.requests
           : [],
       );
 
@@ -359,6 +398,118 @@ export default function AdminBotSubscriptions() {
     }
   }
 
+  async function approveRequest(
+    requestRow,
+  ) {
+    const activePaid =
+      [
+        "starter",
+        "pro",
+        "max",
+      ].includes(
+        requestRow.currentPlan,
+      ) &&
+      requestRow.currentStatus ===
+        "active" &&
+      (
+        !requestRow
+          .currentExpiresAt ||
+        new Date(
+          requestRow
+            .currentExpiresAt,
+        ).getTime() >
+          Date.now()
+      );
+
+    setBusy(
+      "request-approve:" +
+        requestRow.id,
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "admin-set-subscription",
+        {
+          method: "POST",
+          body: {
+            userId:
+              requestRow.userId,
+            requestId:
+              requestRow.id,
+            mode:
+              activePaid
+                ? "extend"
+                : "activate",
+            plan:
+              requestRow.plan,
+          },
+        },
+      );
+
+      setNotice(
+        c.requestApproved,
+      );
+      await load(search);
+    } catch (
+      actionError
+    ) {
+      setError(
+        actionError?.message ||
+          c.failed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function rejectRequest(
+    requestRow,
+  ) {
+    if (
+      !window.confirm(
+        c.confirmReject,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      "request-reject:" +
+        requestRow.id,
+    );
+    setError("");
+    setNotice("");
+
+    try {
+      await api(
+        "admin-reject-subscription-request",
+        {
+          method: "POST",
+          body: {
+            requestId:
+              requestRow.id,
+          },
+        },
+      );
+
+      setNotice(
+        c.requestRejected,
+      );
+      await load(search);
+    } catch (
+      actionError
+    ) {
+      setError(
+        actionError?.message ||
+          c.failed,
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
   return (
     <section className="admin-bot-subscriptions-page">
       <div className="admin-bot-subscriptions-shell">
@@ -402,6 +553,142 @@ export default function AdminBotSubscriptions() {
             }
           />
         </label>
+
+        <section className="admin-bot-subscription-requests">
+          <header>
+            <div>
+              <span>
+                DISCORD BILLING
+              </span>
+              <h2>
+                {c.requestsTitle}
+              </h2>
+              <p>
+                {c.requestsIntro}
+              </p>
+            </div>
+            <strong>
+              {requests.length}
+            </strong>
+          </header>
+
+          {loading ? (
+            <div className="admin-bot-subscriptions-empty">
+              {c.loading}
+            </div>
+          ) : requests.length ? (
+            <div className="admin-bot-subscription-request-list">
+              {requests.map(
+                (requestRow) => (
+                  <article
+                    key={
+                      requestRow.id
+                    }
+                  >
+                    <div className="admin-bot-subscriptions-user">
+                      <div className="admin-bot-subscriptions-avatar">
+                        {requestRow.discordAvatar ? (
+                          <img
+                            src={
+                              requestRow.discordAvatar
+                            }
+                            alt=""
+                          />
+                        ) : (
+                          <span>
+                            {(requestRow.discordGlobalName ||
+                              requestRow.discordUsername ||
+                              "?")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <strong>
+                          {requestRow.discordGlobalName ||
+                            requestRow.discordUsername ||
+                            requestRow.displayName ||
+                            "Discord user"}
+                        </strong>
+                        <small>
+                          {"@" +
+                            (requestRow.discordUsername ||
+                              requestRow.discordUserId)}
+                        </small>
+                      </div>
+                    </div>
+
+                    <div className="admin-bot-subscription-request-plans">
+                      <span>
+                        {c.requestedPlan}
+                        <b>
+                          {String(
+                            requestRow.plan,
+                          ).toUpperCase()}
+                        </b>
+                      </span>
+                      <span>
+                        {c.currentPlan}
+                        <b>
+                          {String(
+                            requestRow.currentPlan ||
+                              "free",
+                          ).toUpperCase()}
+                        </b>
+                      </span>
+                      <span>
+                        {c.requestedAt}
+                        <b>
+                          {formatDate(
+                            requestRow.requestedAt,
+                            language,
+                          )}
+                        </b>
+                      </span>
+                    </div>
+
+                    <div className="admin-bot-subscription-request-actions">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          approveRequest(
+                            requestRow,
+                          )
+                        }
+                        disabled={
+                          Boolean(busy)
+                        }
+                      >
+                        {c.approveRequest}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="danger"
+                        onClick={() =>
+                          rejectRequest(
+                            requestRow,
+                          )
+                        }
+                        disabled={
+                          Boolean(busy)
+                        }
+                      >
+                        {c.rejectRequest}
+                      </button>
+                    </div>
+                  </article>
+                ),
+              )}
+            </div>
+          ) : (
+            <div className="admin-bot-subscriptions-empty">
+              {c.noRequests}
+            </div>
+          )}
+        </section>
 
         {loading ? (
           <div className="admin-bot-subscriptions-empty">
