@@ -3041,6 +3041,898 @@ function readSnowflakeOrEmpty(
   };
 }
 
+
+const CONFIG_VERSION_LIMIT =
+  50;
+
+function rawGuildSettingsSnapshot(
+  row,
+) {
+  return {
+    locale:
+      row?.locale ===
+      "en"
+        ? "en"
+        : "uk",
+    admin_role_id:
+      String(
+        row?.admin_role_id ||
+        "",
+      ),
+    moderator_role_id:
+      String(
+        row?.moderator_role_id ||
+        "",
+      ),
+    member_role_id:
+      String(
+        row?.member_role_id ||
+        "",
+      ),
+    log_channel_id:
+      String(
+        row?.log_channel_id ||
+        "",
+      ),
+    welcome_channel_id:
+      String(
+        row?.welcome_channel_id ||
+        "",
+      ),
+    welcome_enabled:
+      row?.welcome_enabled ===
+      true,
+    moderation_enabled:
+      row?.moderation_enabled ===
+      true,
+    tickets_enabled:
+      row?.tickets_enabled ===
+      true,
+    private_voice_enabled:
+      row?.private_voice_enabled ===
+      true,
+    auto_roles_enabled:
+      row?.auto_roles_enabled ===
+      true,
+    config:
+      row?.config &&
+      typeof row.config ===
+        "object"
+        ? row.config
+        : {},
+    updated_at:
+      row?.updated_at ||
+      null,
+  };
+}
+
+function snapshotAsSettingsRow(
+  guildId,
+  ownerUserId,
+  snapshot,
+) {
+  const value =
+    snapshot &&
+    typeof snapshot ===
+      "object"
+      ? snapshot
+      : {};
+
+  return {
+    guild_id:
+      guildId,
+    owner_user_id:
+      ownerUserId,
+    locale:
+      value.locale ===
+      "en"
+        ? "en"
+        : "uk",
+    admin_role_id:
+      String(
+        value.admin_role_id ||
+        "",
+      ),
+    moderator_role_id:
+      String(
+        value.moderator_role_id ||
+        "",
+      ),
+    member_role_id:
+      String(
+        value.member_role_id ||
+        "",
+      ),
+    log_channel_id:
+      String(
+        value.log_channel_id ||
+        "",
+      ),
+    welcome_channel_id:
+      String(
+        value.welcome_channel_id ||
+        "",
+      ),
+    welcome_enabled:
+      value.welcome_enabled ===
+      true,
+    moderation_enabled:
+      value.moderation_enabled ===
+      true,
+    tickets_enabled:
+      value.tickets_enabled ===
+      true,
+    private_voice_enabled:
+      value.private_voice_enabled ===
+      true,
+    auto_roles_enabled:
+      value.auto_roles_enabled ===
+      true,
+    config:
+      value.config &&
+      typeof value.config ===
+        "object"
+        ? value.config
+        : {},
+  };
+}
+
+const CONFIG_HISTORY_GROUPS =
+  Object.freeze({
+    general: [
+      "locale",
+      "adminRoleId",
+      "moderatorRoleId",
+      "logChannelId",
+      "matchChannelId",
+    ],
+    onboarding: [
+      "autoRolesEnabled",
+      "memberRoleId",
+      "welcomeEnabled",
+      "welcomeChannelId",
+      "welcomeTitle",
+      "welcomeMessage",
+      "welcomeMention",
+      "welcomeShowMemberCount",
+      "verificationEnabled",
+      "verificationPanelChannelId",
+      "verificationRoleId",
+      "verificationRemoveRoleId",
+      "verificationPanelTitle",
+      "verificationPanelMessage",
+      "selfRolesEnabled",
+      "selfRolesPanelChannelId",
+      "selfRolesPanelTitle",
+      "selfRolesPanelMessage",
+      "selfRoleIds",
+    ],
+    moderation: [
+      "moderationEnabled",
+      "moderationClearEnabled",
+      "moderationTimeoutEnabled",
+      "automodEnabled",
+      "automodSpamEnabled",
+      "automodInvitesEnabled",
+      "automodMentionEnabled",
+      "automodCapsEnabled",
+      "automodForbiddenWords",
+      "automodAlertChannelId",
+      "automodMentionLimit",
+      "automodEscalationCount",
+      "automodEscalationWindowMinutes",
+      "automodTimeoutMinutes",
+    ],
+    support: [
+      "privateVoiceEnabled",
+      "ticketsEnabled",
+      "ticketPanelChannelId",
+      "ticketCategoryId",
+      "ticketSupportRoleId",
+      "ticketLogChannelId",
+      "ticketPanelTitle",
+      "ticketPanelMessage",
+      "ticketMaxOpenPerUser",
+    ],
+  });
+
+function configVersionDiff(
+  currentRow,
+  snapshotRow,
+) {
+  const current =
+    normalizeSettings(
+      currentRow,
+    );
+  const previous =
+    normalizeSettings(
+      snapshotRow,
+    );
+
+  const changedFields = [];
+
+  for (
+    const [
+      group,
+      fields,
+    ]
+    of Object.entries(
+      CONFIG_HISTORY_GROUPS,
+    )
+  ) {
+    const changed =
+      fields.filter(
+        (field) =>
+          JSON.stringify(
+            current[field],
+          ) !==
+          JSON.stringify(
+            previous[field],
+          ),
+      );
+
+    if (changed.length) {
+      changedFields.push({
+        group,
+        fields:
+          changed,
+      });
+    }
+  }
+
+  return {
+    changedCount:
+      changedFields.reduce(
+        (
+          total,
+          item,
+        ) =>
+          total +
+          item.fields.length,
+        0,
+      ),
+    changedGroups:
+      changedFields.map(
+        (item) =>
+          item.group,
+      ),
+    changedFields,
+  };
+}
+
+async function createGuildConfigVersion(
+  supabase,
+  row,
+  {
+    actorUserId = null,
+    source = "save",
+    label = "",
+    restoredFrom = null,
+  } = {},
+) {
+  if (
+    !row?.guild_id ||
+    !row?.owner_user_id
+  ) {
+    return null;
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .from(
+      "discord_guild_config_versions",
+    )
+    .insert({
+      guild_id:
+        row.guild_id,
+      owner_user_id:
+        row.owner_user_id,
+      actor_user_id:
+        actorUserId,
+      source,
+      label:
+        String(
+          label ||
+          "",
+        )
+          .trim()
+          .slice(
+            0,
+            100,
+          ),
+      settings:
+        rawGuildSettingsSnapshot(
+          row,
+        ),
+      restored_from:
+        restoredFrom ||
+        null,
+    })
+    .select(
+      "id,guild_id,source,label,created_at",
+    )
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  const {
+    data:
+      stale,
+    error:
+      staleError,
+  } = await supabase
+    .from(
+      "discord_guild_config_versions",
+    )
+    .select("id")
+    .eq(
+      "guild_id",
+      row.guild_id,
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      },
+    )
+    .range(
+      CONFIG_VERSION_LIMIT,
+      CONFIG_VERSION_LIMIT +
+      100,
+    );
+
+  if (staleError) {
+    throw staleError;
+  }
+
+  const staleIds =
+    (stale || [])
+      .map(
+        (item) =>
+          item.id,
+      )
+      .filter(Boolean);
+
+  if (staleIds.length) {
+    const {
+      error:
+        pruneError,
+    } = await supabase
+      .from(
+        "discord_guild_config_versions",
+      )
+      .delete()
+      .in(
+        "id",
+        staleIds,
+      );
+
+    if (pruneError) {
+      throw pruneError;
+    }
+  }
+
+  return data;
+}
+
+async function handleConfigHistoryList(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const {
+      supabase,
+      settingsRow,
+      account,
+    } = access;
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from(
+        "discord_guild_config_versions",
+      )
+      .select(
+        "id,actor_user_id,source,label,settings,restored_from,created_at",
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "owner_user_id",
+        account.user.id,
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        },
+      )
+      .limit(
+        CONFIG_VERSION_LIMIT,
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    const versions =
+      (data || []).map(
+        (version) => {
+          const versionRow =
+            snapshotAsSettingsRow(
+              guildId,
+              account.user.id,
+              version.settings,
+            );
+          const diff =
+            configVersionDiff(
+              settingsRow,
+              versionRow,
+            );
+
+          return {
+            id:
+              version.id,
+            actorUserId:
+              version.actor_user_id,
+            source:
+              version.source,
+            label:
+              version.label,
+            restoredFrom:
+              version.restored_from,
+            createdAt:
+              version.created_at,
+            ...diff,
+          };
+        },
+      );
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        current: {
+          updatedAt:
+            settingsRow.updated_at,
+          settings:
+            normalizeSettings(
+              settingsRow,
+            ),
+        },
+        versions,
+      });
+  } catch (error) {
+    console.error(
+      "Config history list error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "CONFIG_HISTORY_LOAD_FAILED",
+      "Не вдалося завантажити історію конфігурації.",
+    );
+  }
+}
+
+async function handleCreateConfigSnapshot(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const label =
+    String(
+      body.label ||
+      "",
+    )
+      .trim()
+      .slice(
+        0,
+        100,
+      );
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const snapshot =
+      await createGuildConfigVersion(
+        access.supabase,
+        access.settingsRow,
+        {
+          actorUserId:
+            access.account.user.id,
+          source:
+            "manual",
+          label,
+        },
+      );
+
+    await access.supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "settings.snapshot_created",
+        payload: {
+          snapshot_id:
+            snapshot?.id ||
+            null,
+          label:
+            label ||
+            null,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        snapshot,
+      });
+  } catch (error) {
+    console.error(
+      "Create config snapshot error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "CONFIG_SNAPSHOT_CREATE_FAILED",
+      "Не вдалося створити snapshot конфігурації.",
+    );
+  }
+}
+
+async function handleRestoreConfigVersion(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const versionId =
+    String(
+      body.versionId ||
+      "",
+    ).trim();
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    !/^[0-9a-f-]{36}$/i.test(
+      versionId,
+    )
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_CONFIG_VERSION",
+      "Некоректна версія конфігурації.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const {
+      supabase,
+      settingsRow,
+      account,
+    } = access;
+
+    const {
+      data:
+        version,
+      error:
+        versionError,
+    } = await supabase
+      .from(
+        "discord_guild_config_versions",
+      )
+      .select("*")
+      .eq(
+        "id",
+        versionId,
+      )
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "owner_user_id",
+        account.user.id,
+      )
+      .maybeSingle();
+
+    if (
+      versionError ||
+      !version
+    ) {
+      return sendError(
+        response,
+        404,
+        "CONFIG_VERSION_NOT_FOUND",
+        "Версію конфігурації не знайдено.",
+      );
+    }
+
+    const rollbackSnapshot =
+      await createGuildConfigVersion(
+        supabase,
+        settingsRow,
+        {
+          actorUserId:
+            account.user.id,
+          source:
+            "restore",
+          label:
+            "Before restore",
+          restoredFrom:
+            version.id,
+        },
+      );
+
+    const restoredRow =
+      snapshotAsSettingsRow(
+        guildId,
+        account.user.id,
+        version.settings,
+      );
+
+    const {
+      data:
+        restored,
+      error:
+        restoreError,
+    } = await supabase
+      .from(
+        "discord_guild_settings",
+      )
+      .update({
+        locale:
+          restoredRow.locale,
+        admin_role_id:
+          restoredRow
+            .admin_role_id,
+        moderator_role_id:
+          restoredRow
+            .moderator_role_id,
+        member_role_id:
+          restoredRow
+            .member_role_id,
+        log_channel_id:
+          restoredRow
+            .log_channel_id,
+        welcome_channel_id:
+          restoredRow
+            .welcome_channel_id,
+        welcome_enabled:
+          restoredRow
+            .welcome_enabled,
+        moderation_enabled:
+          restoredRow
+            .moderation_enabled,
+        tickets_enabled:
+          restoredRow
+            .tickets_enabled,
+        private_voice_enabled:
+          restoredRow
+            .private_voice_enabled,
+        auto_roles_enabled:
+          restoredRow
+            .auto_roles_enabled,
+        config:
+          restoredRow.config,
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "guild_id",
+        guildId,
+      )
+      .eq(
+        "owner_user_id",
+        account.user.id,
+      )
+      .select("*")
+      .single();
+
+    if (restoreError) {
+      throw restoreError;
+    }
+
+    await supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "settings.restored",
+        payload: {
+          version_id:
+            version.id,
+          rollback_snapshot_id:
+            rollbackSnapshot
+              ?.id ||
+            null,
+          source:
+            version.source,
+          label:
+            version.label ||
+            null,
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        settings:
+          normalizeSettings(
+            restored,
+          ),
+        restoredVersionId:
+          version.id,
+        rollbackSnapshotId:
+          rollbackSnapshot
+            ?.id ||
+          null,
+      });
+  } catch (error) {
+    console.error(
+      "Restore config version error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "CONFIG_VERSION_RESTORE_FAILED",
+      "Не вдалося відновити конфігурацію.",
+    );
+  }
+}
+
 async function handleSaveSettings(
   request,
   response,
@@ -3453,7 +4345,7 @@ async function handleSaveSettings(
       .from(
         "discord_guild_settings",
       )
-      .select("config")
+      .select("*")
       .eq(
         "guild_id",
         guildId,
@@ -3575,6 +4467,21 @@ async function handleSaveSettings(
       new Date()
         .toISOString();
 
+    if (existingSettings) {
+      await createGuildConfigVersion(
+        supabase,
+        existingSettings,
+        {
+          actorUserId:
+            account.user.id,
+          source:
+            "save",
+          label:
+            "Before save",
+        },
+      );
+    }
+
     const {
       data,
       error,
@@ -3645,6 +4552,21 @@ async function handleSaveSettings(
     if (error) {
       throw error;
     }
+
+    await supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "settings.saved",
+        payload: {
+          updated_at:
+            data.updated_at,
+        },
+      });
 
     return response
       .status(200)
@@ -12142,6 +13064,36 @@ export default async function botPortalHandler(
     "publish-ticket-panel"
   ) {
     return handlePublishTicketPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "config-history-list"
+  ) {
+    return handleConfigHistoryList(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "create-config-snapshot"
+  ) {
+    return handleCreateConfigSnapshot(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "restore-config-version"
+  ) {
+    return handleRestoreConfigVersion(
       request,
       response,
     );
