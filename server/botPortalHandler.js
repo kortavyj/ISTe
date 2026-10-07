@@ -10654,6 +10654,19 @@ async function handleWorkerAutomodEvent(
   }
 }
 
+const MODERATION_AUDIT_EVENT_TYPES =
+  Object.freeze([
+    "automod.warn",
+    "automod.timeout",
+    "command.clear",
+    "command.warn",
+    "command.unwarn",
+    "command.timeout",
+    "command.kick",
+    "command.ban",
+    "command.unban",
+  ]);
+
 async function handleModerationHistory(
   request,
   response,
@@ -10855,6 +10868,10 @@ async function handleModerationHistory(
           .eq(
             "guild_id",
             guildId,
+          )
+          .in(
+            "event_type",
+            MODERATION_AUDIT_EVENT_TYPES,
           )
           .order(
             "created_at",
