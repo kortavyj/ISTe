@@ -3042,6 +3042,999 @@ function readSnowflakeOrEmpty(
 }
 
 
+
+const DISCORD_COMMAND_CATALOG =
+  Object.freeze([
+    {
+      name: "ping",
+      category: "utility",
+      label: "Ping",
+    },
+    {
+      name: "server",
+      category: "utility",
+      label: "Server info",
+    },
+    {
+      name: "user",
+      category: "utility",
+      label: "User info",
+    },
+    {
+      name: "avatar",
+      category: "utility",
+      label: "Avatar",
+    },
+    {
+      name: "bot",
+      category: "utility",
+      label: "Bot info",
+    },
+    {
+      name: "invite",
+      category: "utility",
+      label: "Invite",
+    },
+    {
+      name: "help",
+      category: "utility",
+      label: "Help",
+    },
+    {
+      name: "poll",
+      category: "community",
+      label: "Poll",
+    },
+    {
+      name: "room",
+      category: "community",
+      label: "Private Room",
+    },
+    {
+      name: "warn",
+      category: "moderation",
+      label: "Warn",
+    },
+    {
+      name: "warnings",
+      category: "moderation",
+      label: "Warnings",
+    },
+    {
+      name: "unwarn",
+      category: "moderation",
+      label: "Unwarn",
+    },
+    {
+      name: "timeout",
+      category: "moderation",
+      label: "Timeout",
+    },
+    {
+      name: "kick",
+      category: "moderation",
+      label: "Kick",
+    },
+    {
+      name: "ban",
+      category: "moderation",
+      label: "Ban",
+    },
+    {
+      name: "unban",
+      category: "moderation",
+      label: "Unban",
+    },
+    {
+      name: "clear",
+      category: "moderation",
+      label: "Clear messages",
+    },
+    {
+      name: "slowmode",
+      category: "moderation",
+      label: "Slowmode",
+    },
+    {
+      name: "site",
+      category: "iste",
+      label: "ISTe website",
+    },
+    {
+      name: "rules",
+      category: "iste",
+      label: "Rules",
+    },
+    {
+      name: "team",
+      category: "iste",
+      label: "Team",
+    },
+    {
+      name: "matches",
+      category: "iste",
+      label: "Matches",
+    },
+    {
+      name: "news",
+      category: "iste",
+      label: "News",
+    },
+    {
+      name: "apply",
+      category: "recruitment",
+      label: "Apply",
+    },
+    {
+      name: "recruitment",
+      category: "recruitment",
+      label: "Recruitment setup",
+    },
+    {
+      name: "applications",
+      category: "recruitment",
+      label: "Applications",
+    },
+  ]);
+
+const DISCORD_COMMAND_NAMES =
+  new Set(
+    DISCORD_COMMAND_CATALOG.map(
+      (command) =>
+        command.name,
+    ),
+  );
+
+function normalizeCommandSetting(
+  command,
+  row,
+  stats = {},
+) {
+  return {
+    name:
+      command.name,
+    category:
+      command.category,
+    label:
+      command.label,
+    enabled:
+      row?.enabled !==
+      false,
+    allowedRoleIds:
+      Array.isArray(
+        row?.allowed_role_ids,
+      )
+        ? row
+            .allowed_role_ids
+            .map(
+              (value) =>
+                String(value),
+            )
+            .filter(
+              (value) =>
+                isSnowflake(
+                  value,
+                ),
+            )
+        : [],
+    allowedChannelIds:
+      Array.isArray(
+        row
+          ?.allowed_channel_ids,
+      )
+        ? row
+            .allowed_channel_ids
+            .map(
+              (value) =>
+                String(value),
+            )
+            .filter(
+              (value) =>
+                isSnowflake(
+                  value,
+                ),
+            )
+        : [],
+    cooldownSeconds:
+      Math.max(
+        0,
+        Math.min(
+          86400,
+          Math.round(
+            Number(
+              row
+                ?.cooldown_seconds ||
+              0,
+            ) ||
+            0,
+          ),
+        ),
+      ),
+    customized:
+      Boolean(row),
+    stats: {
+      total:
+        Number(
+          stats.total ||
+          0,
+        ),
+      allowed:
+        Number(
+          stats.allowed ||
+          0,
+        ),
+      denied:
+        Number(
+          stats.denied ||
+          0,
+        ),
+      errors:
+        Number(
+          stats.errors ||
+          0,
+        ),
+      uniqueUsers:
+        Number(
+          stats.uniqueUsers ||
+          0,
+        ),
+      lastUsedAt:
+        stats.lastUsedAt ||
+        null,
+    },
+  };
+}
+
+function commandUsageTimeline(
+  rows,
+  days = 7,
+) {
+  const timeline = [];
+  const map = new Map();
+
+  for (
+    let offset =
+      days - 1;
+    offset >= 0;
+    offset -= 1
+  ) {
+    const date =
+      new Date(
+        Date.now() -
+        offset *
+          86400000,
+      );
+    const key =
+      analyticsDayKey(
+        date,
+      );
+    const item = {
+      date: key,
+      total: 0,
+      allowed: 0,
+      denied: 0,
+      errors: 0,
+    };
+
+    timeline.push(item);
+    map.set(
+      key,
+      item,
+    );
+  }
+
+  for (
+    const row
+    of (
+      Array.isArray(rows)
+        ? rows
+        : []
+    )
+  ) {
+    const item =
+      map.get(
+        analyticsDayKey(
+          row.created_at,
+        ),
+      );
+
+    if (!item) {
+      continue;
+    }
+
+    item.total += 1;
+
+    if (
+      row.outcome ===
+      "allowed"
+    ) {
+      item.allowed += 1;
+    } else if (
+      row.outcome ===
+      "denied"
+    ) {
+      item.denied += 1;
+    } else if (
+      row.outcome ===
+      "error"
+    ) {
+      item.errors += 1;
+    }
+  }
+
+  return timeline;
+}
+
+async function handleCommandCenterOverview(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const supabase =
+      access.supabase;
+    const since =
+      new Date(
+        Date.now() -
+        7 *
+          86400000,
+      ).toISOString();
+
+    const [
+      settingsResult,
+      usageResult,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "discord_command_settings",
+          )
+          .select("*")
+          .eq(
+            "guild_id",
+            guildId,
+          ),
+        supabase
+          .from(
+            "discord_command_usage",
+          )
+          .select(
+            "id,command_name,user_id,channel_id,outcome,denied_reason,duration_ms,created_at",
+          )
+          .eq(
+            "guild_id",
+            guildId,
+          )
+          .gte(
+            "created_at",
+            since,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          )
+          .limit(5000),
+      ]);
+
+    if (
+      settingsResult.error ||
+      usageResult.error
+    ) {
+      throw (
+        settingsResult.error ||
+        usageResult.error
+      );
+    }
+
+    const settingsMap =
+      new Map(
+        (
+          settingsResult.data ||
+          []
+        ).map(
+          (row) => [
+            String(
+              row.command_name,
+            ),
+            row,
+          ],
+        ),
+      );
+
+    const usageRows =
+      usageResult.data ||
+      [];
+    const statsMap =
+      new Map();
+
+    for (
+      const row
+      of usageRows
+    ) {
+      const name =
+        String(
+          row.command_name ||
+          "",
+        );
+
+      if (
+        !statsMap.has(
+          name,
+        )
+      ) {
+        statsMap.set(
+          name,
+          {
+            total: 0,
+            allowed: 0,
+            denied: 0,
+            errors: 0,
+            users:
+              new Set(),
+            lastUsedAt: null,
+          },
+        );
+      }
+
+      const stats =
+        statsMap.get(
+          name,
+        );
+
+      stats.total += 1;
+      stats.users.add(
+        String(
+          row.user_id ||
+          "",
+        ),
+      );
+
+      if (
+        row.outcome ===
+        "allowed"
+      ) {
+        stats.allowed += 1;
+      } else if (
+        row.outcome ===
+        "denied"
+      ) {
+        stats.denied += 1;
+      } else if (
+        row.outcome ===
+        "error"
+      ) {
+        stats.errors += 1;
+      }
+
+      if (!stats.lastUsedAt) {
+        stats.lastUsedAt =
+          row.created_at;
+      }
+    }
+
+    const commands =
+      DISCORD_COMMAND_CATALOG.map(
+        (command) => {
+          const stats =
+            statsMap.get(
+              command.name,
+            );
+
+          return normalizeCommandSetting(
+            command,
+            settingsMap.get(
+              command.name,
+            ),
+            stats
+              ? {
+                  ...stats,
+                  uniqueUsers:
+                    stats.users.size,
+                }
+              : {},
+          );
+        },
+      );
+
+    const summary = {
+      commands:
+        commands.length,
+      enabled:
+        commands.filter(
+          (command) =>
+            command.enabled,
+        ).length,
+      customized:
+        commands.filter(
+          (command) =>
+            command.customized,
+        ).length,
+      invocations:
+        usageRows.length,
+      allowed:
+        usageRows.filter(
+          (row) =>
+            row.outcome ===
+            "allowed",
+        ).length,
+      denied:
+        usageRows.filter(
+          (row) =>
+            row.outcome ===
+            "denied",
+        ).length,
+      errors:
+        usageRows.filter(
+          (row) =>
+            row.outcome ===
+            "error",
+        ).length,
+      uniqueUsers:
+        new Set(
+          usageRows.map(
+            (row) =>
+              String(
+                row.user_id ||
+                "",
+              ),
+          ),
+        ).size,
+    };
+
+    const recentUsage =
+      usageRows
+        .slice(
+          0,
+          40,
+        )
+        .map(
+          (row) => ({
+            id:
+              row.id,
+            command:
+              row.command_name,
+            userId:
+              row.user_id,
+            channelId:
+              row.channel_id,
+            outcome:
+              row.outcome,
+            deniedReason:
+              row.denied_reason,
+            durationMs:
+              row.duration_ms,
+            createdAt:
+              row.created_at,
+          }),
+        );
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+        guildId,
+        summary,
+        commands,
+        timeline:
+          commandUsageTimeline(
+            usageRows,
+            7,
+          ),
+        recentUsage,
+      });
+  } catch (error) {
+    console.error(
+      "Command center overview error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "COMMAND_CENTER_LOAD_FAILED",
+      "Не вдалося завантажити Command Center.",
+    );
+  }
+}
+
+async function handleSaveCommandSettings(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 64000,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const body =
+    readJsonBody(request) ||
+    {};
+  const guildId =
+    String(
+      body.guildId ||
+      "",
+    ).trim();
+  const commands =
+    Array.isArray(
+      body.commands,
+    )
+      ? body.commands
+      : [];
+
+  if (
+    !isSnowflake(
+      guildId,
+    ) ||
+    commands.length >
+      DISCORD_COMMAND_CATALOG
+        .length
+  ) {
+    return sendError(
+      response,
+      400,
+      "INVALID_COMMAND_SETTINGS",
+      "Некоректні налаштування команд.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const normalized = [];
+
+    for (
+      const item
+      of commands
+    ) {
+      const commandName =
+        String(
+          item?.name ||
+          "",
+        )
+          .trim()
+          .toLowerCase();
+
+      if (
+        !DISCORD_COMMAND_NAMES.has(
+          commandName,
+        )
+      ) {
+        return sendError(
+          response,
+          400,
+          "UNKNOWN_COMMAND",
+          "Невідома Discord команда: /" +
+            commandName,
+        );
+      }
+
+      const roleIds =
+        Array.isArray(
+          item
+            ?.allowedRoleIds,
+        )
+          ? [
+              ...new Set(
+                item
+                  .allowedRoleIds
+                  .map(
+                    (value) =>
+                      String(
+                        value ||
+                        "",
+                      ),
+                  )
+                  .filter(
+                    (value) =>
+                      isSnowflake(
+                        value,
+                      ),
+                  ),
+              ),
+            ]
+              .slice(
+                0,
+                20,
+              )
+          : [];
+
+      const channelIds =
+        Array.isArray(
+          item
+            ?.allowedChannelIds,
+        )
+          ? [
+              ...new Set(
+                item
+                  .allowedChannelIds
+                  .map(
+                    (value) =>
+                      String(
+                        value ||
+                        "",
+                      ),
+                  )
+                  .filter(
+                    (value) =>
+                      isSnowflake(
+                        value,
+                      ),
+                  ),
+              ),
+            ]
+              .slice(
+                0,
+                20,
+              )
+          : [];
+
+      normalized.push({
+        guild_id:
+          guildId,
+        command_name:
+          commandName,
+        enabled:
+          item?.enabled !==
+          false,
+        allowed_role_ids:
+          roleIds,
+        allowed_channel_ids:
+          channelIds,
+        cooldown_seconds:
+          Math.max(
+            0,
+            Math.min(
+              86400,
+              Math.round(
+                Number(
+                  item
+                    ?.cooldownSeconds ||
+                  0,
+                ) ||
+                0,
+              ),
+            ),
+          ),
+        updated_by:
+          access.account
+            .user.id,
+        updated_at:
+          new Date()
+            .toISOString(),
+      });
+    }
+
+    if (normalized.length) {
+      const {
+        error,
+      } = await access.supabase
+        .from(
+          "discord_command_settings",
+        )
+        .upsert(
+          normalized,
+          {
+            onConflict:
+              "guild_id,command_name",
+          },
+        );
+
+      if (error) {
+        throw error;
+      }
+    }
+
+    await access.supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "command_center.saved",
+        payload: {
+          commands:
+            normalized.length,
+          disabled:
+            normalized.filter(
+              (item) =>
+                !item.enabled,
+            ).map(
+              (item) =>
+                item
+                  .command_name,
+            ),
+        },
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Command center save error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "COMMAND_CENTER_SAVE_FAILED",
+      "Не вдалося зберегти налаштування команд.",
+    );
+  }
+}
+
+async function handleResetCommandSettings(
+  request,
+  response,
+) {
+  const guard =
+    guardRequest(
+      request,
+      {
+        methods: ["POST"],
+        requireJson: true,
+        requireOrigin: true,
+        maxBodyBytes: 4096,
+      },
+    );
+
+  if (!guard.ok) {
+    return sendGuardError(
+      response,
+      guard,
+    );
+  }
+
+  const guildId =
+    String(
+      readJsonBody(request)
+        ?.guildId ||
+      "",
+    ).trim();
+
+  if (!isSnowflake(guildId)) {
+    return sendError(
+      response,
+      400,
+      "INVALID_GUILD_ID",
+      "Некоректний Discord Server ID.",
+    );
+  }
+
+  try {
+    const access =
+      await readManagedGuildSettings(
+        request,
+        response,
+        guildId,
+      );
+
+    if (!access.ok) {
+      return access.sent;
+    }
+
+    const {
+      error,
+    } = await access.supabase
+      .from(
+        "discord_command_settings",
+      )
+      .delete()
+      .eq(
+        "guild_id",
+        guildId,
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    await access.supabase
+      .from(
+        "discord_bot_audit",
+      )
+      .insert({
+        guild_id:
+          guildId,
+        event_type:
+          "command_center.reset",
+        payload: {},
+      });
+
+    return response
+      .status(200)
+      .json({
+        ok: true,
+      });
+  } catch (error) {
+    console.error(
+      "Command center reset error:",
+      error,
+    );
+
+    return sendError(
+      response,
+      500,
+      "COMMAND_CENTER_RESET_FAILED",
+      "Не вдалося скинути налаштування команд.",
+    );
+  }
+}
+
 const CONFIG_VERSION_LIMIT =
   50;
 
@@ -13064,6 +14057,36 @@ export default async function botPortalHandler(
     "publish-ticket-panel"
   ) {
     return handlePublishTicketPanel(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "command-center-overview"
+  ) {
+    return handleCommandCenterOverview(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "save-command-settings"
+  ) {
+    return handleSaveCommandSettings(
+      request,
+      response,
+    );
+  }
+
+  if (
+    action ===
+    "reset-command-settings"
+  ) {
+    return handleResetCommandSettings(
       request,
       response,
     );
