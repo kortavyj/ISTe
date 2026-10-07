@@ -1556,6 +1556,166 @@ async function readDiscordSubscriptionAccount(
   return data;
 }
 
+async function eligibleSubscriptionGuilds(
+  userId: string,
+) {
+  if (!adminDb) {
+    return [];
+  }
+
+  const {
+    data,
+    error,
+  } = await adminDb
+    .from(
+      "discord_customer_guilds",
+    )
+    .select(
+      "guild_id,guild_name,is_owner,can_manage",
+    )
+    .eq(
+      "user_id",
+      userId,
+    )
+    .eq(
+      "can_manage",
+      true,
+    )
+    .neq(
+      "guild_id",
+      INTERNAL_GUILD_ID,
+    )
+    .order(
+      "guild_name",
+      {
+        ascending: true,
+      },
+    )
+    .limit(25);
+
+  if (error) {
+    throw error;
+  }
+
+  const rows =
+    Array.isArray(data)
+      ? data
+      : [];
+
+  const checked =
+    await Promise.all(
+      rows.map(
+        async (row: any) => {
+          const guildId =
+            String(
+              row.guild_id ||
+              "",
+            );
+
+          if (
+            !/^[0-9]{17,20}$/.test(
+              guildId,
+            )
+          ) {
+            return null;
+          }
+
+          try {
+            await discordBotRequest(
+              "/guilds/" +
+                guildId,
+            );
+
+            return {
+              id:
+                guildId,
+              name:
+                String(
+                  row.guild_name ||
+                  "Discord Server",
+                )
+                  .trim()
+                  .slice(
+                    0,
+                    100,
+                  ) ||
+                "Discord Server",
+            };
+          } catch {
+            return null;
+          }
+        },
+      ),
+    );
+
+  return checked.filter(
+    Boolean,
+  ) as Array<{
+    id: string;
+    name: string;
+  }>;
+}
+
+function subscriptionGuildSelect(
+  plan: SubscriptionPlan,
+  guilds: Array<{
+    id: string;
+    name: string;
+  }>,
+  lang: Language,
+) {
+  const t =
+    copy[lang];
+  const maxGuilds =
+    Math.max(
+      1,
+      Math.min(
+        SUBSCRIPTION_PLANS[
+          plan
+        ].maxGuilds,
+        guilds.length,
+        10,
+      ),
+    );
+
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 3,
+          custom_id:
+            "iste:subscription-guilds:" +
+            plan,
+          placeholder:
+            t.subscriptionServerPlaceholder,
+          min_values: 1,
+          max_values:
+            maxGuilds,
+          options:
+            guilds
+              .slice(0, 25)
+              .map(
+                (guild) => ({
+                  label:
+                    guild.name
+                      .slice(
+                        0,
+                        100,
+                      ),
+                  value:
+                    guild.id,
+                  description:
+                    "ID " +
+                    guild.id,
+                }),
+              ),
+        },
+      ],
+    },
+  ];
+}
+
 async function subscriptionCommand(
   interaction: any,
   lang: Language,
@@ -2342,6 +2502,216 @@ async function handleSubscriptionComponent(
     );
   }
 
+  const guilds =
+    await eligibleSubscriptionGuilds(
+      account.user_id,
+    );
+
+  if (!guilds.length) {
+    const appId =
+      String(
+        interaction
+          ?.application_id ||
+        "",
+      );
+    const installUrl =
+      appId
+        ? "https://discord.com/oauth2/authorize?client_id=" +
+          encodeURIComponent(
+            appId,
+          )
+        : SITE_URL +
+          "/discord";
+
+    return interactionMessage(
+      baseEmbed(
+        t.subscriptionServerTitle,
+        t.subscriptionNoServers,
+        t.footer,
+      ),
+      linkRow([
+        {
+          label:
+            t.installBot,
+          url:
+            installUrl,
+        },
+      ]),
+      true,
+    );
+  }
+
+  return interactionMessage(
+    baseEmbed(
+      t.subscriptionServerTitle,
+      interpolate(
+        t.subscriptionServerText,
+        {
+          plan:
+            plan.toUpperCase(),
+          count:
+            SUBSCRIPTION_PLANS[
+              plan
+            ].maxGuilds,
+        },
+      ),
+      t.footer,
+    ),
+    subscriptionGuildSelect(
+      plan,
+      guilds,
+      lang,
+    ),
+    true,
+  );
+}
+
+async function handleSubscriptionGuildComponent(
+  interaction: any,
+) {
+  const customId =
+    String(
+      interaction
+        ?.data
+        ?.custom_id ||
+      "",
+    );
+  const prefix =
+    "iste:subscription-guilds:";
+
+  if (
+    !customId.startsWith(
+      prefix,
+    )
+  ) {
+    return null;
+  }
+
+  const lang =
+    localeFamily(
+      interaction?.locale ||
+      interaction
+        ?.guild_locale,
+    ) as Language;
+  const t =
+    copy[lang];
+  const plan =
+    customId.slice(
+      prefix.length,
+    ) as SubscriptionPlan;
+
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      SUBSCRIPTION_PLANS,
+      plan,
+    ) ||
+    !adminDb
+  ) {
+    return ephemeralText(
+      t.subscriptionUnavailable,
+    );
+  }
+
+  const actor =
+    getActor(
+      interaction,
+    );
+  const discordUserId =
+    String(
+      actor?.id ||
+      "",
+    );
+  const account =
+    await readDiscordSubscriptionAccount(
+      discordUserId,
+    );
+
+  if (!account) {
+    return interactionMessage(
+      baseEmbed(
+        t.subscriptionTitle,
+        t.subscriptionLinkRequired,
+        t.footer,
+      ),
+      subscriptionDashboardRow(
+        t.subscriptionOpenDashboard,
+      ),
+      true,
+    );
+  }
+
+  const selectedIds =
+    [
+      ...new Set(
+        (
+          Array.isArray(
+            interaction
+              ?.data
+              ?.values,
+          )
+            ? interaction
+                .data
+                .values
+            : []
+        ).map(
+          (value: unknown) =>
+            String(value),
+        ),
+      ),
+    ];
+
+  const limit =
+    SUBSCRIPTION_PLANS[
+      plan
+    ].maxGuilds;
+
+  if (
+    !selectedIds.length ||
+    selectedIds.length >
+      limit
+  ) {
+    return ephemeralText(
+      t.subscriptionInvalidServers,
+    );
+  }
+
+  const eligible =
+    await eligibleSubscriptionGuilds(
+      account.user_id,
+    );
+  const eligibleMap =
+    new Map(
+      eligible.map(
+        (guild) => [
+          guild.id,
+          guild,
+        ],
+      ),
+    );
+  const selectedGuilds =
+    selectedIds
+      .map(
+        (guildId) =>
+          eligibleMap.get(
+            guildId,
+          ),
+      )
+      .filter(
+        Boolean,
+      ) as Array<{
+        id: string;
+        name: string;
+      }>;
+
+  if (
+    selectedGuilds.length !==
+    selectedIds.length
+  ) {
+    return ephemeralText(
+      t.subscriptionInvalidServers,
+    );
+  }
+
   const {
     data:
       existingRequest,
@@ -2351,7 +2721,9 @@ async function handleSubscriptionComponent(
     .from(
       "discord_subscription_requests",
     )
-    .select("id,metadata")
+    .select(
+      "id,metadata",
+    )
     .eq(
       "user_id",
       account.user_id,
@@ -2369,7 +2741,6 @@ async function handleSubscriptionComponent(
   const now =
     new Date()
       .toISOString();
-
   const metadata = {
     ...(
       existingRequest
@@ -2398,9 +2769,16 @@ async function handleSubscriptionComponent(
       ) ||
       null,
     requested_via:
-      "discord_button",
+      "discord_server_select",
     payment_mode:
       "discord_shop",
+    selected_guild_ids:
+      selectedGuilds.map(
+        (guild) =>
+          guild.id,
+      ),
+    selected_guilds:
+      selectedGuilds,
   };
 
   let requestId =
@@ -2466,95 +2844,19 @@ async function handleSubscriptionComponent(
         metadata,
       })
       .select(
-        "id,metadata",
+        "id",
       )
       .single();
 
-    if (!error) {
-      requestId =
-        String(
-          insertedRequest?.id ||
-          "",
-        );
-    }
-
     if (error) {
-      if (
-        error.code ===
-        "23505"
-      ) {
-        const {
-          error:
-            retryError,
-        } = await adminDb
-          .from(
-            "discord_subscription_requests",
-          )
-          .update({
-            plan,
-            discord_user_id:
-              discordUserId,
-            requested_at:
-              now,
-            updated_at:
-              now,
-            metadata,
-          })
-          .eq(
-            "user_id",
-            account.user_id,
-          )
-          .eq(
-            "status",
-            "pending",
-          );
-
-        if (retryError) {
-          throw retryError;
-        }
-
-        const {
-          data:
-            retryRequest,
-          error:
-            retryFetchError,
-        } = await adminDb
-          .from(
-            "discord_subscription_requests",
-          )
-          .select(
-            "id,metadata",
-          )
-          .eq(
-            "user_id",
-            account.user_id,
-          )
-          .eq(
-            "status",
-            "pending",
-          )
-          .maybeSingle();
-
-        if (
-          retryFetchError ||
-          !retryRequest
-        ) {
-          throw (
-            retryFetchError ||
-            new Error(
-              "SUBSCRIPTION_REQUEST_MISSING",
-            )
-          );
-        }
-
-        requestId =
-          String(
-            retryRequest.id,
-          );
-      } else {
-        throw error;
-      }
+      throw error;
     }
+
+    requestId =
+      String(
+        insertedRequest?.id ||
+        "",
+      );
   }
 
   if (!requestId) {
@@ -2619,17 +2921,14 @@ async function handleSubscriptionComponent(
       ),
       t.footer,
     ),
-    [
-      ...subscriptionButtons(),
-      ...linkRow([
-        {
-          label:
-            t.subscriptionOpenShop,
-          url:
-            shopOrder.url,
-        },
-      ]),
-    ],
+    linkRow([
+      {
+        label:
+          t.subscriptionOpenShop,
+        url:
+          shopOrder.url,
+      },
+    ]),
     true,
   );
 }
@@ -5597,6 +5896,17 @@ Deno.serve(async (request) => {
       if (subscriptionAdminResponse) {
         return json(
           subscriptionAdminResponse,
+        );
+      }
+
+      const subscriptionGuildResponse =
+        await handleSubscriptionGuildComponent(
+          interaction,
+        );
+
+      if (subscriptionGuildResponse) {
+        return json(
+          subscriptionGuildResponse,
         );
       }
 
