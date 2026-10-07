@@ -17536,25 +17536,59 @@ async function handleAdminSubscriptions(
     const supabase =
       getSupabaseAdminClient();
 
-    const {
-      data: accounts,
-      error: accountError,
-    } = await supabase
-      .from(
-        "discord_customer_accounts",
-      )
-      .select("*")
-      .order(
-        "last_synced_at",
-        {
-          ascending: false,
-        },
-      )
-      .limit(300);
+    const [
+      accountsResult,
+      requestsResult,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "discord_customer_accounts",
+          )
+          .select("*")
+          .order(
+            "last_synced_at",
+            {
+              ascending: false,
+            },
+          )
+          .limit(300),
+        supabase
+          .from(
+            "discord_subscription_requests",
+          )
+          .select(
+            "id,user_id,discord_user_id,plan,status,source,requested_at,updated_at,metadata",
+          )
+          .eq(
+            "status",
+            "pending",
+          )
+          .order(
+            "requested_at",
+            {
+              ascending: true,
+            },
+          )
+          .limit(100),
+      ]);
 
-    if (accountError) {
-      throw accountError;
+    if (
+      accountsResult.error ||
+      requestsResult.error
+    ) {
+      throw (
+        accountsResult.error ||
+        requestsResult.error
+      );
     }
+
+    const accounts =
+      accountsResult.data ||
+      [];
+    const pendingRequests =
+      requestsResult.data ||
+      [];
 
     const userIds =
       (
@@ -17667,6 +17701,110 @@ async function handleAdminSubscriptions(
           ],
         ),
       );
+
+    const accountMap =
+      new Map(
+        accounts.map(
+          (item) => [
+            item.user_id,
+            item,
+          ],
+        ),
+      );
+
+    const requestRows =
+      pendingRequests
+        .map(
+          (requestRow) => {
+            const account =
+              accountMap.get(
+                requestRow.user_id,
+              );
+            const profile =
+              profileMap.get(
+                requestRow.user_id,
+              );
+            const subscription =
+              subscriptionMap.get(
+                requestRow.user_id,
+              );
+
+            return {
+              id:
+                requestRow.id,
+              userId:
+                requestRow.user_id,
+              discordUserId:
+                requestRow
+                  .discord_user_id,
+              discordUsername:
+                account
+                  ?.discord_username ||
+                "",
+              discordGlobalName:
+                account
+                  ?.discord_global_name ||
+                "",
+              discordAvatar:
+                account
+                  ?.discord_avatar ||
+                "",
+              displayName:
+                profile
+                  ?.display_name ||
+                "",
+              username:
+                profile?.username ||
+                "",
+              plan:
+                requestRow.plan,
+              status:
+                requestRow.status,
+              source:
+                requestRow.source,
+              requestedAt:
+                requestRow
+                  .requested_at,
+              currentPlan:
+                normalizePlan(
+                  subscription?.plan ||
+                  "free",
+                ),
+              currentStatus:
+                subscription?.status ||
+                "free",
+              currentExpiresAt:
+                subscription
+                  ?.expires_at ||
+                null,
+            };
+          },
+        )
+        .filter(
+          (row) => {
+            if (!search) {
+              return true;
+            }
+
+            return [
+              row.username,
+              row.displayName,
+              row.discordUsername,
+              row.discordGlobalName,
+              row.discordUserId,
+              row.plan,
+            ].some(
+              (value) =>
+                String(
+                  value || "",
+                )
+                  .toLowerCase()
+                  .includes(
+                    search,
+                  ),
+            );
+          },
+        );
 
     const rows =
       (accounts || [])
@@ -17783,6 +17921,8 @@ async function handleAdminSubscriptions(
           ),
         subscriptions:
           rows,
+        requests:
+          requestRows,
       });
   } catch (error) {
     console.error(
