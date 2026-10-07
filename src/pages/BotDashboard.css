@@ -2475,3 +2475,420 @@
     padding-right: 7px;
   }
 }
+
+
+/* Bot dashboard v13: diagnostics and alerts */
+.bot-dashboard-control-tabs {
+  grid-template-columns: repeat(8, minmax(0,1fr));
+}
+
+.bot-dashboard-settings.tab-diagnostics > * {
+  display: none !important;
+}
+
+.bot-dashboard-diagnostics-center {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 17px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 13px;
+  background:
+    linear-gradient(140deg, rgba(227,6,19,.035), transparent 52%),
+    #0d1116;
+}
+
+.bot-dashboard-diagnostics-center.hidden {
+  display: none;
+}
+
+.bot-dashboard-diagnostics-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.bot-dashboard-diagnostics-head > div > span {
+  color: #e30613;
+  font-size: .55rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+
+.bot-dashboard-diagnostics-head h3 {
+  margin: 5px 0 0;
+  font-size: 1.05rem;
+}
+
+.bot-dashboard-diagnostics-head p {
+  margin: 6px 0 0;
+  max-width: 780px;
+  color: rgba(255,255,255,.36);
+  font-size: .62rem;
+  line-height: 1.55;
+}
+
+.bot-dashboard-diagnostics-head > button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 8px;
+  background: rgba(255,255,255,.025);
+  color: #fff;
+  font: inherit;
+  font-size: .56rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.bot-dashboard-diagnostics-status {
+  display: grid;
+  grid-template-columns: minmax(240px,1fr) auto auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 84px;
+  padding: 13px 15px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 11px;
+  background: #090d12;
+}
+
+.bot-dashboard-diagnostics-status .state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bot-dashboard-diagnostics-status .pulse {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #4bd58b;
+  box-shadow: 0 0 0 5px rgba(75,213,139,.07);
+}
+
+.bot-dashboard-diagnostics-status.warning .pulse {
+  background: #eab66b;
+  box-shadow: 0 0 0 5px rgba(234,182,107,.07);
+}
+
+.bot-dashboard-diagnostics-status.error .pulse {
+  background: #ff6872;
+  box-shadow: 0 0 0 5px rgba(255,104,114,.08);
+}
+
+.bot-dashboard-diagnostics-status .state > div,
+.bot-dashboard-diagnostics-status .checked {
+  display: grid;
+  gap: 4px;
+}
+
+.bot-dashboard-diagnostics-status small {
+  color: rgba(255,255,255,.28);
+  font-size: .46rem;
+  font-weight: 850;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.bot-dashboard-diagnostics-status .state strong {
+  font-size: .78rem;
+}
+
+.bot-dashboard-diagnostics-status .summary {
+  display: flex;
+  gap: 6px;
+}
+
+.bot-dashboard-diagnostics-status .summary > span {
+  display: grid;
+  min-width: 64px;
+  gap: 2px;
+  padding: 8px 9px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  color: rgba(255,255,255,.32);
+  font-size: .42rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.bot-dashboard-diagnostics-status .summary strong {
+  color: #fff;
+  font-size: .74rem;
+}
+
+.bot-dashboard-diagnostics-status .summary .ok {
+  border-color: rgba(75,213,139,.14);
+}
+
+.bot-dashboard-diagnostics-status .summary .warning {
+  border-color: rgba(234,182,107,.16);
+}
+
+.bot-dashboard-diagnostics-status .summary .error {
+  border-color: rgba(255,104,114,.16);
+}
+
+.bot-dashboard-diagnostics-status .checked {
+  min-width: 130px;
+  text-align: right;
+}
+
+.bot-dashboard-diagnostics-status .checked strong {
+  font-size: .55rem;
+}
+
+.bot-dashboard-diagnostics-grid {
+  display: grid;
+  grid-template-columns: minmax(0,1.35fr) minmax(300px,.65fr);
+  gap: 10px;
+}
+
+.bot-dashboard-diagnostics-checks,
+.bot-dashboard-diagnostics-permissions,
+.bot-dashboard-diagnostics-actions {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 10px;
+  background: #090d12;
+}
+
+.bot-dashboard-diagnostics-checks > header,
+.bot-dashboard-diagnostics-permissions > header,
+.bot-dashboard-diagnostics-actions > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+}
+
+.bot-dashboard-diagnostics-checks > header strong,
+.bot-dashboard-diagnostics-permissions > header strong,
+.bot-dashboard-diagnostics-actions > header strong {
+  font-size: .65rem;
+}
+
+.bot-dashboard-diagnostics-checks > header span,
+.bot-dashboard-diagnostics-permissions > header span {
+  color: rgba(255,255,255,.3);
+  font-size: .49rem;
+}
+
+.bot-dashboard-diagnostics-checks .checks {
+  display: grid;
+}
+
+.diagnostic-check {
+  display: grid;
+  grid-template-columns: 30px minmax(0,1fr);
+  gap: 9px;
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.045);
+}
+
+.diagnostic-check .indicator {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 1px solid rgba(75,213,139,.18);
+  border-radius: 8px;
+  color: #75dda2;
+  font-size: .65rem;
+  font-weight: 900;
+}
+
+.diagnostic-check.warning .indicator {
+  border-color: rgba(234,182,107,.2);
+  color: #eab66b;
+}
+
+.diagnostic-check.error .indicator {
+  border-color: rgba(255,104,114,.2);
+  color: #ff7c85;
+}
+
+.diagnostic-check .body {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.diagnostic-check .body > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.diagnostic-check .body strong {
+  font-size: .57rem;
+}
+
+.diagnostic-check .body > div > span {
+  color: rgba(255,255,255,.28);
+  font-size: .42rem;
+  font-weight: 900;
+}
+
+.diagnostic-check.ok .body > div > span {
+  color: #75dda2;
+}
+
+.diagnostic-check.warning .body > div > span {
+  color: #eab66b;
+}
+
+.diagnostic-check.error .body > div > span {
+  color: #ff7c85;
+}
+
+.diagnostic-check p {
+  margin: 0;
+  color: rgba(255,255,255,.35);
+  font-size: .5rem;
+  line-height: 1.5;
+}
+
+.diagnostic-check ul {
+  display: grid;
+  gap: 3px;
+  margin: 3px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diagnostic-check li {
+  color: rgba(255,255,255,.5);
+  font-size: .47rem;
+  line-height: 1.4;
+}
+
+.diagnostic-check li::before {
+  content: "›";
+  margin-right: 5px;
+  color: #e30613;
+}
+
+.bot-dashboard-diagnostics-permissions .permissions {
+  display: grid;
+}
+
+.bot-dashboard-diagnostics-permissions .permissions > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 46px;
+  padding: 8px 11px;
+  border-bottom: 1px solid rgba(255,255,255,.045);
+}
+
+.bot-dashboard-diagnostics-permissions .permissions > div > div {
+  display: grid;
+  gap: 3px;
+}
+
+.bot-dashboard-diagnostics-permissions strong {
+  font-size: .54rem;
+}
+
+.bot-dashboard-diagnostics-permissions small {
+  color: rgba(255,255,255,.25);
+  font-size: .41rem;
+  font-weight: 850;
+}
+
+.bot-dashboard-diagnostics-permissions .permissions > div > span {
+  padding: 4px 6px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 999px;
+  color: rgba(255,255,255,.33);
+  font-size: .4rem;
+  font-weight: 900;
+}
+
+.bot-dashboard-diagnostics-permissions .granted > span {
+  border-color: rgba(75,213,139,.18) !important;
+  color: #75dda2 !important;
+}
+
+.bot-dashboard-diagnostics-permissions .missing > span {
+  border-color: rgba(255,104,114,.2) !important;
+  color: #ff7c85 !important;
+}
+
+.bot-dashboard-diagnostics-actions > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 11px 12px;
+}
+
+.bot-dashboard-diagnostics-actions button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(227,6,19,.24);
+  border-radius: 8px;
+  background: rgba(227,6,19,.06);
+  color: #fff;
+  font: inherit;
+  font-size: .52rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.bot-dashboard-diagnostics-actions button.secondary {
+  border-color: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.025);
+  color: rgba(255,255,255,.65);
+}
+
+.bot-dashboard-diagnostics-actions button:disabled,
+.bot-dashboard-diagnostics-head button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+@media (max-width: 1180px) {
+  .bot-dashboard-diagnostics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .bot-dashboard-control-tabs {
+    grid-template-columns: repeat(8, minmax(62px,1fr));
+  }
+
+  .bot-dashboard-diagnostics-head,
+  .bot-dashboard-diagnostics-status {
+    align-items: stretch;
+  }
+
+  .bot-dashboard-diagnostics-head {
+    flex-direction: column;
+  }
+
+  .bot-dashboard-diagnostics-status {
+    grid-template-columns: 1fr;
+  }
+
+  .bot-dashboard-diagnostics-status .checked {
+    text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .bot-dashboard-diagnostics-status .summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+
+  .bot-dashboard-diagnostics-actions > div {
+    display: grid;
+  }
+}

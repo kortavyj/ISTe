@@ -64,6 +64,20 @@ const EMPTY_PUBLICATIONS = {
   scheduled: [],
 };
 
+const EMPTY_DIAGNOSTICS = {
+  overallStatus: "warning",
+  checkedAt: null,
+  summary: {
+    ok: 0,
+    warning: 0,
+    error: 0,
+  },
+  checks: [],
+  permissions: [],
+  worker: null,
+  bot: null,
+};
+
 const EMPTY_ANALYTICS = {
   summary: {
     currentMembers: null,
@@ -152,6 +166,7 @@ const copy = {
     tabSupport: "Підтримка",
     tabPublishing: "Публікації",
     tabSystem: "Система",
+    tabDiagnostics: "Діагностика",
     overviewTitle: "Стан модулів",
     overviewText:
       "Швидкий огляд конфігурації. Обери розділ, щоб перейти до його налаштувань.",
@@ -163,6 +178,27 @@ const copy = {
     refreshAnalytics: "Оновити",
     analyticsLoading: "Завантаження...",
     analyticsError: "Не вдалося завантажити Discord analytics.",
+    diagnosticsTitle: "Diagnostics & Alerts",
+    diagnosticsText:
+      "Перевірка Discord permissions, ролей, каналів, worker runtime та помилок активних модулів.",
+    diagnosticsRefresh: "Перевірити знову",
+    diagnosticsLoading: "Перевірка...",
+    diagnosticsError: "Не вдалося виконати Discord diagnostics.",
+    diagnosticsHealthy: "Система справна",
+    diagnosticsWarning: "Потрібна увага",
+    diagnosticsCritical: "Є критичні проблеми",
+    diagnosticsOk: "OK",
+    diagnosticsWarnings: "WARNINGS",
+    diagnosticsErrors: "ERRORS",
+    diagnosticsChecks: "Перевірки",
+    diagnosticsPermissions: "Discord permissions",
+    diagnosticsRequired: "REQUIRED",
+    diagnosticsOptional: "OPTIONAL",
+    diagnosticsGranted: "GRANTED",
+    diagnosticsMissing: "MISSING",
+    diagnosticsActions: "Швидкі дії",
+    diagnosticsCheckedAt: "Остання перевірка",
+    diagnosticsNoIssues: "Додаткових деталей немає.",
     currentMembersMetric: "Учасники",
     netGrowthMetric: "Зміна",
     joinsMetric: "Приєдналися",
@@ -463,6 +499,7 @@ const copy = {
     tabSupport: "Support",
     tabPublishing: "Publishing",
     tabSystem: "System",
+    tabDiagnostics: "Diagnostics",
     overviewTitle: "Module status",
     overviewText:
       "Quick configuration overview. Choose a section to open its settings.",
@@ -474,6 +511,27 @@ const copy = {
     refreshAnalytics: "Refresh",
     analyticsLoading: "Loading...",
     analyticsError: "Could not load Discord analytics.",
+    diagnosticsTitle: "Diagnostics & Alerts",
+    diagnosticsText:
+      "Check Discord permissions, roles, channels, worker runtime and active module errors.",
+    diagnosticsRefresh: "Run check again",
+    diagnosticsLoading: "Checking...",
+    diagnosticsError: "Could not run Discord diagnostics.",
+    diagnosticsHealthy: "System healthy",
+    diagnosticsWarning: "Needs attention",
+    diagnosticsCritical: "Critical issues found",
+    diagnosticsOk: "OK",
+    diagnosticsWarnings: "WARNINGS",
+    diagnosticsErrors: "ERRORS",
+    diagnosticsChecks: "Checks",
+    diagnosticsPermissions: "Discord permissions",
+    diagnosticsRequired: "REQUIRED",
+    diagnosticsOptional: "OPTIONAL",
+    diagnosticsGranted: "GRANTED",
+    diagnosticsMissing: "MISSING",
+    diagnosticsActions: "Quick actions",
+    diagnosticsCheckedAt: "Last checked",
+    diagnosticsNoIssues: "No additional details.",
     currentMembersMetric: "Members",
     netGrowthMetric: "Net growth",
     joinsMetric: "Joined",
@@ -1120,6 +1178,23 @@ export default function BotDashboard() {
   ] = useState("");
 
   const [
+    diagnostics,
+    setDiagnostics,
+  ] = useState(
+    EMPTY_DIAGNOSTICS,
+  );
+
+  const [
+    diagnosticsLoading,
+    setDiagnosticsLoading,
+  ] = useState(false);
+
+  const [
+    diagnosticsError,
+    setDiagnosticsError,
+  ] = useState("");
+
+  const [
     analytics,
     setAnalytics,
   ] = useState(
@@ -1311,6 +1386,65 @@ export default function BotDashboard() {
             0,
         ),
       );
+  }
+
+  async function loadDiagnostics(
+    guildId =
+      selectedGuildId,
+  ) {
+    if (!guildId) {
+      return;
+    }
+
+    setDiagnosticsLoading(
+      true,
+    );
+    setDiagnosticsError("");
+
+    try {
+      const result =
+        await api(
+          "diagnostics-overview",
+          {
+            method: "POST",
+            body: {
+              guildId,
+            },
+          },
+        );
+
+      setDiagnostics({
+        ...EMPTY_DIAGNOSTICS,
+        ...result,
+        summary: {
+          ...EMPTY_DIAGNOSTICS
+            .summary,
+          ...(result.summary ||
+            {}),
+        },
+        checks:
+          Array.isArray(
+            result.checks,
+          )
+            ? result.checks
+            : [],
+        permissions:
+          Array.isArray(
+            result.permissions,
+          )
+            ? result.permissions
+            : [],
+      });
+    } catch (loadError) {
+      setDiagnosticsError(
+        loadError?.message ||
+          c.diagnosticsError,
+      );
+    } finally {
+      setDiagnosticsLoading(
+        false,
+      );
+    }
   }
 
   async function loadAnalytics(
@@ -1550,6 +1684,10 @@ export default function BotDashboard() {
       audit: [],
     });
     setModerationError("");
+    setDiagnostics(
+      EMPTY_DIAGNOSTICS,
+    );
+    setDiagnosticsError("");
     setAnalytics(
       EMPTY_ANALYTICS,
     );
@@ -1572,6 +1710,10 @@ export default function BotDashboard() {
       guild.guildId,
       "",
       "",
+    );
+
+    void loadDiagnostics(
+      guild.guildId,
     );
 
     void loadAnalytics(
@@ -2721,6 +2863,11 @@ export default function BotDashboard() {
                   c.tabSystem,
                   "07",
                 ],
+                [
+                  "diagnostics",
+                  c.tabDiagnostics,
+                  "08",
+                ],
               ].map(
                 ([
                   key,
@@ -2753,6 +2900,13 @@ export default function BotDashboard() {
                         "publishing"
                       ) {
                         void loadPublications();
+                      }
+
+                      if (
+                        key ===
+                        "diagnostics"
+                      ) {
+                        void loadDiagnostics();
                       }
                     }}
                   >
@@ -4974,6 +5128,332 @@ export default function BotDashboard() {
                 </button>
               </div>
             </form>
+
+            <section
+              className={
+                `bot-dashboard-diagnostics-center${settingsTab === "diagnostics" ? "" : " hidden"}`
+              }
+            >
+              <header className="bot-dashboard-diagnostics-head">
+                <div>
+                  <span>
+                    DIAGNOSTICS
+                  </span>
+                  <h3>
+                    {c.diagnosticsTitle}
+                  </h3>
+                  <p>
+                    {c.diagnosticsText}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void loadDiagnostics()
+                  }
+                  disabled={
+                    diagnosticsLoading
+                  }
+                >
+                  {diagnosticsLoading
+                    ? c.diagnosticsLoading
+                    : c.diagnosticsRefresh}
+                </button>
+              </header>
+
+              {diagnosticsError ? (
+                <div className="bot-dashboard-alert error">
+                  {diagnosticsError}
+                </div>
+              ) : null}
+
+              <div
+                className={
+                  `bot-dashboard-diagnostics-status ${diagnostics.overallStatus || "warning"}`
+                }
+              >
+                <div className="state">
+                  <span className="pulse" />
+                  <div>
+                    <small>
+                      SYSTEM STATUS
+                    </small>
+                    <strong>
+                      {diagnostics.overallStatus ===
+                      "error"
+                        ? c.diagnosticsCritical
+                        : diagnostics.overallStatus ===
+                            "warning"
+                          ? c.diagnosticsWarning
+                          : c.diagnosticsHealthy}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="summary">
+                  <span className="ok">
+                    <strong>
+                      {
+                        diagnostics
+                          .summary
+                          .ok
+                      }
+                    </strong>
+                    {c.diagnosticsOk}
+                  </span>
+                  <span className="warning">
+                    <strong>
+                      {
+                        diagnostics
+                          .summary
+                          .warning
+                      }
+                    </strong>
+                    {c.diagnosticsWarnings}
+                  </span>
+                  <span className="error">
+                    <strong>
+                      {
+                        diagnostics
+                          .summary
+                          .error
+                      }
+                    </strong>
+                    {c.diagnosticsErrors}
+                  </span>
+                </div>
+
+                <div className="checked">
+                  <small>
+                    {c.diagnosticsCheckedAt}
+                  </small>
+                  <strong>
+                    {diagnostics.checkedAt
+                      ? formatKyivDateTime(
+                          diagnostics
+                            .checkedAt,
+                          language,
+                        )
+                      : "—"}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="bot-dashboard-diagnostics-grid">
+                <article className="bot-dashboard-diagnostics-checks">
+                  <header>
+                    <strong>
+                      {c.diagnosticsChecks}
+                    </strong>
+                    <span>
+                      {
+                        diagnostics
+                          .checks
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="checks">
+                    {diagnostics.checks.map(
+                      (
+                        check,
+                      ) => (
+                        <div
+                          key={
+                            check.id
+                          }
+                          className={
+                            `diagnostic-check ${check.status}`
+                          }
+                        >
+                          <span className="indicator">
+                            {check.status ===
+                            "ok"
+                              ? "✓"
+                              : check.status ===
+                                  "warning"
+                                ? "!"
+                                : "×"}
+                          </span>
+
+                          <div className="body">
+                            <div>
+                              <strong>
+                                {
+                                  check.title
+                                }
+                              </strong>
+                              <span>
+                                {String(
+                                  check.status ||
+                                    "",
+                                ).toUpperCase()}
+                              </span>
+                            </div>
+
+                            <p>
+                              {
+                                check.detail
+                              }
+                            </p>
+
+                            {Array.isArray(
+                              check.items,
+                            ) &&
+                            check.items
+                              .length ? (
+                              <ul>
+                                {check.items.map(
+                                  (
+                                    item,
+                                    index,
+                                  ) => (
+                                    <li
+                                      key={
+                                        check.id +
+                                        ":" +
+                                        index
+                                      }
+                                    >
+                                      {
+                                        item
+                                      }
+                                    </li>
+                                  ),
+                                )}
+                              </ul>
+                            ) : null}
+                          </div>
+                        </div>
+                      ),
+                    )}
+
+                    {!diagnostics.checks
+                      .length &&
+                    !diagnosticsLoading ? (
+                      <p className="bot-dashboard-log-empty">
+                        {c.diagnosticsNoIssues}
+                      </p>
+                    ) : null}
+                  </div>
+                </article>
+
+                <article className="bot-dashboard-diagnostics-permissions">
+                  <header>
+                    <strong>
+                      {c.diagnosticsPermissions}
+                    </strong>
+                    <span>
+                      {
+                        diagnostics
+                          .permissions
+                          .length
+                      }
+                    </span>
+                  </header>
+
+                  <div className="permissions">
+                    {diagnostics.permissions.map(
+                      (
+                        permission,
+                      ) => (
+                        <div
+                          key={
+                            permission.key
+                          }
+                          className={
+                            permission
+                              .granted
+                              ? "granted"
+                              : permission
+                                  .required
+                                ? "missing"
+                                : "optional"
+                          }
+                        >
+                          <div>
+                            <strong>
+                              {
+                                permission.label
+                              }
+                            </strong>
+                            <small>
+                              {permission.required
+                                ? c.diagnosticsRequired
+                                : c.diagnosticsOptional}
+                            </small>
+                          </div>
+
+                          <span>
+                            {permission.granted
+                              ? c.diagnosticsGranted
+                              : c.diagnosticsMissing}
+                          </span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </article>
+              </div>
+
+              <article className="bot-dashboard-diagnostics-actions">
+                <header>
+                  <strong>
+                    {c.diagnosticsActions}
+                  </strong>
+                </header>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      activateGuild(
+                        selectedGuild,
+                      )
+                    }
+                    disabled={
+                      busy ===
+                      `activate:${selectedGuild.guildId}`
+                    }
+                  >
+                    {c.updateBotPermissions}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={
+                      syncAutomod
+                    }
+                    disabled={
+                      busy ===
+                        "automod" ||
+                      !settings
+                        .automodEnabled
+                    }
+                  >
+                    {busy ===
+                    "automod"
+                      ? c.syncingAutomod
+                      : c.syncAutomod}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() =>
+                      void loadDiagnostics()
+                    }
+                    disabled={
+                      diagnosticsLoading
+                    }
+                  >
+                    {c.diagnosticsRefresh}
+                  </button>
+                </div>
+              </article>
+            </section>
 
             <section
               className={
