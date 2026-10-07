@@ -142,6 +142,30 @@
   ],
   "teamMatches": [
     {
+      "matchId": "1-7a0c1fd0-38eb-4100-bf6b-cd8234e5d86f",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-7a0c1fd0-38eb-4100-bf6b-cd8234e5d86f",
+      "tournamentId": "3b1873c0-4401-4a4e-8aef-111138b9a3c4",
+      "competitionName": "S59 EU Open10 B - Regular Season",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-10-07T18:12:47.000Z",
+      "startedAt": "2026-10-07T18:12:47.000Z",
+      "finishedAt": "2026-10-07T18:12:47.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 0
+      },
+      "opponent": {
+        "name": "BRUTAL",
+        "avatar": "https://distribution.faceit-cdn.net/images/06389908-df80-4736-8bd8-0392ed2f3a44.jpg",
+        "score": 1
+      }
+    },
+    {
       "matchId": "1-51c442ca-115b-48d9-8be9-0c4688eb0067",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-51c442ca-115b-48d9-8be9-0c4688eb0067",
       "tournamentId": "3b1873c0-4401-4a4e-8aef-111138b9a3c4",
@@ -3406,14 +3430,14 @@
       }
     }
   ],
-  "teamMatchCount": 136,
+  "teamMatchCount": 137,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 9,
-    "historyMatchesFound": 6,
+    "historyMatchesFound": 7,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3421,5 +3445,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-07T13:46:38.334Z"
+  "updatedAt": "2026-10-07T19:33:26.060Z"
 }
