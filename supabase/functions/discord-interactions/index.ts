@@ -61,51 +61,32 @@ const SHOP_OWNER_ROLE_ID =
 const SHOP_CO_OWNER_ROLE_ID =
   Deno.env.get("ISTE_SHOP_CO_OWNER_ROLE_ID") ||
   "";
-const MONOBANK_TOKEN =
-  Deno.env.get("MONOBANK_TOKEN") ||
+const PADDLE_API_KEY =
+  Deno.env.get("PADDLE_API_KEY") ||
   "";
-const MONOBANK_API =
+const PADDLE_ENVIRONMENT =
   (
-    Deno.env.get("MONOBANK_API_URL") ||
-    "https://api.monobank.ua"
+    Deno.env.get("PADDLE_ENVIRONMENT") ||
+    "live"
+  )
+    .trim()
+    .toLowerCase();
+const PADDLE_API =
+  (
+    Deno.env.get("PADDLE_API_URL") ||
+    (
+      PADDLE_ENVIRONMENT === "sandbox"
+        ? "https://sandbox-api.paddle.com"
+        : "https://api.paddle.com"
+    )
   ).replace(/\/+$/, "");
-const MONOBANK_WEBHOOK_URL =
-  Deno.env.get("MONOBANK_WEBHOOK_URL") ||
+const PADDLE_CHECKOUT_URL =
   (
-    SUPABASE_URL
-      ? SUPABASE_URL +
-        "/functions/v1/monobank-webhook"
-      : ""
-  );
-const MONOBANK_CCY =
-  Number.parseInt(
-    Deno.env.get("ISTE_MONO_CCY") ||
-    "980",
-    10,
-  );
-const MONOBANK_PLAN_AMOUNTS_MINOR = {
-  starter:
-    Number.parseInt(
-      Deno.env.get(
-        "ISTE_MONO_STARTER_AMOUNT_MINOR",
-      ) || "0",
-      10,
-    ),
-  pro:
-    Number.parseInt(
-      Deno.env.get(
-        "ISTE_MONO_PRO_AMOUNT_MINOR",
-      ) || "0",
-      10,
-    ),
-  max:
-    Number.parseInt(
-      Deno.env.get(
-        "ISTE_MONO_MAX_AMOUNT_MINOR",
-      ) || "0",
-      10,
-    ),
-} as const;
+    Deno.env.get("PADDLE_CHECKOUT_URL") ||
+    SITE_URL + "/bot/checkout"
+  ).trim();
+const PADDLE_CURRENCY_CODE = "USD";
+const PADDLE_CURRENCY_NUMERIC = 840;
 const BRAND_COLOR = 0xe30613;
 const BOT_VERSION = "2.5.0";
 
@@ -272,9 +253,9 @@ const copy = {
       "Замовлення на **{{plan}}** відхилено.",
     shopOrderTitle: "🛒 ISTe Bot • Підписка",
     shopPendingDescription:
-      "Оплатіть замовлення через захищену сторінку monobank нижче. Після успішної оплати бот перевірить платіж і активує підписку автоматично.",
+      "Оплатіть замовлення через захищену сторінку Paddle нижче. Після успішної оплати бот перевірить платіж і активує підписку автоматично.",
     shopPaymentUnavailableDescription:
-      "Приватне замовлення створено, але автоматична оплата ще не налаштована. Owner або Co Owner може обробити замовлення вручну.",
+      "Приватне замовлення створено, але автоматична оплата ще не налаштована. Платежі Paddle ще не налаштовані для цього середовища.",
     shopTestPendingDescription:
       "Тестове замовлення. Використайте службові кнопки нижче, реальна оплата не проводиться.",
     shopApprovedDescription:
@@ -285,7 +266,7 @@ const copy = {
     shopPlan: "Тариф",
     shopPrice: "Вартість",
     shopPeriod: "Період",
-    shopPeriod30: "30 днів",
+    shopPeriod30: "Щомісяця • автопродовження",
     shopStatus: "Статус",
     shopOrderId: "ID замовлення",
     shopExpires: "Активна до",
@@ -294,7 +275,7 @@ const copy = {
     shopStatusRejected: "🔴 ВІДХИЛЕНО",
     shopApprovePayment: "Підтвердити оплату",
     shopRejectPayment: "Відхилити",
-    shopPayNow: "Оплатити через monobank",
+    shopPayNow: "Оплатити через Paddle",
     shopPaymentAmount: "До сплати",
     shopDmApproved:
       "✅ Оплату підтверджено. Тариф **{{plan}}** активовано{{expires}}.",
@@ -468,9 +449,9 @@ const copy = {
       "Заказ на **{{plan}}** отклонён.",
     shopOrderTitle: "🛒 ISTe Bot • Подписка",
     shopPendingDescription:
-      "Оплатите заказ через защищённую страницу monobank ниже. После успешной оплаты бот проверит платёж и активирует подписку автоматически.",
+      "Оплатите заказ через защищённую страницу Paddle ниже. После успешной оплаты бот проверит платёж и активирует подписку автоматически.",
     shopPaymentUnavailableDescription:
-      "Приватный заказ создан, но автоматическая оплата ещё не настроена. Owner или Co Owner может обработать заказ вручную.",
+      "Приватный заказ создан, но автоматическая оплата ещё не настроена. Платежи Paddle ещё не настроены для этого окружения.",
     shopTestPendingDescription:
       "Тестовый заказ. Используйте служебные кнопки ниже, реальная оплата не проводится.",
     shopApprovedDescription:
@@ -481,7 +462,7 @@ const copy = {
     shopPlan: "Тариф",
     shopPrice: "Стоимость",
     shopPeriod: "Период",
-    shopPeriod30: "30 дней",
+    shopPeriod30: "Ежемесячно • автопродление",
     shopStatus: "Статус",
     shopOrderId: "ID заказа",
     shopExpires: "Активна до",
@@ -490,7 +471,7 @@ const copy = {
     shopStatusRejected: "🔴 ОТКЛОНЕНО",
     shopApprovePayment: "Подтвердить оплату",
     shopRejectPayment: "Отклонить",
-    shopPayNow: "Оплатить через monobank",
+    shopPayNow: "Оплатить через Paddle",
     shopPaymentAmount: "К оплате",
     shopDmApproved:
       "✅ Оплата подтверждена. Тариф **{{plan}}** активирован{{expires}}.",
@@ -664,9 +645,9 @@ const copy = {
       "The **{{plan}}** order was rejected.",
     shopOrderTitle: "🛒 ISTe Bot • Subscription",
     shopPendingDescription:
-      "Complete payment through the secure monobank page below. After a successful payment, the bot will verify it and activate the subscription automatically.",
+      "Complete payment through the secure Paddle page below. After a successful payment, the bot will verify it and activate the subscription automatically.",
     shopPaymentUnavailableDescription:
-      "The private order was created, but automated payment is not configured yet. Owner or Co Owner can process the order manually.",
+      "The private order was created, but automated payment is not configured yet. Paddle payments are not configured for this environment yet.",
     shopTestPendingDescription:
       "Test order. Use the staff controls below. No real payment is processed.",
     shopApprovedDescription:
@@ -677,7 +658,7 @@ const copy = {
     shopPlan: "Plan",
     shopPrice: "Price",
     shopPeriod: "Period",
-    shopPeriod30: "30 days",
+    shopPeriod30: "Monthly • auto-renew",
     shopStatus: "Status",
     shopOrderId: "Order ID",
     shopExpires: "Active until",
@@ -686,7 +667,7 @@ const copy = {
     shopStatusRejected: "🔴 REJECTED",
     shopApprovePayment: "Confirm payment",
     shopRejectPayment: "Reject",
-    shopPayNow: "Pay with monobank",
+    shopPayNow: "Pay with Paddle",
     shopPaymentAmount: "Amount due",
     shopDmApproved:
       "✅ Payment confirmed. **{{plan}}** is active{{expires}}.",
@@ -1351,28 +1332,30 @@ async function createPrivateShopOrderChannel(
   return channelId;
 }
 
-function monobankAmountMinor(
+function paddleAmountMinor(
   plan: SubscriptionPlan,
 ) {
-  const value =
-    Number(
-      MONOBANK_PLAN_AMOUNTS_MINOR[
-        plan
-      ] ||
-      0,
+  const amount =
+    Math.round(
+      Number(
+        SUBSCRIPTION_PLANS[
+          plan
+        ]?.priceUsd ||
+        0,
+      ) * 100,
     );
 
   return (
     Number.isSafeInteger(
-      value,
+      amount,
     ) &&
-    value > 0
+    amount > 0
   )
-    ? value
+    ? amount
     : 0;
 }
 
-async function createMonobankInvoice(
+async function createPaddleTransaction(
   requestId: string,
   discordUserId: string,
   plan: SubscriptionPlan,
@@ -1382,24 +1365,20 @@ async function createMonobankInvoice(
   if (
     testMode ||
     !adminDb ||
-    !MONOBANK_TOKEN ||
-    !MONOBANK_WEBHOOK_URL
+    !PADDLE_API_KEY ||
+    !/^https:\/\//i.test(
+      PADDLE_CHECKOUT_URL,
+    )
   ) {
     return null;
   }
 
   const amountMinor =
-    monobankAmountMinor(
+    paddleAmountMinor(
       plan,
     );
 
-  if (
-    !amountMinor ||
-    !Number.isInteger(
-      MONOBANK_CCY,
-    ) ||
-    MONOBANK_CCY <= 0
-  ) {
+  if (!amountMinor) {
     return null;
   }
 
@@ -1420,11 +1399,10 @@ async function createMonobankInvoice(
   if (
     existing &&
     existing.provider ===
-      "monobank" &&
+      "paddle" &&
     [
       "created",
       "processing",
-      "hold",
       "success",
     ].includes(
       String(
@@ -1432,28 +1410,54 @@ async function createMonobankInvoice(
         "",
       ),
     ) &&
-    Number(
-      existing.amount_minor,
-    ) ===
-      amountMinor &&
-    Number(
-      existing.currency,
-    ) ===
-      MONOBANK_CCY &&
     existing.page_url
   ) {
-    return existing;
+    return {
+      ...existing,
+      currency_code:
+        PADDLE_CURRENCY_CODE,
+    };
+  }
+
+  const {
+    data:
+      requestRow,
+    error:
+      requestError,
+  } = await adminDb
+    .from(
+      "discord_subscription_requests",
+    )
+    .select(
+      "id,user_id,metadata",
+    )
+    .eq(
+      "id",
+      requestId,
+    )
+    .maybeSingle();
+
+  if (
+    requestError ||
+    !requestRow?.user_id
+  ) {
+    throw new Error(
+      "PADDLE_SUBSCRIPTION_REQUEST_NOT_FOUND",
+    );
   }
 
   const response =
     await fetch(
-      MONOBANK_API +
-        "/api/merchant/invoice/create",
+      PADDLE_API +
+        "/transactions",
       {
         method: "POST",
         headers: {
-          "X-Token":
-            MONOBANK_TOKEN,
+          Authorization:
+            "Bearer " +
+            PADDLE_API_KEY,
+          "Paddle-Version":
+            "1",
           "Content-Type":
             "application/json",
           Accept:
@@ -1461,38 +1465,65 @@ async function createMonobankInvoice(
         },
         body:
           JSON.stringify({
-            amount:
-              amountMinor,
-            ccy:
-              MONOBANK_CCY,
-            merchantPaymInfo: {
-              reference:
-                requestId,
-              destination:
-                "ISTe Bot " +
-                plan.toUpperCase() +
-                " subscription",
-              comment:
-                "Discord " +
-                discordUserId,
-              metadata: {
-                requestId,
-                discordUserId,
-                plan,
+            items: [
+              {
+                quantity: 1,
+                price: {
+                  description:
+                    "ISTe Bot " +
+                    plan.toUpperCase() +
+                    " monthly subscription",
+                  name:
+                    "Monthly",
+                  billing_cycle: {
+                    interval:
+                      "month",
+                    frequency:
+                      1,
+                  },
+                  unit_price: {
+                    amount:
+                      String(
+                        amountMinor,
+                      ),
+                    currency_code:
+                      PADDLE_CURRENCY_CODE,
+                  },
+                  product: {
+                    name:
+                      "ISTe Bot " +
+                      plan.toUpperCase(),
+                    tax_category:
+                      "saas",
+                    description:
+                      "Monthly access to the ISTe Bot " +
+                      plan.toUpperCase() +
+                      " plan.",
+                  },
+                },
               },
-            },
-            redirectUrl:
-              shopChannelUrl(
+            ],
+            collection_mode:
+              "automatic",
+            custom_data: {
+              request_id:
+                requestId,
+              user_id:
+                String(
+                  requestRow.user_id,
+                ),
+              discord_user_id:
+                discordUserId,
+              plan,
+              source:
+                "iste_discord",
+              order_channel_id:
                 orderChannelId,
-              ),
-            webHookUrl:
-              MONOBANK_WEBHOOK_URL,
-            validity:
-              3600,
-            paymentType:
-              "debit",
-            withAppUrl:
-              true,
+            },
+            checkout: {
+              url:
+                PADDLE_CHECKOUT_URL,
+            },
           }),
       },
     );
@@ -1503,14 +1534,44 @@ async function createMonobankInvoice(
       .catch(
         () => null,
       );
+  const transaction =
+    payload?.data ||
+    null;
+  const transactionId =
+    String(
+      transaction?.id ||
+      "",
+    );
+  const checkoutUrl =
+    String(
+      transaction
+        ?.checkout
+        ?.url ||
+      "",
+    );
 
   if (
     !response.ok ||
-    !payload?.invoiceId ||
-    !payload?.pageUrl
+    !/^txn_[a-z\d]{26}$/i.test(
+      transactionId,
+    ) ||
+    !/^https:\/\//i.test(
+      checkoutUrl,
+    )
   ) {
+    console.error(
+      "Paddle transaction creation failed",
+      {
+        status:
+          response.status,
+        error:
+          payload?.error ||
+          null,
+      },
+    );
+
     throw new Error(
-      "MONOBANK_INVOICE_CREATE_FAILED",
+      "PADDLE_TRANSACTION_CREATE_FAILED",
     );
   }
 
@@ -1521,30 +1582,27 @@ async function createMonobankInvoice(
     request_id:
       requestId,
     provider:
-      "monobank",
+      "paddle",
     invoice_id:
-      String(
-        payload.invoiceId,
-      ),
+      transactionId,
     amount_minor:
       amountMinor,
     currency:
-      MONOBANK_CCY,
+      PADDLE_CURRENCY_NUMERIC,
     status:
       "created",
     page_url:
-      String(
-        payload.pageUrl,
-      ),
+      checkoutUrl,
     app_url:
-      String(
-        payload.appUrl ||
-        "",
-      ),
+      "",
     provider_modified_at:
+      transaction
+        ?.updated_at ||
+      transaction
+        ?.created_at ||
       null,
     provider_payload:
-      payload,
+      transaction,
     updated_at:
       now,
   };
@@ -1571,7 +1629,11 @@ async function createMonobankInvoice(
     throw error;
   }
 
-  return saved;
+  return {
+    ...saved,
+    currency_code:
+      PADDLE_CURRENCY_CODE,
+  };
 }
 
 function subscriptionShopEmbed(
@@ -1706,15 +1768,22 @@ function subscriptionShopEmbed(
                   100
                 ).toFixed(2) +
                 " " +
-                (
-                  Number(
-                    payment.currency,
-                  ) === 980
-                    ? "UAH"
-                    : "CCY " +
-                      String(
-                        payment.currency,
-                      )
+                String(
+                  payment.currency_code ||
+                  (
+                    Number(
+                      payment.currency,
+                    ) === 840
+                      ? "USD"
+                      : Number(
+                          payment.currency,
+                        ) === 980
+                        ? "UAH"
+                        : "CCY " +
+                          String(
+                            payment.currency,
+                          )
+                  ),
                 ),
               inline: false,
             },
@@ -1879,7 +1948,7 @@ async function upsertSubscriptionShopOrder(
 
   try {
     payment =
-      await createMonobankInvoice(
+      await createPaddleTransaction(
         requestId,
         discordUserId,
         plan,
@@ -1891,7 +1960,7 @@ async function upsertSubscriptionShopOrder(
     error
   ) {
     console.error(
-      "monobank invoice creation failed",
+      "Paddle transaction creation failed",
       error,
     );
   }
@@ -3657,7 +3726,7 @@ async function handleSubscriptionGuildComponent(
       shopOrder.messageId,
     payment_provider:
       shopOrder.payment
-        ? "monobank"
+        ? "paddle"
         : (
             metadata
               ?.payment_provider ||
