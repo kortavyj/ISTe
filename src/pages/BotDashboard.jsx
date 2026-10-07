@@ -571,6 +571,7 @@ const copy = {
     configGroupGeneral: "Основне",
     configGroupOnboarding: "Онбординг",
     configGroupModeration: "Модерація",
+    configGroupSecurity: "Безпека",
     configGroupSupport: "Підтримка",
     moduleOn: "Увімкнено",
     moduleOff: "Вимкнено",
@@ -1010,6 +1011,7 @@ const copy = {
     configGroupGeneral: "General",
     configGroupOnboarding: "Onboarding",
     configGroupModeration: "Moderation",
+    configGroupSecurity: "Security",
     configGroupSupport: "Support",
     moduleOn: "Enabled",
     moduleOff: "Disabled",
@@ -6507,7 +6509,10 @@ export default function BotDashboard() {
                                     : group ===
                                         "moderation"
                                       ? c.configGroupModeration
-                                      : c.configGroupSupport;
+                                      : group ===
+                                          "security"
+                                        ? c.configGroupSecurity
+                                        : c.configGroupSupport;
 
                             return (
                               <div
