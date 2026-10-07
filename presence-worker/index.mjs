@@ -383,11 +383,11 @@ function shopSubscriptionPanelPayload(
       intro:
         "**Офіційна підписка ISTe Bot через Donatello.**\nОбери тариф і сервери для ліцензії, після чого заверши підписку на Donatello.",
       starter:
-        "**STARTER — $2.99 / 30 днів**\n1 Discord-сервер",
+        "**STARTER**\n1 Discord-сервер",
       pro:
-        "**PRO — $4.99 / 30 днів**\nДо 3 Discord-серверів",
+        "**PRO**\nДо 3 Discord-серверів",
       max:
-        "**MAX — $6.99 / 30 днів**\nДо 10 Discord-серверів",
+        "**MAX**\nДо 10 Discord-серверів",
       how:
         "**Як придбати**\n1️⃣ Натисни **Оформити підписку**.\n2️⃣ Обери Starter, Pro або Max.\n3️⃣ Обери Discord-сервери для ліцензії.\n4️⃣ Відкрий персональне замовлення та перейди на Donatello.\n5️⃣ На Donatello увійди через Discord і оформи той самий рівень підписки.\n6️⃣ Donatello видасть роль, а ISTe Bot активує тариф автоматично.",
       important:
@@ -401,11 +401,11 @@ function shopSubscriptionPanelPayload(
       intro:
         "**Официальная подписка ISTe Bot через Donatello.**\nВыбери тариф и серверы для лицензии, после чего заверши подписку на Donatello.",
       starter:
-        "**STARTER — $2.99 / 30 дней**\n1 Discord-сервер",
+        "**STARTER**\n1 Discord-сервер",
       pro:
-        "**PRO — $4.99 / 30 дней**\nДо 3 Discord-серверов",
+        "**PRO**\nДо 3 Discord-серверов",
       max:
-        "**MAX — $6.99 / 30 дней**\nДо 10 Discord-серверов",
+        "**MAX**\nДо 10 Discord-серверов",
       how:
         "**Как купить**\n1️⃣ Нажми **Оформить подписку**.\n2️⃣ Выбери Starter, Pro или Max.\n3️⃣ Выбери Discord-серверы для лицензии.\n4️⃣ Открой персональный заказ и перейди на Donatello.\n5️⃣ На Donatello войди через Discord и оформи тот же уровень подписки.\n6️⃣ Donatello выдаст роль, а ISTe Bot активирует тариф автоматически.",
       important:
@@ -419,11 +419,11 @@ function shopSubscriptionPanelPayload(
       intro:
         "**Official ISTe Bot subscription through Donatello.**\nChoose a plan and license servers, then complete the subscription on Donatello.",
       starter:
-        "**STARTER — $2.99 / 30 days**\n1 Discord server",
+        "**STARTER**\n1 Discord server",
       pro:
-        "**PRO — $4.99 / 30 days**\nUp to 3 Discord servers",
+        "**PRO**\nUp to 3 Discord servers",
       max:
-        "**MAX — $6.99 / 30 days**\nUp to 10 Discord servers",
+        "**MAX**\nUp to 10 Discord servers",
       how:
         "**How to subscribe**\n1️⃣ Press **Get subscription**.\n2️⃣ Choose Starter, Pro or Max.\n3️⃣ Choose the Discord servers for the license.\n4️⃣ Open your private order and continue to Donatello.\n5️⃣ Sign in to Donatello with the same Discord account and subscribe to the matching level.\n6️⃣ Donatello assigns the role and ISTe Bot activates the plan automatically.",
       important:
