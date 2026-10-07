@@ -2564,6 +2564,7 @@ async function handleStatus(
                 ),
               ),
             license:
+              controlOwner &&
               license
                 ? {
                     plan:
