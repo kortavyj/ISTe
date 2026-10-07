@@ -349,6 +349,16 @@ export const ISTE_COMMANDS = [
   }),
 
   command({
+    userInstall: true,
+    name: "subscription",
+    description: "Manage your ISTe Bot subscription",
+    ruName: "подписка",
+    ukName: "підписка",
+    ruDescription: "Посмотреть статус и запросить подписку ISTe Bot",
+    ukDescription: "Переглянути статус і запросити підписку ISTe Bot",
+  }),
+
+  command({
     name: "poll",
     description: "Create a Discord poll",
     ruName: "опрос",
