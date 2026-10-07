@@ -258,6 +258,15 @@ let automodEventsProcessed = 0;
 let automodLastEventAt = null;
 let automodLastError = null;
 
+const securityJoinWindows =
+  new Map();
+const securityLastBurstAlertAt =
+  new Map();
+let securityEventsProcessed = 0;
+let securityQuarantines = 0;
+let securityLastEventAt = null;
+let securityLastError = null;
+
 let publicationTimer = null;
 let publicationBusy = false;
 let publicationRuns = 0;
@@ -435,6 +444,24 @@ function defaultGuildRuntimeConfig(guildId) {
       automodEnabled:
         false,
       automodRuleIds: {},
+      securityEnabled:
+        false,
+      securityAlertChannelId:
+        "",
+      securityQuarantineRoleId:
+        "",
+      securityJoinBurstThreshold:
+        8,
+      securityJoinBurstWindowSeconds:
+        60,
+      securityMinAccountAgeHours:
+        24,
+      securityAutoQuarantine:
+        false,
+      securityEmergencyMode:
+        false,
+      securityIgnoreBots:
+        true,
       autoRolesEnabled:
         internal,
       privateVoiceEnabled:
@@ -587,6 +614,589 @@ async function fetchGuildRuntimeConfig(
 
     return fallback;
   }
+}
+
+
+function securityHealth() {
+  return {
+    eventsProcessed:
+      securityEventsProcessed,
+    quarantines:
+      securityQuarantines,
+    lastEventAt:
+      securityLastEventAt,
+    lastError:
+      securityLastError,
+  };
+}
+
+function rememberSecurityJoin(
+  guildId,
+  windowSeconds,
+) {
+  const now =
+    Date.now();
+  const windowMs =
+    Math.max(
+      10,
+      Number(
+        windowSeconds ||
+        60,
+      ) ||
+      60,
+    ) *
+    1000;
+  const previous =
+    securityJoinWindows.get(
+      guildId,
+    ) ||
+    [];
+  const recent =
+    previous.filter(
+      (timestamp) =>
+        now -
+          timestamp <=
+        windowMs,
+    );
+
+  recent.push(now);
+  securityJoinWindows.set(
+    guildId,
+    recent,
+  );
+
+  return {
+    count:
+      recent.length,
+    windowMs,
+  };
+}
+
+async function writeSecurityEvent(
+  member,
+  {
+    eventType,
+    severity,
+    actionTaken,
+    details,
+  },
+) {
+  await workerRuntimeApi(
+    "security-event",
+    {
+      guildId:
+        member.guild.id,
+      userId:
+        member.id,
+      eventType,
+      severity,
+      actionTaken,
+      details,
+    },
+  );
+}
+
+async function sendSecurityAlert(
+  member,
+  settings,
+  {
+    eventType,
+    severity,
+    actionTaken,
+    reasons,
+    accountAgeHours,
+    joinCount,
+  },
+) {
+  const channelId =
+    cleanText(
+      settings
+        ?.securityAlertChannelId,
+    );
+
+  if (!channelId) {
+    return;
+  }
+
+  const channel =
+    member.guild.channels.cache.get(
+      channelId,
+    ) ||
+    (
+      await member.guild.channels
+        .fetch(
+          channelId,
+        )
+        .catch(
+          () => null,
+        )
+    );
+
+  if (
+    !channel ||
+    typeof channel.send !==
+      "function"
+  ) {
+    throw new Error(
+      "Configured security alert channel is unavailable",
+    );
+  }
+
+  const critical =
+    severity ===
+    "critical";
+
+  await channel.send({
+    embeds: [
+      {
+        title:
+          critical
+            ? "🚨 ISTe Raid Guard"
+            : "⚠️ ISTe Security",
+        description:
+          "<@" +
+          member.id +
+          "> flagged by Security Center.",
+        color:
+          critical
+            ? 0xe30613
+            : 0xf0ad4e,
+        fields: [
+          {
+            name:
+              "Event",
+            value:
+              eventType,
+            inline:
+              true,
+          },
+          {
+            name:
+              "Action",
+            value:
+              actionTaken ||
+              "observed",
+            inline:
+              true,
+          },
+          {
+            name:
+              "Account age",
+            value:
+              accountAgeHours ==
+              null
+                ? "unknown"
+                : Math.max(
+                    0,
+                    Math.round(
+                      accountAgeHours *
+                      10,
+                    ) /
+                      10,
+                  ) +
+                  " h",
+            inline:
+              true,
+          },
+          {
+            name:
+              "Join window",
+            value:
+              String(
+                joinCount ||
+                1,
+              ),
+            inline:
+              true,
+          },
+          {
+            name:
+              "Signals",
+            value:
+              reasons.join(
+                "\n",
+              ) ||
+              "manual",
+          },
+        ],
+        footer: {
+          text:
+            "ISTe Security Center",
+        },
+        timestamp:
+          new Date()
+            .toISOString(),
+      },
+    ],
+    allowedMentions: {
+      parse: [],
+    },
+  });
+}
+
+async function handleSecurityJoin(
+  member,
+) {
+  if (!member) {
+    return {
+      suspicious:
+        false,
+      blockOnboarding:
+        false,
+    };
+  }
+
+  const runtime =
+    await fetchGuildRuntimeConfig(
+      member.guild.id,
+    );
+  const settings =
+    runtime.settings ||
+    {};
+
+  if (
+    !runtime.active ||
+    settings
+      .securityEnabled !==
+      true
+  ) {
+    return {
+      suspicious:
+        false,
+      blockOnboarding:
+        false,
+    };
+  }
+
+  if (
+    member.user?.bot &&
+    settings
+      .securityIgnoreBots !==
+      false
+  ) {
+    return {
+      suspicious:
+        false,
+      blockOnboarding:
+        false,
+    };
+  }
+
+  const windowState =
+    rememberSecurityJoin(
+      member.guild.id,
+      settings
+        .securityJoinBurstWindowSeconds,
+    );
+
+  const threshold =
+    Math.max(
+      2,
+      Number(
+        settings
+          .securityJoinBurstThreshold ||
+        8,
+      ) ||
+      8,
+    );
+
+  const createdAt =
+    Number(
+      member.user
+        ?.createdTimestamp ||
+      0,
+    );
+
+  const accountAgeHours =
+    createdAt
+      ? (
+          Date.now() -
+          createdAt
+        ) /
+        3600000
+      : null;
+
+  const minAgeHours =
+    Math.max(
+      0,
+      Number(
+        settings
+          .securityMinAccountAgeHours ||
+        0,
+      ) ||
+      0,
+    );
+
+  const burst =
+    windowState.count >=
+    threshold;
+  const newAccount =
+    minAgeHours > 0 &&
+    accountAgeHours != null &&
+    accountAgeHours <
+      minAgeHours;
+  const emergency =
+    settings
+      .securityEmergencyMode ===
+    true;
+
+  if (
+    !burst &&
+    !newAccount &&
+    !emergency
+  ) {
+    return {
+      suspicious:
+        false,
+      blockOnboarding:
+        false,
+    };
+  }
+
+  const reasons = [];
+
+  if (emergency) {
+    reasons.push(
+      "Emergency mode is active",
+    );
+  }
+
+  if (burst) {
+    reasons.push(
+      "Join burst: " +
+      String(
+        windowState.count,
+      ) +
+      " joins / " +
+      String(
+        Math.round(
+          windowState.windowMs /
+          1000,
+        ),
+      ) +
+      "s",
+    );
+  }
+
+  if (newAccount) {
+    reasons.push(
+      "Account younger than " +
+      String(
+        minAgeHours,
+      ) +
+      "h",
+    );
+  }
+
+  const eventType =
+    emergency
+      ? "emergency_join"
+      : burst
+        ? "join_burst"
+        : "new_account";
+  const severity =
+    emergency ||
+    burst
+      ? "critical"
+      : "warning";
+
+  const shouldQuarantine =
+    emergency ||
+    settings
+      .securityAutoQuarantine ===
+      true;
+
+  let actionTaken =
+    "observed";
+  let quarantineError =
+    "";
+
+  if (shouldQuarantine) {
+    const roleId =
+      cleanText(
+        settings
+          .securityQuarantineRoleId,
+      );
+
+    if (!roleId) {
+      actionTaken =
+        "quarantine_missing_role";
+      quarantineError =
+        "Quarantine role is not configured";
+    } else {
+      try {
+        await member.guild.roles.fetch();
+
+        const role =
+          member.guild.roles.cache.get(
+            roleId,
+          );
+
+        if (!role) {
+          throw new Error(
+            "Configured quarantine role was not found",
+          );
+        }
+
+        if (!role.editable) {
+          throw new Error(
+            "Bot role must be above quarantine role",
+          );
+        }
+
+        if (
+          !member.roles.cache.has(
+            roleId,
+          )
+        ) {
+          await member.roles.add(
+            roleId,
+            "ISTe Security Center quarantine",
+          );
+        }
+
+        actionTaken =
+          "quarantine";
+        securityQuarantines +=
+          1;
+      } catch (error) {
+        actionTaken =
+          "quarantine_failed";
+        quarantineError =
+          error instanceof Error
+            ? error.message
+            : String(error);
+      }
+    }
+  }
+
+  const details = {
+    reasons,
+    account_age_hours:
+      accountAgeHours,
+    minimum_account_age_hours:
+      minAgeHours,
+    join_count:
+      windowState.count,
+    join_threshold:
+      threshold,
+    join_window_seconds:
+      Math.round(
+        windowState.windowMs /
+        1000,
+      ),
+    emergency_mode:
+      emergency,
+    quarantine_error:
+      quarantineError ||
+      null,
+  };
+
+  try {
+    await writeSecurityEvent(
+      member,
+      {
+        eventType,
+        severity,
+        actionTaken,
+        details,
+      },
+    );
+
+    securityEventsProcessed +=
+      1;
+    securityLastEventAt =
+      new Date()
+        .toISOString();
+
+    let shouldAlert =
+      true;
+
+    if (eventType ===
+      "join_burst") {
+      const last =
+        securityLastBurstAlertAt.get(
+          member.guild.id,
+        ) ||
+        0;
+
+      if (
+        Date.now() -
+          last <
+        windowState.windowMs
+      ) {
+        shouldAlert =
+          false;
+      } else {
+        securityLastBurstAlertAt.set(
+          member.guild.id,
+          Date.now(),
+        );
+      }
+    }
+
+    if (shouldAlert) {
+      await sendSecurityAlert(
+        member,
+        settings,
+        {
+          eventType,
+          severity,
+          actionTaken,
+          reasons,
+          accountAgeHours,
+          joinCount:
+            windowState.count,
+        },
+      );
+    }
+
+    securityLastError =
+      quarantineError ||
+      null;
+  } catch (error) {
+    securityLastError =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    log(
+      "security_join_failed",
+      {
+        guildId:
+          member.guild.id,
+        userId:
+          member.id,
+        message:
+          securityLastError,
+      },
+    );
+  }
+
+  log(
+    "security_join_processed",
+    {
+      guildId:
+        member.guild.id,
+      userId:
+        member.id,
+      eventType,
+      severity,
+      actionTaken,
+      joinCount:
+        windowState.count,
+      accountAgeHours,
+    },
+  );
+
+  return {
+    suspicious: true,
+    blockOnboarding:
+      shouldQuarantine,
+    quarantined:
+      actionTaken ===
+      "quarantine",
+  };
 }
 
 async function assignAutoRoles(member) {
@@ -2419,6 +3029,8 @@ async function reportHealthSnapshot() {
           welcomeHealth(),
         automod:
           automodHealth(),
+        security:
+          securityHealth(),
         publications:
           publicationsHealth(),
         matchAnnouncements:
@@ -2682,6 +3294,18 @@ client.on(Events.GuildMemberAdd, (member) => {
       "join",
     );
 
+    const security =
+      await handleSecurityJoin(
+        member,
+      );
+
+    if (
+      security
+        ?.blockOnboarding
+    ) {
+      return;
+    }
+
     await assignAutoRoles(
       member,
     );
@@ -2798,6 +3422,8 @@ const healthServer = createServer((request, response) => {
         welcomeHealth(),
       automod:
         automodHealth(),
+      security:
+        securityHealth(),
       publications:
         publicationsHealth(),
       telemetry:
