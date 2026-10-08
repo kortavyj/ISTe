@@ -19,6 +19,7 @@ export default function ExtensionMediaAdmin(){
   const types=["image/jpeg","image/png","image/webp","video/mp4","video/webm"];
   if(!types.includes(file.type)){setNotice("Поддерживаются JPG, PNG, WebP, MP4 и WebM.");return}
   if(file.size>(file.type.startsWith("video/")?100:12)*1024*1024){setNotice("Файл превышает разрешённый размер.");return}
+  const form=event.currentTarget;
   setBusy(true);setNotice("Загружаю файл…");
   try{
    const ticket=await request("upload-ticket",{mime:file.type,size:file.size});
@@ -26,7 +27,7 @@ export default function ExtensionMediaAdmin(){
    const response=await fetch(destination,{method:"PUT",headers:{"Content-Type":file.type,"apikey":PUBLISHABLE_KEY},body:file});
    if(!response.ok)throw Error("Не удалось загрузить файл в Storage: "+response.status);
    await request("create",{path:ticket.path,title:title.trim(),category,mime:file.type,size:file.size});
-   setFile(null);setTitle("");event.currentTarget.reset();setNotice("Черновик добавлен. Для пользователей он пока скрыт.");await refresh();
+   setFile(null);setTitle("");form.reset();setNotice("Черновик добавлен. Для пользователей он пока скрыт.");await refresh();
   }catch(e){setNotice("Ошибка загрузки: "+e.message)}finally{setBusy(false)}
  }
  async function mutate(action,body){
