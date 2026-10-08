@@ -28,7 +28,6 @@ import History from "./pages/History.jsx";
 import Highlights from "./pages/Highlights.jsx";
 import Home from "./pages/Home.jsx";
 import { Privacy, Terms } from "./pages/Legal.jsx";
-import FaceitPrivacy from "./pages/FaceitPrivacy.jsx";
 import Login from "./pages/Login.jsx";
 import Matches from "./pages/Matches.jsx";
 import News from "./pages/News.jsx";
@@ -140,7 +139,6 @@ export default function App() {
           <Route path="/support" element={<Support />} />
           <Route path="/tactics/share/:token" element={<SharedTactic />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route path="/privacy/faceit" element={<FaceitPrivacy />} />
           <Route path="/privacy/ai" element={<AIPrivacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/login" element={<Login />} />
