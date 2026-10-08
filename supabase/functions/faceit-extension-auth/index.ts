@@ -161,6 +161,7 @@ async function startLogin() {
   authUrl.searchParams.set("state", state);
   authUrl.searchParams.set("code_challenge", codeChallenge);
   authUrl.searchParams.set("code_challenge_method", "S256");
+  authUrl.searchParams.set("redirect_popup", "true");
 
   return json({
     ok: true,
