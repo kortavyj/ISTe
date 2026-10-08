@@ -94,7 +94,7 @@ function config() {
     dataApiKey,
     redirectUrl,
     successUrl,
-    configured: Boolean(clientId && clientSecret && dataApiKey && redirectUrl),
+    configured: Boolean(clientId && clientSecret && redirectUrl),
   };
 }
 
