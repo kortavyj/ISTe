@@ -8,7 +8,7 @@ export async function handleExtensionMedia(req,res,payload,auth){
  if(auth.access?.role!=="owner")return respond(res,403,{ok:false,error:"OWNER_REQUIRED"});
  try{
   const db=getSupabaseAdminClient();
-  const action=String(payload?.action||"");
+  const action=String(payload?.mediaAction||"");
   if(action==="list"){
    const {data,error}=await db.from("iste_extension_wallpapers").select("id,title,category,media_type,status,object_path,created_at,size_bytes").order("created_at",{ascending:false}).limit(200);
    if(error)throw error;return respond(res,200,{ok:true,items:data||[]});
