@@ -529,6 +529,186 @@ async function playerBundle(nickname: string, apiKey: string) {
   };
 }
 
+async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  worker: (item: T, index: number) => Promise<R>,
+) {
+  const results = new Array<R>(items.length);
+  let cursor = 0;
+
+  async function run() {
+    while (cursor < items.length) {
+      const index = cursor++;
+      results[index] = await worker(items[index], index);
+    }
+  }
+
+  const runners = Array.from(
+    { length: Math.min(Math.max(1, limit), items.length || 1) },
+    () => run(),
+  );
+
+  await Promise.all(runners);
+  return results;
+}
+
+async function playerBundleById(
+  rosterPlayer: any,
+  apiKey: string,
+) {
+  const playerId = String(
+    rosterPlayer?.player_id ||
+      rosterPlayer?.playerId ||
+      "",
+  ).trim();
+
+  if (!playerId) {
+    return {
+      player: rosterPlayer || {},
+      stats: null,
+      recent: null,
+      history: null,
+      partialErrors: ["Missing FACEIT player id."],
+    };
+  }
+
+  const results = await Promise.allSettled([
+    faceitData(
+      `/players/${encodeURIComponent(playerId)}`,
+      apiKey,
+    ),
+    faceitData(
+      `/players/${encodeURIComponent(playerId)}/stats/cs2`,
+      apiKey,
+    ),
+    faceitData(
+      `/players/${encodeURIComponent(playerId)}/games/cs2/stats?offset=0&limit=20`,
+      apiKey,
+    ),
+  ]);
+
+  const publicPlayer =
+    results[0].status === "fulfilled"
+      ? results[0].value
+      : null;
+
+  return {
+    player: {
+      ...(publicPlayer || {}),
+      player_id: publicPlayer?.player_id || playerId,
+      nickname:
+        publicPlayer?.nickname ||
+        rosterPlayer?.nickname ||
+        rosterPlayer?.game_player_name ||
+        "",
+      avatar:
+        publicPlayer?.avatar ||
+        rosterPlayer?.avatar ||
+        "",
+      party_id:
+        rosterPlayer?.party_id ||
+        rosterPlayer?.partyId ||
+        null,
+      roster_skill_level:
+        rosterPlayer?.game_skill_level ||
+        rosterPlayer?.skill_level ||
+        null,
+    },
+    stats:
+      results[1].status === "fulfilled"
+        ? results[1].value
+        : null,
+    recent:
+      results[2].status === "fulfilled"
+        ? results[2].value
+        : null,
+    history: null,
+    partialErrors: results
+      .filter((result) => result.status === "rejected")
+      .map((result: any) =>
+        String(result.reason?.message || result.reason || "FACEIT API error")
+      ),
+  };
+}
+
+function rosterFromFaction(faction: any) {
+  return Array.isArray(faction?.roster)
+    ? faction.roster
+    : [];
+}
+
+async function matchBundle(
+  matchId: string,
+  apiKey: string,
+) {
+  const match = await faceitData(
+    `/matches/${encodeURIComponent(matchId)}`,
+    apiKey,
+  );
+
+  const teamEntries = [
+    ["faction1", match?.teams?.faction1 || match?.faction1 || null],
+    ["faction2", match?.teams?.faction2 || match?.faction2 || null],
+  ] as const;
+
+  const teams: any[] = [];
+
+  for (const [key, faction] of teamEntries) {
+    const roster = rosterFromFaction(faction);
+
+    const players = await mapLimit(
+      roster,
+      2,
+      async (rosterPlayer) =>
+        await playerBundleById(rosterPlayer, apiKey),
+    );
+
+    teams.push({
+      key,
+      name:
+        faction?.name ||
+        faction?.leader ||
+        key,
+      avatar:
+        faction?.avatar ||
+        "",
+      roster: players,
+    });
+  }
+
+  return {
+    match: {
+      match_id:
+        match?.match_id ||
+        matchId,
+      status:
+        match?.status ||
+        null,
+      game:
+        match?.game ||
+        "cs2",
+      region:
+        match?.region ||
+        null,
+      competition_name:
+        match?.competition_name ||
+        match?.competition?.name ||
+        null,
+      best_of:
+        match?.best_of ||
+        null,
+      started_at:
+        match?.started_at ||
+        null,
+      configured_at:
+        match?.configured_at ||
+        null,
+    },
+    teams,
+  };
+}
+
 async function me(req: Request) {
   const session = await bearerSession(req);
   if (!session) return json({ ok: false, error: "AUTH_REQUIRED" }, 401);
@@ -557,21 +737,32 @@ async function data(req: Request) {
   const body = await req.json().catch(() => ({}));
   const action = String(body?.action ?? "player-bundle");
 
-  if (action !== "player-bundle") {
-    return json({ ok: false, error: "UNKNOWN_ACTION" }, 400);
-  }
-
-  const nickname = String(
-    body?.nickname || session.faceit_nickname || "",
-  ).trim();
-
-  if (!nickname) {
-    return json({ ok: false, error: "NICKNAME_REQUIRED" }, 400);
-  }
-
   try {
-    const bundle = await playerBundle(nickname, cfg.dataApiKey);
-    return json({ ok: true, data: bundle });
+    if (action === "player-bundle") {
+      const nickname = String(
+        body?.nickname || session.faceit_nickname || "",
+      ).trim();
+
+      if (!nickname) {
+        return json({ ok: false, error: "NICKNAME_REQUIRED" }, 400);
+      }
+
+      const bundle = await playerBundle(nickname, cfg.dataApiKey);
+      return json({ ok: true, data: bundle });
+    }
+
+    if (action === "match-bundle") {
+      const matchId = String(body?.match_id || "").trim();
+
+      if (!matchId) {
+        return json({ ok: false, error: "MATCH_ID_REQUIRED" }, 400);
+      }
+
+      const bundle = await matchBundle(matchId, cfg.dataApiKey);
+      return json({ ok: true, data: bundle });
+    }
+
+    return json({ ok: false, error: "UNKNOWN_ACTION" }, 400);
   } catch (error) {
     return json(
       {
