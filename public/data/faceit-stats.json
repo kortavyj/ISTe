@@ -44,20 +44,20 @@
       "kd": 1.19
     },
     {
-      "playerId": "13f30008-c350-4fe3-b714-1f7a2b447220",
-      "nickname": "dezz1we",
-      "avatar": "https://distribution.faceit-cdn.net/images/62664c69-71b1-433e-bb67-a5e79ec0f3da.jpeg",
+      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
+      "nickname": "Manocivnyk",
+      "avatar": null,
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/dezz1we",
+      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
       "level": 10,
-      "elo": 2634,
+      "elo": 2374,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 52,
-      "kd": 0.98
+      "winRate": 51,
+      "kd": 1.09
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -115,29 +115,29 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2121,
+      "elo": 2143,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.24
+      "kd": 1.25
     },
     {
-      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
-      "nickname": "Manocivnyk",
-      "avatar": null,
+      "playerId": "13f30008-c350-4fe3-b714-1f7a2b447220",
+      "nickname": "dezz1we",
+      "avatar": "https://distribution.faceit-cdn.net/images/62664c69-71b1-433e-bb67-a5e79ec0f3da.jpeg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "faceitUrl": "https://www.faceit.com/ru/players/dezz1we",
       "level": 10,
-      "elo": 2344,
+      "elo": 2634,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.08
+      "winRate": 52,
+      "kd": 0.98
     }
   ],
   "teamMatches": [
@@ -3445,5 +3445,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-08T10:06:33.999Z"
+  "updatedAt": "2026-10-08T17:21:51.108Z"
 }
