@@ -583,6 +583,25 @@ async function data(req: Request) {
   }
 }
 
+
+function health() {
+  const cfg = config();
+
+  return json({
+    ok: true,
+    service: "faceit-extension-auth",
+    oauth_configured: Boolean(
+      cfg.clientId &&
+      cfg.clientSecret &&
+      cfg.redirectUrl
+    ),
+    data_api_configured: Boolean(
+      cfg.dataApiKey
+    ),
+    redirect_url: cfg.redirectUrl,
+  });
+}
+
 async function logout(req: Request) {
   const authorization = String(req.headers.get("Authorization") ?? "");
   const token = authorization.startsWith("Bearer ")
@@ -613,6 +632,7 @@ Deno.serve(async (req: Request) => {
     const pathname = new URL(req.url).pathname;
     const route = pathname.split("/").filter(Boolean).pop() || "";
 
+    if (route === "health" && req.method === "GET") return health();
     if (route === "start" && req.method === "POST") return await startLogin();
     if (route === "callback" && req.method === "GET") return await callback(req);
     if (route === "status" && req.method === "POST") return await loginStatus(req);
