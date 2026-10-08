@@ -673,6 +673,30 @@ async function matchBundle(
       avatar:
         faction?.avatar ||
         "",
+      faction_id:
+        faction?.faction_id ||
+        null,
+      faceit_stats: {
+        rating:
+          faction?.stats?.rating ??
+          null,
+        win_probability:
+          faction?.stats?.winProbability ??
+          faction?.stats?.win_probability ??
+          null,
+        skill_level_average:
+          faction?.stats?.skillLevel?.average ??
+          faction?.stats?.skill_level?.average ??
+          null,
+        skill_level_min:
+          faction?.stats?.skillLevel?.range?.min ??
+          faction?.stats?.skill_level?.range?.min ??
+          null,
+        skill_level_max:
+          faction?.stats?.skillLevel?.range?.max ??
+          faction?.stats?.skill_level?.range?.max ??
+          null,
+      },
       roster: players,
     });
   }
@@ -698,11 +722,38 @@ async function matchBundle(
       best_of:
         match?.best_of ||
         null,
+      calculate_elo:
+        match?.calculate_elo ??
+        null,
+      competition_type:
+        match?.competition_type ||
+        null,
+      scheduled_at:
+        match?.scheduled_at ||
+        null,
       started_at:
         match?.started_at ||
         null,
+      finished_at:
+        match?.finished_at ||
+        null,
       configured_at:
         match?.configured_at ||
+        null,
+      results:
+        match?.results ||
+        null,
+      detailed_results:
+        Array.isArray(
+          match?.detailed_results,
+        )
+          ? match.detailed_results
+          : [],
+      voting:
+        match?.voting ||
+        null,
+      faceit_url:
+        match?.faceit_url ||
         null,
     },
     teams,
