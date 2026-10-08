@@ -3054,3 +3054,6 @@ if (action === "find-user") {
     body,
   );
 }
+
+// Reuse the site's authenticated HttpOnly cookie + MFA guard for owner media APIs.
+export { requireAccount };
