@@ -16,6 +16,7 @@ import FloatingSupportButton from "./components/support/FloatingSupportButton.js
 import Account from "./pages/Account.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import AdminHighlights from "./pages/AdminHighlights.jsx";
+import ExtensionMediaAdmin from "./pages/ExtensionMediaAdmin.jsx";
 import AdminNews from "./pages/AdminNews.jsx";
 import AIPrivacy from "./pages/AIPrivacy.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
@@ -200,6 +201,15 @@ export default function App() {
               <StaffRoute>
                 <AdminNews />
               </StaffRoute>
+            }
+          />
+
+          <Route
+            path="/admin/extension-media"
+            element={
+              <OwnerRoute>
+                <ExtensionMediaAdmin />
+              </OwnerRoute>
             }
           />
 
