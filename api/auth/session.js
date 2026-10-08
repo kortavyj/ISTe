@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { handleExtensionMedia } from "../../server/lib/extensionMedia.js";
 
 import { guardRequest } from "../lib/requestGuard.js";
 import {
@@ -3001,6 +3002,12 @@ if (action === "find-user") {
       response,
       body,
     );
+  }
+
+  if (action === "extension-media") {
+    const auth = await requireAccount(request,response);
+    if (!auth.ok) return sendAccountError(response,auth);
+    return handleExtensionMedia(request,response,body,auth);
   }
 
   if (action === "news-list") {
