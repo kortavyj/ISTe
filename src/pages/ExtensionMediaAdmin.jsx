@@ -4,7 +4,7 @@ const BUCKET="iste-extension-wallpapers";
 const STORAGE_ORIGIN="https://niwgrrprbcgbdaloijhq.supabase.co";
 const PUBLISHABLE_KEY="sb_publishable_6tmxQkwDg3l7NZjsdBgV-g_uIx5zTeb";
 async function request(action,body={}){
- const response=await fetch("/api/extension-media",{method:action==="list"?"GET":"POST",credentials:"include",cache:"no-store",headers:{"Content-Type":"application/json"},...(action==="list"?{}:{body:JSON.stringify({action,...body})})});
+ const response=await fetch("/api/auth/session",{method:"POST",credentials:"include",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"extension-media",mediaAction:action,...body})});
  const data=await response.json().catch(()=>({}));
  if(!response.ok||!data.ok)throw Error(data.message||data.error||"Server error");
  return data;
