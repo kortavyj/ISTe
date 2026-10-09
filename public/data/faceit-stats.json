@@ -73,7 +73,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1
+      "kd": 1.09
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -3445,5 +3445,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-09T02:08:58.014Z"
+  "updatedAt": "2026-10-09T08:57:05.664Z"
 }
