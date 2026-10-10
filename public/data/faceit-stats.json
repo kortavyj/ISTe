@@ -44,22 +44,6 @@
       "kd": 1.25
     },
     {
-      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
-      "nickname": "Manocivnyk",
-      "avatar": null,
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
-      "level": 10,
-      "elo": 2353,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.08
-    },
-    {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
       "nickname": "1sagi",
       "avatar": "https://distribution.faceit-cdn.net/images/66f667f0-6121-479d-bec3-95fae354c6bf.jpg",
@@ -90,6 +74,22 @@
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
       "kd": 1.06
+    },
+    {
+      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
+      "nickname": "Manocivnyk",
+      "avatar": null,
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "level": 10,
+      "elo": 2353,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 51,
+      "kd": 1.08
     },
     {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
@@ -3445,5 +3445,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-10T05:41:46.734Z"
+  "updatedAt": "2026-10-10T11:22:19.723Z"
 }
