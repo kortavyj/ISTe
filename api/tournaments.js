@@ -44,6 +44,16 @@ export default async function handler(request, response) {
   try {
     const supabase = getSupabaseServerClient();
     if (method === "GET") {
+      const mine = request.query?.mine === "1";
+      if (mine) {
+        const user = await sessionForRequest(request, response, supabase);
+        if (!user) return fail(response, 401, "AUTH_REQUIRED", "Войдите в аккаунт.");
+        const { data, error } = await supabase.from("tournaments")
+          .select(SELECT).eq("owner_user_id", user.id)
+          .order("created_at", { ascending: false }).limit(100);
+        if (error) throw error;
+        return response.status(200).json({ok:true, tournaments:data});
+      }
       const { data, error } = await supabase.from("tournaments")
         .select(SELECT).not("published_at", "is", null)
         .order("created_at", { ascending: false }).limit(100);
