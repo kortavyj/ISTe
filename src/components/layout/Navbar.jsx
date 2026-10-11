@@ -536,16 +536,6 @@ export default function Navbar() {
             </NavLink>
           ))}
 
-          <NavLink
-            to="/tournaments"
-            className={({ isActive }) =>
-              `navbar-link${isActive ? " navbar-link-active" : ""}`
-            }
-          >
-            <span className="navbar-link-icon" aria-hidden="true">🏆</span>
-            <span>{language === "uk" ? "Турніри" : language === "en" ? "Tournaments" : "Турниры"}</span>
-          </NavLink>
-
           {canUseTactics ? (
             <NavLink
               to="/player/tactics"
