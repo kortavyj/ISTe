@@ -22,4 +22,22 @@ test("CS2 envelope requires event identity and sequence",()=>{
  assert.equal(validateCs2Event({...event,type:"arbitrary-command"}),false);
 });
 
-// Verify the owner router refuses unauthenticated tournament requests.
+
+import ownerHandler from "../api/owner.js";
+function ownerResponseMock() {
+ const headers=new Map();
+ return {statusCode:200,payload:null,setHeader(key,value){headers.set(key.toLowerCase(),value);},getHeader(key){return headers.get(key.toLowerCase());},status(code){this.statusCode=code;return this;},json(value){this.payload=value;return this;}};
+}
+for (const submodule of ["","teams","matches","action"]) {
+ for (const method of ["GET","POST"]) {
+  test("anonymous tournament API denied: "+method+" "+(submodule||"root"),async()=>{
+   const request={method,headers:{},query:{module:"tournaments",...(submodule?{submodule}:{})}};
+   const response=ownerResponseMock();
+   await ownerHandler(request,response);
+   assert.equal(response.statusCode,401);
+   assert.equal(response.payload?.error,"AUTH_REQUIRED");
+   assert.equal(response.payload?.ok,false);
+   assert.match(response.getHeader("Cache-Control"),/no-store/);
+  });
+ }
+}
