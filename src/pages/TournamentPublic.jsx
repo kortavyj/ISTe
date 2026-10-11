@@ -34,6 +34,16 @@ export default function TournamentPublic() {
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [slug]);
+  async function joinTeam(teamId) {
+    if (!tournament || joining) return;
+    setJoining(true); setJoinMessage("");
+    try {
+      const res=await fetch("/api/tournament-teams",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({tournamentId:tournament.id,teamId,action:"join-team"})});
+      const data=await res.json();
+      if(!res.ok||!data.ok)throw new Error(data.message||"Не удалось вступить в команду.");
+      setJoinMessage("Вы вступили в команду. Доступ к матч-руму откроется для матчей этой команды.");
+    }catch(err){setJoinMessage(err.message);}finally{setJoining(false);}
+  }
   async function joinTournament(event) {
     event.preventDefault();
     if (!tournament || joining) return;
@@ -93,6 +103,7 @@ export default function TournamentPublic() {
       <div className="iste-tournaments__team-list">
         {teams.length ? teams.map((team, index) => <div className="iste-tournaments__team-item" key={team.id}>
           <span>{index + 1}</span><strong>{team.name}</strong>
+          {tournament.status === "registration" && user && <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Вступить игроком</button>}
         </div>) : <p>Команды ещё не добавлены.</p>}
       </div>
       {matches.length>0 ? (
