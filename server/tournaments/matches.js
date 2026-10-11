@@ -32,6 +32,16 @@ export default async function handler(request,response){
   if(!isUuid(tournamentId))return fail(response,400,"INVALID_TOURNAMENT","Неизвестный турнир.");
   try{
     const supabase=getSupabaseServerClient();
+    if(method==="GET" && request.query?.view==="assignments"){
+      const user=await authenticatedUser(request,response,supabase);
+      if(!user)return fail(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      const {data,error}=await supabase.rpc("iste_list_cs2_assignments",{p_tournament_id:tournamentId});
+      if(error){
+        if(/MFA_REQUIRED|OWNER_REQUIRED|AUTH_REQUIRED/.test(String(error.message))) return fail(response,403,"FORBIDDEN","Недостаточно прав или требуется MFA.");
+        throw error;
+      }
+      return response.status(200).json({ok:true,assignments:data?.assignments||[],history:data?.history||[]});
+    }
     if(method==="GET"){
       const {data,error}=await supabase.from("tournament_matches")
         .select("id,tournament_id,round_number,match_number,team_a_id,team_b_id,winner_team_id,status,score_a,score_b")
