@@ -40,7 +40,7 @@ export default function TournamentPublic() {
     {tournament && <>
       <div className="iste-tournaments__card">
         <span>{tournament.best_of === 3 ? "BO3" : "BO1"} · Single Elimination</span>
-        <h2>{tournament.status === "registration" ? "Регистрация открыта" : tournament.status}</h2>
+        <h2>{tournament.status === "registration" ? "Набор команд организатором" : tournament.status}</h2>
         <p>{teams.length} из {tournament.max_teams} команд</p>
       </div>
       <h2>Участники</h2>
