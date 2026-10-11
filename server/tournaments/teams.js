@@ -36,7 +36,6 @@ export default async function handler(request, response) {
   if (!isUuid(tournamentId)) return send(response, 400, "INVALID_TOURNAMENT", "Неверный идентификатор турнира.");
   try {
     const supabase = getSupabaseServerClient();
-    const user = await currentUser(request, response, supabase);
     if (method === "GET") {
       const { data, error } = await supabase.from("tournament_teams")
         .select("id,tournament_id,name,created_at").eq("tournament_id", tournamentId)
@@ -44,6 +43,7 @@ export default async function handler(request, response) {
       if (error) throw error;
       return response.status(200).json({ ok: true, teams: data });
     }
+    const user = await currentUser(request, response, supabase);
     if (!user) return send(response, 401, "AUTH_REQUIRED", "Необходимо войти в аккаунт.");
     const join = body?.join === true;
     const name = typeof body?.name === "string" ? body.name.trim() : "";
