@@ -14,7 +14,7 @@ function fakeSupabase({session=true,role="owner",blocked=false,aal="aal2",authEr
  };
  return {api,get checks(){return checked;}};
 }
-function request(){return {headers:{cookie:"iste_access_token=test-access; iste_refresh_token=test-refresh"}};}
+function request(){return {headers:{cookie:"__Host-iste_access=test-access; __Host-iste_refresh=test-refresh"}};}
 function response(){return {setHeader(){},getHeader(){return null;}};}
 for(const [name,options,allowed] of [
  ["valid owner session with MFA",{},true],
