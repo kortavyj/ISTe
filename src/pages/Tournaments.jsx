@@ -43,7 +43,7 @@ export default function Tournaments({ create = false }) {
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.message || "Ошибка создания турнира.");
-      navigate("/tournaments", { replace: true });
+      navigate("/account/tournaments", { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -61,6 +61,7 @@ export default function Tournaments({ create = false }) {
           : "Здесь появятся опубликованные турниры ISTe и сообщества. Смотреть их могут все."}</p>
         <div className="iste-tournaments__actions">
           <Link to="/tournaments">Все турниры</Link>
+          {user && <Link to="/account/tournaments">Мои турниры</Link>}
           {user ? <Link to="/tournaments/create">Создать турнир</Link> : <Link to="/login">Войти для создания</Link>}
         </div>
       </div>
