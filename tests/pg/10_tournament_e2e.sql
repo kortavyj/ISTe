@@ -440,4 +440,40 @@ begin
     raise exception 'CAPTAIN_UNIQUENESS_FAILED';
   end if;
 end $$;
+-- Exercise captain registration as authenticated, not as the database superuser.
+do $$
+declare
+  tid uuid;
+begin
+  insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
+  values ('123e4567-e89b-12d3-a456-426614174000',
+          'ci-captain-authenticated', 'CI Captain Authenticated', 3, 'registration', now())
+  returning id into tid;
+  perform set_config('iste.test.captain_tournament', tid::text, true);
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174077',true);
+insert into public.tournament_teams (tournament_id,name,captain_user_id)
+values (
+  current_setting('iste.test.captain_tournament')::uuid,
+  'Authenticated Captain Squad',
+  '123e4567-e89b-12d3-a456-426614174077'
+);
+do $$
+begin
+  if (select count(*) from public.tournament_teams
+      where tournament_id=current_setting('iste.test.captain_tournament')::uuid
+        and captain_user_id=auth.uid()) <> 1 then
+    raise exception 'AUTHENTICATED_CAPTAIN_REGISTRATION_FAILED';
+  end if;
+  begin
+    insert into public.tournament_teams(tournament_id,name,captain_user_id)
+    values(current_setting('iste.test.captain_tournament')::uuid,
+           'Second Authenticated Squad',auth.uid());
+    raise exception 'AUTHENTICATED_DUPLICATE_CAPTAIN_ALLOWED';
+  exception
+    when unique_violation then null;
+  end;
+end $$;
+reset role;
 rollback;
