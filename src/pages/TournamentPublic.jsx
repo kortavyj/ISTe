@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import "./Tournaments.css";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 export default function TournamentPublic() {
   const { slug } = useParams();
+  const { user } = useAuth();
+  const [teamName, setTeamName] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [joinMessage, setJoinMessage] = useState("");
   const [tournament, setTournament] = useState(null);
   const [teams, setTeams] = useState([]);
   const [matches, setMatches] = useState([]);
@@ -29,6 +34,29 @@ export default function TournamentPublic() {
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [slug]);
+  async function joinTournament(event) {
+    event.preventDefault();
+    if (!tournament || joining) return;
+    setJoining(true);
+    setJoinMessage("");
+    try {
+      const res = await fetch("/api/tournament-teams", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ tournamentId: tournament.id, name: teamName.trim(), join: true }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.ok) throw new Error(data.message || "Не удалось зарегистрировать команду.");
+      setTeams(existing => [...existing, data.team]);
+      setTeamName("");
+      setJoinMessage("Команда зарегистрирована.");
+    } catch (err) {
+      setJoinMessage(err.message);
+    } finally {
+      setJoining(false);
+    }
+  }
   return <section className="iste-tournaments">
     <div className="iste-tournaments__head">
       <span className="iste-tournaments__eyebrow">ISTe · CS2 TOURNAMENT</span>
@@ -43,6 +71,24 @@ export default function TournamentPublic() {
         <h2>{tournament.status === "registration" ? "Набор команд организатором" : tournament.status}</h2>
         <p>{teams.length} из {tournament.max_teams} команд</p>
       </div>
+      {tournament.status === "registration" && (
+        <div className="iste-tournaments__card">
+          <h2>Регистрация команды</h2>
+          {user ? (
+            <form className="iste-tournaments__team-form" onSubmit={joinTournament}>
+              <label>Название команды
+                <input required minLength={2} maxLength={60} value={teamName}
+                  disabled={joining || teams.length >= tournament.max_teams}
+                  onChange={event => setTeamName(event.target.value)} />
+              </label>
+              <button type="submit" disabled={joining || teams.length >= tournament.max_teams}>
+                {joining ? "Отправляем..." : "Зарегистрировать команду"}
+              </button>
+            </form>
+          ) : <p>Для регистрации команды <Link to="/login">войдите в аккаунт</Link>.</p>}
+          {joinMessage && <p role="status">{joinMessage}</p>}
+        </div>
+      )}
       <h2>Участники</h2>
       <div className="iste-tournaments__team-list">
         {teams.length ? teams.map((team, index) => <div className="iste-tournaments__team-item" key={team.id}>
