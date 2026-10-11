@@ -25,7 +25,7 @@ function playTournament(count) {
   assert.equal(current[0].winner, "team-1");
   assert.equal(rounds.reduce((sum, row) => sum + row.length, 0), size - 1);
   assert.equal(matches.filter(m => m.status === "bye").length, size - count);
-  assert.equal(matches.filter(m => m.status === "scheduled").length, count - (size - count));
+  assert.equal(matches.filter(m => m.status === "scheduled").length, count - size / 2);
 }
 for (const count of [2, 3, 4, 5, 6, 7, 8, 9, 16, 17, 31, 32, 33, 63, 64]) {
   test(`complete deterministic bracket simulation for ${count} teams`, () => playTournament(count));
