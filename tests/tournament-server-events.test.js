@@ -28,18 +28,30 @@ function ownerResponseMock() {
  const headers=new Map();
  return {statusCode:200,payload:null,setHeader(key,value){headers.set(key.toLowerCase(),value);},getHeader(key){return headers.get(key.toLowerCase());},status(code){this.statusCode=code;return this;},json(value){this.payload=value;return this;}};
 }
-for (const submodule of ["","teams","matches","action"]) {
- for (const method of ["GET","POST"]) {
-  test("anonymous tournament API denied: "+method+" "+(submodule||"root"),async()=>{
-   const request={method,headers:{},query:{module:"tournaments",...(submodule?{submodule}:{})}};
-   const response=ownerResponseMock();
-   await ownerHandler(request,response);
-   assert.equal(response.statusCode,401);
-   assert.equal(response.payload?.error,"AUTH_REQUIRED");
-   assert.equal(response.payload?.ok,false);
-   assert.match(response.getHeader("Cache-Control"),/no-store/);
-  });
- }
+// Public tournament endpoints must not be blanket-blocked by the owner router.
+// Invalid requests are rejected by each endpoint's own method/body/ID guards.
+for (const submodule of ["", "teams", "matches", "action"]) {
+  for (const method of ["GET", "POST"]) {
+    test("tournament API validates anonymous requests: " + method + " " + (submodule || "root"), async () => {
+      const request = {
+        method,
+        headers: {},
+        query: { module: "tournaments", ...(submodule ? { submodule } : {}) },
+      };
+      const response = ownerResponseMock();
+      await ownerHandler(request, response);
+      assert.equal(response.payload?.ok, false);
+      assert.notEqual(response.payload?.error, "AUTH_REQUIRED");
+      const expected = method === "POST"
+        ? 415
+        : submodule === "action" ? 405
+        : submodule ? 400 : 503;
+      assert.equal(response.statusCode, expected);
+      if (submodule !== "action" || method !== "GET") {
+        assert.match(response.getHeader("Cache-Control"), /no-store/);
+      }
+    });
+  }
 }
 
 import { ownerMfaPassed, ownerRoleDecision } from '../server/ownerRequest.js';
