@@ -17,6 +17,8 @@ async function authenticatedUser(request,response,supabase){
   const {data:role,error:roleError}=await supabase.from("user_roles")
     .select("role,is_blocked").eq("user_id",data.user.id).maybeSingle();
   if(roleError||(role?.is_blocked || role?.role !== "owner"))return null;
+  const {data:assurance,error:assuranceError}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel(data.session.access_token);
+  if(assuranceError || assurance?.currentLevel!=="aal2") return null;
   return data.user;
 }
 export default async function handler(request,response){
