@@ -406,4 +406,38 @@ begin
   raise exception 'SERVER_ASSIGNMENT_CHANGED';
  end if;
 end $$;
+-- Captain uniqueness and presence of the registration RLS policy.
+do $$
+declare
+  tid uuid;
+  captain_id uuid := '123e4567-e89b-12d3-a456-426614174077';
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'tournament_teams'
+      and policyname = 'Captains register tournament teams'
+      and cmd = 'INSERT'
+  ) then
+    raise exception 'CAPTAIN_REGISTRATION_POLICY_MISSING';
+  end if;
+  insert into auth.users(id) values (captain_id);
+  insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
+  values ('123e4567-e89b-12d3-a456-426614174000',
+          'ci-captain-unique', 'CI Captain Unique', 8, 'registration', now())
+  returning id into tid;
+  insert into public.tournament_teams(tournament_id,name,captain_user_id)
+  values (tid,'Captain Squad One',captain_id);
+  begin
+    insert into public.tournament_teams(tournament_id,name,captain_user_id)
+    values (tid,'Captain Squad Two',captain_id);
+    raise exception 'DUPLICATE_CAPTAIN_ALLOWED';
+  exception
+    when unique_violation then null;
+  end;
+  if (select count(*) from public.tournament_teams
+      where tournament_id = tid and captain_user_id = captain_id) <> 1 then
+    raise exception 'CAPTAIN_UNIQUENESS_FAILED';
+  end if;
+end $$;
 rollback;
