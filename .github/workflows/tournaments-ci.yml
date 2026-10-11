@@ -52,7 +52,11 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run lint
-      - run: npm run build
+      - name: Build frontend with isolated CI-only placeholders
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-publishable-placeholder-no-real-credentials
       - name: Apply migrations in disposable test database
         run: |
           set -euo pipefail
