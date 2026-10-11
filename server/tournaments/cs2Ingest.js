@@ -9,8 +9,7 @@ export default async function cs2Ingest(request, response) {
  const url = process.env.SUPABASE_URL;
  if (!secret || secret.length < 32 || !key || !url)
   return response.status(503).json({ok:false,error:"WEBHOOK_NOT_CONFIGURED"});
- const raw = typeof request.body === "string" ? request.body :
-   Buffer.isBuffer(request.body) ? request.body.toString("utf8") : null;
+ const raw = typeof request.rawCs2Body === "string" ? request.rawCs2Body : null;
  if (!raw || Buffer.byteLength(raw,"utf8") > MAX_RAW_BODY_BYTES)
   return response.status(400).json({ok:false,error:"INVALID_RAW_BODY"});
  const timestamp = request.headers["x-iste-timestamp"];
