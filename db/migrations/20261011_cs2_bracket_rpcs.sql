@@ -70,6 +70,13 @@ begin
         and match_number=(i+1)/2;
     end if;
   end loop;
+  -- A match may have two participants because both advanced through BYEs.
+  -- These matches must be playable immediately, not stuck in 'pending'.
+  update public.tournament_matches
+    set status='scheduled'
+    where tournament_id=p_tournament_id and status='pending'
+      and team_a_id is not null and team_b_id is not null;
+
   -- Two-team tournaments have no subsequent rounds.
   update public.tournaments set status='active',updated_at=now() where id=p_tournament_id;
 end $$;
