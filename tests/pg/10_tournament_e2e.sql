@@ -314,7 +314,7 @@ begin
  exception when unique_violation then null; end;
 end $$;
 -- Service-only ingest enforces first sequence, duplicate and cross-server rejection.
-do $
+do $$
 declare tid uuid; mid uuid;
 begin
  insert into public.tournaments(owner_user_id,slug,title,max_teams)
@@ -344,5 +344,5 @@ begin
   if sqlerrm <> 'SERVER_MISMATCH' then raise; end if;
  end;
  perform set_config('request.jwt.claim.role','',true);
-end $;
+end $$;
 rollback;
