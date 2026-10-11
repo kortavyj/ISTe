@@ -104,7 +104,7 @@ test('CS2 webhook rejects altered signed raw body before database access',async(
   process.env.SUPABASE_SERVICE_ROLE_KEY='ci-only-placeholder';
   process.env.SUPABASE_URL='https://ci-placeholder.supabase.co';
   const response=ownerResponseMock();
-  await cs2Ingest({method:'POST',headers:{'x-iste-timestamp':timestamp,'x-iste-signature':sign()},rawCs2Body:body+' '},response);
+  await cs2Ingest({method:'POST',headers:{'x-iste-timestamp':timestamp,'x-iste-signature':sign()},rawCs2Body:Buffer.from(body+' ')},response);
   assert.equal(response.statusCode,401);
   assert.equal(response.payload.error,'SIGNATURE_INVALID');
  }finally{
@@ -125,10 +125,18 @@ test('CS2 webhook rejects validly signed events from unregistered game servers',
   const response=ownerResponseMock();
   const liveTimestamp=String(Date.now());
   const signature='sha256='+createHmac('sha256',secret).update(liveTimestamp+'.'+raw).digest('hex');
-  await cs2Ingest({method:'POST',headers:{'x-iste-timestamp':liveTimestamp,'x-iste-signature':signature},rawCs2Body:raw},response);
+  await cs2Ingest({method:'POST',headers:{'x-iste-timestamp':liveTimestamp,'x-iste-signature':signature},rawCs2Body:Buffer.from(raw)},response);
   assert.equal(response.statusCode,403);
   assert.equal(response.payload.error,'SERVER_NOT_ALLOWED');
  }finally{
   envs.forEach((key,index)=>{if(originals[index]===undefined)delete process.env[key];else process.env[key]=originals[index];});
  }
+});
+
+test('byte-exact HMAC rejects malformed UTF-8 bytes',()=>{
+ const bytes=Buffer.from([0x7b,0x22,0x78,0x22,0x3a,0x22,0xff,0x22,0x7d]);
+ const validTime=String(Date.now());
+ const signature='sha256='+createHmac('sha256',secret).update(validTime+'.').update(bytes).digest('hex');
+ assert.equal(verifyCs2EventSignature({rawBody:bytes,timestamp:validTime,signature,secret}),true);
+ assert.equal(verifyCs2EventSignature({rawBody:bytes.toString('utf8'),timestamp:validTime,signature,secret}),false);
 });
