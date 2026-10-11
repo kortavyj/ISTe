@@ -42,7 +42,7 @@ for (const submodule of ["","teams","matches","action"]) {
  }
 }
 
-import { ownerMfaPassed, ownerRoleDecision } from '../api/lib/ownerRequest.js';
+import { ownerMfaPassed, ownerRoleDecision } from '../server/ownerRequest.js';
 test('owner role decision',()=>{
  assert.equal(ownerRoleDecision({role:'owner',is_blocked:false}),null);
  assert.equal(ownerRoleDecision({role:'user',is_blocked:false}),'OWNER_REQUIRED');
