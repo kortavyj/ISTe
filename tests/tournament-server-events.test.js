@@ -21,3 +21,5 @@ test("CS2 envelope requires event identity and sequence",()=>{
  assert.equal(validateCs2Event({...event,sequence:0}),false);
  assert.equal(validateCs2Event({...event,type:"arbitrary-command"}),false);
 });
+
+// Verify the owner router refuses unauthenticated tournament requests.
