@@ -313,4 +313,36 @@ begin
   raise exception 'DUPLICATE_SEQUENCE_ACCEPTED';
  exception when unique_violation then null; end;
 end $$;
+-- Service-only ingest enforces first sequence, duplicate and cross-server rejection.
+do $
+declare tid uuid; mid uuid;
+begin
+ insert into public.tournaments(owner_user_id,slug,title,max_teams)
+ values('123e4567-e89b-12d3-a456-426614174000','ci-service-ingest-test','CI Service Ingest',2) returning id into tid;
+ insert into public.tournament_matches(tournament_id,round_number,match_number,status)
+ values(tid,1,1,'pending') returning id into mid;
+ perform set_config('request.jwt.claim.role','authenticated',true);
+ begin
+  perform public.iste_ingest_cs2_event('123e4567-e89b-12d3-a456-426614174099',mid,'ci-service-000001',1,'map_started');
+  raise exception 'UNAUTHORIZED_INGEST_ALLOWED';
+ exception when others then
+  if sqlerrm <> 'SERVICE_ROLE_REQUIRED' then raise; end if;
+ end;
+ perform set_config('request.jwt.claim.role','service_role',true);
+ perform public.iste_ingest_cs2_event('123e4567-e89b-12d3-a456-426614174099',mid,'ci-service-000001',1,'map_started');
+ begin
+  perform public.iste_ingest_cs2_event('123e4567-e89b-12d3-a456-426614174099',mid,'ci-service-000002',3,'round_end');
+  raise exception 'SEQUENCE_SKIP_ALLOWED';
+ exception when others then
+  if sqlerrm <> 'EVENT_OUT_OF_ORDER' then raise; end if;
+ end;
+ perform public.iste_ingest_cs2_event('123e4567-e89b-12d3-a456-426614174099',mid,'ci-service-000002',2,'round_end');
+ begin
+  perform public.iste_ingest_cs2_event('123e4567-e89b-12d3-a456-426614174098',mid,'ci-service-000003',3,'round_end');
+  raise exception 'SERVER_SWITCH_ALLOWED';
+ exception when others then
+  if sqlerrm <> 'SERVER_MISMATCH' then raise; end if;
+ end;
+ perform set_config('request.jwt.claim.role','',true);
+end $;
 rollback;
