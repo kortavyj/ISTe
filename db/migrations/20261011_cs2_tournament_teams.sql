@@ -21,14 +21,14 @@ drop policy if exists "Tournament owners add teams" on public.tournament_teams;
 create policy "Tournament owners add teams" on public.tournament_teams
   for insert to authenticated with check (
     exists (select 1 from public.tournaments t where t.id = tournament_id
-      and t.owner_user_id = (select auth.uid()) and t.status = 'draft')
+      and t.owner_user_id = (select auth.uid()) and t.status in ('draft', 'registration'))
   );
 
 drop policy if exists "Tournament owners remove draft teams" on public.tournament_teams;
 create policy "Tournament owners remove draft teams" on public.tournament_teams
   for delete to authenticated using (
     exists (select 1 from public.tournaments t where t.id = tournament_id
-      and t.owner_user_id = (select auth.uid()) and t.status = 'draft')
+      and t.owner_user_id = (select auth.uid()) and t.status in ('draft', 'registration'))
   );
 
 -- An advisory transaction lock ensures simultaneous insert requests cannot
