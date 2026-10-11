@@ -50,6 +50,19 @@ Signature: HMAC-SHA256(secret, timestamp + "." + raw UTF-8 request body). Comput
 
 Signature verification **does not** prove that the server owner is honest.
 
+## Manual staging heartbeat test (no real MatchZy server required)
+
+The opt-in script `scripts/cs2-staging-webhook-test.mjs` sends exactly one signed `heartbeat` event. It is **not** a MatchZy adapter and is never called by CI. Use a dedicated staging database and an already configured, allowlisted and match-assigned server UUID. Set these environment variables **locally**, never in GitHub issues, screenshots, or frontend configuration:
+
+- `ISTE_CS2_TEST_ENDPOINT`: full HTTPS staging URL ending in `/api/cs2-ingest`
+- `ISTE_CS2_WEBHOOK_SECRET`: the staging webhook HMAC secret (minimum 32 characters)
+- `ISTE_CS2_TEST_SERVER_ID`: allowlisted and assigned server UUID
+- `ISTE_CS2_TEST_MATCH_ID`: scheduled match UUID with matching assignment
+- `ISTE_CS2_TEST_SEQUENCE`: next unused positive sequence number for this match, starting at 1
+- `ISTE_CS2_ALLOW_REMOTE_STAGING=1`: explicit opt-in required for a remote staging URL
+
+Run `node scripts/cs2-staging-webhook-test.mjs` from a trusted development machine with the variables already populated. HTTP 202 means the event was persisted, **not** that MatchZy has been tested. HTTP 403 indicates a server assignment/allowlist problem; HTTP 409 indicates replay/order conflict. Each run creates a fresh event ID but must use a fresh sequence number. Do not point the script at production.
+
 ## Still required before production server integration is enabled
 
 - Persistent server registration and secret rotation/revocation; never expose keys in the browser.
