@@ -20,6 +20,11 @@ create index if not exists tournaments_public_idx on public.tournaments (status,
 
 alter table public.tournaments enable row level security;
 
+-- Grant only the operations backed by RLS. Publication is RPC-only.
+grant select on public.tournaments to anon, authenticated;
+grant insert on public.tournaments to authenticated;
+revoke delete, update on public.tournaments from anon, authenticated;
+
 drop policy if exists "Public can read published tournaments" on public.tournaments;
 create policy "Public can read published tournaments" on public.tournaments
 for select to anon, authenticated
