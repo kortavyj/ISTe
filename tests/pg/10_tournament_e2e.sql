@@ -92,4 +92,37 @@ begin
   end;
  end loop;
 end $$;
+
+-- Test that an unrelated user cannot start a tournament or confirm a result.
+do $
+declare
+ tid uuid;
+ mid uuid;
+begin
+ insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
+ values ('123e4567-e89b-12d3-a456-426614174000','ci-access-control','CI Access Control',2,'registration',now())
+ returning id into tid;
+ insert into public.tournament_teams(tournament_id,name)
+ values (tid,'Access Team A'),(tid,'Access Team B');
+ perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174001',true);
+ begin
+   perform public.iste_start_tournament(tid);
+   raise exception 'UNAUTHORIZED_START_ALLOWED';
+ exception when others then
+   if sqlerrm='UNAUTHORIZED_START_ALLOWED' then raise; end if;
+   if sqlerrm<>'OWNER_REQUIRED' then raise; end if;
+ end;
+ perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174000',true);
+ perform public.iste_start_tournament(tid);
+ select id into mid from public.tournament_matches
+ where tournament_id=tid and status='scheduled' limit 1;
+ perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174001',true);
+ begin
+   perform public.iste_confirm_tournament_match(mid,13,7);
+   raise exception 'UNAUTHORIZED_RESULT_ALLOWED';
+ exception when others then
+   if sqlerrm='UNAUTHORIZED_RESULT_ALLOWED' then raise; end if;
+   if sqlerrm<>'OWNER_REQUIRED' then raise; end if;
+ end;
+end $;
 rollback;
