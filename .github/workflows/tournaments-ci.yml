@@ -67,3 +67,6 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/10_tournament_e2e.sql
       - name: Verify concurrent tournament result confirmations
         run: bash tests/pg/20_concurrency.sh
+
+      - name: Test backup and restoration on disposable CI database
+        run: bash tests/pg/30_restore_drill.sh
