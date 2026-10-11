@@ -1,9 +1,9 @@
 -- Standalone Supabase-compatible fixture for CI only. NEVER apply to production.
 create extension if not exists pgcrypto;
-do $ begin
+do $$ begin
   if not exists(select 1 from pg_roles where rolname='authenticated') then create role authenticated nologin; end if;
   if not exists(select 1 from pg_roles where rolname='anon') then create role anon nologin; end if;
-end $;
+end $$;
 create schema if not exists auth;
 create table auth.users(id uuid primary key);
 create or replace function auth.uid() returns uuid language sql stable as $$
