@@ -19,6 +19,6 @@ export default async function handler(request, response) {
  } catch {
   return response.status(400).json({ok:false,error:"INVALID_BODY"});
  }
- request.rawCs2Body = Buffer.concat(chunks).toString("utf8");
+ request.rawCs2Body = Buffer.concat(chunks);
  return cs2Ingest(request,response);
 }
