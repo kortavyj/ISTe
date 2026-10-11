@@ -61,6 +61,10 @@ begin
  ) then raise exception 'ROOM_ACCESS_DENIED'; end if;
  select * into room from public.tournament_match_rooms where match_id=p_match_id;
  if not found then return null; end if;
+ -- A scheduled release time is enforced at the database boundary, not only in React.
+ if room.connect_at is not null and room.connect_at > now() then
+  return jsonb_build_object('available',false,'connectAt',room.connect_at);
+ end if;
  return jsonb_build_object('host',room.server_host,'port',room.server_port,
   'password',room.server_password,'map',room.map_name,'connectAt',room.connect_at);
 end $$;
