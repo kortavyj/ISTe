@@ -14,6 +14,11 @@ create unique index if not exists tournament_teams_unique_captain_idx
 create index if not exists tournament_teams_tournament_idx on public.tournament_teams(tournament_id, created_at);
 alter table public.tournament_teams enable row level security;
 
+-- RLS policies constrain these grants. No direct client UPDATE privileges.
+grant select on public.tournament_teams to anon, authenticated;
+grant insert, delete on public.tournament_teams to authenticated;
+revoke update on public.tournament_teams from anon, authenticated;
+
 drop policy if exists "Published teams are visible" on public.tournament_teams;
 create policy "Published teams are visible" on public.tournament_teams
   for select to anon, authenticated using (
