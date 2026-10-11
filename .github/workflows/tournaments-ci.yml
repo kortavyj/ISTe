@@ -16,7 +16,7 @@ on:
       - '.github/workflows/tournaments-ci.yml'
 jobs:
   tournament-checks:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/cs2-tournaments-full-preview'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.pull_request.head.ref == 'feature/cs2-tournaments-full-preview'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -41,9 +41,6 @@ jobs:
       PGOPTIONS: '-c client_min_messages=warning'
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Manual dispatch from main tests the feature branch, not main's package.json.
-          ref: ${{ github.event_name == 'workflow_dispatch' && 'feature/cs2-tournaments-full-preview' || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -51,6 +48,10 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: npm ci
       - run: npm test
+      - name: Ensure CS2 preview is not skipped by Vercel
+        run: bash tests/vercel-preview-build.sh
+      - name: Verify Hobby function budget and server imports
+        run: node --test tests/vercel-hobby-shape.test.js
       - run: npm run lint
       - name: Build frontend with isolated CI-only placeholders
         run: npm run build
@@ -65,5 +66,11 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournament_teams.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_matches.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_bracket_rpcs.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_event_replay.sql
       - name: Simulate actual DB tournament from 2 to 64 teams
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/10_tournament_e2e.sql
+      - name: Verify concurrent tournament result confirmations
+        run: bash tests/pg/20_concurrency.sh
+
+      - name: Test backup and restoration on disposable CI database
+        run: bash tests/pg/30_restore_drill.sh

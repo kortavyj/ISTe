@@ -9,6 +9,9 @@
 
 set -u
 
+# Preview builds use the same changed-path detection as production.
+# SQL/test-only commits are validated in GitHub Actions without consuming
+# a Vercel deployment. Web changes and manual redeploys still build.
 BASE_SHA="${VERCEL_GIT_PREVIOUS_SHA:-}"
 HEAD_SHA="$(git rev-parse HEAD)"
 
