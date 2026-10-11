@@ -25,7 +25,7 @@ create table if not exists public.tournament_rate_limits (
 alter table public.tournament_rate_limits enable row level security;
 revoke all on public.tournament_rate_limits from anon,authenticated;
 create or replace function public.iste_enforce_tournament_limit(p_tournament_id uuid,p_action text,p_max integer)
-returns void language plpgsql security definer set search_path = '' as $
+returns void language plpgsql security definer set search_path = '' as $$
 declare current_attempts integer;
 begin
  if auth.uid() is null or p_action not in ('publish','start','result') or p_max not between 1 and 120 then
@@ -37,7 +37,7 @@ begin
  do update set attempts=public.tournament_rate_limits.attempts+1
  returning attempts into current_attempts;
  if current_attempts>p_max then raise exception 'RATE_LIMIT_EXCEEDED'; end if;
-end $;
+end $$;
 revoke all on function public.iste_enforce_tournament_limit(uuid,text,integer) from public,anon,authenticated;
 
 create or replace function public.iste_publish_tournament(p_tournament_id uuid)
