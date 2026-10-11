@@ -406,6 +406,20 @@ begin
   raise exception 'SERVER_ASSIGNMENT_CHANGED';
  end if;
 end $$;
+-- Verify public match reads are explicitly granted and all direct writes denied.
+do $
+begin
+  if not has_table_privilege('anon','public.tournament_matches','SELECT')
+    or not has_table_privilege('authenticated','public.tournament_matches','SELECT') then
+    raise exception 'FIXTURE_SELECT_GRANT_MISSING';
+  end if;
+  if has_table_privilege('anon','public.tournament_matches','INSERT')
+    or has_table_privilege('authenticated','public.tournament_matches','INSERT')
+    or has_table_privilege('authenticated','public.tournament_matches','UPDATE')
+    or has_table_privilege('authenticated','public.tournament_matches','DELETE') then
+    raise exception 'DIRECT_FIXTURE_MUTATION_ALLOWED';
+  end if;
+end $;
 -- Captain uniqueness and presence of the registration RLS policy.
 do $$
 declare
