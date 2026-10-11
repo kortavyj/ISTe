@@ -1,3 +1,6 @@
+import teamsHandler from "../server/tournaments/teams.js";
+import matchesHandler from "../server/tournaments/matches.js";
+import actionHandler from "../server/tournaments/action.js";
 import { randomBytes } from "node:crypto";
 import { guardRequest } from "./lib/requestGuard.js";
 import { readAuthCookies, setAuthCookies } from "./lib/authCookies.js";
@@ -31,6 +34,11 @@ async function sessionForRequest(request, response, supabase) {
   return data.user;
 }
 export default async function handler(request, response) {
+  const module = request.query?.module;
+  if (module === "teams") return teamsHandler(request, response);
+  if (module === "matches") return matchesHandler(request, response);
+  if (module === "action") return actionHandler(request, response);
+  if (module !== undefined) return response.status(404).json({ok:false,error:"MODULE_NOT_FOUND"});
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("X-Content-Type-Options", "nosniff");
   const method = request.method;
