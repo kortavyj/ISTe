@@ -48,6 +48,8 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: npm ci
       - run: npm test
+      - name: Verify Hobby function budget and server imports
+        run: node --test tests/vercel-hobby-shape.test.js
       - run: npm run lint
       - name: Build frontend with isolated CI-only placeholders
         run: npm run build
