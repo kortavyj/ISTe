@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - feature/cs2-tournaments-full-preview
-      - ci/tournaments-test-workflow
   pull_request:
     paths:
       - 'src/**'
