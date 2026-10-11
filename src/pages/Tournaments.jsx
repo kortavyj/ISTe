@@ -86,7 +86,7 @@ export default function Tournaments({ create = false }) {
               onChange={e => setForm(v => ({ ...v, maxTeams: e.target.value }))} />
           </label>
           <button type="submit" disabled={saving}>{saving ? "Сохраняем..." : "Сохранить черновик"}</button>
-          <p className="iste-tournaments__note">Публикация, сетка и регистрация команд появятся на следующем этапе. Сейчас создаётся только черновик.</p>
+          <p className="iste-tournaments__note">Черновик можно опубликовать в кабинете организатора, добавить команды и запустить сетку. Самостоятельная регистрация игроков пока недоступна.</p>
         </form>
       ) : loading ? <p>Загружаем турниры…</p> : items.length ? (
         <div className="iste-tournaments__grid">{items.map(item => (
