@@ -55,3 +55,16 @@ test('owner MFA assurance decisions',()=>{
  assert.equal(ownerMfaPassed(null,null),false);
  assert.equal(ownerMfaPassed({currentLevel:'aal2'},new Error('unavailable')),false);
 });
+
+import { guardRequest } from "../api/lib/requestGuard.js";
+
+test("tournament mutating requests reject cross-site origin and missing origin",()=>{
+ const options={methods:["POST"],requireJson:true,requireOrigin:true,maxBodyBytes:4096};
+ const base={method:"POST",headers:{"content-type":"application/json","host":"www.istesport.com"}};
+ assert.equal(guardRequest(base,options).error,"ORIGIN_MISSING");
+ assert.equal(guardRequest({...base,headers:{...base.headers,origin:"https://evil.example"}},options).error,"ORIGIN_NOT_ALLOWED");
+ assert.equal(guardRequest({...base,headers:{...base.headers,origin:"https://www.istesport.com","sec-fetch-site":"cross-site"}},options).error,"CROSS_SITE_REQUEST_BLOCKED");
+ assert.equal(guardRequest({...base,headers:{...base.headers,origin:"https://www.istesport.com","content-length":"8192"}},options).error,"REQUEST_TOO_LARGE");
+ assert.equal(guardRequest({...base,headers:{...base.headers,origin:"https://www.istesport.com","content-type":"text/plain"}},options).error,"JSON_REQUIRED");
+ assert.equal(guardRequest({...base,headers:{...base.headers,origin:"https://www.istesport.com"}},options).ok,true);
+});
