@@ -42,9 +42,16 @@ for (const submodule of ["","teams","matches","action"]) {
  }
 }
 
-import { ownerRoleDecision } from '../api/lib/ownerRequest.js';
+import { ownerMfaPassed, ownerRoleDecision } from '../api/lib/ownerRequest.js';
 test('owner role decision',()=>{
  assert.equal(ownerRoleDecision({role:'owner',is_blocked:false}),null);
  assert.equal(ownerRoleDecision({role:'user',is_blocked:false}),'OWNER_REQUIRED');
  assert.equal(ownerRoleDecision({role:'owner',is_blocked:true}),'ACCOUNT_BLOCKED');
+});
+
+test('owner MFA assurance decisions',()=>{
+ assert.equal(ownerMfaPassed({currentLevel:'aal2'},null),true);
+ assert.equal(ownerMfaPassed({currentLevel:'aal1'},null),false);
+ assert.equal(ownerMfaPassed(null,null),false);
+ assert.equal(ownerMfaPassed({currentLevel:'aal2'},new Error('unavailable')),false);
 });
