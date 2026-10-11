@@ -171,7 +171,8 @@ begin
 end $$;
 
 -- Owner role revocation and account block must stop privileged RPCs.
-do $
+do $$
+
 declare tid uuid; mid uuid;
 begin
  perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174000',true);
@@ -216,5 +217,5 @@ begin
  update public.user_roles set is_blocked=false where user_id=auth.uid();
  perform public.iste_confirm_tournament_match(mid,13,7);
  if (select status from public.tournaments where id=tid)<>'completed' then raise exception 'RECOVERED_OWNER_FAILED'; end if;
-end $;
+end $$;
 rollback;
