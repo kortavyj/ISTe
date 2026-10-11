@@ -69,6 +69,8 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_bracket_rpcs.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_event_replay.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_match_rooms.sql
+      - name: Verify match-room access and timed credential release
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/40_match_room_security.sql
       - name: Simulate actual DB tournament from 2 to 64 teams
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/10_tournament_e2e.sql
       - name: Verify concurrent tournament result confirmations
