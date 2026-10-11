@@ -266,7 +266,7 @@ begin
  end;
 end $$;
 -- Least privilege assertions against actual PostgreSQL grants.
-do $
+do $$
 begin
  if has_table_privilege('authenticated','public.tournaments','UPDATE') then
   raise exception 'AUTHENTICATED_DIRECT_TOURNAMENT_UPDATE_ALLOWED';
@@ -281,5 +281,5 @@ begin
  if has_function_privilege('anon','public.iste_publish_tournament(uuid)','EXECUTE') then
   raise exception 'ANON_PUBLISH_RPC_ALLOWED';
  end if;
-end $;
+end $$;
 rollback;
