@@ -48,6 +48,8 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: npm ci
       - run: npm test
+      - name: Ensure CS2 preview is not skipped by Vercel
+        run: bash tests/vercel-preview-build.sh
       - name: Verify Hobby function budget and server imports
         run: node --test tests/vercel-hobby-shape.test.js
       - run: npm run lint
