@@ -23,7 +23,7 @@ create or replace function public.iste_ingest_cs2_event(
 ) returns void language plpgsql security definer set search_path = '' as $$
 declare current_sequence integer;
 begin
- if current_user <> 'service_role' then raise exception 'SERVICE_ROLE_REQUIRED'; end if;
+ if current_setting('request.jwt.claim.role',true) is distinct from 'service_role' then raise exception 'SERVICE_ROLE_REQUIRED'; end if;
  if p_server_id is null or p_match_id is null or p_event_id !~ '^[a-zA-Z0-9-]{12,100}$'
     or p_sequence is null or p_sequence < 1
     or p_event_type not in ('heartbeat','map_started','round_end','map_end','series_end') then
