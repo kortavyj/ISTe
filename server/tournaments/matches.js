@@ -1,3 +1,4 @@
+import { hasVerifiedAal2 } from "./mfa.js";
 import { guardRequest } from "../../api/lib/requestGuard.js";
 import { readJsonBody, isUuid } from "../../api/lib/requestBody.js";
 import { readAuthCookies, setAuthCookies } from "../../api/lib/authCookies.js";
@@ -18,7 +19,7 @@ async function authenticatedUser(request,response,supabase){
     .select("role,is_blocked").eq("user_id",data.user.id).maybeSingle();
   if(roleError||(role?.is_blocked || role?.role !== "owner"))return null;
   const {data:assurance,error:assuranceError}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel(data.session.access_token);
-  if(assuranceError || assurance?.currentLevel!=="aal2") return null;
+  if(!hasVerifiedAal2(assurance,assuranceError)) return null;
   return data.user;
 }
 export default async function handler(request,response){
