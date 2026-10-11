@@ -46,8 +46,8 @@ jobs:
           git config user.email "integration-bot@users.noreply.github.com"
           git fetch origin main feature/cs2-tournaments-full-preview
           test "$(git branch --show-current)" = "integration/cs2-main-sync-20261012"
-          base="$(git rev-parse HEAD)"
-          test "$base" = "$(git rev-parse origin/main)" || { echo "Integration base is no longer equal to main"; exit 1; }
+          base="$(git rev-parse HEAD^)"
+          test "$base" = "$(git rev-parse origin/main)" || { echo "Integration parent is no longer equal to main"; exit 1; }
           git merge --no-commit --no-ff origin/feature/cs2-tournaments-full-preview || true
           mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
           for path in "${conflicts[@]}"; do
