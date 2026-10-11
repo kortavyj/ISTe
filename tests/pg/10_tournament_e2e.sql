@@ -358,7 +358,7 @@ begin
  perform set_config('request.jwt.claim.role','',true);
 end $$;
 -- Owner may reassign only before first event; every assignment is audited.
-do $
+do $$
 declare tid uuid; mid uuid;
 begin
  insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
@@ -393,5 +393,5 @@ begin
      <> '123e4567-e89b-12d3-a456-426614174092'::uuid then
   raise exception 'SERVER_ASSIGNMENT_CHANGED';
  end if;
-end $;
+end $$;
 rollback;
