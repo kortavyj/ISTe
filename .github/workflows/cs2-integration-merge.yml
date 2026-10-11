@@ -46,7 +46,9 @@ jobs:
           git config user.email "integration-bot@users.noreply.github.com"
           git fetch origin main feature/cs2-tournaments-full-preview
           test "$(git branch --show-current)" = "integration/cs2-main-sync-20261012"
-          git merge-base --is-ancestor origin/main HEAD || { echo "Integration branch is not based on current main"; exit 1; }
+          # Main may have advanced after the integration branch was created.
+          # Merge it first, then resolve tournament-specific conflicts separately.
+          git merge --no-edit origin/main
           git merge --no-commit --no-ff origin/feature/cs2-tournaments-full-preview || true
           mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
           for path in "${conflicts[@]}"; do
