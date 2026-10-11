@@ -25,3 +25,10 @@ export function validateCs2Event(data) {
   return data.payload !== null && typeof data.payload === "object"
     && !Array.isArray(data.payload) && JSON.stringify(data.payload).length <= 16_000;
 }
+
+export function isNextCs2Event(previous, incoming) {
+ if (!validateCs2Event(incoming)) return false;
+ if (!previous) return incoming.sequence === 1;
+ if (previous.serverId !== incoming.serverId || previous.matchId !== incoming.matchId) return false;
+ return Number.isSafeInteger(previous.sequence) && incoming.sequence === previous.sequence + 1 && previous.eventId !== incoming.eventId;
+}
