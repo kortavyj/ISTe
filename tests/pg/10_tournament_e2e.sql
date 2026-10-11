@@ -3,6 +3,7 @@
 begin;
 set local role postgres;
 set local request.jwt.claim.sub = '123e4567-e89b-12d3-a456-426614174000';
+set local request.jwt.claim.aal = 'aal2';
 do $$
 declare
  n int;
