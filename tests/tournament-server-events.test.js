@@ -68,3 +68,13 @@ test("tournament mutating requests reject cross-site origin and missing origin",
  assert.equal(guardRequest({...base,headers:{...base.headers,origin:"https://www.istesport.com","content-type":"text/plain"}},options).error,"JSON_REQUIRED");
  assert.equal(guardRequest({...base,headers:{...base.headers,origin:"https://www.istesport.com"}},options).ok,true);
 });
+
+import { isNextCs2Event } from '../server/tournaments/serverEventSecurity.js';
+test('CS2 event sequence rejects repeats, skips and cross-match events',()=>{
+ const first={version:1,eventId:'event-1234567890',serverId:'123e4567-e89b-12d3-a456-426614174000',matchId:'123e4567-e89b-12d3-a456-426614174001',sequence:1,type:'round_end',payload:{}};
+ assert.equal(isNextCs2Event(null,first),true);
+ assert.equal(isNextCs2Event(first,{...first,eventId:'event-1234567891',sequence:2}),true);
+ assert.equal(isNextCs2Event(first,first),false);
+ assert.equal(isNextCs2Event(first,{...first,eventId:'event-1234567892',sequence:3}),false);
+ assert.equal(isNextCs2Event(first,{...first,eventId:'event-1234567893',matchId:'123e4567-e89b-12d3-a456-426614174002',sequence:2}),false);
+});
