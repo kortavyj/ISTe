@@ -43,4 +43,8 @@ for (const submodule of ["","teams","matches","action"]) {
 }
 
 import { ownerRoleDecision } from '../api/lib/ownerRequest.js';
-test('owner role decision',()=>assert.equal(ownerRoleDecision({role:'owner',is_blocked:false}),null));
+test('owner role decision',()=>{
+ assert.equal(ownerRoleDecision({role:'owner',is_blocked:false}),null);
+ assert.equal(ownerRoleDecision({role:'user',is_blocked:false}),'OWNER_REQUIRED');
+ assert.equal(ownerRoleDecision({role:'owner',is_blocked:true}),'ACCOUNT_BLOCKED');
+});
