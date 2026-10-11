@@ -20,7 +20,7 @@ test("server and API relative JavaScript imports resolve to real files",async()=
  for(const file of [...await listJs(join(ROOT,"api")),...await listJs(join(ROOT,"server"))]){
   const source=await readFile(file,"utf8");
   // Covers static imports, reexports and literal dynamic imports (not computed expressions).
-  const regex=/(?:\\bfrom\\s*|\\bimport\\s*\\(\\s*|\\bimport\\s*)["'](\\.[^"']+)["']/g;
+  const regex=/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)["'](\.[^"']+)["']/g;
   for(const match of source.matchAll(regex)){
    const target=resolve(dirname(file),match[1]);
    if(extname(target)!==".js")continue;
