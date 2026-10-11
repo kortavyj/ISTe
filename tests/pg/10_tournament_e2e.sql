@@ -237,4 +237,32 @@ begin
  perform public.iste_confirm_tournament_match(mid,13,7);
  if (select status from public.tournaments where id=tid)<>'completed' then raise exception 'RECOVERED_OWNER_FAILED'; end if;
 end $$;
+-- Published transitions are atomic and recorded; repeat publishing is rejected.
+do $
+declare tid uuid;
+begin
+ perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174000',true);
+ perform set_config('request.jwt.claim.aal','aal2',true);
+ insert into public.tournaments(owner_user_id,slug,title,max_teams)
+ values('123e4567-e89b-12d3-a456-426614174000','ci-audited-publish','CI Audited Publish',2) returning id into tid;
+ perform set_config('request.jwt.claim.aal','aal1',true);
+ begin
+  perform public.iste_publish_tournament(tid);
+  raise exception 'PUBLISH_WITHOUT_MFA_ALLOWED';
+ exception when others then
+  if sqlerrm='PUBLISH_WITHOUT_MFA_ALLOWED' then raise; end if;
+  if sqlerrm<>'MFA_REQUIRED' then raise; end if;
+ end;
+ perform set_config('request.jwt.claim.aal','aal2',true);
+ perform public.iste_publish_tournament(tid);
+ if (select status from public.tournaments where id=tid)<>'registration' then raise exception 'PUBLISH_FAILED'; end if;
+ if (select count(*) from public.tournament_audit where tournament_id=tid and action='publish')<>1 then raise exception 'PUBLISH_AUDIT_MISSING'; end if;
+ begin
+  perform public.iste_publish_tournament(tid);
+  raise exception 'DOUBLE_PUBLISH_ALLOWED';
+ exception when others then
+  if sqlerrm='DOUBLE_PUBLISH_ALLOWED' then raise; end if;
+  if sqlerrm<>'NOT_IN_DRAFT' then raise; end if;
+ end;
+end $;
 rollback;
