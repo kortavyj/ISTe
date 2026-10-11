@@ -534,6 +534,8 @@ begin
     raise exception 'DRAFT_REGISTRATION_ACCEPTED';
   exception
     when insufficient_privilege then null;
+    when others then
+      if sqlerrm <> 'TOURNAMENT_NOT_FOUND' then raise; end if;
   end;
 end $$;
 reset role;
@@ -558,7 +560,10 @@ begin
     values(current_setting('iste.test.private_tournament')::uuid,
            'Blocked Captain Draft', auth.uid());
     raise exception 'BLOCKED_CAPTAIN_DRAFT_ALLOWED';
-  exception when insufficient_privilege then null;
+  exception
+    when insufficient_privilege then null;
+    when others then
+      if sqlerrm <> 'TOURNAMENT_NOT_FOUND' then raise; end if;
   end;
   begin
     insert into public.tournament_teams(tournament_id,name,captain_user_id)
