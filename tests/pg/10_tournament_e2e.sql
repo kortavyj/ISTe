@@ -451,6 +451,15 @@ begin
   returning id into tid;
   perform set_config('iste.test.captain_tournament', tid::text, true);
 end $$;
+do $
+declare tid uuid;
+begin
+  insert into public.tournaments(owner_user_id,slug,title,max_teams)
+  values ('123e4567-e89b-12d3-a456-426614174000',
+          'ci-captain-private', 'CI Captain Private', 4)
+  returning id into tid;
+  perform set_config('iste.test.private_tournament',tid::text,true);
+end $;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174077',true);
 insert into public.tournament_teams (tournament_id,name,captain_user_id)
@@ -475,5 +484,27 @@ begin
     when unique_violation then null;
   end;
 end $$;
+-- Negative authorization checks must run as authenticated user too.
+do $
+begin
+  begin
+    insert into public.tournament_teams(tournament_id,name,captain_user_id)
+    values(current_setting('iste.test.captain_tournament')::uuid,
+           'Forged Captain Identity',
+           '123e4567-e89b-12d3-a456-426614174000');
+    raise exception 'CAPTAIN_ID_SPOOF_ACCEPTED';
+  exception
+    when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.tournament_teams(tournament_id,name,captain_user_id)
+    values(current_setting('iste.test.private_tournament')::uuid,
+           'Unpublished Captain Squad',
+           auth.uid());
+    raise exception 'DRAFT_REGISTRATION_ACCEPTED';
+  exception
+    when insufficient_privilege then null;
+  end;
+end $;
 reset role;
 rollback;
