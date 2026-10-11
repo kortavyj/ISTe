@@ -123,8 +123,9 @@ test('CS2 webhook rejects validly signed events from unregistered game servers',
   process.env.SUPABASE_URL='https://ci-placeholder.supabase.co';
   process.env.ISTE_CS2_ALLOWED_SERVER_IDS='123e4567-e89b-12d3-a456-426614174099';
   const response=ownerResponseMock();
-  const signature='sha256='+createHmac('sha256',secret).update(timestamp+'.'+raw).digest('hex');
-  await cs2Ingest({method:'POST',headers:{'x-iste-timestamp':timestamp,'x-iste-signature':signature},rawCs2Body:raw},response);
+  const liveTimestamp=String(Date.now());
+  const signature='sha256='+createHmac('sha256',secret).update(liveTimestamp+'.'+raw).digest('hex');
+  await cs2Ingest({method:'POST',headers:{'x-iste-timestamp':liveTimestamp,'x-iste-signature':signature},rawCs2Body:raw},response);
   assert.equal(response.statusCode,403);
   assert.equal(response.payload.error,'SERVER_NOT_ALLOWED');
  }finally{
