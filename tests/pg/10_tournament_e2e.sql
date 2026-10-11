@@ -353,7 +353,7 @@ begin
   perform public.iste_ingest_cs2_event('123e4567-e89b-12d3-a456-426614174098',mid,'ci-service-000003',3,'round_end');
   raise exception 'SERVER_SWITCH_ALLOWED';
  exception when others then
-  if sqlerrm <> 'SERVER_MISMATCH' then raise; end if;
+  if sqlerrm <> 'SERVER_NOT_ASSIGNED' then raise; end if;
  end;
  perform set_config('request.jwt.claim.role','',true);
 end $$;
