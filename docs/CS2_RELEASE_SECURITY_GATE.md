@@ -12,7 +12,7 @@ This document is an operational checklist. Passing CI is necessary, **not suffic
 
 ## Must be verified before deployment to production
 1. **Vercel raw-body handling:** confirm that /api/cs2-ingest receives an *unmodified* raw string of incoming JSON. The handler deliberately rejects parsed JSON, since re-serialization breaks HMAC verification. Without a raw-body guarantee, leave webhook disabled.
-2. **Event integration:** test a real MatchZy callback and validate server/match identity, HMAC timestamp and sequence. Configure ISTE_CS2_WEBHOOK_SECRET (random >=32 bytes), SUPABASE_SERVICE_ROLE_KEY (server-only), and SUPABASE_URL. Never use VITE_ for secrets.
+2. **Event integration:** test a real MatchZy callback and validate server/match identity, HMAC timestamp and sequence. Configure ISTE_CS2_WEBHOOK_SECRET (random >=32 bytes), SUPABASE_SERVICE_ROLE_KEY (server-only), SUPABASE_URL, and ISTE_CS2_ALLOWED_SERVER_IDS (comma-separated UUIDs of explicitly trusted game servers; empty means reject all). Never use VITE_ for secrets.
 3. **Rate limiting:** DB transaction counters roll back on invalid requests. Add independent edge/proxy rate limits covering all 401/403/409 attempts, as well as request-size controls.
 4. **Real MFA login:** run owner, non-owner, blocked owner, expired session and missing aal2 tests through deployed beta.
 5. **Backups:** confirm an actual recoverable snapshot/PITR and execute a restoration drill into a disposable database; document restore timestamp and restore time objective. A GitHub rollback cannot reverse a database migration.
