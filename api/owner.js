@@ -3,7 +3,7 @@ import {
   mapOwnerRpcError,
   requireAdminOrOwner,
   requireOwner,
-} from "./lib/ownerRequest.js";
+} from "../server/ownerRequest.js";
 import {
   isUuid,
   readJsonBody,
