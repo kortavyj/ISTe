@@ -34,7 +34,7 @@ async function sessionForRequest(request, response, supabase) {
   return data.user;
 }
 export default async function handler(request, response) {
-  const module = request.query?.module;
+  const module = request.query?.submodule;
   if (module === "teams") return teamsHandler(request, response);
   if (module === "matches") return matchesHandler(request, response);
   if (module === "action") return actionHandler(request, response);
