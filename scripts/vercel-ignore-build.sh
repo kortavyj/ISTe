@@ -9,13 +9,9 @@
 
 set -u
 
-# Always build the CS2 preview branch so CI-only commits can be redeployed for testing.
-# This does not change production branch behavior.
-if [ "${VERCEL_GIT_COMMIT_REF:-}" = "feature/cs2-tournaments-full-preview" ]; then
-  echo "CS2 preview branch: bypassing ignored build detection."
-  exit 1
-fi
-
+# Preview builds use the same changed-path detection as production.
+# SQL/test-only commits are validated in GitHub Actions without consuming
+# a Vercel deployment. Web changes and manual redeploys still build.
 BASE_SHA="${VERCEL_GIT_PREVIOUS_SHA:-}"
 HEAD_SHA="$(git rev-parse HEAD)"
 
