@@ -19,6 +19,7 @@ export default function TournamentMatchRoom() {
   const [info, setInfo] = useState(null);
   const [room, setRoom] = useState(null);
   const [failure, setFailure] = useState("");
+  const [copyMessage, setCopyMessage] = useState("");
   useEffect(() => {
     const ctrl = new AbortController();
     setInfo(null);
@@ -47,6 +48,10 @@ export default function TournamentMatchRoom() {
     return () => ctrl.abort();
   }, [slug, matchId]);
 
+  async function copyValue(value) {
+    try { await navigator.clipboard.writeText(value); setCopyMessage("Скопировано."); }
+    catch { setCopyMessage("Не удалось скопировать — выделите текст вручную."); }
+  }
   const match = info?.match;
   const teamA = match && getName(info.teams, match.team_a_id);
   const teamB = match && getName(info.teams, match.team_b_id);
@@ -72,7 +77,10 @@ export default function TournamentMatchRoom() {
         <div className="imr-center">
           <div className="imr-panel">
             <span className="imr-kicker">СЕРВЕР</span>
-            <h2>{room ? `${room.host}:${room.port}` : "Ожидается назначение"}</h2>
+            <h2>{room?.available === false ? "Доступ откроется по расписанию" : room ? `${room.host}:${room.port}` : "Ожидается назначение"}</h2>
+            {room?.available === false && <p>Открытие: {new Date(room.connectAt).toLocaleString("ru-RU")}</p>}
+            {room?.host && <div className="imr-connect"><button type="button" onClick={()=>copyValue(`connect ${room.host}:${room.port}`)}>Копировать connect</button>{room.password && <button type="button" onClick={()=>copyValue(room.password)}>Копировать пароль</button>}</div>}
+            {copyMessage && <p role="status">{copyMessage}</p>}
             <p>Организатор предоставит адрес и доступ к серверу. После добавления защищённого доступа участники матча увидят команду подключения здесь.</p>
           </div>
           <div className="imr-panel">
