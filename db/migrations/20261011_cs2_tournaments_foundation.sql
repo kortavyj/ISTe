@@ -32,6 +32,12 @@ with check (
   owner_user_id = (select auth.uid())
   and status = 'draft'
   and published_at is null
+  and exists (select 1 from public.user_roles role_guard
+    where role_guard.user_id = (select auth.uid()) and role_guard.role = 'owner'
+      and role_guard.is_blocked is not true)
+  and exists (select 1 from public.user_roles role_guard
+    where role_guard.user_id = (select auth.uid()) and role_guard.role = 'owner'
+      and role_guard.is_blocked is not true)
   and not exists (
     select 1 from public.user_roles ur
     where ur.user_id = (select auth.uid()) and ur.is_blocked is true
