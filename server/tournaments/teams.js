@@ -36,6 +36,24 @@ export default async function handler(request, response) {
   if (!isUuid(tournamentId)) return send(response, 400, "INVALID_TOURNAMENT", "Неверный идентификатор турнира.");
   try {
     const supabase = getSupabaseServerClient();
+    if (method === "POST" && body?.action === "join-team") {
+      const user = await currentUser(request, response, supabase);
+      if (!user) return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      if (!isUuid(body?.teamId)) return send(response,400,"INVALID_TEAM","Неверная команда.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams")
+        .select("id").eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {error}=await supabase.rpc("iste_add_team_player",{p_team_id:body.teamId,p_user_id:user.id});
+      if(error){
+        if(/TEAM_FULL|PLAYER_ALREADY_IN_TOURNAMENT|REGISTRATION_CLOSED|ALREADY_CAPTAIN/.test(error.message||""))
+          return send(response,409,"JOIN_UNAVAILABLE","Невозможно вступить в эту команду.");
+        if(/ACCOUNT_BLOCKED|INVALID_PLAYER|CAPTAIN_REQUIRED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Регистрация отклонена.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
+    }
     if (method === "GET") {
       const { data, error } = await supabase.from("tournament_teams")
         .select("id,tournament_id,name,created_at").eq("tournament_id", tournamentId)
