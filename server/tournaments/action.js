@@ -30,6 +30,8 @@ export default async function handler(request, response) {
     const { data: role, error: roleError } = await supabase.from("user_roles")
       .select("role,is_blocked").eq("user_id", session.user.id).maybeSingle();
     if (roleError || (role?.is_blocked || role?.role !== "owner")) return fail(response, 403, "FORBIDDEN", "Нет доступа.");
+    const {data:assurance,error:assuranceError}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel(session.session.access_token);
+    if(assuranceError || assurance?.currentLevel!=="aal2") return fail(response,403,"MFA_REQUIRED","Необходимо подтвердить двухфакторную аутентификацию.");
     const { data: tournament, error: findError } = await supabase.from("tournaments")
       .select("id,owner_user_id,status").eq("id", body.tournamentId).maybeSingle();
     if (findError) throw findError;
