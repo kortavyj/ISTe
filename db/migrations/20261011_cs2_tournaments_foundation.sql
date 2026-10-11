@@ -42,27 +42,6 @@ with check (
   )
 );
 
-drop policy if exists "Owners can update their tournaments" on public.tournaments;
-create policy "Owners can update their tournaments" on public.tournaments
-for update to authenticated
-using (
-  owner_user_id = (select auth.uid())
-  and status = 'draft'
-  and coalesce(auth.jwt()->>'aal','') = 'aal2'
-  and exists (select 1 from public.user_roles ur where ur.user_id=(select auth.uid()) and ur.role='owner' and ur.is_blocked is not true)
-)
-with check (
-  owner_user_id = (select auth.uid())
-  and status in ('draft','registration')
-  and coalesce(auth.jwt()->>'aal','') = 'aal2'
-  and exists (select 1 from public.user_roles role_guard
-    where role_guard.user_id = (select auth.uid()) and role_guard.role = 'owner'
-      and role_guard.is_blocked is not true)
-  and not exists (
-    select 1 from public.user_roles ur
-    where ur.user_id = (select auth.uid()) and ur.is_blocked is true
-  )
-);
-
--- Publishing is intentionally not implemented by this migration.
--- A later version will add a server-side state transition and audited match operations.
+-- State changes are intentionally unavailable through the Data API.
+-- They must be executed by privileged, audited SECURITY DEFINER RPCs.
+revoke update on public.tournaments from anon, authenticated;
