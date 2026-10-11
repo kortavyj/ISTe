@@ -98,6 +98,7 @@ declare
   target public.tournament_matches%rowtype;
 begin
   if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+  if coalesce((auth.jwt()->>'aal'),'') <> 'aal2' then raise exception 'MFA_REQUIRED'; end if;
   -- Lock tournament first, then match. This order matches start_tournament and
   -- prevents opposite lock acquisition order under concurrent result requests.
   select tournament_id into m.tournament_id
