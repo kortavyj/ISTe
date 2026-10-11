@@ -92,7 +92,7 @@ export default function Tournaments({ create = false }) {
         <div className="iste-tournaments__grid">{items.map(item => (
           <article className="iste-tournaments__card" key={item.id}>
             <span>CS2 · {item.best_of === 3 ? "BO3" : "BO1"}</span>
-            <h2>{item.title}</h2>
+            <h2><Link to={"/tournaments/" + item.slug}>{item.title}</Link></h2>
             <p>{item.description || "Турнир Counter Strike 2"}</p>
             <small>{item.max_teams} команд · {item.status}</small>
           </article>
