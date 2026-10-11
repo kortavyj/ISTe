@@ -32,6 +32,7 @@ with check (
   owner_user_id = (select auth.uid())
   and status = 'draft'
   and published_at is null
+  and coalesce(auth.jwt()->>'aal','') = 'aal2'
   and exists (select 1 from public.user_roles role_guard
     where role_guard.user_id = (select auth.uid()) and role_guard.role = 'owner'
       and role_guard.is_blocked is not true)
@@ -44,9 +45,16 @@ with check (
 drop policy if exists "Owners can update their tournaments" on public.tournaments;
 create policy "Owners can update their tournaments" on public.tournaments
 for update to authenticated
-using (owner_user_id = (select auth.uid()))
+using (
+  owner_user_id = (select auth.uid())
+  and status = 'draft'
+  and coalesce(auth.jwt()->>'aal','') = 'aal2'
+  and exists (select 1 from public.user_roles ur where ur.user_id=(select auth.uid()) and ur.role='owner' and ur.is_blocked is not true)
+)
 with check (
   owner_user_id = (select auth.uid())
+  and status in ('draft','registration')
+  and coalesce(auth.jwt()->>'aal','') = 'aal2'
   and exists (select 1 from public.user_roles role_guard
     where role_guard.user_id = (select auth.uid()) and role_guard.role = 'owner'
       and role_guard.is_blocked is not true)
