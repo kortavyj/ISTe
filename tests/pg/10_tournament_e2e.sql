@@ -282,4 +282,35 @@ begin
   raise exception 'ANON_PUBLISH_RPC_ALLOWED';
  end if;
 end $$;
+-- Event replay indexes and private distributed counters.
+do $
+declare
+ tid uuid;
+ mid uuid;
+begin
+ if has_table_privilege('authenticated','public.tournament_cs2_events','INSERT')
+    or has_table_privilege('anon','public.tournament_cs2_events','SELECT')
+    or has_table_privilege('authenticated','public.tournament_rate_limits','SELECT') then
+  raise exception 'INTERNAL_SECURITY_TABLE_EXPOSED';
+ end if;
+ if has_function_privilege('authenticated','public.iste_enforce_tournament_limit(uuid,text,integer)','EXECUTE') then
+  raise exception 'RATE_LIMIT_HELPER_EXPOSED';
+ end if;
+ insert into public.tournaments(owner_user_id,slug,title,max_teams)
+ values('123e4567-e89b-12d3-a456-426614174000','ci-event-unique-check','CI Event Uniqueness',2) returning id into tid;
+ insert into public.tournament_matches(tournament_id,round_number,match_number,status)
+ values(tid,1,1,'pending') returning id into mid;
+ insert into public.tournament_cs2_events(server_id,match_id,event_id,sequence,event_type)
+ values('123e4567-e89b-12d3-a456-426614174099',mid,'ci-event-00000001',1,'map_started');
+ begin
+  insert into public.tournament_cs2_events(server_id,match_id,event_id,sequence,event_type)
+  values('123e4567-e89b-12d3-a456-426614174099',mid,'ci-event-00000001',2,'round_end');
+  raise exception 'DUPLICATE_EVENT_ACCEPTED';
+ exception when unique_violation then null; end;
+ begin
+  insert into public.tournament_cs2_events(server_id,match_id,event_id,sequence,event_type)
+  values('123e4567-e89b-12d3-a456-426614174099',mid,'ci-event-00000002',1,'round_end');
+  raise exception 'DUPLICATE_SEQUENCE_ACCEPTED';
+ exception when unique_violation then null; end;
+end $;
 rollback;
