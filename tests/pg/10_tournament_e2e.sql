@@ -406,6 +406,22 @@ begin
   raise exception 'SERVER_ASSIGNMENT_CHANGED';
  end if;
 end $$;
+-- Exercise explicit privileges separately from row-level policies.
+do $
+begin
+  if not has_table_privilege('anon','public.tournaments','SELECT')
+    or not has_table_privilege('authenticated','public.tournaments','SELECT')
+    or not has_table_privilege('authenticated','public.tournaments','INSERT')
+    or not has_table_privilege('authenticated','public.tournament_teams','INSERT') then
+    raise exception 'TOURNAMENT_OR_TEAM_GRANT_MISSING';
+  end if;
+  if has_table_privilege('anon','public.tournaments','INSERT')
+    or has_table_privilege('authenticated','public.tournaments','UPDATE')
+    or has_table_privilege('authenticated','public.tournaments','DELETE')
+    or has_table_privilege('authenticated','public.tournament_teams','UPDATE') then
+    raise exception 'TOURNAMENT_OR_TEAM_DIRECT_WRITE_ALLOWED';
+  end if;
+end $;
 -- Verify public match reads are explicitly granted and all direct writes denied.
 do $$
 begin
