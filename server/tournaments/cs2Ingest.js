@@ -7,6 +7,7 @@ export default async function cs2Ingest(request, response) {
  const secret = process.env.ISTE_CS2_WEBHOOK_SECRET;
  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
  const url = process.env.SUPABASE_URL;
+ const allowedServers = (process.env.ISTE_CS2_ALLOWED_SERVER_IDS || "").split(",").map(id=>id.trim().toLowerCase()).filter(Boolean);
  if (!secret || secret.length < 32 || !key || !url)
   return response.status(503).json({ok:false,error:"WEBHOOK_NOT_CONFIGURED"});
  const raw = typeof request.rawCs2Body === "string" ? request.rawCs2Body : null;
@@ -19,6 +20,8 @@ export default async function cs2Ingest(request, response) {
  let data;
  try { data = JSON.parse(raw); } catch { return response.status(400).json({ok:false,error:"INVALID_JSON"}); }
  if (!validateCs2Event(data)) return response.status(400).json({ok:false,error:"INVALID_EVENT"});
+ if (!allowedServers.includes(data.serverId.toLowerCase()))
+  return response.status(403).json({ok:false,error:"SERVER_NOT_ALLOWED"});
  try {
   const supabase = createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   const {error} = await supabase.rpc("iste_ingest_cs2_event", {
