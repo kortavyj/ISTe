@@ -53,11 +53,14 @@ export default async function handler(request,response){
     if(action==="start"){
       rpc="iste_start_tournament";
       params={p_tournament_id:tournamentId};
+    }else if(action==="assign-server"&&isUuid(body?.matchId)&&isUuid(body?.serverId)){
+      rpc="iste_assign_cs2_server";
+      params={p_match_id:body.matchId,p_server_id:body.serverId};
     }else if(action==="result"&&isUuid(body?.matchId)&&Number.isInteger(body?.scoreA)&&Number.isInteger(body?.scoreB)){
       rpc="iste_confirm_tournament_match";
       params={p_match_id:body.matchId,p_score_a:body.scoreA,p_score_b:body.scoreB};
     }else return fail(response,400,"INVALID_ACTION","Неверные параметры матча.");
-    if(action==="result"){
+    if(action==="result"||action==="assign-server"){
       const {data:match,error:matchError}=await supabase.from("tournament_matches")
         .select("id").eq("id",body.matchId).eq("tournament_id",tournamentId).maybeSingle();
       if(matchError)throw matchError;
@@ -68,8 +71,9 @@ export default async function handler(request,response){
       const code=String(error.message||"");
       if(/OWNER_REQUIRED|ACCOUNT_BLOCKED|AUTH_REQUIRED|MFA_REQUIRED/.test(code))
         return fail(response,403,"FORBIDDEN","Операция запрещена.");
-      if(/NOT_ENOUGH_TEAMS|NOT_IN_REGISTRATION|MATCH_NOT_READY|INVALID_|NEXT_MATCH_LOCKED|BRACKET_SLOT_OCCUPIED/.test(code))
+      if(/NOT_ENOUGH_TEAMS|NOT_IN_REGISTRATION|MATCH_NOT_READY|MATCH_NOT_SCHEDULED|MATCH_ALREADY_STARTED|INVALID_|NEXT_MATCH_LOCKED|BRACKET_SLOT_OCCUPIED/.test(code))
         return fail(response,409,"INVALID_STATE","Проверьте статус турнира и результат.");
+      if(/RATE_LIMIT_EXCEEDED/.test(code)) return fail(response,429,"RATE_LIMITED","Слишком много запросов.");
       throw error;
     }
     return response.status(200).json({ok:true});
