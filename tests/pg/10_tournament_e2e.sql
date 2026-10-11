@@ -451,7 +451,7 @@ begin
   returning id into tid;
   perform set_config('iste.test.captain_tournament', tid::text, true);
 end $$;
-do $
+do $$
 declare tid uuid;
 begin
   insert into public.tournaments(owner_user_id,slug,title,max_teams)
@@ -459,7 +459,7 @@ begin
           'ci-captain-private', 'CI Captain Private', 4)
   returning id into tid;
   perform set_config('iste.test.private_tournament',tid::text,true);
-end $;
+end $$;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174077',true);
 insert into public.tournament_teams (tournament_id,name,captain_user_id)
@@ -485,7 +485,7 @@ begin
   end;
 end $$;
 -- Negative authorization checks must run as authenticated user too.
-do $
+do $$
 begin
   begin
     insert into public.tournament_teams(tournament_id,name,captain_user_id)
@@ -505,6 +505,6 @@ begin
   exception
     when insufficient_privilege then null;
   end;
-end $;
+end $$;
 reset role;
 rollback;
