@@ -92,7 +92,7 @@ export default function TournamentDashboard() {
       const data = await jsonResponse(response);
       setTournaments(current => current.map(item => item.id === selected
         ? { ...item, ...data.tournament } : item));
-      setSuccess("Турнир опубликован. Приём команд открыт.");
+      setSuccess("Турнир опубликован. Пока команды добавляет организатор; самостоятельная регистрация игроков ещё не включена.");
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
   }
@@ -185,11 +185,11 @@ export default function TournamentDashboard() {
           )}
           {tournament?.status === "draft" && (
             <button type="button" disabled={busy} onClick={publishTournament}>
-              Опубликовать турнир и открыть регистрацию
+              Опубликовать турнир
             </button>
           )}
           {tournament?.status === "registration" && (
-            <p className="iste-tournaments__note">Турнир опубликован. Организатор может продолжать добавлять команды до запуска сетки.</p>
+            <p className="iste-tournaments__note">Турнир опубликован. Сейчас команды добавляет только организатор. Самостоятельная регистрация игроков ещё не реализована.</p>
           )}
           <div className="iste-tournaments__team-list">
             {teams.length ? teams.map((team, index) =>
