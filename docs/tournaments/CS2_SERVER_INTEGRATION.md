@@ -1,16 +1,28 @@
 # ISTe CS2 server connection — integration contract (beta)
 
-Status: **NOT CONNECTED**. The current branch contains signature and event-envelope validators; it does not yet offer an ingestion endpoint, server pairing, MatchZy plugin, realtime statistics, or any automated match completion.
+Status: **WEBHOOK IMPLEMENTED, REAL MATCHZY SERVER NOT CONNECTED**. This branch provides a POST ingestion endpoint, signed-event validation, allowlisted server IDs, match assignment and persistent replay/ordering checks. It does **not** provide a MatchZy/CounterStrikeSharp adapter, self-service pairing, realtime public statistics, or automatic match completion.
 
 ## Intended MatchZy / CounterStrikeSharp flow
 
 1. Tournament organizer installs supported MatchZy and ISTe adapter on a CS2 server with plugin access.
-2. Owner pairs server via short-lived, single-use pairing challenge (not implemented).
-3. Site stores one server-scoped key in restricted storage (not implemented).
-4. Adapter sends authenticated events to an ingestion endpoint (not implemented).
-5. Events are checked, deduplicated, persisted and assigned to the correct ISTe match (not implemented).
+2. Owner assigns an allowlisted server UUID to a scheduled match through the MFA-protected assignment API (implemented; self-service pairing is not).
+3. Deployment stores a shared webhook secret on the server (implemented via environment variable); per-server keys, rotation and revocation are not implemented.
+4. A future adapter sends authenticated POST events to `/api/cs2-ingest` (endpoint implemented; adapter not implemented).
+5. The endpoint validates raw-body HMAC, timestamp, event envelope and server allowlist. A service-role RPC checks match assignment, event ordering and duplicate identities before persisting (implemented).
 6. Website subscribes to a reduced public match-state stream (not implemented).
-7. Final game score undergoes state validation and applicable verification before bracket advancement (not implemented).
+7. Final game score undergoes state validation and applicable verification before bracket advancement (not implemented; ingested events do not automatically advance brackets).
+
+
+## Implemented HTTP boundary (beta)
+
+- Route: `POST /api/cs2-ingest`. Other methods return 405.
+- Body: raw JSON bytes, maximum 64 KiB. The signature must cover the exact bytes sent, including whitespace and encoding.
+- Deployment environment variables: `ISTE_CS2_WEBHOOK_SECRET` (at least 32 characters), `ISTE_CS2_ALLOWED_SERVER_IDS` (comma-separated UUID allowlist), `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`. Do not put these values in public Vite variables or client bundles.
+- A successful, authorized and persisted event returns HTTP 202. This means **accepted for storage**, not that a match result has been verified or a bracket advanced.
+- Bad or expired signature returns 401; an unallowlisted server returns 403. Replay/out-of-order and cross-server events return 409 where classified by the handler. Invalid events are rejected.
+- Assignment must exist in `public.tournament_cs2_assignments`; ingestion uses `public.iste_ingest_cs2_event`. RLS and SQL constraints complement, but do not replace, network controls.
+- Current design uses a **shared** webhook HMAC key and explicit server allowlist. It is not yet suitable for arbitrary third-party servers: secure pairing, per-server credentials, revocation, audit of delivery, and infrastructure rate limiting remain release blockers.
+- Integration tests cover signature tampering, event envelope, unassigned server and replay/order behavior in a disposable database. They do **not** demonstrate compatibility with a real MatchZy plugin or real CS2 server.
 
 ## Signed envelope v1
 
@@ -38,11 +50,11 @@ Signature: HMAC-SHA256(secret, timestamp + "." + raw UTF-8 request body). Comput
 
 Signature verification **does not** prove that the server owner is honest.
 
-## Still required before a network endpoint is enabled
+## Still required before production server integration is enabled
 
 - Persistent server registration and secret rotation/revocation; never expose keys in the browser.
 - Secure transport (HTTPS), authenticated admin pairing and per-server scoped key lookup.
-- Database event ID unique constraint and strictly monotonic sequence to reject replay/reorder.
+- Confirm the implemented database uniqueness and monotonic sequencing under real network retries, restart and failover.
 - Match assignment and roster SteamID verification.
 - Cross-check maps, BO series length, full match state and completion status.
 - Retry-safe background delivery with audit, queue and stale heartbeat detection.
@@ -56,4 +68,4 @@ Captains send manual evidence and submit results; captain-counterparty or author
 
 ## Tested building blocks
 
-`server/tournaments/serverEventSecurity.js` validates HMAC headers and event shape. `tests/tournament-server-events.test.js` covers valid, tampered, expired, weak-secret and invalid-envelope cases. These tests are configured under `npm test` but their run results are tracked separately from Vercel build readiness.
+`server/tournaments/serverEventSecurity.js` validates HMAC headers and event shape. `api/cs2-ingest.js` receives the raw request bytes and delegates to `server/tournaments/cs2Ingest.js`. `db/migrations/20261011_cs2_event_replay.sql` supplies the tables and restricted RPCs. The isolated CI suite includes signed-event unit tests, endpoint tests and PostgreSQL replay/assignment tests. Production connectivity remains unverified.
