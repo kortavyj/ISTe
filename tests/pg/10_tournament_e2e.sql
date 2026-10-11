@@ -507,7 +507,17 @@ begin
   end;
 end $$;
 reset role;
--- A blocked captain must be unable to register any team.
+-- Blocked-user checks use a fresh published tournament to avoid a
+-- duplicate-captain unique violation masking an RLS authorization failure.
+do $
+declare tid uuid;
+begin
+  insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
+  values ('123e4567-e89b-12d3-a456-426614174000',
+          'ci-captain-blocked', 'CI Captain Blocked', 4, 'registration', now())
+  returning id into tid;
+  perform set_config('iste.test.blocked_tournament',tid::text,true);
+end $;
 insert into public.user_roles(user_id,role,is_blocked)
 values ('123e4567-e89b-12d3-a456-426614174077','user',true);
 set local role authenticated;
@@ -522,7 +532,7 @@ begin
   end;
   begin
     insert into public.tournament_teams(tournament_id,name,captain_user_id)
-    values(current_setting('iste.test.captain_tournament')::uuid,
+    values(current_setting('iste.test.blocked_tournament')::uuid,
            'Blocked Captain Published', auth.uid());
     raise exception 'BLOCKED_CAPTAIN_PUBLISHED_ALLOWED';
   exception when insufficient_privilege then null;
