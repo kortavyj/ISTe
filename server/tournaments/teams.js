@@ -15,8 +15,8 @@ async function currentUser(request, response, supabase) {
   if (error || !data?.user || !data?.session) return null;
   setAuthCookies(response, data.session);
   const { data: role, error: roleError } = await supabase.from("user_roles")
-    .select("is_blocked").eq("user_id", data.user.id).maybeSingle();
-  if (roleError || role?.is_blocked === true) return null;
+    .select("role,is_blocked").eq("user_id", data.user.id).maybeSingle();
+  if (roleError || (role?.is_blocked === true || role?.role !== "owner")) return null;
   return data.user;
 }
 
