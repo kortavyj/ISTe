@@ -10,7 +10,7 @@ export function verifyCs2EventSignature({ rawBody, timestamp, signature, secret,
   const millis = Number(timestamp);
   if (!Number.isSafeInteger(millis) || Math.abs(now - millis) > MAX_EVENT_AGE_MS) return false;
   if (typeof signature !== "string" || !/^sha256=[a-f0-9]{64}$/.test(signature)) return false;
-  const expected = createHmac("sha256", secret).update(timestamp + "." + rawBody, "utf8").digest();
+  const expected = createHmac("sha256", secret).update(timestamp + ".", "utf8").update(rawBody).digest();
   const supplied = Buffer.from(signature.slice(7), "hex");
   return supplied.length === expected.length && timingSafeEqual(expected, supplied);
 }
