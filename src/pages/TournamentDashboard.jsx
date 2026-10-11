@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Tournaments.css";
+import { createOpeningRound } from "../lib/tournaments/bracket.js";
 
 async function jsonResponse(response) {
   const data = await response.json();
@@ -65,7 +66,25 @@ export default function TournamentDashboard() {
     }
   }
 
+  async function publishTournament() {
+    if (!selected || busy) return;
+    setBusy(true); setError(""); setSuccess("");
+    try {
+      const response = await fetch("/api/tournament-action", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ tournamentId: selected, action: "publish" }),
+      });
+      const data = await jsonResponse(response);
+      setTournaments(current => current.map(item => item.id === selected
+        ? { ...item, ...data.tournament } : item));
+      setSuccess("Турнир опубликован. Приём команд открыт.");
+    } catch (err) { setError(err.message); }
+    finally { setBusy(false); }
+  }
+
   const tournament = tournaments.find(item => item.id === selected);
+  const openingRound = teams.length >= 2 ? createOpeningRound(teams) : null;
   return (
     <section className="iste-tournaments">
       <div className="iste-tournaments__head">
@@ -96,7 +115,7 @@ export default function TournamentDashboard() {
             <h2>{tournament?.title}</h2>
             <p>Команды: {teams.length} / {tournament?.max_teams}</p>
           </div>
-          {tournament?.status === "draft" && (
+          {["draft", "registration"].includes(tournament?.status) && (
             <form onSubmit={addTeam} className="iste-tournaments__team-form">
               <label>Название новой команды
                 <input minLength={2} maxLength={60} required
@@ -108,6 +127,14 @@ export default function TournamentDashboard() {
               </button>
             </form>
           )}
+          {tournament?.status === "draft" && (
+            <button type="button" disabled={busy} onClick={publishTournament}>
+              Опубликовать турнир и открыть регистрацию
+            </button>
+          )}
+          {tournament?.status === "registration" && (
+            <p className="iste-tournaments__note">Турнир опубликован. Организатор может продолжать добавлять команды до запуска сетки.</p>
+          )}
           <div className="iste-tournaments__team-list">
             {teams.length ? teams.map((team, index) =>
               <div key={team.id} className="iste-tournaments__team-item">
@@ -115,9 +142,20 @@ export default function TournamentDashboard() {
               </div>
             ) : <p>Список команд пока пуст.</p>}
           </div>
-          <p className="iste-tournaments__note">
-            Сетка и запуск матчей будут доступны после внедрения и проверки механизма публикации.
-          </p>
+          {openingRound && (
+            <div className="iste-tournaments__bracket-preview">
+              <h3>Предварительная сетка · раунд 1</h3>
+              <p className="iste-tournaments__note">Посев отражает порядок добавления команд. Это предпросмотр, матчи ещё не запущены.</p>
+              {openingRound.matches.map(match => (
+                <div className="iste-tournaments__team-item" key={match.position}>
+                  <span>#{match.position}</span>
+                  <strong>{teams.find(team => team.id === match.teamA)?.name || "BYE"}</strong>
+                  <span>vs</span>
+                  <strong>{teams.find(team => team.id === match.teamB)?.name || "BYE"}</strong>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>
