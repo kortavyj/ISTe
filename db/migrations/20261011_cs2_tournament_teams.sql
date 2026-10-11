@@ -29,7 +29,8 @@ create policy "Published teams are visible" on public.tournament_teams
 drop policy if exists "Tournament owners add teams" on public.tournament_teams;
 create policy "Tournament owners add teams" on public.tournament_teams
   for insert to authenticated with check (
-    exists (select 1 from public.tournaments t where t.id = tournament_id
+    captain_user_id is null
+    and exists (select 1 from public.tournaments t where t.id = tournament_id
       and t.owner_user_id = (select auth.uid()) and t.status in ('draft', 'registration')
       and coalesce(auth.jwt()->>'aal','') = 'aal2'
       and exists (select 1 from public.user_roles g where g.user_id = (select auth.uid()) and g.role = 'owner' and g.is_blocked is not true))
