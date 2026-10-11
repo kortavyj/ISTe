@@ -39,12 +39,20 @@ export default async function handler(request, response) {
     if (tournament.status !== "draft") {
       return fail(response, 409, "ALREADY_PUBLISHED", "Турнир уже опубликован.");
     }
-    const { data, error } = await supabase.from("tournaments")
-      .update({ status: "registration", published_at: new Date().toISOString() })
-      .eq("id", tournament.id).eq("status", "draft").eq("owner_user_id", session.user.id)
-      .select("id,slug,title,status,published_at").maybeSingle();
-    if (error) throw error;
-    if (!data) return fail(response, 409, "STATUS_CHANGED", "Состояние турнира изменилось. Обновите страницу.");
+    const { error } = await supabase.rpc("iste_publish_tournament", {
+      p_tournament_id: tournament.id,
+    });
+    if (error) {
+      const code = String(error.message || "");
+      if (/MFA_REQUIRED|OWNER_REQUIRED|ACCOUNT_BLOCKED|AUTH_REQUIRED/.test(code))
+        return fail(response, 403, "FORBIDDEN", "Недостаточно прав или требуется MFA.");
+      if (/NOT_IN_DRAFT/.test(code))
+        return fail(response, 409, "STATUS_CHANGED", "Турнир уже изменён.");
+      throw error;
+    }
+    const { data, error: readError } = await supabase.from("tournaments")
+      .select("id,slug,title,status,published_at").eq("id", tournament.id).single();
+    if (readError) throw readError;
     return response.status(200).json({ok:true,tournament:data});
   } catch (error) {
     console.error("Tournament action failed:", error?.code || error?.message);
