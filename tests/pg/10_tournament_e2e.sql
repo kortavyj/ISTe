@@ -14,7 +14,9 @@ declare
  next_match public.tournament_matches%rowtype;
  teams uuid[];
  last_completed uuid;
+ first_scheduled uuid;
  attempts int;
+ failure_message text;
 begin
  for n in 2..64 loop
   insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
@@ -27,6 +29,34 @@ begin
   perform public.iste_start_tournament(tid);
   if (select status from public.tournaments where id=tid)<>'active' then
    raise exception 'Tournament % not active after start',n;
+  end if;
+  -- A tournament cannot be launched again after the bracket is generated.
+  begin
+    perform public.iste_start_tournament(tid);
+    raise exception 'Duplicate start unexpectedly succeeded';
+  exception when others then
+    if sqlerrm='Duplicate start unexpectedly succeeded' then raise; end if;
+    if sqlerrm<>'NOT_IN_REGISTRATION' then raise; end if;
+  end;
+  -- Invalid scores must not mutate the bracket.
+  select id into first_scheduled from public.tournament_matches
+  where tournament_id=tid and status='scheduled'
+  order by round_number,match_number limit 1;
+  if first_scheduled is not null then
+    begin
+      perform public.iste_confirm_tournament_match(first_scheduled,12,12);
+      raise exception 'Draw was accepted';
+    exception when others then
+      if sqlerrm='Draw was accepted' then raise; end if;
+      if sqlerrm<>'INVALID_SCORE' then raise; end if;
+    end;
+    begin
+      perform public.iste_confirm_tournament_match(first_scheduled,14,7);
+      raise exception 'Invalid BO1 score was accepted';
+    exception when others then
+      if sqlerrm='Invalid BO1 score was accepted' then raise; end if;
+      if sqlerrm<>'INVALID_BO1_ROUND_SCORE' then raise; end if;
+    end;
   end if;
   -- Keep confirming the first scheduled match. Every processed match
   -- advances a winner and must eventually resolve the entire bracket.
@@ -58,6 +88,7 @@ begin
     raise exception 'Duplicate confirmation succeeded unexpectedly';
   exception when others then
     if sqlerrm='Duplicate confirmation succeeded unexpectedly' then raise; end if;
+    if sqlerrm<>'MATCH_NOT_READY' then raise; end if;
   end;
  end loop;
 end $$;
