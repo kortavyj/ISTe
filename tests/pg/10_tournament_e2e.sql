@@ -357,4 +357,41 @@ begin
  end;
  perform set_config('request.jwt.claim.role','',true);
 end $$;
+-- Owner may reassign only before first event; every assignment is audited.
+do $
+declare tid uuid; mid uuid;
+begin
+ insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
+ values('123e4567-e89b-12d3-a456-426614174000','ci-server-reassignment','CI Server Reassignment',2,'active',now()) returning id into tid;
+ insert into public.tournament_matches(tournament_id,round_number,match_number,status)
+ values(tid,1,1,'scheduled') returning id into mid;
+ perform set_config('request.jwt.claim.aal','aal1',true);
+ begin
+  perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174091');
+  raise exception 'ASSIGNMENT_WITHOUT_MFA';
+ exception when others then
+  if sqlerrm='ASSIGNMENT_WITHOUT_MFA' then raise; end if;
+  if sqlerrm<>'MFA_REQUIRED' then raise; end if;
+ end;
+ perform set_config('request.jwt.claim.aal','aal2',true);
+ perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174091');
+ perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174092');
+ if (select count(*) from public.tournament_cs2_assignment_audit where match_id=mid)<>2 then
+  raise exception 'ASSIGNMENT_AUDIT_MISSING';
+ end if;
+ perform set_config('request.jwt.claim.role','service_role',true);
+ perform public.iste_ingest_cs2_event('123e4567-e89b-12d3-a456-426614174092',mid,'ci-assignment-00001',1,'map_started');
+ perform set_config('request.jwt.claim.role','',true);
+ begin
+  perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174093');
+  raise exception 'SERVER_MOVED_AFTER_START';
+ exception when others then
+  if sqlerrm='SERVER_MOVED_AFTER_START' then raise; end if;
+  if sqlerrm<>'MATCH_ALREADY_STARTED' then raise; end if;
+ end;
+ if (select server_id from public.tournament_cs2_assignments where match_id=mid)
+     <> '123e4567-e89b-12d3-a456-426614174092'::uuid then
+  raise exception 'SERVER_ASSIGNMENT_CHANGED';
+ end if;
+end $;
 rollback;
