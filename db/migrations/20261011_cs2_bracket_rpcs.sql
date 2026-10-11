@@ -1,6 +1,35 @@
 -- Atomic start and result confirmation for Single Elimination.
 -- Execute after tournaments, tournament_teams and tournament_matches migrations.
 -- SECURITY DEFINER routines have explicit identity, blocked-account and ownership checks.
+-- Private audit: write-only by the privileged tournament functions.
+create table if not exists public.tournament_audit (
+ id bigint generated always as identity primary key,
+ tournament_id uuid not null references public.tournaments(id) on delete cascade,
+ actor_user_id uuid not null references auth.users(id),
+ action text not null check(action in ('publish','start','confirm_result')),
+ match_id uuid references public.tournament_matches(id),
+ created_at timestamptz not null default now()
+);
+alter table public.tournament_audit enable row level security;
+revoke all on public.tournament_audit from anon,authenticated;
+
+create or replace function public.iste_publish_tournament(p_tournament_id uuid)
+returns void language plpgsql security definer set search_path = '' as $
+declare t public.tournaments%rowtype;
+begin
+ if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+ if coalesce(auth.jwt()->>'aal','') <> 'aal2' then raise exception 'MFA_REQUIRED'; end if;
+ select * into t from public.tournaments where id=p_tournament_id for update;
+ if not found or t.owner_user_id <> auth.uid() then raise exception 'OWNER_REQUIRED'; end if;
+ if exists(select 1 from public.user_roles u where u.user_id=auth.uid() and u.is_blocked) then raise exception 'ACCOUNT_BLOCKED'; end if;
+ if not exists(select 1 from public.user_roles u where u.user_id=auth.uid() and u.role='owner' and u.is_blocked is not true) then raise exception 'OWNER_REQUIRED'; end if;
+ if t.status <> 'draft' then raise exception 'NOT_IN_DRAFT'; end if;
+ update public.tournaments set status='registration',published_at=now(),updated_at=now() where id=t.id;
+ insert into public.tournament_audit(tournament_id,actor_user_id,action) values(t.id,auth.uid(),'publish');
+end $;
+revoke all on function public.iste_publish_tournament(uuid) from public,anon;
+grant execute on function public.iste_publish_tournament(uuid) to authenticated;
+
 create or replace function public.iste_start_tournament(p_tournament_id uuid)
 returns void language plpgsql security definer set search_path = '' as $$
 declare
@@ -84,6 +113,7 @@ begin
 
   -- Two-team tournaments have no subsequent rounds.
   update public.tournaments set status='active',updated_at=now() where id=p_tournament_id;
+  insert into public.tournament_audit(tournament_id,actor_user_id,action) values(p_tournament_id,auth.uid(),'start');
 end $$;
 
 create or replace function public.iste_confirm_tournament_match(
@@ -135,6 +165,7 @@ begin
   update public.tournament_matches set
     score_a=p_score_a,score_b=p_score_b,winner_team_id=winner,status='completed'
     where id=m.id;
+  insert into public.tournament_audit(tournament_id,actor_user_id,action,match_id) values(m.tournament_id,auth.uid(),'confirm_result',m.id);
   next_round:=m.round_number+1;
   next_number:=(m.match_number+1)/2;
   select * into target from public.tournament_matches where tournament_id=m.tournament_id
