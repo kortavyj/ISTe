@@ -4,7 +4,7 @@ export const MAX_EVENT_AGE_MS = 60_000;
 export const MAX_RAW_BODY_BYTES = 64 * 1024;
 
 export function verifyCs2EventSignature({ rawBody, timestamp, signature, secret, now = Date.now() }) {
-  if (typeof rawBody !== "string" || Buffer.byteLength(rawBody, "utf8") > MAX_RAW_BODY_BYTES
+  if (!(typeof rawBody === "string" || Buffer.isBuffer(rawBody)) || Buffer.byteLength(rawBody) > MAX_RAW_BODY_BYTES
     || rawBody.length === 0 || typeof secret !== "string" || secret.length < 32) return false;
   if (typeof timestamp !== "string" || !/^\d{13}$/.test(timestamp)) return false;
   const millis = Number(timestamp);
