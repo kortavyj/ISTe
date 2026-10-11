@@ -41,6 +41,9 @@ jobs:
       PGOPTIONS: '-c client_min_messages=warning'
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Manual dispatch from main tests the feature branch, not main's package.json.
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'feature/cs2-tournaments-full-preview' || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
