@@ -32,6 +32,9 @@ import { Privacy, Terms } from "./pages/Legal.jsx";
 import FaceitPrivacy from "./pages/FaceitPrivacy.jsx";
 import Login from "./pages/Login.jsx";
 import Matches from "./pages/Matches.jsx";
+import Tournaments from "./pages/Tournaments.jsx";
+import TournamentDashboard from "./pages/TournamentDashboard.jsx";
+import TournamentPublic from "./pages/TournamentPublic.jsx";
 import News from "./pages/News.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import OwnerDiscord from "./pages/OwnerDiscord.jsx";
@@ -131,6 +134,10 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/team" element={<Team />} />
           <Route path="/matches" element={<Matches />} />
+          <Route path="/tournaments" element={<Tournaments />} />
+          <Route path="/tournaments/:slug" element={<TournamentPublic />} />
+          <Route path="/tournaments/create" element={<ProtectedRoute><Tournaments create /></ProtectedRoute>} />
+          <Route path="/account/tournaments" element={<ProtectedRoute><TournamentDashboard /></ProtectedRoute>} />
           <Route path="/news" element={<News />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/discord" element={<DiscordBot />} />

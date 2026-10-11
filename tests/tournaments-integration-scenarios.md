@@ -1,0 +1,46 @@
+-- Manual integration scenarios for an isolated Supabase staging database.
+-- DO NOT run against production. Use separate test users and disposable tournaments.
+-- Prerequisites: foundation, teams, matches, bracket RPC migrations.
+--
+-- Case 1: 2 teams (BO1)
+-- Create published registration tournament with two teams.
+-- As owner: select public.iste_start_tournament('<tournament-id>');
+-- Expect: status=active, one round-1 scheduled match.
+-- As owner: select public.iste_confirm_tournament_match('<match-id>', 13, 7);
+-- Expect: status=completed, winner set, tournament.status=completed.
+-- Repeat confirmation: expect MATCH_NOT_READY and unchanged values.
+--
+-- Case 2: 3 teams (BO3)
+-- Expect: two round-1 matches, one BYE with winner already assigned,
+-- one scheduled; one pending round-2 match with first team present.
+-- Report scheduled match score 2:1. Expect final status=scheduled and
+-- complete final to finish tournament.
+--
+-- Case 3: 5 / 8 / 16 / 64 teams
+-- Expect: 2^k-1 total bracket slots; BYEs count=bracket_size-team_count.
+-- Only 2-sided matches should be marked scheduled.
+-- Confirm a game; next-round team occupies exactly one slot.
+--
+-- Case 4: cross-tournament user / blocked account / guest
+-- Expect: OWNER_REQUIRED, ACCOUNT_BLOCKED, AUTH_REQUIRED.
+--
+-- Case 5: two concurrent requests confirming SAME match.
+-- Exactly one transaction commits, the other raises MATCH_NOT_READY.
+-- No duplicate winner propagation.
+--
+-- Case 6: concurrent confirmation of two matches contributing to same fixture.
+-- Both commit, final fixture becomes scheduled with both participants populated.
+-- No deadlock due to shared lock order (tournament first).
+--
+-- Case 7: score validation
+-- BO1 valid: 13:0, 13:11, 16:14, 19:17; invalid: 12:11, 13:12, 15:15.
+-- BO3 valid: 2:0, 2:1; invalid 1:1, 3:0.
+--
+-- Case 8: cannot add new teams when tournament.status=active;
+-- draft/registration only, respecting max_teams under concurrent insert.
+--
+-- Case 9: anonymous visitors read published events only; not drafts.
+-- Owner reads own unpublished tournament and teams.
+--
+-- Case 10: check tournament scoring is not considered automatically verified
+-- CS2 server telemetry until MatchZy adapter and signed server events exist.
