@@ -225,6 +225,15 @@ begin
   if sqlerrm<>'ACCOUNT_BLOCKED' then raise; end if;
  end;
  update public.user_roles set is_blocked=false where user_id=auth.uid();
+ perform set_config('request.jwt.claim.aal','aal1',true);
+ begin
+  perform public.iste_confirm_tournament_match(mid,13,7);
+  raise exception 'AAL1_RESULT_ALLOWED';
+ exception when others then
+  if sqlerrm='AAL1_RESULT_ALLOWED' then raise; end if;
+  if sqlerrm<>'MFA_REQUIRED' then raise; end if;
+ end;
+ perform set_config('request.jwt.claim.aal','aal2',true);
  perform public.iste_confirm_tournament_match(mid,13,7);
  if (select status from public.tournaments where id=tid)<>'completed' then raise exception 'RECOVERED_OWNER_FAILED'; end if;
 end $$;
