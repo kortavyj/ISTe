@@ -14,7 +14,7 @@ import {
   readJsonBody,
   readQueryString,
 } from "../api/lib/requestBody.js";
-import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
+import { requireAdminOrOwner } from "./ownerRequest.js";
 import { getSupabaseServerClient } from "../api/lib/supabaseServer.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 
