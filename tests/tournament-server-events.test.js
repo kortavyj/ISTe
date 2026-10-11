@@ -78,3 +78,20 @@ test('CS2 event sequence rejects repeats, skips and cross-match events',()=>{
  assert.equal(isNextCs2Event(first,{...first,eventId:'event-1234567892',sequence:3}),false);
  assert.equal(isNextCs2Event(first,{...first,eventId:'event-1234567893',matchId:'123e4567-e89b-12d3-a456-426614174002',sequence:2}),false);
 });
+
+import cs2Ingest from '../server/tournaments/cs2Ingest.js';
+test('CS2 webhook refuses missing server configuration',async()=>{
+ const oldSecret=process.env.ISTE_CS2_WEBHOOK_SECRET;
+ const oldKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ try {
+  delete process.env.ISTE_CS2_WEBHOOK_SECRET;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const response=ownerResponseMock();
+  await cs2Ingest({method:'POST',headers:{},body:'{}'},response);
+  assert.equal(response.statusCode,503);
+  assert.equal(response.payload.error,'WEBHOOK_NOT_CONFIGURED');
+ } finally {
+  if(oldSecret===undefined)delete process.env.ISTE_CS2_WEBHOOK_SECRET; else process.env.ISTE_CS2_WEBHOOK_SECRET=oldSecret;
+  if(oldKey===undefined)delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY=oldKey;
+ }
+});
