@@ -26,6 +26,9 @@ begin
     raise exception 'ACCOUNT_BLOCKED';
   end if;
   if t.status <> 'registration' then raise exception 'NOT_IN_REGISTRATION'; end if;
+  -- Prevent starting with team changes in the same transaction from bypassing
+  -- the final roster snapshot. Other writer transactions cannot update this
+  -- tournament while the parent row is locked.
   select array_agg(id order by created_at,id) into players
     from public.tournament_teams where tournament_id=p_tournament_id;
   n:=coalesce(array_length(players,1),0);
@@ -121,7 +124,7 @@ begin
       (greatest(p_score_a,p_score_b)=13 and least(p_score_a,p_score_b)<=11)
       or (greatest(p_score_a,p_score_b)>=16
           and (greatest(p_score_a,p_score_b)-16)%3=0
-          and greatest(p_score_a,p_score_b)-least(p_score_a,p_score_b)>=2)
+          and greatest(p_score_a,p_score_b)-least(p_score_a,p_score_b)=2)
     ) then raise exception 'INVALID_BO1_ROUND_SCORE'; end if;
   end if;
   winner:=case when p_score_a>p_score_b then m.team_a_id else m.team_b_id end;
