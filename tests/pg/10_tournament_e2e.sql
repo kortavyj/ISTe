@@ -265,4 +265,21 @@ begin
   if sqlerrm<>'NOT_IN_DRAFT' then raise; end if;
  end;
 end $$;
+-- Least privilege assertions against actual PostgreSQL grants.
+do $
+begin
+ if has_table_privilege('authenticated','public.tournaments','UPDATE') then
+  raise exception 'AUTHENTICATED_DIRECT_TOURNAMENT_UPDATE_ALLOWED';
+ end if;
+ if has_table_privilege('anon','public.tournament_audit','SELECT')
+    or has_table_privilege('authenticated','public.tournament_audit','SELECT') then
+  raise exception 'PRIVATE_TOURNAMENT_AUDIT_IS_READABLE';
+ end if;
+ if not has_function_privilege('authenticated','public.iste_publish_tournament(uuid)','EXECUTE') then
+  raise exception 'AUTHENTICATED_PUBLISH_RPC_UNAVAILABLE';
+ end if;
+ if has_function_privilege('anon','public.iste_publish_tournament(uuid)','EXECUTE') then
+  raise exception 'ANON_PUBLISH_RPC_ALLOWED';
+ end if;
+end $;
 rollback;
