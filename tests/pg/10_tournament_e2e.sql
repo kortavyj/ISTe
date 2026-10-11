@@ -169,4 +169,52 @@ begin
   raise exception 'BO3_TOURNAMENT_NOT_COMPLETED';
  end if;
 end $$;
+
+-- Owner role revocation and account block must stop privileged RPCs.
+do $
+declare tid uuid; mid uuid;
+begin
+ perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174000',true);
+ insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
+ values ('123e4567-e89b-12d3-a456-426614174000','ci-role-revoked','CI Role Guard',2,'registration',now()) returning id into tid;
+ insert into public.tournament_teams(tournament_id,name) values(tid,'Guard Alpha'),(tid,'Guard Bravo');
+ update public.user_roles set role='user' where user_id=auth.uid();
+ begin
+  perform public.iste_start_tournament(tid);
+  raise exception 'REVOKED_OWNER_STARTED';
+ exception when others then
+  if sqlerrm='REVOKED_OWNER_STARTED' then raise; end if;
+  if sqlerrm<>'OWNER_REQUIRED' then raise; end if;
+ end;
+ update public.user_roles set role='owner',is_blocked=true where user_id=auth.uid();
+ begin
+  perform public.iste_start_tournament(tid);
+  raise exception 'BLOCKED_OWNER_STARTED';
+ exception when others then
+  if sqlerrm='BLOCKED_OWNER_STARTED' then raise; end if;
+  if sqlerrm<>'ACCOUNT_BLOCKED' then raise; end if;
+ end;
+ update public.user_roles set is_blocked=false where user_id=auth.uid();
+ perform public.iste_start_tournament(tid);
+ select id into mid from public.tournament_matches where tournament_id=tid and status='scheduled';
+ update public.user_roles set role='user' where user_id=auth.uid();
+ begin
+  perform public.iste_confirm_tournament_match(mid,13,7);
+  raise exception 'REVOKED_OWNER_CONFIRMED';
+ exception when others then
+  if sqlerrm='REVOKED_OWNER_CONFIRMED' then raise; end if;
+  if sqlerrm<>'OWNER_REQUIRED' then raise; end if;
+ end;
+ update public.user_roles set role='owner',is_blocked=true where user_id=auth.uid();
+ begin
+  perform public.iste_confirm_tournament_match(mid,13,7);
+  raise exception 'BLOCKED_OWNER_CONFIRMED';
+ exception when others then
+  if sqlerrm='BLOCKED_OWNER_CONFIRMED' then raise; end if;
+  if sqlerrm<>'ACCOUNT_BLOCKED' then raise; end if;
+ end;
+ update public.user_roles set is_blocked=false where user_id=auth.uid();
+ perform public.iste_confirm_tournament_match(mid,13,7);
+ if (select status from public.tournaments where id=tid)<>'completed' then raise exception 'RECOVERED_OWNER_FAILED'; end if;
+end $;
 rollback;
