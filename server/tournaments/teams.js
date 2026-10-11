@@ -16,8 +16,8 @@ async function currentUser(request, response, supabase) {
   setAuthCookies(response, data.session);
   const { data: role, error: roleError } = await supabase.from("user_roles")
     .select("role,is_blocked").eq("user_id", data.user.id).maybeSingle();
-  if (roleError || (role?.is_blocked === true || role?.role !== "owner")) return null;
-  return data.user;
+  if (roleError || role?.is_blocked === true) return null;
+  return { ...data.user, isOwner: role?.role === "owner" };
 }
 
 export default async function handler(request, response) {
@@ -45,6 +45,7 @@ export default async function handler(request, response) {
       return response.status(200).json({ ok: true, teams: data });
     }
     if (!user) return send(response, 401, "AUTH_REQUIRED", "Необходимо войти в аккаунт.");
+    const join = body?.join === true;
     const name = typeof body?.name === "string" ? body.name.trim() : "";
     if (name.length < 2 || name.length > 60) {
       return send(response, 400, "INVALID_TEAM", "Название команды должно содержать от 2 до 60 символов.");
@@ -53,13 +54,17 @@ export default async function handler(request, response) {
       .from("tournaments").select("id,owner_user_id,status")
       .eq("id", tournamentId).maybeSingle();
     if (tournamentError) throw tournamentError;
-    if (!tournament || tournament.owner_user_id !== user.id || !["draft", "registration"].includes(tournament.status)) {
-      return send(response, 403, "FORBIDDEN", "Добавлять команды может только организатор до начала турнира.");
+    const ownerAdding = !join && user.isOwner && tournament?.owner_user_id === user.id
+      && ["draft", "registration"].includes(tournament.status);
+    const captainJoining = join && tournament?.status === "registration";
+    if (!ownerAdding && !captainJoining) {
+      return send(response, 403, "FORBIDDEN", "Регистрация закрыта или нет прав на добавление команды.");
     }
     const { data, error } = await supabase.from("tournament_teams")
-      .insert({ tournament_id: tournamentId, name })
+      .insert({ tournament_id: tournamentId, name, ...(join ? { captain_user_id: user.id } : {}) })
       .select("id,tournament_id,name,created_at").single();
-    if (error?.code === "23505") return send(response, 409, "TEAM_EXISTS", "Команда с таким названием уже есть.");
+    if (error?.code === "23505") return send(response, 409, "TEAM_EXISTS", "Название занято или вы уже капитан команды в этом турнире.");
+    if (error?.code === "42501") return send(response, 403, "FORBIDDEN", "У вас нет прав на регистрацию.");
     if (error?.message?.includes("TOURNAMENT_FULL")) {
       return send(response, 409, "TOURNAMENT_FULL", "Достигнут лимит команд.");
     }
