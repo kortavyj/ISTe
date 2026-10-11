@@ -107,6 +107,7 @@ export default function TournamentPublic() {
                   const b=teams.find(team=>team.id===match.team_b_id);
                   return <div className="iste-tournaments__match" key={match.id}>
                     <small>{match.status}</small>
+                    <Link to={"/tournaments/" + encodeURIComponent(slug) + "/matches/" + encodeURIComponent(match.id)}>Открыть матч-рум →</Link>
                     <p>{a?.name||"Ожидается"} {match.score_a!==null?match.score_a:""}</p>
                     <p>{b?.name||"Ожидается"} {match.score_b!==null?match.score_b:""}</p>
                   </div>;
