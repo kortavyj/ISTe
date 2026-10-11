@@ -17,6 +17,8 @@ export default function TournamentDashboard() {
   const [matches, setMatches] = useState([]);
   const [scores, setScores] = useState({});
   const [serverIds, setServerIds] = useState({});
+  const [assignments, setAssignments] = useState([]);
+  const [assignmentHistory, setAssignmentHistory] = useState([]);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,7 +38,7 @@ export default function TournamentDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!selected) { setTeams([]); setMatches([]); return; }
+    if (!selected) { setTeams([]); setMatches([]); setAssignments([]); setAssignmentHistory([]); return; }
     const controller = new AbortController();
     fetch("/api/tournament-teams?tournamentId=" + encodeURIComponent(selected),
       { credentials: "include", signal: controller.signal })
@@ -47,6 +49,11 @@ export default function TournamentDashboard() {
       { credentials:"include", signal:controller.signal })
       .then(jsonResponse).then(data => setMatches(data.matches || []))
       .catch(err => { if(err.name !== "AbortError") setError(err.message); });
+    fetch("/api/tournament-matches?tournamentId="+encodeURIComponent(selected)+"&view=assignments",
+      { credentials:"include", signal:controller.signal })
+      .then(jsonResponse)
+      .then(data => {setAssignments(data.assignments||[]);setAssignmentHistory(data.history||[]);})
+      .catch(err => {if(err.name!=="AbortError") setError(err.message);});
     return () => controller.abort();
   }, [selected]);
 
@@ -122,6 +129,10 @@ export default function TournamentDashboard() {
         fetch("/api/tournaments?mine=1",{credentials:"include"}).then(jsonResponse),
       ]);
       setMatches(updatedMatches.matches||[]);
+      if(action==="assign-server"){
+        const state=await fetch("/api/tournament-matches?tournamentId="+encodeURIComponent(selected)+"&view=assignments",{credentials:"include"}).then(jsonResponse);
+        setAssignments(state.assignments||[]);setAssignmentHistory(state.history||[]);
+      }
       setTournaments(updatedTournaments.tournaments||[]);
       setSuccess(action==="start"?"Турнир запущен.":action==="assign-server"?"Игровой сервер назначен матчу.":"Результат зафиксирован.");
     } catch(err) { setError(err.message); }
@@ -202,6 +213,7 @@ export default function TournamentDashboard() {
                 return <div className="iste-tournaments__match" key={match.id}>
                   <span>Раунд {match.round_number} · Матч {match.match_number} · {match.status}</span>
                   <strong>{a?.name||"Ожидается"} — {b?.name||"Ожидается"}</strong>
+                  <p>CS2-сервер: {assignments.find(item=>item.matchId===match.id)?.serverId||"не назначен"}</p>
                   {match.status==="completed"&&<p>Счёт: {match.score_a}:{match.score_b}</p>}
                   {match.status==="scheduled"&&<>
                     <label>UUID назначаемого CS2-сервера
@@ -224,6 +236,13 @@ export default function TournamentDashboard() {
               })}
             </div>
           )}
+          {assignmentHistory.length>0 && <section aria-label="История назначений серверов">
+            <h3>История назначений CS2-серверов</h3>
+            <ul>{assignmentHistory.map((entry,index)=><li key={entry.matchId+"-"+entry.changedAt+"-"+index}>
+              {new Date(entry.changedAt).toLocaleString("ru-RU")} · Матч {matches.find(item=>item.id===entry.matchId)?.match_number||entry.matchId}:
+              {" "}{entry.previousServerId||"не назначен"} → {entry.serverId}
+            </li>)}</ul>
+          </section>}
           {tournament?.status==="draft" && openingRound && (
             <div className="iste-tournaments__bracket-preview">
               <h3>Предварительная сетка · раунд 1</h3>
