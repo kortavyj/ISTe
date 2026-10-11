@@ -109,6 +109,7 @@ begin
   if exists(select 1 from public.user_roles u where u.user_id=auth.uid() and u.is_blocked) then
     raise exception 'ACCOUNT_BLOCKED';
   end if;
+  if not exists (select 1 from public.user_roles where user_id=auth.uid() and role='owner' and is_blocked is not true) then raise exception 'OWNER_REQUIRED'; end if;
   if t.status<>'active' or m.status<>'scheduled'
     or m.team_a_id is null or m.team_b_id is null
     then raise exception 'MATCH_NOT_READY'; end if;
