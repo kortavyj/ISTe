@@ -27,6 +27,15 @@ begin
    insert into public.tournament_teams(tournament_id,name)
    values(tid,'Team '||lpad(k::text,3,'0'));
   end loop;
+  perform set_config('request.jwt.claim.aal','aal1',true);
+  begin
+   perform public.iste_start_tournament(tid);
+   raise exception 'AAL1_START_ALLOWED';
+  exception when others then
+   if sqlerrm='AAL1_START_ALLOWED' then raise; end if;
+   if sqlerrm<>'MFA_REQUIRED' then raise; end if;
+  end;
+  perform set_config('request.jwt.claim.aal','aal2',true);
   perform public.iste_start_tournament(tid);
   if (select status from public.tournaments where id=tid)<>'active' then
    raise exception 'Tournament % not active after start',n;
