@@ -14,6 +14,8 @@ export default function TournamentDashboard() {
   const [selected, setSelected] = useState("");
   const [teams, setTeams] = useState([]);
   const [teamName, setTeamName] = useState("");
+  const [matches, setMatches] = useState([]);
+  const [scores, setScores] = useState({});
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -33,13 +35,17 @@ export default function TournamentDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!selected) { setTeams([]); return; }
+    if (!selected) { setTeams([]); setMatches([]); return; }
     const controller = new AbortController();
     fetch("/api/tournament-teams?tournamentId=" + encodeURIComponent(selected),
       { credentials: "include", signal: controller.signal })
       .then(jsonResponse)
       .then(data => setTeams(data.teams || []))
       .catch(err => { if (err.name !== "AbortError") setError(err.message); });
+    fetch("/api/tournament-matches?tournamentId=" + encodeURIComponent(selected),
+      { credentials:"include", signal:controller.signal })
+      .then(jsonResponse).then(data => setMatches(data.matches || []))
+      .catch(err => { if(err.name !== "AbortError") setError(err.message); });
     return () => controller.abort();
   }, [selected]);
 
@@ -80,6 +86,38 @@ export default function TournamentDashboard() {
         ? { ...item, ...data.tournament } : item));
       setSuccess("Турнир опубликован. Приём команд открыт.");
     } catch (err) { setError(err.message); }
+    finally { setBusy(false); }
+  }
+
+  async function matchAction(action, matchId) {
+    if (busy) return;
+    setBusy(true); setError(""); setSuccess("");
+    try {
+      const input = scores[matchId] || { a:"", b:"" };
+      const payload = { tournamentId:selected, action };
+      if (action === "result") {
+        if (input.a === "" || input.b === "") throw new Error("Введите оба результата.");
+        payload.matchId=matchId;
+        payload.scoreA=Number(input.a);
+        payload.scoreB=Number(input.b);
+        if(!Number.isInteger(payload.scoreA)||!Number.isInteger(payload.scoreB)) {
+          throw new Error("Счёт должен быть целым числом.");
+        }
+      }
+      const response=await fetch("/api/tournament-matches",{
+        method:"POST",credentials:"include",
+        headers:{"Content-Type":"application/json",Accept:"application/json"},
+        body:JSON.stringify(payload),
+      });
+      await jsonResponse(response);
+      const [updatedMatches,updatedTournaments]=await Promise.all([
+        fetch("/api/tournament-matches?tournamentId="+encodeURIComponent(selected),{credentials:"include"}).then(jsonResponse),
+        fetch("/api/tournaments?mine=1",{credentials:"include"}).then(jsonResponse),
+      ]);
+      setMatches(updatedMatches.matches||[]);
+      setTournaments(updatedTournaments.tournaments||[]);
+      setSuccess(action==="start"?"Турнир запущен.":"Результат зафиксирован.");
+    } catch(err) { setError(err.message); }
     finally { setBusy(false); }
   }
 
@@ -142,7 +180,39 @@ export default function TournamentDashboard() {
               </div>
             ) : <p>Список команд пока пуст.</p>}
           </div>
-          {openingRound && (
+          {tournament?.status==="registration" && teams.length>=2 && (
+            <button type="button" disabled={busy} onClick={()=>matchAction("start")}>
+              Зафиксировать сетку и запустить турнир
+            </button>
+          )}
+          {matches.length>0 && (
+            <div className="iste-tournaments__bracket-preview">
+              <h3>Матчи турнирной сетки</h3>
+              {matches.map(match=>{
+                const a=teams.find(team=>team.id===match.team_a_id);
+                const b=teams.find(team=>team.id===match.team_b_id);
+                const value=scores[match.id]||{a:"",b:""};
+                return <div className="iste-tournaments__match" key={match.id}>
+                  <span>Раунд {match.round_number} · Матч {match.match_number} · {match.status}</span>
+                  <strong>{a?.name||"Ожидается"} — {b?.name||"Ожидается"}</strong>
+                  {match.status==="completed"&&<p>Счёт: {match.score_a}:{match.score_b}</p>}
+                  {match.status==="scheduled"&&<>
+                    <div className="iste-tournaments__score-inputs">
+                      <input type="number" min="0" max="100" aria-label="Счёт первой команды"
+                        value={value.a} onChange={e=>setScores(v=>({...v,[match.id]:{...value,a:e.target.value}}))}/>
+                      <span>:</span>
+                      <input type="number" min="0" max="100" aria-label="Счёт второй команды"
+                        value={value.b} onChange={e=>setScores(v=>({...v,[match.id]:{...value,b:e.target.value}}))}/>
+                    </div>
+                    <button type="button" disabled={busy} onClick={()=>matchAction("result",match.id)}>
+                      Подтвердить результат
+                    </button>
+                  </>}
+                </div>;
+              })}
+            </div>
+          )}
+          {tournament?.status==="draft" && openingRound && (
             <div className="iste-tournaments__bracket-preview">
               <h3>Предварительная сетка · раунд 1</h3>
               <p className="iste-tournaments__note">Посев отражает порядок добавления команд. Это предпросмотр, матчи ещё не запущены.</p>
