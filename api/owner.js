@@ -2,6 +2,7 @@ import { guardRequest } from "./lib/requestGuard.js";
 import {
   mapOwnerRpcError,
   requireAdminOrOwner,
+  requireOwner,
 } from "./lib/ownerRequest.js";
 import {
   isUuid,
@@ -365,6 +366,10 @@ export default async function handler(request, response) {
       : "";
 
   if (moduleName === "tournaments") {
+    const access = await requireOwner(request, response);
+    if (!access.ok) {
+      return sendError(response, access.status, access.error, access.message);
+    }
     return tournamentHandler(request, response);
   }
 
