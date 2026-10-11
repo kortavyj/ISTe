@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
+import { requireAdminOrOwner } from "./ownerRequest.js";
 import { guardRequest } from "../api/lib/requestGuard.js";
 import {
   isUuid,
