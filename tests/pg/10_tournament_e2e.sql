@@ -407,7 +407,7 @@ begin
  end if;
 end $$;
 -- Verify public match reads are explicitly granted and all direct writes denied.
-do $
+do $$
 begin
   if not has_table_privilege('anon','public.tournament_matches','SELECT')
     or not has_table_privilege('authenticated','public.tournament_matches','SELECT') then
@@ -419,7 +419,7 @@ begin
     or has_table_privilege('authenticated','public.tournament_matches','DELETE') then
     raise exception 'DIRECT_FIXTURE_MUTATION_ALLOWED';
   end if;
-end $;
+end $$;
 -- Captain uniqueness and presence of the registration RLS policy.
 do $$
 declare
@@ -523,7 +523,7 @@ end $$;
 reset role;
 -- Blocked-user checks use a fresh published tournament to avoid a
 -- duplicate-captain unique violation masking an RLS authorization failure.
-do $
+do $$
 declare tid uuid;
 begin
   insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
@@ -531,7 +531,7 @@ begin
           'ci-captain-blocked', 'CI Captain Blocked', 4, 'registration', now())
   returning id into tid;
   perform set_config('iste.test.blocked_tournament',tid::text,true);
-end $;
+end $$;
 insert into public.user_roles(user_id,role,is_blocked)
 values ('123e4567-e89b-12d3-a456-426614174077','user',true);
 set local role authenticated;
