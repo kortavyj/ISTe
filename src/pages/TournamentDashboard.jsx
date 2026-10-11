@@ -9,6 +9,20 @@ async function jsonResponse(response) {
   return data;
 }
 
+
+function RoomSettingsForm({value,onChange,onSave,busy}) {
+  const update=(key,val)=>onChange({...value,[key]:val});
+  return <div className="iste-tournaments__team-form">
+    <strong>Подключение к матчу (только капитаны)</strong>
+    <label>IP или домен сервера <input value={value.host||""} onChange={e=>update("host",e.target.value)} placeholder="cs2.example.com" /></label>
+    <label>Порт <input type="number" min="1" max="65535" value={value.port||""} onChange={e=>update("port",e.target.value)} placeholder="27015" /></label>
+    <label>Пароль (необязательно) <input type="password" autoComplete="off" value={value.password||""} onChange={e=>update("password",e.target.value)} /></label>
+    <label>Карта <select value={value.map||""} onChange={e=>update("map",e.target.value)}><option value="">Выбрать карту</option>{["de_ancient","de_anubis","de_dust2","de_inferno","de_mirage","de_nuke","de_train","de_vertigo","de_overpass"].map(m=><option key={m} value={m}>{m.slice(3)}</option>)}</select></label>
+    <label>Время подключения <input type="datetime-local" value={value.connectAt||""} onChange={e=>update("connectAt",e.target.value)} /></label>
+    <button type="button" disabled={busy} onClick={onSave}>Сохранить настройки матча</button>
+  </div>;
+}
+
 export default function TournamentDashboard() {
   const [tournaments, setTournaments] = useState([]);
   const [selected, setSelected] = useState("");
@@ -17,6 +31,7 @@ export default function TournamentDashboard() {
   const [matches, setMatches] = useState([]);
   const [scores, setScores] = useState({});
   const [serverIds, setServerIds] = useState({});
+  const [roomSettings, setRoomSettings] = useState({});
   const [assignments, setAssignments] = useState([]);
   const [assignmentHistory, setAssignmentHistory] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -108,6 +123,15 @@ export default function TournamentDashboard() {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(serverId)) throw new Error("Укажите корректный UUID игрового сервера.");
         payload.matchId=matchId;
         payload.serverId=serverId;
+      }
+      if (action === "room-settings") {
+        const room = roomSettings[matchId] || {};
+        payload.matchId=matchId;
+        payload.host=room.host?.trim();
+        payload.port=Number(room.port);
+        payload.password=room.password || "";
+        payload.map=room.map;
+        payload.connectAt=room.connectAt ? new Date(room.connectAt).toISOString() : null;
       }
       if (action === "result") {
         if (input.a === "" || input.b === "") throw new Error("Введите оба результата.");
@@ -215,6 +239,7 @@ export default function TournamentDashboard() {
                   <strong>{a?.name||"Ожидается"} — {b?.name||"Ожидается"}</strong>
                   <p>CS2-сервер: {assignments.find(item=>item.matchId===match.id)?.serverId||"не назначен"}</p>
                   {match.status==="completed"&&<p>Счёт: {match.score_a}:{match.score_b}</p>}
+                  {match.status==="scheduled"&&<RoomSettingsForm value={roomSettings[match.id]||{}} onChange={value=>setRoomSettings(current=>({...current,[match.id]:value}))} onSave={()=>matchAction("room-settings",match.id)} busy={busy}/>}
                   {match.status==="scheduled"&&<>
                     <label>UUID назначаемого CS2-сервера
                       <input type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" value={serverIds[match.id]||""}
