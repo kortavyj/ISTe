@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/cs2-tournaments-full-preview
+      - integration/cs2-main-sync-20261012
   pull_request:
     paths:
       - 'src/**'
@@ -16,7 +17,7 @@ on:
       - '.github/workflows/tournaments-ci.yml'
 jobs:
   tournament-checks:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.pull_request.head.ref == 'feature/cs2-tournaments-full-preview'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || contains(fromJSON('["feature/cs2-tournaments-full-preview", "integration/cs2-main-sync-20261012"]'), github.event.pull_request.head.ref)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
