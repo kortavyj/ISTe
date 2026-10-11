@@ -5,7 +5,8 @@ create table if not exists public.tournament_teams (
   name text not null check (char_length(trim(name)) between 2 and 60),
   captain_user_id uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
-  unique (tournament_id, name)
+  unique (tournament_id, name),
+  unique (tournament_id, id)
 );
 create index if not exists tournament_teams_tournament_idx on public.tournament_teams(tournament_id, created_at);
 alter table public.tournament_teams enable row level security;
