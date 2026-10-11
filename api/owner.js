@@ -2,7 +2,6 @@ import { guardRequest } from "./lib/requestGuard.js";
 import {
   mapOwnerRpcError,
   requireAdminOrOwner,
-  requireOwner,
 } from "../server/ownerRequest.js";
 import {
   isUuid,
