@@ -125,4 +125,26 @@ begin
    if sqlerrm<>'OWNER_REQUIRED' then raise; end if;
  end;
 end $;
+
+-- Cross-tournament participants must not be assignable to unrelated matches.
+do $
+declare ta uuid; tb uuid; foreign_team uuid; local_team uuid;
+begin
+ insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
+ values ('123e4567-e89b-12d3-a456-426614174000','ci-fk-a','CI Membership A',2,'registration',now())
+ returning id into ta;
+ insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
+ values ('123e4567-e89b-12d3-a456-426614174000','ci-fk-b','CI Membership B',2,'registration',now())
+ returning id into tb;
+ insert into public.tournament_teams(tournament_id,name) values(ta,'Valid Team')
+ returning id into local_team;
+ insert into public.tournament_teams(tournament_id,name) values(tb,'Foreign Team')
+ returning id into foreign_team;
+ begin
+  insert into public.tournament_matches(tournament_id,round_number,match_number,team_a_id,team_b_id,status)
+  values (ta,1,1,local_team,foreign_team,'scheduled');
+  raise exception 'CROSS_TOURNAMENT_TEAM_ALLOWED';
+ exception when foreign_key_violation then null;
+ end;
+end $;
 rollback;
