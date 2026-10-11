@@ -34,10 +34,6 @@
   ],
   "rewrites": [
     {
-      "source": "/api/cs2-ingest",
-      "destination": "/api/owner?module=cs2-ingest"
-    },
-    {
       "source": "/api/tournaments",
       "destination": "/api/owner?module=tournaments"
     },
