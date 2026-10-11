@@ -20,6 +20,7 @@ declare
   m public.tournament_matches%rowtype;
 begin
   if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+  if coalesce((auth.jwt()->>'aal'),'') <> 'aal2' then raise exception 'MFA_REQUIRED'; end if;
   select * into t from public.tournaments where id=p_tournament_id for update;
   if not found or t.owner_user_id<>auth.uid() then raise exception 'OWNER_REQUIRED'; end if;
   if exists(select 1 from public.user_roles u where u.user_id=auth.uid() and u.is_blocked) then
