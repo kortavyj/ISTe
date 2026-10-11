@@ -16,6 +16,7 @@ export default function TournamentDashboard() {
   const [teamName, setTeamName] = useState("");
   const [matches, setMatches] = useState([]);
   const [scores, setScores] = useState({});
+  const [serverIds, setServerIds] = useState({});
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -95,6 +96,12 @@ export default function TournamentDashboard() {
     try {
       const input = scores[matchId] || { a:"", b:"" };
       const payload = { tournamentId:selected, action };
+      if (action === "assign-server") {
+        const serverId = (serverIds[matchId] || "").trim();
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(serverId)) throw new Error("Укажите корректный UUID игрового сервера.");
+        payload.matchId=matchId;
+        payload.serverId=serverId;
+      }
       if (action === "result") {
         if (input.a === "" || input.b === "") throw new Error("Введите оба результата.");
         payload.matchId=matchId;
@@ -116,7 +123,7 @@ export default function TournamentDashboard() {
       ]);
       setMatches(updatedMatches.matches||[]);
       setTournaments(updatedTournaments.tournaments||[]);
-      setSuccess(action==="start"?"Турнир запущен.":"Результат зафиксирован.");
+      setSuccess(action==="start"?"Турнир запущен.":action==="assign-server"?"Игровой сервер назначен матчу.":"Результат зафиксирован.");
     } catch(err) { setError(err.message); }
     finally { setBusy(false); }
   }
@@ -197,6 +204,11 @@ export default function TournamentDashboard() {
                   <strong>{a?.name||"Ожидается"} — {b?.name||"Ожидается"}</strong>
                   {match.status==="completed"&&<p>Счёт: {match.score_a}:{match.score_b}</p>}
                   {match.status==="scheduled"&&<>
+                    <label>UUID назначаемого CS2-сервера
+                      <input type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" value={serverIds[match.id]||""}
+                        onChange={event=>setServerIds(current=>({...current,[match.id]:event.target.value}))} disabled={busy} />
+                    </label>
+                    <button type="button" disabled={busy} onClick={()=>matchAction("assign-server",match.id)}>Назначить / переназначить сервер</button>
                     <div className="iste-tournaments__score-inputs">
                       <input type="number" min="0" max="100" aria-label="Счёт первой команды"
                         value={value.a} onChange={e=>setScores(v=>({...v,[match.id]:{...value,a:e.target.value}}))}/>
