@@ -111,3 +111,23 @@ test('CS2 webhook rejects altered signed raw body before database access',async(
   names.forEach((key,i)=>{if(saved[i]===undefined) delete process.env[key];else process.env[key]=saved[i];});
  }
 });
+
+test('CS2 webhook rejects validly signed events from unregistered game servers',async()=>{
+ const envs=['ISTE_CS2_WEBHOOK_SECRET','SUPABASE_SERVICE_ROLE_KEY','SUPABASE_URL','ISTE_CS2_ALLOWED_SERVER_IDS'];
+ const originals=envs.map(key=>process.env[key]);
+ const event={version:1,eventId:'event-1234567890',serverId:'123e4567-e89b-12d3-a456-426614174000',matchId:'123e4567-e89b-12d3-a456-426614174001',sequence:1,type:'map_started',payload:{}};
+ const raw=JSON.stringify(event);
+ try{
+  process.env.ISTE_CS2_WEBHOOK_SECRET=secret;
+  process.env.SUPABASE_SERVICE_ROLE_KEY='ci-placeholder';
+  process.env.SUPABASE_URL='https://ci-placeholder.supabase.co';
+  process.env.ISTE_CS2_ALLOWED_SERVER_IDS='123e4567-e89b-12d3-a456-426614174099';
+  const response=ownerResponseMock();
+  const signature='sha256='+createHmac('sha256',secret).update(timestamp+'.'+raw).digest('hex');
+  await cs2Ingest({method:'POST',headers:{'x-iste-timestamp':timestamp,'x-iste-signature':signature},rawCs2Body:raw},response);
+  assert.equal(response.statusCode,403);
+  assert.equal(response.payload.error,'SERVER_NOT_ALLOWED');
+ }finally{
+  envs.forEach((key,index)=>{if(originals[index]===undefined)delete process.env[key];else process.env[key]=originals[index];});
+ }
+});
