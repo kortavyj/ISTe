@@ -553,4 +553,20 @@ begin
   end;
 end $$;
 reset role;
+-- Even a verified organizer cannot silently nominate another user's account.
+select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174000',true);
+select set_config('request.jwt.claim.aal','aal2',true);
+set local role authenticated;
+do $$
+begin
+  begin
+    insert into public.tournament_teams(tournament_id,name,captain_user_id)
+    values(current_setting('iste.test.private_tournament')::uuid,
+           'Forged Organizer Captain',
+           '123e4567-e89b-12d3-a456-426614174077');
+    raise exception 'OWNER_FORGED_CAPTAIN_ALLOWED';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+reset role;
 rollback;
