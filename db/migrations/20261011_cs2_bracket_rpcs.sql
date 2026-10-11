@@ -14,7 +14,7 @@ alter table public.tournament_audit enable row level security;
 revoke all on public.tournament_audit from anon,authenticated;
 
 create or replace function public.iste_publish_tournament(p_tournament_id uuid)
-returns void language plpgsql security definer set search_path = '' as $
+returns void language plpgsql security definer set search_path = '' as $$
 declare t public.tournaments%rowtype;
 begin
  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
@@ -26,7 +26,7 @@ begin
  if t.status <> 'draft' then raise exception 'NOT_IN_DRAFT'; end if;
  update public.tournaments set status='registration',published_at=now(),updated_at=now() where id=t.id;
  insert into public.tournament_audit(tournament_id,actor_user_id,action) values(t.id,auth.uid(),'publish');
-end $;
+end $$;
 revoke all on function public.iste_publish_tournament(uuid) from public,anon;
 grant execute on function public.iste_publish_tournament(uuid) to authenticated;
 
