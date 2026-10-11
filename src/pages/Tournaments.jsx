@@ -4,7 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import "./Tournaments.css";
 
 export default function Tournaments({ create = false }) {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(!create);
@@ -61,8 +61,8 @@ export default function Tournaments({ create = false }) {
           : "Здесь появятся опубликованные турниры ISTe и сообщества. Смотреть их могут все."}</p>
         <div className="iste-tournaments__actions">
           <Link to="/tournaments">Все турниры</Link>
-          {user && <Link to="/account/tournaments">Мои турниры</Link>}
-          {user ? <Link to="/tournaments/create">Создать турнир</Link> : <Link to="/login">Войти для создания</Link>}
+          {role === "owner" && <Link to="/account/tournaments">Управление турнирами</Link>}
+          {role === "owner" && <Link to="/tournaments/create">Создать турнир</Link>}
         </div>
       </div>
       {error && <p className="iste-tournaments__error" role="alert">{error}</p>}
@@ -86,7 +86,7 @@ export default function Tournaments({ create = false }) {
               onChange={e => setForm(v => ({ ...v, maxTeams: e.target.value }))} />
           </label>
           <button type="submit" disabled={saving}>{saving ? "Сохраняем..." : "Сохранить черновик"}</button>
-          <p className="iste-tournaments__note">Черновик можно опубликовать в кабинете организатора, добавить команды и запустить сетку. Самостоятельная регистрация игроков пока недоступна.</p>
+          <p className="iste-tournaments__note">Черновик можно опубликовать в кабинете организатора, добавить команды и запустить сетку. Капитаны могут самостоятельно регистрировать команды на странице опубликованного турнира.</p>
         </form>
       ) : loading ? <p>Загружаем турниры…</p> : items.length ? (
         <div className="iste-tournaments__grid">{items.map(item => (
