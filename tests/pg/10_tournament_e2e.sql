@@ -507,4 +507,26 @@ begin
   end;
 end $$;
 reset role;
+-- A blocked captain must be unable to register any team.
+insert into public.user_roles(user_id,role,is_blocked)
+values ('123e4567-e89b-12d3-a456-426614174077','user',true);
+set local role authenticated;
+do $$
+begin
+  begin
+    insert into public.tournament_teams(tournament_id,name,captain_user_id)
+    values(current_setting('iste.test.private_tournament')::uuid,
+           'Blocked Captain Draft', auth.uid());
+    raise exception 'BLOCKED_CAPTAIN_DRAFT_ALLOWED';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.tournament_teams(tournament_id,name,captain_user_id)
+    values(current_setting('iste.test.captain_tournament')::uuid,
+           'Blocked Captain Published', auth.uid());
+    raise exception 'BLOCKED_CAPTAIN_PUBLISHED_ALLOWED';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+reset role;
 rollback;
