@@ -238,7 +238,7 @@ begin
  if (select status from public.tournaments where id=tid)<>'completed' then raise exception 'RECOVERED_OWNER_FAILED'; end if;
 end $$;
 -- Published transitions are atomic and recorded; repeat publishing is rejected.
-do $
+do $$
 declare tid uuid;
 begin
  perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174000',true);
@@ -264,5 +264,5 @@ begin
   if sqlerrm='DOUBLE_PUBLISH_ALLOWED' then raise; end if;
   if sqlerrm<>'NOT_IN_DRAFT' then raise; end if;
  end;
-end $;
+end $$;
 rollback;
