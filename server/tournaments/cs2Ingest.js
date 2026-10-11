@@ -33,6 +33,8 @@ export default async function cs2Ingest(request, response) {
     return response.status(409).json({ok:false,error:"EVENT_REPLAY_OR_ORDER"});
    if (/MATCH_NOT_FOUND/.test(error.message||""))
     return response.status(404).json({ok:false,error:"MATCH_NOT_FOUND"});
+   if (/SERVER_NOT_ASSIGNED/.test(error.message||""))
+    return response.status(403).json({ok:false,error:"SERVER_NOT_ASSIGNED"});
    console.error("CS2 ingest rejected", error.code);
    return response.status(503).json({ok:false,error:"EVENT_INGEST_UNAVAILABLE"});
   }
