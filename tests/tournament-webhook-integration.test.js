@@ -69,3 +69,32 @@ test("signed CS2 event flows through raw HTTP boundary to isolated PostgREST moc
   await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
  }
 });
+
+test("signed event from allowlisted but unassigned server is denied", async () => {
+ const server=createServer(async(req,res)=>{
+  for await (const _part of req) { /* consume request */ }
+  res.writeHead(400,{"Content-Type":"application/json"});
+  res.end(JSON.stringify({code:"P0001",message:"SERVER_NOT_ASSIGNED"}));
+ });
+ await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+ const vars=["ISTE_CS2_WEBHOOK_SECRET","ISTE_CS2_ALLOWED_SERVER_IDS","SUPABASE_SERVICE_ROLE_KEY","SUPABASE_URL"];
+ const saved=vars.map(k=>process.env[k]);
+ const secret="integration-unassigned-test-secret-123456789";
+ const event={version:1,eventId:"test-unassigned-00001",serverId:"123e4567-e89b-12d3-a456-426614174099",matchId:"123e4567-e89b-12d3-a456-426614174001",sequence:1,type:"map_started",payload:{}};
+ try {
+  process.env.ISTE_CS2_WEBHOOK_SECRET=secret;
+  process.env.ISTE_CS2_ALLOWED_SERVER_IDS=event.serverId;
+  process.env.SUPABASE_SERVICE_ROLE_KEY="integration-ci-fake-service-role";
+  process.env.SUPABASE_URL="http://127.0.0.1:"+server.address().port;
+  const bytes=Buffer.from(JSON.stringify(event));
+  const timestamp=String(Date.now());
+  const signature="sha256="+createHmac("sha256",secret).update(timestamp+".").update(bytes).digest("hex");
+  const res=mockResponse();
+  await handler(request(bytes,{"x-iste-timestamp":timestamp,"x-iste-signature":signature}),res);
+  assert.equal(res.statusCode,403);
+  assert.equal(res.data.error,"SERVER_NOT_ASSIGNED");
+ } finally {
+  vars.forEach((k,i)=>{if(saved[i]===undefined)delete process.env[k];else process.env[k]=saved[i];});
+  await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
+ }
+});
