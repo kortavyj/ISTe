@@ -35,9 +35,6 @@ with check (
   and exists (select 1 from public.user_roles role_guard
     where role_guard.user_id = (select auth.uid()) and role_guard.role = 'owner'
       and role_guard.is_blocked is not true)
-  and exists (select 1 from public.user_roles role_guard
-    where role_guard.user_id = (select auth.uid()) and role_guard.role = 'owner'
-      and role_guard.is_blocked is not true)
   and not exists (
     select 1 from public.user_roles ur
     where ur.user_id = (select auth.uid()) and ur.is_blocked is true
@@ -50,6 +47,9 @@ for update to authenticated
 using (owner_user_id = (select auth.uid()))
 with check (
   owner_user_id = (select auth.uid())
+  and exists (select 1 from public.user_roles role_guard
+    where role_guard.user_id = (select auth.uid()) and role_guard.role = 'owner'
+      and role_guard.is_blocked is not true)
   and not exists (
     select 1 from public.user_roles ur
     where ur.user_id = (select auth.uid()) and ur.is_blocked is true
