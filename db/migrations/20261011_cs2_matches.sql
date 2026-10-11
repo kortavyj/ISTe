@@ -19,6 +19,9 @@ create table if not exists public.tournament_matches (
 );
 create index if not exists tournament_matches_tournament_idx on public.tournament_matches(tournament_id,round_number,match_number);
 alter table public.tournament_matches enable row level security;
+-- Read-only public fixtures; all writes go through audited server RPCs.
+grant select on public.tournament_matches to anon, authenticated;
+revoke insert, update, delete on public.tournament_matches from anon, authenticated;
 drop policy if exists "Public view tournament fixtures" on public.tournament_matches;
 create policy "Public view tournament fixtures" on public.tournament_matches
 for select to anon,authenticated using (
