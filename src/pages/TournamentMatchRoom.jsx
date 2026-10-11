@@ -17,10 +17,12 @@ function Squad({ name, side }) {
 export default function TournamentMatchRoom() {
   const { slug, matchId } = useParams();
   const [info, setInfo] = useState(null);
+  const [room, setRoom] = useState(null);
   const [failure, setFailure] = useState("");
   useEffect(() => {
     const ctrl = new AbortController();
     setInfo(null);
+    setRoom(null);
     setFailure("");
     async function fetchJson(url) {
       const res = await fetch(url, { signal: ctrl.signal });
@@ -39,6 +41,8 @@ export default function TournamentMatchRoom() {
       const match = (matches.matches || []).find(item => item.id === matchId);
       if (!match) throw new Error("Матч не найден в этом турнире.");
       if (!ctrl.signal.aborted) setInfo({ tournament: tournament.tournament, teams: teams.teams || [], match });
+      const response = await fetch("/api/tournament-matches?tournamentId=" + id + "&matchId=" + encodeURIComponent(matchId) + "&view=room", { credentials: "include", signal: ctrl.signal });
+      if (response.ok) { const details = await response.json(); if (details.ok && !ctrl.signal.aborted) setRoom(details.room); }
     })().catch(error => { if (!ctrl.signal.aborted) setFailure(error.message); });
     return () => ctrl.abort();
   }, [slug, matchId]);
@@ -68,12 +72,12 @@ export default function TournamentMatchRoom() {
         <div className="imr-center">
           <div className="imr-panel">
             <span className="imr-kicker">СЕРВЕР</span>
-            <h2>Ожидается назначение</h2>
+            <h2>{room ? `${room.host}:${room.port}` : "Ожидается назначение"}</h2>
             <p>Организатор предоставит адрес и доступ к серверу. После добавления защищённого доступа участники матча увидят команду подключения здесь.</p>
           </div>
           <div className="imr-panel">
             <span className="imr-kicker">КАРТА</span>
-            <h2>Ещё не указана</h2>
+            <h2>{room?.map?.replace("de_", "") || "Ещё не указана"}</h2>
             <p>Выбранная карта появится после подключения настроек матча.</p>
           </div>
           <div className="imr-panel imr-panel--muted">
