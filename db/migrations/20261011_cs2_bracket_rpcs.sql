@@ -13,6 +13,33 @@ create table if not exists public.tournament_audit (
 alter table public.tournament_audit enable row level security;
 revoke all on public.tournament_audit from anon,authenticated;
 
+-- Transactional distributed rate limit (shared PostgreSQL; not process memory).
+create table if not exists public.tournament_rate_limits (
+ actor_id uuid not null,
+ tournament_id uuid not null,
+ action text not null,
+ window_start timestamptz not null,
+ attempts integer not null default 1,
+ primary key(actor_id,tournament_id,action,window_start)
+);
+alter table public.tournament_rate_limits enable row level security;
+revoke all on public.tournament_rate_limits from anon,authenticated;
+create or replace function public.iste_enforce_tournament_limit(p_tournament_id uuid,p_action text,p_max integer)
+returns void language plpgsql security definer set search_path = '' as $
+declare current_attempts integer;
+begin
+ if auth.uid() is null or p_action not in ('publish','start','result') or p_max not between 1 and 120 then
+  raise exception 'RATE_LIMIT_UNAUTHORIZED';
+ end if;
+ insert into public.tournament_rate_limits(actor_id,tournament_id,action,window_start,attempts)
+ values(auth.uid(),p_tournament_id,p_action,date_trunc('minute',now()),1)
+ on conflict (actor_id,tournament_id,action,window_start)
+ do update set attempts=public.tournament_rate_limits.attempts+1
+ returning attempts into current_attempts;
+ if current_attempts>p_max then raise exception 'RATE_LIMIT_EXCEEDED'; end if;
+end $;
+revoke all on function public.iste_enforce_tournament_limit(uuid,text,integer) from public,anon,authenticated;
+
 create or replace function public.iste_publish_tournament(p_tournament_id uuid)
 returns void language plpgsql security definer set search_path = '' as $$
 declare t public.tournaments%rowtype;
@@ -24,6 +51,7 @@ begin
  if exists(select 1 from public.user_roles u where u.user_id=auth.uid() and u.is_blocked) then raise exception 'ACCOUNT_BLOCKED'; end if;
  if not exists(select 1 from public.user_roles u where u.user_id=auth.uid() and u.role='owner' and u.is_blocked is not true) then raise exception 'OWNER_REQUIRED'; end if;
  if t.status <> 'draft' then raise exception 'NOT_IN_DRAFT'; end if;
+ perform public.iste_enforce_tournament_limit(t.id,'publish',10);
  update public.tournaments set status='registration',published_at=now(),updated_at=now() where id=t.id;
  insert into public.tournament_audit(tournament_id,actor_user_id,action) values(t.id,auth.uid(),'publish');
 end $$;
@@ -57,6 +85,7 @@ begin
   end if;
   if not exists (select 1 from public.user_roles where user_id=auth.uid() and role='owner' and is_blocked is not true) then raise exception 'OWNER_REQUIRED'; end if;
   if t.status <> 'registration' then raise exception 'NOT_IN_REGISTRATION'; end if;
+  perform public.iste_enforce_tournament_limit(t.id,'start',10);
   -- Prevent starting with team changes in the same transaction from bypassing
   -- the final roster snapshot. Other writer transactions cannot update this
   -- tournament while the parent row is locked.
@@ -142,6 +171,7 @@ begin
     raise exception 'ACCOUNT_BLOCKED';
   end if;
   if not exists (select 1 from public.user_roles where user_id=auth.uid() and role='owner' and is_blocked is not true) then raise exception 'OWNER_REQUIRED'; end if;
+  perform public.iste_enforce_tournament_limit(t.id,'result',120);
   if t.status<>'active' or m.status<>'scheduled'
     or m.team_a_id is null or m.team_b_id is null
     then raise exception 'MATCH_NOT_READY'; end if;
