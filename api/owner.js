@@ -366,10 +366,9 @@ export default async function handler(request, response) {
       : "";
 
   if (moduleName === "tournaments") {
-    const access = await requireOwner(request, response);
-    if (!access.ok) {
-      return sendError(response, access.status, access.error, access.message);
-    }
+    // Tournament handlers enforce their own per-action authorization.
+    // Public listings, fixtures and captain registration must not be
+    // blocked by the owner-only admin router.
     return tournamentHandler(request, response);
   }
 
