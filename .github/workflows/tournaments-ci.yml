@@ -1,5 +1,6 @@
 name: ISTe Tournaments CI
 on:
+  workflow_dispatch:
   push:
     branches:
       - feature/cs2-tournaments-full-preview
