@@ -1,4 +1,4 @@
--- Registered tournament participants; captains can enroll users into their own team.
+-- Registered tournament participants; players enroll themselves in a captain-led team.
 create table if not exists public.tournament_team_players (
  team_id uuid not null references public.tournament_teams(id) on delete cascade,
  user_id uuid not null references auth.users(id) on delete cascade,
@@ -10,18 +10,19 @@ alter table public.tournament_team_players enable row level security;
 revoke all on public.tournament_team_players from anon,authenticated;
 grant select on public.tournament_team_players to authenticated;
 
--- Enrollment is permitted only when the captain controls the team and registration is open.
+-- Enrollment requires the player's own identity and an open tournament.
 create or replace function public.iste_add_team_player(p_team_id uuid,p_user_id uuid)
 returns void language plpgsql security definer set search_path='' as $$
 declare team public.tournament_teams%rowtype;
 begin
  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
- if p_team_id is null or p_user_id is null then raise exception 'INVALID_PLAYER'; end if;
+ if p_team_id is null or p_user_id is null or p_user_id<>auth.uid() then raise exception 'INVALID_PLAYER'; end if;
  if exists(select 1 from public.user_roles r where r.user_id=auth.uid() and r.is_blocked is true)
  then raise exception 'ACCOUNT_BLOCKED'; end if;
  select * into team from public.tournament_teams where id=p_team_id for update;
  if not found then raise exception 'TEAM_NOT_FOUND'; end if;
- if team.captain_user_id is distinct from auth.uid() then raise exception 'CAPTAIN_REQUIRED'; end if;
+ if team.captain_user_id is null then raise exception 'CAPTAIN_REQUIRED'; end if;
+ if team.captain_user_id=p_user_id then raise exception 'ALREADY_CAPTAIN'; end if;
  if not exists(select 1 from public.tournaments t where t.id=team.tournament_id and t.status='registration')
  then raise exception 'REGISTRATION_CLOSED'; end if;
  if not exists(select 1 from auth.users u where u.id=p_user_id) then raise exception 'PLAYER_NOT_FOUND'; end if;
@@ -33,7 +34,7 @@ begin
    and (other_team.captain_user_id=p_user_id or p.user_id=p_user_id)
    and other_team.id<>p_team_id)
  then raise exception 'PLAYER_ALREADY_IN_TOURNAMENT'; end if;
- if (select count(*) from public.tournament_team_players where team_id=p_team_id)>=5
+ if (select count(*) from public.tournament_team_players where team_id=p_team_id)>=4
  then raise exception 'TEAM_FULL'; end if;
  insert into public.tournament_team_players(team_id,user_id) values(p_team_id,p_user_id)
  on conflict do nothing;
