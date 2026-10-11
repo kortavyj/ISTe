@@ -376,6 +376,18 @@ begin
  perform set_config('request.jwt.claim.aal','aal2',true);
  perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174091');
  perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174092');
+ if jsonb_array_length((public.iste_list_cs2_assignments(tid))->'history')<>2 then
+  raise exception 'ASSIGNMENT_HISTORY_RPC_FAILED';
+ end if;
+ perform set_config('request.jwt.claim.aal','aal1',true);
+ begin
+  perform public.iste_list_cs2_assignments(tid);
+  raise exception 'ASSIGNMENT_HISTORY_WITHOUT_MFA_ALLOWED';
+ exception when others then
+  if sqlerrm='ASSIGNMENT_HISTORY_WITHOUT_MFA_ALLOWED' then raise; end if;
+  if sqlerrm<>'MFA_REQUIRED' then raise; end if;
+ end;
+ perform set_config('request.jwt.claim.aal','aal2',true);
  if (select count(*) from public.tournament_cs2_assignment_audit where match_id=mid)<>2 then
   raise exception 'ASSIGNMENT_AUDIT_MISSING';
  end if;
