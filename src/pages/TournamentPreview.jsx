@@ -109,7 +109,7 @@ export default function TournamentPreview() {
         {showFinished && <div className="tp-rows">{seeds.map((m,i)=><div key={i}><span>{m[0]} — {m[1]}</span><strong>{scores[i].a}:{scores[i].b}</strong></div>)}</div>}
       </>}
 
-      <footer className="tp-footer"><span>PRIVATE PREVIEW · Только макет, никаких реальных турниров</span><Link to="/founder">← Панель владельца</Link></footer>
+      <footer className="tp-footer"><span>PRIVATE PREVIEW · Демонстрационная сетка без записи в базу</span><div className="tp-links"><Link to="/tournaments">Тестовый каталог</Link><Link to="/tournaments/create">Создание турнира</Link><Link to="/account/tournaments">Кабинет организатора</Link><Link to="/founder">← Панель владельца</Link></div></footer>
     </section>
   );
 }
