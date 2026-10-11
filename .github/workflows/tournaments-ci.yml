@@ -1,0 +1,69 @@
+name: ISTe Tournaments CI
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/cs2-tournaments-full-preview
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'server/tournaments/**'
+      - 'api/**'
+      - 'tests/**'
+      - 'db/migrations/20261011_cs2_*.sql'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/tournaments-ci.yml'
+jobs:
+  tournament-checks:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/cs2-tournaments-full-preview'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: tournaments_ci
+          POSTGRES_DB: iste_tournaments_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iste_tournaments_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: tournaments_ci
+      PGDATABASE: iste_tournaments_ci
+      PGOPTIONS: '-c client_min_messages=warning'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Manual dispatch from main tests the feature branch, not main's package.json.
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'feature/cs2-tournaments-full-preview' || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+      - name: Build frontend with isolated CI-only placeholders
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-publishable-placeholder-no-real-credentials
+      - name: Apply migrations in disposable test database
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f tests/pg/00_auth_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournaments_foundation.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournament_teams.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_matches.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_bracket_rpcs.sql
+      - name: Simulate actual DB tournament from 2 to 64 teams
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/10_tournament_e2e.sql
