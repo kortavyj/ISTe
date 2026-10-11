@@ -11,6 +11,7 @@ import {
 } from "./lib/requestBody.js";
 import shopHandler from "../server/shopHandler.js";
 import tournamentHandler from "../server/tournaments/root.js";
+import cs2Ingest from "../server/tournaments/cs2Ingest.js";
 import discordHandler from "../server/discordHandler.js";
 import botPortalHandler from "../server/botPortalHandler.js";
 import highlightsHandler from "../server/highlightsHandler.js";
@@ -364,6 +365,8 @@ export default async function handler(request, response) {
     typeof rawModule === "string"
       ? rawModule.trim().toLowerCase()
       : "";
+
+  if (moduleName === "cs2-ingest") return cs2Ingest(request,response);
 
   if (moduleName === "tournaments") {
     const access = await requireOwner(request, response);
