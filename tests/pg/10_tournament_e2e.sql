@@ -94,7 +94,7 @@ begin
 end $$;
 
 -- Test that an unrelated user cannot start a tournament or confirm a result.
-do $
+do $$
 declare
  tid uuid;
  mid uuid;
@@ -124,10 +124,10 @@ begin
    if sqlerrm='UNAUTHORIZED_RESULT_ALLOWED' then raise; end if;
    if sqlerrm<>'OWNER_REQUIRED' then raise; end if;
  end;
-end $;
+end $$;
 
 -- Cross-tournament participants must not be assignable to unrelated matches.
-do $
+do $$
 declare ta uuid; tb uuid; foreign_team uuid; local_team uuid;
 begin
  insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
@@ -146,9 +146,9 @@ begin
   raise exception 'CROSS_TOURNAMENT_TEAM_ALLOWED';
  exception when foreign_key_violation then null;
  end;
-end $;
+end $$;
 -- BO3 series: legal map scores and rejection of invalid outcomes.
-do $
+do $$
 declare tid uuid; mid uuid;
 begin
  perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174000',true);
@@ -168,5 +168,5 @@ begin
  if (select status from public.tournaments where id=tid)<>'completed' then
   raise exception 'BO3_TOURNAMENT_NOT_COMPLETED';
  end if;
-end $;
+end $$;
 rollback;
