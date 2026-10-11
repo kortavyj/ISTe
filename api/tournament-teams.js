@@ -53,8 +53,8 @@ export default async function handler(request, response) {
       .from("tournaments").select("id,owner_user_id,status")
       .eq("id", tournamentId).maybeSingle();
     if (tournamentError) throw tournamentError;
-    if (!tournament || tournament.owner_user_id !== user.id || tournament.status !== "draft") {
-      return send(response, 403, "FORBIDDEN", "Добавлять команды может только организатор черновика.");
+    if (!tournament || tournament.owner_user_id !== user.id || !["draft", "registration"].includes(tournament.status)) {
+      return send(response, 403, "FORBIDDEN", "Добавлять команды может только организатор до начала турнира.");
     }
     const { data, error } = await supabase.from("tournament_teams")
       .insert({ tournament_id: tournamentId, name })
