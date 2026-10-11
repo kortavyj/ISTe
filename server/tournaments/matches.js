@@ -35,6 +35,28 @@ export default async function handler(request,response){
   if(!isUuid(tournamentId))return fail(response,400,"INVALID_TOURNAMENT","Неизвестный турнир.");
   try{
     const supabase=getSupabaseServerClient();
+    if(method==="GET" && request.query?.view==="room"){
+      const {accessToken,refreshToken}=readAuthCookies(request);
+      if(!accessToken||!refreshToken)return fail(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      const {data:session,error:sessionError}=await supabase.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
+      if(sessionError||!session?.user||!session?.session)return fail(response,401,"AUTH_REQUIRED","Сессия истекла.");
+      setAuthCookies(response,session.session);
+      const matchId=request.query?.matchId;
+      if(!isUuid(matchId))return fail(response,400,"INVALID_MATCH","Неверный матч.");
+      const {data:match,error:matchError}=await supabase.from("tournament_matches")
+        .select("id").eq("id",matchId).eq("tournament_id",tournamentId).maybeSingle();
+      if(matchError)throw matchError;
+      if(!match)return fail(response,404,"MATCH_NOT_FOUND","Матч не найден.");
+      const {data,error}=await supabase.rpc("iste_get_match_room",{p_match_id:matchId});
+      if(error){
+        if(/ROOM_ACCESS_DENIED|ACCOUNT_BLOCKED/.test(String(error.message)))
+          return fail(response,403,"FORBIDDEN","Доступ только организатору и капитанам матча.");
+        if(/AUTH_REQUIRED/.test(String(error.message)))
+          return fail(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+        throw error;
+      }
+      return response.status(200).json({ok:true,room:data||null});
+    }
     if(method==="GET" && request.query?.view==="assignments"){
       const user=await authenticatedUser(request,response,supabase);
       if(!user)return fail(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
@@ -69,11 +91,21 @@ export default async function handler(request,response){
     }else if(action==="assign-server"&&isUuid(body?.matchId)&&isUuid(body?.serverId)){
       rpc="iste_assign_cs2_server";
       params={p_match_id:body.matchId,p_server_id:body.serverId};
+    }else if(action==="room-settings"&&isUuid(body?.matchId)){
+      rpc="iste_save_match_room";
+      params={
+        p_match_id:body.matchId,
+        p_server_host:body.host,
+        p_server_port:body.port,
+        p_server_password:body.password||"",
+        p_map_name:body.map,
+        p_connect_at:body.connectAt||null,
+      };
     }else if(action==="result"&&isUuid(body?.matchId)&&Number.isInteger(body?.scoreA)&&Number.isInteger(body?.scoreB)){
       rpc="iste_confirm_tournament_match";
       params={p_match_id:body.matchId,p_score_a:body.scoreA,p_score_b:body.scoreB};
     }else return fail(response,400,"INVALID_ACTION","Неверные параметры матча.");
-    if(action==="result"||action==="assign-server"){
+    if(action==="result"||action==="assign-server"||action==="room-settings"){
       const {data:match,error:matchError}=await supabase.from("tournament_matches")
         .select("id").eq("id",body.matchId).eq("tournament_id",tournamentId).maybeSingle();
       if(matchError)throw matchError;
