@@ -13,6 +13,7 @@ declare
  champion uuid;
  next_match public.tournament_matches%rowtype;
  teams uuid[];
+ last_completed uuid;
  attempts int;
 begin
  for n in 2..64 loop
@@ -37,6 +38,7 @@ begin
    exit when not found;
    attempts:=attempts+1;
    if attempts>n+4 then raise exception 'stuck at % teams',n; end if;
+   last_completed:=match_row.id;
    perform public.iste_confirm_tournament_match(match_row.id,13,7);
   end loop;
   if (select status from public.tournaments where id=tid)<>'completed' then
@@ -44,7 +46,7 @@ begin
   end if;
   select count(*) into winner_count from public.tournament_matches
    where tournament_id=tid and status='completed';
-  if winner_count<>n-1-(select count(*) from public.tournament_matches where tournament_id=tid and status='bye')
+  if winner_count<>n-1
      then raise exception 'Wrong completed match count for % teams',n;
   end if;
   if (select count(*) from public.tournament_matches where tournament_id=tid
@@ -52,7 +54,7 @@ begin
     raise exception 'Unresolved fixture for % teams',n;
   end if;
   begin
-    perform public.iste_confirm_tournament_match(match_row.id,13,7);
+    perform public.iste_confirm_tournament_match(last_completed,13,7);
     raise exception 'Duplicate confirmation succeeded unexpectedly';
   exception when others then
     if sqlerrm='Duplicate confirmation succeeded unexpectedly' then raise; end if;
