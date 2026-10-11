@@ -66,7 +66,7 @@ export default async function handler(request,response){
     const {error}=await supabase.rpc(rpc,params);
     if(error){
       const code=String(error.message||"");
-      if(/OWNER_REQUIRED|ACCOUNT_BLOCKED|AUTH_REQUIRED/.test(code))
+      if(/OWNER_REQUIRED|ACCOUNT_BLOCKED|AUTH_REQUIRED|MFA_REQUIRED/.test(code))
         return fail(response,403,"FORBIDDEN","Операция запрещена.");
       if(/NOT_ENOUGH_TEAMS|NOT_IN_REGISTRATION|MATCH_NOT_READY|INVALID_|NEXT_MATCH_LOCKED|BRACKET_SLOT_OCCUPIED/.test(code))
         return fail(response,409,"INVALID_STATE","Проверьте статус турнира и результат.");
