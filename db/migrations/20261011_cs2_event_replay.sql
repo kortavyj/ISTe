@@ -101,3 +101,34 @@ begin
 end $$;
 revoke all on function public.iste_assign_cs2_server(uuid,uuid) from public,anon;
 grant execute on function public.iste_assign_cs2_server(uuid,uuid) to authenticated;
+
+-- Owner-only, MFA-protected read model. Underlying tables remain private.
+create or replace function public.iste_list_cs2_assignments(p_tournament_id uuid)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare result jsonb;
+begin
+ if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+ if coalesce(auth.jwt()->>'aal','') <> 'aal2' then raise exception 'MFA_REQUIRED'; end if;
+ if not exists (
+  select 1 from public.tournaments t join public.user_roles r on r.user_id=auth.uid()
+  where t.id=p_tournament_id and t.owner_user_id=auth.uid()
+  and r.role='owner' and r.is_blocked is not true
+ ) then raise exception 'OWNER_REQUIRED'; end if;
+ select jsonb_build_object(
+  'assignments',coalesce((select jsonb_agg(jsonb_build_object(
+   'matchId',a.match_id,'serverId',a.server_id,'assignedAt',a.assigned_at))
+   from public.tournament_cs2_assignments a
+   join public.tournament_matches m on m.id=a.match_id
+   where m.tournament_id=p_tournament_id),'[]'::jsonb),
+  'history',coalesce((select jsonb_agg(jsonb_build_object(
+   'matchId',h.match_id,'previousServerId',h.previous_server_id,
+   'serverId',h.assigned_server_id,'changedAt',h.created_at)
+   order by h.created_at desc,h.id desc)
+   from public.tournament_cs2_assignment_audit h
+   join public.tournament_matches m on m.id=h.match_id
+   where m.tournament_id=p_tournament_id),'[]'::jsonb)
+ ) into result;
+ return result;
+end $$;
+revoke all on function public.iste_list_cs2_assignments(uuid) from public,anon;
+grant execute on function public.iste_list_cs2_assignments(uuid) to authenticated;
