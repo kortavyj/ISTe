@@ -16,6 +16,15 @@ revoke all on public.tournament_cs2_events from anon,authenticated;
 -- Require the server-side ingest implementation to use a narrowly secured database
 -- credential and enforce an atomic check under a match-scoped row lock.
 
+-- A server must be explicitly assigned to one match before any event is accepted.
+create table if not exists public.tournament_cs2_assignments (
+ match_id uuid primary key references public.tournament_matches(id) on delete cascade,
+ server_id uuid not null,
+ assigned_at timestamptz not null default now()
+);
+alter table public.tournament_cs2_assignments enable row level security;
+revoke all on public.tournament_cs2_assignments from anon,authenticated;
+
 -- Atomic server-to-database ingest. HTTP signature verification occurs before RPC.
 -- Only service_role may invoke this function; clients cannot insert directly.
 create or replace function public.iste_ingest_cs2_event(
@@ -32,6 +41,10 @@ begin
  -- Serialize ingestion for the same match; another server cannot interleave events.
  perform 1 from public.tournament_matches where id = p_match_id for update;
  if not found then raise exception 'MATCH_NOT_FOUND'; end if;
+ if not exists(select 1 from public.tournament_cs2_assignments a
+    where a.match_id=p_match_id and a.server_id=p_server_id) then
+   raise exception 'SERVER_NOT_ASSIGNED';
+ end if;
  if exists(select 1 from public.tournament_cs2_events e
     where e.match_id=p_match_id and e.server_id<>p_server_id) then
    raise exception 'SERVER_MISMATCH';
