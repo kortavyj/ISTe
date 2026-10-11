@@ -283,7 +283,7 @@ begin
  end if;
 end $$;
 -- Event replay indexes and private distributed counters.
-do $
+do $$
 declare
  tid uuid;
  mid uuid;
@@ -312,5 +312,5 @@ begin
   values('123e4567-e89b-12d3-a456-426614174099',mid,'ci-event-00000002',1,'round_end');
   raise exception 'DUPLICATE_SEQUENCE_ACCEPTED';
  exception when unique_violation then null; end;
-end $;
+end $$;
 rollback;
