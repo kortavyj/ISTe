@@ -44,6 +44,17 @@ export default async function handler(request, response) {
   try {
     const supabase = getSupabaseServerClient();
     if (method === "GET") {
+      const slug = typeof request.query?.slug === "string" ? request.query.slug : "";
+      if (slug) {
+        if (!/^[a-z0-9][a-z0-9-]{2,79}$/.test(slug)) {
+          return fail(response, 400, "INVALID_SLUG", "Неверная ссылка турнира.");
+        }
+        const { data, error } = await supabase.from("tournaments")
+          .select(SELECT).eq("slug", slug).not("published_at", "is", null).maybeSingle();
+        if (error) throw error;
+        if (!data) return fail(response, 404, "NOT_FOUND", "Турнир не найден.");
+        return response.status(200).json({ ok: true, tournament: data });
+      }
       const mine = request.query?.mine === "1";
       if (mine) {
         const user = await sessionForRequest(request, response, supabase);
