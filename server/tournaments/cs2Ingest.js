@@ -10,15 +10,15 @@ export default async function cs2Ingest(request, response) {
  const allowedServers = (process.env.ISTE_CS2_ALLOWED_SERVER_IDS || "").split(",").map(id=>id.trim().toLowerCase()).filter(Boolean);
  if (!secret || secret.length < 32 || !key || !url)
   return response.status(503).json({ok:false,error:"WEBHOOK_NOT_CONFIGURED"});
- const raw = typeof request.rawCs2Body === "string" ? request.rawCs2Body : null;
- if (!raw || Buffer.byteLength(raw,"utf8") > MAX_RAW_BODY_BYTES)
+ const raw = Buffer.isBuffer(request.rawCs2Body) ? request.rawCs2Body : null;
+ if (!raw || raw.length > MAX_RAW_BODY_BYTES)
   return response.status(400).json({ok:false,error:"INVALID_RAW_BODY"});
  const timestamp = request.headers["x-iste-timestamp"];
  const signature = request.headers["x-iste-signature"];
  if (!verifyCs2EventSignature({rawBody:raw,timestamp,signature,secret}))
   return response.status(401).json({ok:false,error:"SIGNATURE_INVALID"});
  let data;
- try { data = JSON.parse(raw); } catch { return response.status(400).json({ok:false,error:"INVALID_JSON"}); }
+ try { data = JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(raw)); } catch { return response.status(400).json({ok:false,error:"INVALID_JSON"}); }
  if (!validateCs2Event(data)) return response.status(400).json({ok:false,error:"INVALID_EVENT"});
  if (!allowedServers.includes(data.serverId.toLowerCase()))
   return response.status(403).json({ok:false,error:"SERVER_NOT_ALLOWED"});
