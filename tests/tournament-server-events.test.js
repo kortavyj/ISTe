@@ -95,3 +95,19 @@ test('CS2 webhook refuses missing server configuration',async()=>{
   if(oldKey===undefined)delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY=oldKey;
  }
 });
+
+test('CS2 webhook rejects altered signed raw body before database access',async()=>{
+ const names=['ISTE_CS2_WEBHOOK_SECRET','SUPABASE_SERVICE_ROLE_KEY','SUPABASE_URL'];
+ const saved=names.map(k=>process.env[k]);
+ try{
+  process.env.ISTE_CS2_WEBHOOK_SECRET=secret;
+  process.env.SUPABASE_SERVICE_ROLE_KEY='ci-only-placeholder';
+  process.env.SUPABASE_URL='https://ci-placeholder.supabase.co';
+  const response=ownerResponseMock();
+  await cs2Ingest({method:'POST',headers:{'x-iste-timestamp':timestamp,'x-iste-signature':sign()},rawCs2Body:body+' '},response);
+  assert.equal(response.statusCode,401);
+  assert.equal(response.payload.error,'SIGNATURE_INVALID');
+ }finally{
+  names.forEach((key,i)=>{if(saved[i]===undefined) delete process.env[key];else process.env[key]=saved[i];});
+ }
+});
