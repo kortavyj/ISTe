@@ -1,4 +1,4 @@
--- Team roster for CS2 tournament drafts. No public registration yet.
+-- CS2 tournament team roster with organizer entry and captain self-registration.
 create table if not exists public.tournament_teams (
   id uuid primary key default gen_random_uuid(),
   tournament_id uuid not null references public.tournaments(id) on delete cascade,
@@ -8,6 +8,9 @@ create table if not exists public.tournament_teams (
   unique (tournament_id, name),
   unique (tournament_id, id)
 );
+create unique index if not exists tournament_teams_unique_captain_idx
+  on public.tournament_teams (tournament_id, captain_user_id)
+  where captain_user_id is not null;
 create index if not exists tournament_teams_tournament_idx on public.tournament_teams(tournament_id, created_at);
 alter table public.tournament_teams enable row level security;
 
@@ -25,6 +28,24 @@ create policy "Tournament owners add teams" on public.tournament_teams
       and t.owner_user_id = (select auth.uid()) and t.status in ('draft', 'registration')
       and coalesce(auth.jwt()->>'aal','') = 'aal2'
       and exists (select 1 from public.user_roles g where g.user_id = (select auth.uid()) and g.role = 'owner' and g.is_blocked is not true))
+  );
+
+-- Captains may join only published tournaments accepting registration.
+-- A single authenticated account can captain at most one team per tournament.
+drop policy if exists "Captains register tournament teams" on public.tournament_teams;
+create policy "Captains register tournament teams" on public.tournament_teams
+  for insert to authenticated with check (
+    captain_user_id = (select auth.uid())
+    and exists (
+      select 1 from public.tournaments t
+      where t.id = tournament_id
+        and t.status = 'registration'
+        and t.published_at is not null
+    )
+    and not exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = (select auth.uid()) and ur.is_blocked is true
+    )
   );
 
 drop policy if exists "Tournament owners remove draft teams" on public.tournament_teams;
