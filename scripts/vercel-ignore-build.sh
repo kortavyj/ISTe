@@ -9,6 +9,13 @@
 
 set -u
 
+# Always build the CS2 preview branch so CI-only commits can be redeployed for testing.
+# This does not change production branch behavior.
+if [ "${VERCEL_GIT_COMMIT_REF:-}" = "feature/cs2-tournaments-full-preview" ]; then
+  echo "CS2 preview branch: bypassing ignored build detection."
+  exit 1
+fi
+
 BASE_SHA="${VERCEL_GIT_PREVIOUS_SHA:-}"
 HEAD_SHA="$(git rev-parse HEAD)"
 
