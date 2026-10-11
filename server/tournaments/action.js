@@ -28,8 +28,8 @@ export default async function handler(request, response) {
     }
     setAuthCookies(response, session.session);
     const { data: role, error: roleError } = await supabase.from("user_roles")
-      .select("is_blocked").eq("user_id", session.user.id).maybeSingle();
-    if (roleError || role?.is_blocked) return fail(response, 403, "FORBIDDEN", "Нет доступа.");
+      .select("role,is_blocked").eq("user_id", session.user.id).maybeSingle();
+    if (roleError || (role?.is_blocked || role?.role !== "owner")) return fail(response, 403, "FORBIDDEN", "Нет доступа.");
     const { data: tournament, error: findError } = await supabase.from("tournaments")
       .select("id,owner_user_id,status").eq("id", body.tournamentId).maybeSingle();
     if (findError) throw findError;
