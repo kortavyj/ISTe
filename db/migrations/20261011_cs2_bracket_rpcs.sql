@@ -86,9 +86,14 @@ declare
   target public.tournament_matches%rowtype;
 begin
   if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
-  select * into m from public.tournament_matches where id=p_match_id for update;
+  -- Lock tournament first, then match. This order matches start_tournament and
+  -- prevents opposite lock acquisition order under concurrent result requests.
+  select tournament_id into m.tournament_id
+    from public.tournament_matches where id=p_match_id;
   if not found then raise exception 'MATCH_NOT_FOUND'; end if;
   select * into t from public.tournaments where id=m.tournament_id for update;
+  select * into m from public.tournament_matches where id=p_match_id for update;
+  if not found then raise exception 'MATCH_NOT_FOUND'; end if;
   if t.owner_user_id<>auth.uid() then raise exception 'OWNER_REQUIRED'; end if;
   if exists(select 1 from public.user_roles u where u.user_id=auth.uid() and u.is_blocked) then
     raise exception 'ACCOUNT_BLOCKED';
@@ -103,8 +108,14 @@ begin
     if greatest(p_score_a,p_score_b)<>2 or least(p_score_a,p_score_b)>1
       then raise exception 'INVALID_BO3_MAP_WINS'; end if;
   elsif t.best_of=1 then
-    if greatest(p_score_a,p_score_b)<13 or greatest(p_score_a,p_score_b)>100
-      then raise exception 'INVALID_BO1_ROUND_SCORE'; end if;
+    -- MR12: win 13 rounds before overtime, with a 2-round margin.
+    -- Overtime uses 6-round MR3 sets and requires a 2-round lead.
+    if not (
+      (greatest(p_score_a,p_score_b)=13 and least(p_score_a,p_score_b)<=11)
+      or (greatest(p_score_a,p_score_b)>=16
+          and (greatest(p_score_a,p_score_b)-16)%3=0
+          and greatest(p_score_a,p_score_b)-least(p_score_a,p_score_b)>=2)
+    ) then raise exception 'INVALID_BO1_ROUND_SCORE'; end if;
   end if;
   winner:=case when p_score_a>p_score_b then m.team_a_id else m.team_b_id end;
   update public.tournament_matches set
