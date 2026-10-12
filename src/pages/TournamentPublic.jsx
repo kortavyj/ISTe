@@ -17,6 +17,7 @@ export default function TournamentPublic() {
   const [error, setError] = useState("");
   useEffect(() => {
     const controller = new AbortController();
+    setRosters({});
     (async () => {
       const r = await fetch("/api/tournaments?slug=" + encodeURIComponent(slug), { signal: controller.signal });
       const d = await r.json();
@@ -40,7 +41,7 @@ export default function TournamentPublic() {
       if (err.name !== "AbortError") setError(err.message);
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [slug]);
+  }, [slug, user?.id]);
   async function refreshRosters() {
     if (!tournament || joining) return;
     setJoining(true);
