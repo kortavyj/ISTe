@@ -25,6 +25,7 @@ export async function authenticatedUser(request,response,supabase){
 }
 export default async function handler(request,response){
   response.setHeader("Cache-Control","no-store");
+  response.setHeader("X-Content-Type-Options","nosniff");
   const method=request.method;
   const guard=guardRequest(request,{
     methods:["GET","POST"],requireJson:method==="POST",
@@ -51,7 +52,7 @@ export default async function handler(request,response){
       const {data,error}=await supabase.rpc("iste_get_match_room",{p_match_id:matchId});
       if(error){
         if(/ROOM_ACCESS_DENIED|ACCOUNT_BLOCKED/.test(String(error.message)))
-          return fail(response,403,"FORBIDDEN","Доступ только организатору и капитанам матча.");
+          return fail(response,403,"FORBIDDEN","Доступ только организатору и подтверждённым участникам матча.");
         if(/AUTH_REQUIRED/.test(String(error.message)))
           return fail(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
         throw error;
