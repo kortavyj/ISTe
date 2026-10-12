@@ -10,7 +10,7 @@ function Squad({ name, side, roster }) {
   return <aside className="imr-squad" aria-label={`Состав команды ${name}`}>
     <h2>{name}</h2>
     <p className="imr-squad__label">{side === "a" ? "КОМАНДА A" : "КОМАНДА B"}</p>
-    {roster?.length ? <ol className="imr-squad__players">{roster.map(player=><li key={player.userId}><span>{player.captain ? "Капитан" : "Игрок"}</span><code>{player.userId.slice(0,8)}</code></li>)}</ol> : <div className="imr-squad__empty">Подтверждённый состав пока отсутствует.</div>}
+    {roster?.length ? <ol className="imr-squad__players">{roster.map(player=><li key={player.userId}><span>{player.captain ? "★ " : ""}{player.name || "Игрок ISTe"}</span><small>{player.captain ? "Капитан" : "Игрок"}</small></li>)}</ol> : <div className="imr-squad__empty">Подтверждённый состав пока отсутствует.</div>}
   </aside>;
 }
 
@@ -105,7 +105,7 @@ export default function TournamentMatchRoom() {
         </div>
         <Squad name={teamB} side="b" roster={rosters[match.team_b_id]} />
       </div>
-      <p className="imr-disclaimer">Данные о сервере и игроках пока не подключены. Результат отображается из турнирной системы; аналитика матча отсутствует.</p>
+      <p className="imr-disclaimer">Составы берутся из подтверждённых регистраций, а сервер доступен только уполномоченным участникам. Аналитика матча отсутствует.</p>
     </>}
   </section>;
 }
