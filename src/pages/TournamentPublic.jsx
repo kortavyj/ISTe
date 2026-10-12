@@ -119,7 +119,7 @@ export default function TournamentPublic() {
       <div className="iste-tournaments__team-list">
         {teams.length ? teams.map((team, index) => <div className="iste-tournaments__team-item" key={team.id}>
           <span>{index + 1}</span><strong>{team.name}</strong>
-          {tournament.status === "registration" && user && <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Подать заявку</button>
+          {tournament.status === "registration" && user && <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Подать заявку</button>}
           <div className="iste-tournaments__roster">
             <small>Состав: {rosters[team.id]?.players?.length ?? "—"} / 5</small>
             {rosters[team.id]?.players?.map(player=><span key={player.userId}>{player.captain?"Капитан":"Игрок"} · {player.userId.slice(0,8)}</span>)}
