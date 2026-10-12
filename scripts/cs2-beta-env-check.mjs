@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Local/CI beta readiness check. No network calls and no secret values printed.
 // This is not a substitute for creating and independently verifying a staging database.
-import { createHash } from "node:crypto";
 
 const PRODUCTION_REF = "niwgrrprbcgbdaloijhq";
 function projectRef(value) {
