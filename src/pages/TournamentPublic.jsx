@@ -129,7 +129,6 @@ export default function TournamentPublic() {
               <button type="button" disabled={joining} onClick={()=>reviewApplication(team.id,application.userId,false)}>Отклонить</button>
             </div>)}
           </div>
-}
         </div>) : <p>Команды ещё не добавлены.</p>}
       </div>
       {matches.length>0 ? (
