@@ -6,7 +6,7 @@ import { getSupabaseServerClient } from "../../api/lib/supabaseServer.js";
 function send(response, status, error, message) {
   return response.status(status).json({ ok: false, error, message });
 }
-async function currentUser(request, response, supabase) {
+export async function currentUser(request, response, supabase) {
   const { accessToken, refreshToken } = readAuthCookies(request);
   if (!refreshToken) return null;
   const { data, error } = await supabase.auth.setSession({
