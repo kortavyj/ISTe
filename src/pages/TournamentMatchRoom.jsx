@@ -21,12 +21,14 @@ export default function TournamentMatchRoom() {
   const [rosters, setRosters] = useState({});
   const [failure, setFailure] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+  const [access, setAccess] = useState("loading");
   useEffect(() => {
     const ctrl = new AbortController();
     setInfo(null);
     setRoom(null);
     setRosters({});
     setFailure("");
+    setAccess("loading");
     async function fetchJson(url) {
       const res = await fetch(url, { signal: ctrl.signal });
       const json = await res.json();
@@ -52,7 +54,12 @@ export default function TournamentMatchRoom() {
       }));
       if(!ctrl.signal.aborted)setRosters(Object.fromEntries(entries));
       const response = await fetch("/api/tournament-matches?tournamentId=" + id + "&matchId=" + encodeURIComponent(matchId) + "&view=room", { credentials: "include", signal: ctrl.signal });
-      if (response.ok) { const details = await response.json(); if (details.ok && !ctrl.signal.aborted) setRoom(details.room); }
+      if (response.ok) {
+        const details=await response.json();
+        if(details.ok && !ctrl.signal.aborted){setRoom(details.room);setAccess("authorized");}
+      } else if (!ctrl.signal.aborted) {
+        setAccess(response.status===401 ? "login" : response.status===403 ? "denied" : "unavailable");
+      }
     })().catch(error => { if (!ctrl.signal.aborted) setFailure(error.message); });
     return () => ctrl.abort();
   }, [slug, matchId]);
@@ -86,11 +93,11 @@ export default function TournamentMatchRoom() {
         <div className="imr-center">
           <div className="imr-panel">
             <span className="imr-kicker">СЕРВЕР</span>
-            <h2>{room?.available === false ? "Доступ откроется по расписанию" : room ? `${room.host}:${room.port}` : "Ожидается назначение"}</h2>
+            <h2>{access==="denied" ? "Доступ только участникам матча" : access==="login" ? "Войдите в аккаунт" : access==="unavailable" ? "Не удалось проверить доступ" : access==="loading" ? "Проверяем доступ…" : room?.available===false ? "Доступ откроется по расписанию" : room ? `${room.host}:${room.port}` : "Сервер пока не назначен"}</h2>
             {room?.available === false && <p>Открытие: {new Date(room.connectAt).toLocaleString("ru-RU")}</p>}
             {room?.host && <div className="imr-connect"><button type="button" onClick={()=>copyValue(`connect ${room.host}:${room.port}`)}>Копировать connect</button>{room.password && <button type="button" onClick={()=>copyValue(room.password)}>Копировать пароль</button>}</div>}
             {copyMessage && <p role="status">{copyMessage}</p>}
-            <p>Организатор предоставит адрес и доступ к серверу. После добавления защищённого доступа участники матча увидят команду подключения здесь.</p>
+            <p>{room?.host ? "Команда подключения доступна только авторизованным участникам." : "IP и пароль отображаются только после проверки доступа и открытия подключения организатором."}</p>
           </div>
           <div className="imr-panel">
             <span className="imr-kicker">КАРТА</span>
