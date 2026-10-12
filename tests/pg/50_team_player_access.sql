@@ -4,7 +4,8 @@ set local role postgres;
 insert into auth.users(id) values
  ('123e4567-e89b-12d3-a456-426614174077'),
  ('123e4567-e89b-12d3-a456-426614174088'),
- ('123e4567-e89b-12d3-a456-426614174099');
+ ('123e4567-e89b-12d3-a456-426614174099'),
+ ('123e4567-e89b-12d3-a456-426614174066');
 insert into public.profiles(id,username) values
  ('123e4567-e89b-12d3-a456-426614174077','ISTeCaptain'),
  ('123e4567-e89b-12d3-a456-426614174088','ISTePlayer');
@@ -72,5 +73,27 @@ begin
  select public.iste_get_match_room(current_setting('iste.test.match')::uuid) into result;
  if result->>'port' <> '27015' then raise exception 'OPPONENT_CAPTAIN_CANNOT_READ_MATCH'; end if;
 end $$;
+-- An unrelated authenticated user must not obtain a room or pending applications.
+select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174066',true);
+do $negative$
+declare roster jsonb;
+begin
+ begin
+  perform public.iste_get_match_room(current_setting('iste.test.match')::uuid);
+  raise exception 'UNRELATED_USER_GOT_CREDENTIALS';
+ exception when others then
+  if sqlerrm <> 'ROOM_ACCESS_DENIED' then raise; end if;
+ end;
+ select public.iste_team_roster(current_setting('iste.test.team')::uuid) into roster;
+ if jsonb_array_length(roster->'applications')<>0 then
+  raise exception 'PRIVATE_APPLICATIONS_LEAKED'; end if;
+ begin
+  perform public.iste_review_team_application(current_setting('iste.test.team')::uuid,
+    '123e4567-e89b-12d3-a456-426614174088',true);
+  raise exception 'UNRELATED_USER_REVIEWED_APPLICATION';
+ exception when others then
+  if sqlerrm <> 'CAPTAIN_REQUIRED' then raise; end if;
+ end;
+end $negative$;
 reset role;
 rollback;
