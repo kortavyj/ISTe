@@ -85,6 +85,8 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_roster_profiles.sql
       - name: Verify staging schema dependency preflight
         run: psql -X -v ON_ERROR_STOP=1 -f db/preflight/cs2_beta_dependencies.sql
+      - name: Verify beta profile self-only row permissions
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/80_beta_profiles_rls.sql
       - name: Verify match-room access and timed credential release
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/40_match_room_security.sql
       - name: Verify participant enrollment and match-room permissions
