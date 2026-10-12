@@ -41,6 +41,25 @@ export default function TournamentPublic() {
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [slug]);
+  async function refreshRosters() {
+    if (!tournament || joining) return;
+    setJoining(true);
+    try {
+      const result = await Promise.all(teams.map(async team => {
+        const response = await fetch("/api/tournament-teams?tournamentId=" +
+          encodeURIComponent(tournament.id) + "&teamId=" + encodeURIComponent(team.id) +
+          "&view=roster", { credentials: "include", cache: "no-store" });
+        if (!response.ok) return [team.id, null];
+        const data = await response.json();
+        return [team.id, data.ok ? data : null];
+      }));
+      setRosters(Object.fromEntries(result));
+    } catch (err) {
+      setJoinMessage(err.message || "Не удалось обновить составы.");
+    } finally {
+      setJoining(false);
+    }
+  }
   async function reviewApplication(teamId, userId, accept) {
     setJoining(true);setJoinMessage("");
     try {
@@ -116,6 +135,7 @@ export default function TournamentPublic() {
         </div>
       )}
       <h2>Участники</h2>
+      {user && <button type="button" disabled={joining} onClick={refreshRosters}>Обновить составы и заявки</button>}
       <div className="iste-tournaments__team-list">
         {teams.length ? teams.map((team, index) => <div className="iste-tournaments__team-item" key={team.id}>
           <span>{index + 1}</span><strong>{team.name}</strong>
