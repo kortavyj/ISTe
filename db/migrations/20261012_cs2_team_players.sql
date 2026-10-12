@@ -70,6 +70,9 @@ begin
    where p.user_id=auth.uid() and tt.id in (m.team_a_id,m.team_b_id)
    and tt.tournament_id=m.tournament_id)
  ) then raise exception 'ROOM_ACCESS_DENIED'; end if;
+ if m.status in ('completed','cancelled') then
+  return jsonb_build_object('available',false,'reason','MATCH_CLOSED');
+ end if;
  select * into room from public.tournament_match_rooms where match_id=p_match_id;
  if not found then return null; end if;
  if room.connect_at is not null and room.connect_at > now()
