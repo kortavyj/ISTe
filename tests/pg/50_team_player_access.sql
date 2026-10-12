@@ -96,4 +96,17 @@ begin
  end;
 end $negative$;
 reset role;
+update public.tournament_matches set status='completed'
+where id=current_setting('iste.test.match')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174077',true);
+do $closed_room$
+declare result jsonb;
+begin
+ select public.iste_get_match_room(current_setting('iste.test.match')::uuid) into result;
+ if result->>'reason' is distinct from 'MATCH_CLOSED'
+ or result ? 'password' or result ? 'host' or result ? 'port'
+ then raise exception 'COMPLETED_MATCH_CREDENTIALS_EXPOSED'; end if;
+end $closed_room$;
+reset role;
 rollback;
