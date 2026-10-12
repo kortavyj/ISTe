@@ -58,13 +58,13 @@ begin
  if (select public.iste_get_match_room(current_setting('iste.test.match')::uuid)->>'host')
     <> 'test.example.invalid' then raise exception 'APPROVED_PLAYER_CANNOT_READ_ROOM'; end if;
 end $$;
-do $
+do $roster$
 declare roster jsonb;
 begin
  select public.iste_team_roster(current_setting('iste.test.team')::uuid) into roster;
  if not (roster::text like '%ISTeCaptain%' and roster::text like '%ISTePlayer%')
  then raise exception 'ROSTER_PROFILE_NAMES_MISSING'; end if;
-end $;
+end $roster$;
 select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174099',true);
 do $$
 declare result jsonb;
