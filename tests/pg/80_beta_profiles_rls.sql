@@ -33,6 +33,16 @@ begin
 end $profile_check$;
 update public.profiles set username='Corrupted' where id='123e4567-e89b-12d3-a456-426614176001';
 reset role;
+set local role anon;
+do $anonymous$
+begin
+ begin
+  perform 1 from public.profiles limit 1;
+  raise exception 'ANONYMOUS_PROFILE_ACCESS_GRANTED';
+ exception when insufficient_privilege then null;
+ end;
+end $anonymous$;
+reset role;
 do $verify$
 begin
  if (select username from public.profiles where id='123e4567-e89b-12d3-a456-426614176001')<>'BetaOneUpdated'
