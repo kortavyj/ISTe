@@ -36,6 +36,36 @@ export default async function handler(request, response) {
   if (!isUuid(tournamentId)) return send(response, 400, "INVALID_TOURNAMENT", "Неверный идентификатор турнира.");
   try {
     const supabase = getSupabaseServerClient();
+    if (method === "GET" && request.query?.view === "roster") {
+      const teamId=request.query?.teamId;
+      if(!isUuid(teamId)) return send(response,400,"INVALID_TEAM","Неверная команда.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams")
+        .select("id").eq("id",teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {data,error}=await supabase.rpc("iste_team_roster",{p_team_id:teamId});
+      if(error){if(/FORBIDDEN/.test(error.message||"")) return send(response,403,"FORBIDDEN","Доступ запрещён.");throw error;}
+      return response.status(200).json({ok:true,players:data?.players||[],applications:data?.applications||[]});
+    }
+    if (method === "POST" && body?.action === "review-application") {
+      const user=await currentUser(request,response,supabase);
+      if(!user) return send(response,401,"AUTH_REQUIRED","Необходимо войти.");
+      if(!isUuid(body?.teamId)||!isUuid(body?.userId)||typeof body?.accept!=="boolean")
+        return send(response,400,"INVALID_ACTION","Некорректные данные заявки.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams").select("id")
+        .eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {error}=await supabase.rpc("iste_review_team_application",{
+        p_team_id:body.teamId,p_user_id:body.userId,p_accept:body.accept
+      });
+      if(error){
+        if(/CAPTAIN_REQUIRED|ACCOUNT_BLOCKED/.test(error.message||"")) return send(response,403,"FORBIDDEN","Только капитан может обработать заявку.");
+        if(/TEAM_FULL|PLAYER_ALREADY_IN_TOURNAMENT|REGISTRATION_CLOSED|APPLICATION_NOT_FOUND/.test(error.message||"")) return send(response,409,"INVALID_STATE","Заявку нельзя обработать.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
+    }
     if (method === "POST" && body?.action === "join-team") {
       const user = await currentUser(request, response, supabase);
       if (!user) return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
