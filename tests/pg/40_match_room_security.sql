@@ -6,7 +6,7 @@ values('123e4567-e89b-12d3-a456-426614174000','ci-private-room','CI Room',2,'act
 insert into public.tournament_matches(tournament_id,round_number,match_number,status)
 select id,1,1,'scheduled' from public.tournaments where slug='ci-private-room';
 insert into public.tournament_match_rooms(match_id,server_host,server_port,server_password,map_name,connect_at)
-select m.id,'test.example.invalid',27015,'ci-private-pass','de_mirage',now()+interval '1 hour'
+select m.id,'test.example.invalid',27015,'enc1:Q0lURVNU','de_mirage',now()+interval '1 hour'
 from public.tournament_matches m join public.tournaments t on t.id=m.tournament_id
 where t.slug='ci-private-room';
 select set_config('iste.room.match',(select m.id::text from public.tournament_matches m join public.tournaments t on t.id=m.tournament_id where t.slug='ci-private-room'),true);
@@ -28,7 +28,7 @@ do $$
 declare result jsonb;
 begin
  select public.iste_get_match_room(current_setting('iste.room.match')::uuid) into result;
- if result->>'host' <> 'test.example.invalid' or result->>'password' <> 'ci-private-pass'
+ if result->>'host' <> 'test.example.invalid' or result->>'password' <> 'enc1:Q0lURVNU'
  then raise exception 'AUTHORIZED_ROOM_READ_FAILED'; end if;
 end $$;
 reset role;
