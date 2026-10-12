@@ -12,6 +12,10 @@ Confirmed via **read-only** SQL on ISTe Supabase `niwgrrprbcgbdaloijhq` on 2026-
 3. `db/migrations/20261011_cs2_matches.sql` — fixtures, FKs, RLS.
 4. `db/migrations/20261011_cs2_bracket_rpcs.sql` — audit, mutation RPCs and transactional counters.
 5. `db/migrations/20261011_cs2_event_replay.sql` — event/assignment tables, server-only event ingestion and owner RPCs.
+6. `db/migrations/20261012_cs2_match_rooms.sql` — private organizer-provided CS2 room metadata and encrypted credential storage.
+7. `db/migrations/20261012_cs2_team_players.sql` — approved participant records and match-room access.
+8. `db/migrations/20261012_cs2_team_approval.sql` — captain-reviewed player applications.
+9. `db/migrations/20261012_cs2_roster_profiles.sql` — roster names based on existing public ISTe profiles.
 
 The SQL files contain `CREATE TABLE IF NOT EXISTS` and grant/policy operations. **Do not assume a universal safe rollback**: removing tables after real writes destroys data. Existing-schema privilege diff and role enforcement must be checked before application.
 
@@ -20,7 +24,7 @@ The SQL files contain `CREATE TABLE IF NOT EXISTS` and grant/policy operations. 
 - An independently recoverable **current backup of the real production database** must be verified. Synthetic `pg_dump` / `pg_restore` in CI does not suffice.
 - Restore backup into a *separate* throwaway project/database and record outcome + timestamp; do not restore over production.
 - Inspect extension and existing schema dependencies, migration history, role grants, schema usage and relevant custom constraints.
-- Run full five-file sequence and security regression against a disposable database clone, not production.
+- Run full nine-file sequence and security regression against a disposable database clone, not production.
 - Document exact release window, expected downtime, diagnostics, post-migration verification, rollback/recovery owner.
 - Obtain **separate explicit user approval to modify production Supabase**, identifying project `niwgrrprbcgbdaloijhq`. Generic 'continue' or 'do it' is not approval.
 - **Do not** merge PR #13 into main or change production Vercel during migration preparation.
@@ -46,3 +50,5 @@ order by p.proname;
 3. Reload PostgREST schema cache, if required, and confirm GET /api/tournaments no longer errors with PGRST205.
 4. Avoid any real tournament creation until separately agreed; preview uses **same production Supabase**.
 5. Do not enable MatchZy webhook keys, production WAF or live server binding before independent approval and integration tests.
+
+**Current scope:** migration rehearsal is CI-only; production is not authorized. Staging must be an independent Supabase project or separately isolated development branch. Do not apply these files to the existing ISTe production project merely to test them.
