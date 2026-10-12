@@ -69,12 +69,11 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-publishable-placeholder-no-real-credentials
-      - name: Validate isolated beta profile permissions in disposable PostgreSQL
-        run: psql -X -v ON_ERROR_STOP=1 -f db/staging/cs2_beta_profiles.sql
       - name: Apply migrations in disposable test database
         run: |
           set -euo pipefail
           psql -X -v ON_ERROR_STOP=1 -f tests/pg/00_auth_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/staging/cs2_beta_profiles.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournaments_foundation.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournament_teams.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_matches.sql
