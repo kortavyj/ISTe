@@ -6,11 +6,11 @@ function getName(teams, id) {
   return teams.find(team => team.id === id)?.name || "Ожидается команда";
 }
 
-function Squad({ name, side }) {
+function Squad({ name, side, roster }) {
   return <aside className="imr-squad" aria-label={`Состав команды ${name}`}>
     <h2>{name}</h2>
     <p className="imr-squad__label">{side === "a" ? "КОМАНДА A" : "КОМАНДА B"}</p>
-    <div className="imr-squad__empty">Состав игроков появится после подключения регистрации участников.</div>
+    {roster?.length ? <ol className="imr-squad__players">{roster.map(player=><li key={player.userId}><span>{player.captain ? "Капитан" : "Игрок"}</span><code>{player.userId.slice(0,8)}</code></li>)}</ol> : <div className="imr-squad__empty">Подтверждённый состав пока отсутствует.</div>}
   </aside>;
 }
 
@@ -18,12 +18,14 @@ export default function TournamentMatchRoom() {
   const { slug, matchId } = useParams();
   const [info, setInfo] = useState(null);
   const [room, setRoom] = useState(null);
+  const [rosters, setRosters] = useState({});
   const [failure, setFailure] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
   useEffect(() => {
     const ctrl = new AbortController();
     setInfo(null);
     setRoom(null);
+    setRosters({});
     setFailure("");
     async function fetchJson(url) {
       const res = await fetch(url, { signal: ctrl.signal });
@@ -42,6 +44,13 @@ export default function TournamentMatchRoom() {
       const match = (matches.matches || []).find(item => item.id === matchId);
       if (!match) throw new Error("Матч не найден в этом турнире.");
       if (!ctrl.signal.aborted) setInfo({ tournament: tournament.tournament, teams: teams.teams || [], match });
+      const ids=[match.team_a_id,match.team_b_id].filter(Boolean);
+      const entries=await Promise.all(ids.map(async teamId=>{
+        const res=await fetch("/api/tournament-teams?tournamentId="+id+"&teamId="+encodeURIComponent(teamId)+"&view=roster",{credentials:"include",signal:ctrl.signal});
+        if(!res.ok)return [teamId,[]];
+        const json=await res.json();return [teamId,json.ok?json.players||[]:[]];
+      }));
+      if(!ctrl.signal.aborted)setRosters(Object.fromEntries(entries));
       const response = await fetch("/api/tournament-matches?tournamentId=" + id + "&matchId=" + encodeURIComponent(matchId) + "&view=room", { credentials: "include", signal: ctrl.signal });
       if (response.ok) { const details = await response.json(); if (details.ok && !ctrl.signal.aborted) setRoom(details.room); }
     })().catch(error => { if (!ctrl.signal.aborted) setFailure(error.message); });
@@ -73,7 +82,7 @@ export default function TournamentMatchRoom() {
         <p className="imr-status">{completed ? "Матч завершён" : match.status === "scheduled" ? "Матч запланирован" : "Статус: " + match.status}</p>
       </header>
       <div className="imr-columns">
-        <Squad name={teamA} side="a" />
+        <Squad name={teamA} side="a" roster={rosters[match.team_a_id]} />
         <div className="imr-center">
           <div className="imr-panel">
             <span className="imr-kicker">СЕРВЕР</span>
@@ -94,7 +103,7 @@ export default function TournamentMatchRoom() {
             <p>Матч №{match.match_number} · Раунд {match.round_number}</p>
           </div>
         </div>
-        <Squad name={teamB} side="b" />
+        <Squad name={teamB} side="b" roster={rosters[match.team_b_id]} />
       </div>
       <p className="imr-disclaimer">Данные о сервере и игроках пока не подключены. Результат отображается из турнирной системы; аналитика матча отсутствует.</p>
     </>}
