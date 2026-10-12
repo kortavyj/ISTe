@@ -1,4 +1,5 @@
 import { hasVerifiedAal2 } from "./mfa.js";
+import { encryptRoomPassword, decryptRoomPassword } from "./roomCrypto.js";
 import { guardRequest } from "../../api/lib/requestGuard.js";
 import { readJsonBody, isUuid } from "../../api/lib/requestBody.js";
 import { readAuthCookies, setAuthCookies } from "../../api/lib/authCookies.js";
@@ -55,7 +56,8 @@ export default async function handler(request,response){
           return fail(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
         throw error;
       }
-      return response.status(200).json({ok:true,room:data||null});
+      const room=data?.password ? {...data,password:decryptRoomPassword(data.password)} : data;
+      return response.status(200).json({ok:true,room:room||null});
     }
     if(method==="GET" && request.query?.view==="assignments"){
       const user=await authenticatedUser(request,response,supabase);
@@ -97,7 +99,7 @@ export default async function handler(request,response){
         p_match_id:body.matchId,
         p_server_host:body.host,
         p_server_port:body.port,
-        p_server_password:body.password||"",
+        p_server_password:encryptRoomPassword(body.password||""),
         p_map_name:body.map,
         p_connect_at:body.connectAt||null,
       };
