@@ -83,6 +83,8 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/50_team_player_access.sql
       - name: Verify five-player roster limits and applicant rejection
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/60_roster_capacity.sql
+      - name: Reject plaintext server passwords at database boundary
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/70_room_password_storage.sql
       - name: Simulate actual DB tournament from 2 to 64 teams
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/10_tournament_e2e.sql
       - name: Verify concurrent tournament result confirmations
