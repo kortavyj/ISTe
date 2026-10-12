@@ -109,4 +109,16 @@ begin
  then raise exception 'COMPLETED_MATCH_CREDENTIALS_EXPOSED'; end if;
 end $closed_room$;
 reset role;
+update public.tournament_matches set status='cancelled'
+where id=current_setting('iste.test.match')::uuid;
+set local role authenticated;
+do $cancelled_room$
+declare result jsonb;
+begin
+ select public.iste_get_match_room(current_setting('iste.test.match')::uuid) into result;
+ if result->>'reason' is distinct from 'MATCH_CLOSED'
+ or result ? 'password' or result ? 'host' or result ? 'port'
+ then raise exception 'CANCELLED_MATCH_CREDENTIALS_EXPOSED'; end if;
+end $cancelled_room$;
+reset role;
 rollback;
