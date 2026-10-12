@@ -50,11 +50,11 @@ end $$;
 select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174077',true);
 select public.iste_review_team_application(current_setting('iste.test.team')::uuid,'123e4567-e89b-12d3-a456-426614174088',true);
 select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174088',true);
-do $
+do $$
 begin
  if (select public.iste_get_match_room(current_setting('iste.test.match')::uuid)->>'host')
     <> 'test.example.invalid' then raise exception 'APPROVED_PLAYER_CANNOT_READ_ROOM'; end if;
-end $;
+end $$;
 select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614174099',true);
 do $$
 declare result jsonb;
