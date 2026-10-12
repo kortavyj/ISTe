@@ -32,3 +32,10 @@ This document is an operational checklist. Passing CI is necessary, **not suffic
 - `scripts/vercel-ignore-build.sh` forces a build for branch `feature/cs2-tournaments-full-preview`; CI tests this behavior.
 - A brand-new Preview must be checked for actual ready state, access protection, authenticated owner MFA flow, endpoint raw-body behavior, and server-to-DB integration.
 - Never apply production migrations, merge into `main`, or modify production WAF without separate explicit approval.
+
+## Private match-room password encryption (integration branch)
+- The server encrypts nonempty CS2 passwords using AES-256-GCM with a fresh 96-bit nonce; the database stores only an `enc1:`-prefixed ciphertext. A SQL check rejects plaintext in new writes.
+- Configure `ISTE_CS2_ROOM_ENCRYPTION_KEY` as an independently generated **base64-encoded 32-byte key** in server-side staging environment variables, never `VITE_*`, public CI logs or Git. Example for a trusted terminal: `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"`.
+- Key loss makes existing nonempty room passwords unrecoverable. Key replacement requires a controlled re-encryption process; there is not yet a rotation mechanism. Maintain secret-manager backups and document recovery before launch.
+- Only authorized captains, registered players and MFA owner may retrieve the decrypted password, after the configured connection time. Captured credentials can still be shared by authorized players; this is not DRM.
+- This branch has no production deployment and no migration of any preexisting plaintext room passwords. Verify staging schema and API end-to-end before release.
