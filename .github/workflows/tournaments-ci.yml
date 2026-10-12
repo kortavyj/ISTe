@@ -13,6 +13,7 @@ on:
       - 'tests/**'
       - 'db/migrations/20261011_cs2_*.sql'
       - 'db/migrations/20261012_cs2_*.sql'
+      - 'db/preflight/cs2_beta_dependencies.sql'
       - 'scripts/cs2-staging-preflight.mjs'
       - 'scripts/cs2-beta-env-check.mjs'
       - 'docs/tournaments/**'
@@ -80,6 +81,8 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_team_players.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_team_approval.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_roster_profiles.sql
+      - name: Verify staging schema dependency preflight
+        run: psql -X -v ON_ERROR_STOP=1 -f db/preflight/cs2_beta_dependencies.sql
       - name: Verify match-room access and timed credential release
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/40_match_room_security.sql
       - name: Verify participant enrollment and match-room permissions
