@@ -17,6 +17,14 @@ begin
  if (select count(*) from public.profiles where id='123e4567-e89b-12d3-a456-426614176001')<>1
  then raise exception 'OWN_PROFILE_NOT_VISIBLE'; end if;
 end $profile_check$;
+update public.profiles set username='BetaOneUpdated'
+where id='123e4567-e89b-12d3-a456-426614176001';
+do $own_update$
+begin
+ if (select username from public.profiles
+    where id='123e4567-e89b-12d3-a456-426614176001') <> 'BetaOneUpdated'
+ then raise exception 'OWN_PROFILE_UPDATE_FAILED'; end if;
+end $own_update$;
 select set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614176002',true);
 do $profile_check$
 begin
@@ -27,7 +35,7 @@ update public.profiles set username='Corrupted' where id='123e4567-e89b-12d3-a45
 reset role;
 do $verify$
 begin
- if (select username from public.profiles where id='123e4567-e89b-12d3-a456-426614176001')<>'BetaOne'
+ if (select username from public.profiles where id='123e4567-e89b-12d3-a456-426614176001')<>'BetaOneUpdated'
  then raise exception 'CROSS_USER_PROFILE_UPDATED'; end if;
 end $verify$;
 rollback;
