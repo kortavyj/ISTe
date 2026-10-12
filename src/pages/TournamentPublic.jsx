@@ -66,7 +66,9 @@ export default function TournamentPublic() {
     try {
       const res=await fetch("/api/tournament-teams",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({tournamentId:tournament.id,teamId,userId,accept,action:"review-application"})});
       const data=await res.json();if(!res.ok||!data.ok)throw new Error(data.message||"Ошибка.");
-      const updated=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id)+"&teamId="+encodeURIComponent(teamId)+"&view=roster",{credentials:"include"}).then(r=>r.json());
+      const updatedResponse=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id)+"&teamId="+encodeURIComponent(teamId)+"&view=roster",{credentials:"include",cache:"no-store"});
+      const updated=await updatedResponse.json();
+      if(!updatedResponse.ok||!updated.ok)throw new Error("Заявка обработана, но обновить состав не удалось. Нажмите «Обновить составы и заявки».");
       setRosters(prev=>({...prev,[teamId]:updated}));setJoinMessage(accept?"Заявка одобрена.":"Заявка отклонена.");
     }catch(error){setJoinMessage(error.message);}finally{setJoining(false);}
   }
