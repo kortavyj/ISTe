@@ -37,6 +37,8 @@ export default async function handler(request, response) {
   try {
     const supabase = getSupabaseServerClient();
     if (method === "GET" && request.query?.view === "roster") {
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт для просмотра состава.");
       const teamId=request.query?.teamId;
       if(!isUuid(teamId)) return send(response,400,"INVALID_TEAM","Неверная команда.");
       const {data:team,error:teamError}=await supabase.from("tournament_teams")
