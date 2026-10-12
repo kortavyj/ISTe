@@ -14,6 +14,7 @@ on:
       - 'db/migrations/20261011_cs2_*.sql'
       - 'db/migrations/20261012_cs2_*.sql'
       - 'scripts/cs2-staging-preflight.mjs'
+      - 'scripts/cs2-beta-env-check.mjs'
       - 'docs/tournaments/**'
       - 'package.json'
       - 'package-lock.json'
@@ -53,7 +54,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - name: Confirm staging guard refuses ISTe production
-        run: node scripts/cs2-staging-preflight.mjs --self-test
+        run: |
+          node scripts/cs2-staging-preflight.mjs --self-test
+          node scripts/cs2-beta-env-check.mjs --self-test
       - name: Ensure CS2 preview is not skipped by Vercel
         run: bash tests/vercel-preview-build.sh
       - name: Verify Hobby function budget and server imports
