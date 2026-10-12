@@ -7,6 +7,9 @@ do $$ begin
 end $$;
 create schema if not exists auth;
 create table auth.users(id uuid primary key);
+-- Minimal profile schema for disposable CS2 roster tests; not a production migration.
+create table public.profiles(id uuid primary key references auth.users(id),username text,avatar_url text);
+
 create or replace function auth.uid() returns uuid language sql stable as $$
  select nullif(current_setting('request.jwt.claim.sub', true),'')::uuid
 $$;
