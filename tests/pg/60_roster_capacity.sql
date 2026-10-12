@@ -49,10 +49,13 @@ begin
  end;
  perform public.iste_review_team_application(current_setting('iste.cap.team')::uuid,
   '123e4567-e89b-12d3-a456-426614175006'::uuid,false);
- if (select status from public.tournament_team_applications
-  where team_id=current_setting('iste.cap.team')::uuid
-   and user_id='123e4567-e89b-12d3-a456-426614175006'::uuid)<>'rejected'
- then raise exception 'REJECTION_NOT_SAVED'; end if;
 end $apply$;
 reset role;
+do $verify$
+begin
+ if (select status from public.tournament_team_applications
+  where team_id=current_setting('iste.cap.team')::uuid
+   and user_id='123e4567-e89b-12d3-a456-426614175006'::uuid) is distinct from 'rejected'
+ then raise exception 'REJECTION_NOT_SAVED'; end if;
+end $verify$;
 rollback;
