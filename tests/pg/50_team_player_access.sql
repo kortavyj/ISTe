@@ -23,7 +23,7 @@ join public.tournament_teams a on a.tournament_id=t.id and a.name='Alpha Test'
 join public.tournament_teams b on b.tournament_id=t.id and b.name='Bravo Test'
 where t.slug='ci-roster-room';
 insert into public.tournament_match_rooms(match_id,server_host,server_port,server_password,map_name)
-select id,'test.example.invalid',27015,'test-secret','de_mirage'
+select id,'test.example.invalid',27015,'enc1:Q0lURVNU','de_mirage'
 from public.tournament_matches
 where tournament_id=(select id from public.tournaments where slug='ci-roster-room');
 select set_config('iste.test.team',
