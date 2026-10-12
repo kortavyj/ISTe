@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import "./TournamentMatchRoom.css";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 function getName(teams, id) {
   return teams.find(team => team.id === id)?.name || "Ожидается команда";
@@ -16,6 +17,7 @@ function Squad({ name, side, roster }) {
 
 export default function TournamentMatchRoom() {
   const { slug, matchId } = useParams();
+  const { user } = useAuth();
   const [info, setInfo] = useState(null);
   const [room, setRoom] = useState(null);
   const [rosters, setRosters] = useState({});
@@ -29,6 +31,7 @@ export default function TournamentMatchRoom() {
     setRosters({});
     setFailure("");
     setAccess("loading");
+    setCopyMessage("");
     async function fetchJson(url) {
       const res = await fetch(url, { signal: ctrl.signal });
       const json = await res.json();
@@ -62,7 +65,7 @@ export default function TournamentMatchRoom() {
       }
     })().catch(error => { if (!ctrl.signal.aborted) setFailure(error.message); });
     return () => ctrl.abort();
-  }, [slug, matchId]);
+  }, [slug, matchId, user?.id]);
 
   async function copyValue(value) {
     try { await navigator.clipboard.writeText(value); setCopyMessage("Скопировано."); }
