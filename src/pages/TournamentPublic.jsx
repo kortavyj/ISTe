@@ -12,6 +12,7 @@ export default function TournamentPublic() {
   const [tournament, setTournament] = useState(null);
   const [teams, setTeams] = useState([]);
   const [matches, setMatches] = useState([]);
+  const [rosters, setRosters] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -26,6 +27,12 @@ export default function TournamentPublic() {
       const teamsData = await teamsResponse.json();
       if (!teamsResponse.ok || !teamsData.ok) throw new Error(teamsData.message || "Ошибка загрузки команд.");
       setTeams(teamsData.teams || []);
+      const rosterResults=await Promise.all((teamsData.teams||[]).map(async team=>{
+        const res=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(d.tournament.id)+"&teamId="+encodeURIComponent(team.id)+"&view=roster",{credentials:"include",signal:controller.signal});
+        if(!res.ok)return [team.id,null];
+        const data=await res.json();return [team.id,data.ok?data:null];
+      }));
+      setRosters(Object.fromEntries(rosterResults));
       const matchResponse = await fetch("/api/tournament-matches?tournamentId="+encodeURIComponent(d.tournament.id),{signal:controller.signal});
       const matchData=await matchResponse.json();
       if(matchResponse.ok&&matchData.ok)setMatches(matchData.matches||[]);
@@ -34,6 +41,15 @@ export default function TournamentPublic() {
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [slug]);
+  async function reviewApplication(teamId, userId, accept) {
+    setJoining(true);setJoinMessage("");
+    try {
+      const res=await fetch("/api/tournament-teams",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({tournamentId:tournament.id,teamId,userId,accept,action:"review-application"})});
+      const data=await res.json();if(!res.ok||!data.ok)throw new Error(data.message||"Ошибка.");
+      const updated=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id)+"&teamId="+encodeURIComponent(teamId)+"&view=roster",{credentials:"include"}).then(r=>r.json());
+      setRosters(prev=>({...prev,[teamId]:updated}));setJoinMessage(accept?"Заявка одобрена.":"Заявка отклонена.");
+    }catch(error){setJoinMessage(error.message);}finally{setJoining(false);}
+  }
   async function joinTeam(teamId) {
     if (!tournament || joining) return;
     setJoining(true); setJoinMessage("");
@@ -41,7 +57,7 @@ export default function TournamentPublic() {
       const res=await fetch("/api/tournament-teams",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({tournamentId:tournament.id,teamId,action:"join-team"})});
       const data=await res.json();
       if(!res.ok||!data.ok)throw new Error(data.message||"Не удалось вступить в команду.");
-      setJoinMessage("Вы вступили в команду. Доступ к матч-руму откроется для матчей этой команды.");
+      setJoinMessage("Заявка отправлена капитану. Доступ откроется после одобрения.");
     }catch(err){setJoinMessage(err.message);}finally{setJoining(false);}
   }
   async function joinTournament(event) {
@@ -103,7 +119,17 @@ export default function TournamentPublic() {
       <div className="iste-tournaments__team-list">
         {teams.length ? teams.map((team, index) => <div className="iste-tournaments__team-item" key={team.id}>
           <span>{index + 1}</span><strong>{team.name}</strong>
-          {tournament.status === "registration" && user && <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Вступить игроком</button>}
+          {tournament.status === "registration" && user && <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Подать заявку</button>
+          <div className="iste-tournaments__roster">
+            <small>Состав: {rosters[team.id]?.players?.length ?? "—"} / 5</small>
+            {rosters[team.id]?.players?.map(player=><span key={player.userId}>{player.captain?"Капитан":"Игрок"} · {player.userId.slice(0,8)}</span>)}
+            {rosters[team.id]?.applications?.map(application=><div key={application.userId}>
+              <small>Заявка: {application.userId.slice(0,8)}</small>
+              <button type="button" disabled={joining} onClick={()=>reviewApplication(team.id,application.userId,true)}>Принять</button>
+              <button type="button" disabled={joining} onClick={()=>reviewApplication(team.id,application.userId,false)}>Отклонить</button>
+            </div>)}
+          </div>
+}
         </div>) : <p>Команды ещё не добавлены.</p>}
       </div>
       {matches.length>0 ? (
