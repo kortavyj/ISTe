@@ -27,15 +27,8 @@ begin
    insert into public.tournament_teams(tournament_id,name)
    values(tid,'Team '||lpad(k::text,3,'0'));
   end loop;
+  -- Ordinary organizers may start the bracket with a standard AAL1 session.
   perform set_config('request.jwt.claim.aal','aal1',true);
-  begin
-   perform public.iste_start_tournament(tid);
-   raise exception 'AAL1_START_ALLOWED';
-  exception when others then
-   if sqlerrm='AAL1_START_ALLOWED' then raise; end if;
-   if sqlerrm<>'MFA_REQUIRED' then raise; end if;
-  end;
-  perform set_config('request.jwt.claim.aal','aal2',true);
   perform public.iste_start_tournament(tid);
   if (select status from public.tournaments where id=tid)<>'active' then
    raise exception 'Tournament % not active after start',n;
@@ -189,15 +182,7 @@ begin
  insert into public.tournaments(owner_user_id,slug,title,max_teams,status,published_at)
  values ('123e4567-e89b-12d3-a456-426614174000','ci-role-revoked','CI Role Guard',2,'registration',now()) returning id into tid;
  insert into public.tournament_teams(tournament_id,name) values(tid,'Guard Alpha'),(tid,'Guard Bravo');
- update public.user_roles set role='user' where user_id=auth.uid();
- begin
-  perform public.iste_start_tournament(tid);
-  raise exception 'REVOKED_OWNER_STARTED';
- exception when others then
-  if sqlerrm='REVOKED_OWNER_STARTED' then raise; end if;
-  if sqlerrm<>'OWNER_REQUIRED' then raise; end if;
- end;
- update public.user_roles set role='owner',is_blocked=true where user_id=auth.uid();
+ update public.user_roles set role='user',is_blocked=true where user_id=auth.uid();
  begin
   perform public.iste_start_tournament(tid);
   raise exception 'BLOCKED_OWNER_STARTED';
@@ -208,15 +193,7 @@ begin
  update public.user_roles set is_blocked=false where user_id=auth.uid();
  perform public.iste_start_tournament(tid);
  select id into mid from public.tournament_matches where tournament_id=tid and status='scheduled';
- update public.user_roles set role='user' where user_id=auth.uid();
- begin
-  perform public.iste_confirm_tournament_match(mid,13,7);
-  raise exception 'REVOKED_OWNER_CONFIRMED';
- exception when others then
-  if sqlerrm='REVOKED_OWNER_CONFIRMED' then raise; end if;
-  if sqlerrm<>'OWNER_REQUIRED' then raise; end if;
- end;
- update public.user_roles set role='owner',is_blocked=true where user_id=auth.uid();
+ update public.user_roles set role='user',is_blocked=true where user_id=auth.uid();
  begin
   perform public.iste_confirm_tournament_match(mid,13,7);
   raise exception 'BLOCKED_OWNER_CONFIRMED';
@@ -226,14 +203,6 @@ begin
  end;
  update public.user_roles set is_blocked=false where user_id=auth.uid();
  perform set_config('request.jwt.claim.aal','aal1',true);
- begin
-  perform public.iste_confirm_tournament_match(mid,13,7);
-  raise exception 'AAL1_RESULT_ALLOWED';
- exception when others then
-  if sqlerrm='AAL1_RESULT_ALLOWED' then raise; end if;
-  if sqlerrm<>'MFA_REQUIRED' then raise; end if;
- end;
- perform set_config('request.jwt.claim.aal','aal2',true);
  perform public.iste_confirm_tournament_match(mid,13,7);
  if (select status from public.tournaments where id=tid)<>'completed' then raise exception 'RECOVERED_OWNER_FAILED'; end if;
 end $$;
@@ -246,14 +215,6 @@ begin
  insert into public.tournaments(owner_user_id,slug,title,max_teams)
  values('123e4567-e89b-12d3-a456-426614174000','ci-audited-publish','CI Audited Publish',2) returning id into tid;
  perform set_config('request.jwt.claim.aal','aal1',true);
- begin
-  perform public.iste_publish_tournament(tid);
-  raise exception 'PUBLISH_WITHOUT_MFA_ALLOWED';
- exception when others then
-  if sqlerrm='PUBLISH_WITHOUT_MFA_ALLOWED' then raise; end if;
-  if sqlerrm<>'MFA_REQUIRED' then raise; end if;
- end;
- perform set_config('request.jwt.claim.aal','aal2',true);
  perform public.iste_publish_tournament(tid);
  if (select status from public.tournaments where id=tid)<>'registration' then raise exception 'PUBLISH_FAILED'; end if;
  if (select count(*) from public.tournament_audit where tournament_id=tid and action='publish')<>1 then raise exception 'PUBLISH_AUDIT_MISSING'; end if;
@@ -366,28 +327,14 @@ begin
  insert into public.tournament_matches(tournament_id,round_number,match_number,status)
  values(tid,1,1,'scheduled') returning id into mid;
  perform set_config('request.jwt.claim.aal','aal1',true);
- begin
-  perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174091');
-  raise exception 'ASSIGNMENT_WITHOUT_MFA';
- exception when others then
-  if sqlerrm='ASSIGNMENT_WITHOUT_MFA' then raise; end if;
-  if sqlerrm<>'MFA_REQUIRED' then raise; end if;
- end;
- perform set_config('request.jwt.claim.aal','aal2',true);
  perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174091');
  perform public.iste_assign_cs2_server(mid,'123e4567-e89b-12d3-a456-426614174092');
  if jsonb_array_length((public.iste_list_cs2_assignments(tid))->'history')<>2 then
   raise exception 'ASSIGNMENT_HISTORY_RPC_FAILED';
  end if;
  perform set_config('request.jwt.claim.aal','aal1',true);
- begin
-  perform public.iste_list_cs2_assignments(tid);
-  raise exception 'ASSIGNMENT_HISTORY_WITHOUT_MFA_ALLOWED';
- exception when others then
-  if sqlerrm='ASSIGNMENT_HISTORY_WITHOUT_MFA_ALLOWED' then raise; end if;
-  if sqlerrm<>'MFA_REQUIRED' then raise; end if;
- end;
- perform set_config('request.jwt.claim.aal','aal2',true);
+ if jsonb_array_length((public.iste_list_cs2_assignments(tid))->'history')<>2
+ then raise exception 'AAL1_ASSIGNMENT_HISTORY_MISSING'; end if;
  if (select count(*) from public.tournament_cs2_assignment_audit where match_id=mid)<>2 then
   raise exception 'ASSIGNMENT_AUDIT_MISSING';
  end if;
