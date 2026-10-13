@@ -68,43 +68,46 @@ export default function Tournaments({ create = false }) {
       </div>
       {error && <p className="iste-tournaments__error" role="alert">{error}</p>}
       {create ? (
-        <form className="iste-tournaments__form" onSubmit={submit}>
-          <label>Название турнира
-            <input required minLength={4} maxLength={120} value={form.title}
-              onChange={e => setForm(v => ({ ...v, title: e.target.value }))} />
-          </label>
-          <label>Описание
-            <textarea maxLength={3000} rows={4} value={form.description}
-              onChange={e => setForm(v => ({ ...v, description: e.target.value }))} />
-          </label>
-          <label>Формат участников
-            <select value={form.teamSize} onChange={e => setForm(v => ({ ...v, teamSize: e.target.value }))}>
-              <option value="5">5vs5 · командный</option>
-              <option value="2">2vs2 · без замен</option>
-              <option value="1">1vs1 · без замен</option>
-            </select>
-          </label>
-          <label>Разрешённое оружие
-            <select value={form.weaponMode} onChange={e => setForm(v => ({ ...v, weaponMode: e.target.value }))}>
-              <option value="standard">Стандартное вооружение CS2</option>
-              <option value="awp">Только AWP</option>
-              <option value="pistols">Только пистолеты</option>
-              <option value="deagle">Только Desert Eagle</option>
-            </select>
-          </label>
-          {Number(form.teamSize) < 5 && <p className="iste-tournaments__note">В этом формате допускаются только основные игроки, запасные и замены запрещены.</p>}
-          <label>Формат серии
-            <select value={form.bestOf} onChange={e => setForm(v => ({ ...v, bestOf: e.target.value }))}>
-              <option value="1">BO1</option><option value="3">BO3</option>
-            </select>
-          </label>
-          <label>Максимум команд
-            <input type="number" min={2} max={64} value={form.maxTeams}
-              onChange={e => setForm(v => ({ ...v, maxTeams: e.target.value }))} />
-          </label>
-          <button type="submit" disabled={saving}>{saving ? "Сохраняем..." : "Сохранить черновик"}</button>
-          <p className="iste-tournaments__note">Черновик можно опубликовать в кабинете организатора, добавить команды и запустить сетку. Капитаны могут самостоятельно регистрировать команды на странице опубликованного турнира.</p>
-        </form>
+        <div className="iste-tournaments__builder">
+          <form className="iste-tournaments__form iste-tournaments__builder-form" onSubmit={submit}>
+            <div className="iste-tournaments__section"><span>01 / ИНФОРМАЦИЯ</span><h2>Новый турнир</h2></div>
+            <label>Название турнира<input required minLength={4} maxLength={120} placeholder="ISTe OPEN CUP" value={form.title} onChange={e=>setForm(v=>({...v,title:e.target.value}))}/></label>
+            <label>Описание<textarea maxLength={3000} rows={3} placeholder="Описание турнира" value={form.description} onChange={e=>setForm(v=>({...v,description:e.target.value}))}/></label>
+            <div className="iste-tournaments__section"><span>02 / РЕЖИМ</span><h2>Формат участников</h2></div>
+            <div className="iste-tournaments__mode-grid" role="group" aria-label="Формат участников">
+              {[["1","1vs1","Дуэль"],["2","2vs2","Парный"],["5","5vs5","Командный"]].map(([size,title,caption])=>
+                <button type="button" key={size} className={form.teamSize===size?"iste-tournaments__mode selected":"iste-tournaments__mode"} aria-pressed={form.teamSize===size} onClick={()=>setForm(v=>({...v,teamSize:size}))}>
+                  <strong>{title}</strong><small>{caption}</small>
+                </button>)}
+            </div>
+            {Number(form.teamSize)<5&&<p className="iste-tournaments__note">Фиксированный состав без запасных и замен. Проверку состава ещё предстоит подключить.</p>}
+            <div className="iste-tournaments__section"><span>03 / ПРАВИЛА</span><h2>Оружие и матчи</h2></div>
+            <label>Разрешённое оружие<select value={form.weaponMode} onChange={e=>setForm(v=>({...v,weaponMode:e.target.value}))}>
+              <option value="standard">Стандартное вооружение</option><option value="awp">Только AWP</option><option value="pistols">Только пистолеты</option><option value="deagle">Только Desert Eagle</option>
+            </select></label>
+            <p className="iste-tournaments__note">Ограничение оружия пока задаётся в правилах турнира. Интеграцию с сервером CS2 добавим отдельно.</p>
+            <div className="iste-tournaments__fields">
+              <label>Формат серии<select value={form.bestOf} onChange={e=>setForm(v=>({...v,bestOf:e.target.value}))}><option value="1">BO1</option><option value="3">BO3</option></select></label>
+              <label>Максимум команд<input type="number" min="2" max="64" required value={form.maxTeams} onChange={e=>setForm(v=>({...v,maxTeams:e.target.value}))}/></label>
+            </div>
+            <button type="submit" disabled={saving}>{saving?"Сохраняем...":"Создать черновик турнира"}</button>
+            <p className="iste-tournaments__note">После сохранения можно перейти к публикации и регистрации участников.</p>
+          </form>
+          <aside className="iste-tournaments__summary">
+            <span>ISTe ESPORTS / LIVE PREVIEW</span>
+            <div className="iste-tournaments__summary-logo">CS<span>2</span></div>
+            <small>● ЧЕРНОВИК</small>
+            <h2>{form.title.trim()||"ВАШ НОВЫЙ ТУРНИР"}</h2>
+            <p>{form.description.trim()||"Предпросмотр параметров турнира до его публикации."}</p>
+            <div className="iste-tournaments__summary-grid">
+              <div><small>ФОРМАТ</small><strong>{form.teamSize}vs{form.teamSize}</strong></div>
+              <div><small>СЕРИЯ</small><strong>BO{form.bestOf}</strong></div>
+              <div><small>КОМАНДЫ</small><strong>{form.maxTeams||"—"}</strong></div>
+              <div><small>ОРУЖИЕ</small><strong>{({standard:"STANDARD",awp:"AWP ONLY",pistols:"PISTOLS",deagle:"DEAGLE"})[form.weaponMode]}</strong></div>
+            </div>
+            <footer>SINGLE ELIMINATION · {Number(form.teamSize)<5?"NO SUBSTITUTES":"TEAM FORMAT"}</footer>
+          </aside>
+        </div>
       ) : loading ? <p>Загружаем турниры…</p> : items.length ? (
         <div className="iste-tournaments__grid">{items.map(item => (
           <article className="iste-tournaments__card" key={item.id}>
