@@ -85,6 +85,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_team_approval.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_roster_profiles.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_community_organizers.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_community_match_permissions.sql
       - name: Verify staging schema dependency preflight
         run: psql -X -v ON_ERROR_STOP=1 -f db/preflight/cs2_beta_dependencies.sql
       - name: Verify beta profile self-only row permissions
