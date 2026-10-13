@@ -49,6 +49,28 @@ export default async function handler(request, response) {
       if(error){if(/FORBIDDEN/.test(error.message||"")) return send(response,403,"FORBIDDEN","Доступ запрещён.");throw error;}
       return response.status(200).json({ok:true,players:data?.players||[],applications:data?.applications||[],myApplicationStatus:data?.myApplicationStatus||null});
     }
+    if (method === "POST" && ["leave","remove","ready","unready"].includes(body?.action)) {
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Необходимо войти.");
+      if(!isUuid(body?.teamId))return send(response,400,"INVALID_TEAM","Неверная команда.");
+      if(["leave","remove"].includes(body.action) && !isUuid(body?.userId))
+        return send(response,400,"INVALID_PLAYER","Неверный игрок.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams")
+        .select("id").eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {error}=await supabase.rpc("iste_manage_team",{
+        p_team_id:body.teamId,p_action:body.action,p_user_id:body.userId||null
+      });
+      if(error){
+        if(/CAPTAIN_REQUIRED|FORBIDDEN|ACCOUNT_BLOCKED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Недостаточно прав.");
+        if(/REGISTRATION_CLOSED|NOT_TEAM_MEMBER|ROSTER_INCOMPLETE|INVALID_PLAYER/.test(error.message||""))
+          return send(response,409,"INVALID_STATE","Действие недоступно для текущего состава.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
+    }
     if (method === "POST" && body?.action === "review-application") {
       const user=await currentUser(request,response,supabase);
       if(!user) return send(response,401,"AUTH_REQUIRED","Необходимо войти.");
@@ -88,7 +110,7 @@ export default async function handler(request, response) {
     }
     if (method === "GET") {
       const { data, error } = await supabase.from("tournament_teams")
-        .select("id,tournament_id,name,created_at").eq("tournament_id", tournamentId)
+        .select("id,tournament_id,name,is_ready,created_at").eq("tournament_id", tournamentId)
         .order("created_at", { ascending: true }).limit(64);
       if (error) throw error;
       return response.status(200).json({ ok: true, teams: data });
