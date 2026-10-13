@@ -161,3 +161,25 @@ main {
     transform: none;
   }
 }
+
+/* ISTe tournament cinematic transition, scoped to route navigation. */
+.iste-bracket-transition{position:fixed;inset:0;z-index:99999;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1c0809 0%,#050505 66%);color:#fff;pointer-events:all;animation:iste-bracket-screen 1.55s ease-in-out both}
+.iste-bracket-transition::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent 4px,rgba(255,255,255,.02) 5px);pointer-events:none}
+.iste-bracket-transition__rounds{display:flex;align-items:center;gap:clamp(18px,5vw,92px);transform:perspective(900px) rotateX(5deg);opacity:0;animation:iste-bracket-appear .9s .34s ease-out forwards}
+.iste-bracket-transition__round{display:grid;gap:12px;min-width:clamp(90px,17vw,200px);font-size:clamp(10px,1.2vw,14px);font-weight:800;letter-spacing:.07em}
+.iste-bracket-transition__round>span,.iste-bracket-transition__round>strong{display:block;padding:14px 12px;background:rgba(14,14,14,.9);border:1px solid rgba(255,37,37,.45);border-radius:5px;box-shadow:0 0 20px rgba(255,37,37,.08)}
+.iste-bracket-transition__round:first-child>span:not(:first-child){opacity:.45}
+.iste-bracket-transition__semis{animation:iste-bracket-line .4s .68s both}
+.iste-bracket-transition__winner{animation:iste-bracket-line .45s .96s both}
+.iste-bracket-transition__winner strong{color:#fff;border-color:#ff2525;box-shadow:0 0 33px rgba(255,37,37,.55);font-size:clamp(21px,4vw,42px)}
+.iste-bracket-transition__bullet{position:absolute;left:0;top:40%;width:clamp(110px,17vw,200px);filter:drop-shadow(0 0 9px rgba(255,37,37,.65));animation:iste-bullet-flight .9s cubic-bezier(.4,0,.2,1) both}
+.iste-bracket-transition__bullet svg{display:block;width:100%;height:auto}
+.iste-bracket-transition__caption{position:absolute;bottom:12%;left:50%;margin:0;white-space:nowrap;transform:translateX(-50%);font-size:clamp(18px,3vw,36px);font-weight:900;letter-spacing:.2em;opacity:0;animation:iste-bracket-caption .6s .78s forwards}
+.iste-bracket-transition__caption span{color:#ff2525}
+@keyframes iste-bullet-flight{0%{transform:translate3d(-25vw,20vh,0) rotate(-14deg) scale(.65);opacity:0}12%{opacity:1}80%{opacity:1}100%{transform:translate3d(125vw,-10vh,0) rotate(0) scale(1.2);opacity:0}}
+@keyframes iste-bracket-appear{from{opacity:0;filter:blur(10px);transform:translateY(16px) scale(.93)}to{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}}
+@keyframes iste-bracket-line{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:translateX(0)}}
+@keyframes iste-bracket-caption{from{opacity:0;letter-spacing:.35em}to{opacity:1;letter-spacing:.2em}}
+@keyframes iste-bracket-screen{0%{opacity:0}8%,86%{opacity:1}100%{opacity:0}}
+@media(max-width:600px){.iste-bracket-transition__rounds{gap:8px}.iste-bracket-transition__round{min-width:0;width:27vw;gap:8px}.iste-bracket-transition__round>span,.iste-bracket-transition__round>strong{padding:10px 5px;font-size:9px}.iste-bracket-transition__winner strong{font-size:17px!important}.iste-bracket-transition__bullet{top:45%}}
+@media(prefers-reduced-motion:reduce){.iste-bracket-transition{display:none}}
