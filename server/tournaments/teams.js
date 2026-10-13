@@ -36,6 +36,21 @@ export default async function handler(request, response) {
   if (!isUuid(tournamentId)) return send(response, 400, "INVALID_TOURNAMENT", "Неверный идентификатор турнира.");
   try {
     const supabase = getSupabaseServerClient();
+    if(method==="GET" && request.query?.view==="captain-search"){
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      const prefix=typeof request.query?.q==="string"?request.query.q.trim():"";
+      if(prefix.length<2 || prefix.length>60)return response.status(200).json({ok:true,usernames:[]});
+      const {data,error}=await supabase.rpc("iste_captain_username_search",{
+        p_tournament_id:tournamentId,p_prefix:prefix
+      });
+      if(error){
+        if(/OWNER_REQUIRED|ACCOUNT_BLOCKED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Поиск доступен только организатору.");
+        throw error;
+      }
+      return response.status(200).json({ok:true,usernames:(data||[]).map(item=>item.username)});
+    }
     if (method === "GET" && request.query?.view === "roster") {
       const user=await currentUser(request,response,supabase);
       if(!user)return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт для просмотра состава.");
