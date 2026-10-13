@@ -47,7 +47,7 @@ export default async function handler(request, response) {
       if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
       const {data,error}=await supabase.rpc("iste_team_roster",{p_team_id:teamId});
       if(error){if(/FORBIDDEN/.test(error.message||"")) return send(response,403,"FORBIDDEN","Доступ запрещён.");throw error;}
-      return response.status(200).json({ok:true,players:data?.players||[],applications:data?.applications||[]});
+      return response.status(200).json({ok:true,players:data?.players||[],applications:data?.applications||[],myApplicationStatus:data?.myApplicationStatus||null});
     }
     if (method === "POST" && body?.action === "review-application") {
       const user=await currentUser(request,response,supabase);
