@@ -189,7 +189,7 @@ export default function TournamentPublic() {
             {rosters[team.id]?.myApplicationStatus==="rejected"&&<small role="status">Ваша заявка отклонена. Вы можете подать её повторно.</small>}
             {rosters[team.id]?.players?.map(player=><span key={player.userId}>{player.captain?"Капитан":"Игрок"} · {player.name||"Игрок ISTe"}</span>)}
             {rosters[team.id]?.applications?.map(application=><div key={application.userId}>
-              <small>Заявка: {application.userId.slice(0,8)}</small>
+              <small>Заявка от: {application.name||"Игрок ISTe"}</small>
               <button type="button" disabled={joining} onClick={()=>reviewApplication(team.id,application.userId,true)}>Принять</button>
               <button type="button" disabled={joining} onClick={()=>reviewApplication(team.id,application.userId,false)}>Отклонить</button>
             </div>)}
