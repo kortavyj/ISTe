@@ -15,6 +15,13 @@ export default function TournamentPreview() {
   const [scores, setScores] = useState(initialScores);
   const [selected, setSelected] = useState(0);
   const [showFinished, setShowFinished] = useState(true);
+  const [tournament, setTournament] = useState({ name:"ISTe OPEN CUP", format:"single_elimination", bestOf:"BO1", capacity:8, status:"draft", startsAt:"" });
+  const [teams, setTeams] = useState(["ISTe Main", "ISTe Academy", "Firestorm", "Nova Squad"]);
+  const [newTeam, setNewTeam] = useState("");
+  const [notice, setNotice] = useState("");
+  const updateTournament = (key,value) => { setTournament(current => ({...current,[key]:value})); setNotice("Демонстрационные настройки изменены. На сервере не сохранено."); };
+  const addTeam = () => { const name=newTeam.trim();if(!name){setNotice("Введите название команды.");return;}if(teams.some(t=>t.toLocaleLowerCase()===name.toLocaleLowerCase())){setNotice("Команда уже добавлена.");return;}if(teams.length>=Number(tournament.capacity)){setNotice("Лимит участников достигнут.");return;}setTeams(current=>[...current,name]);setNewTeam("");setNotice("Команда добавлена только в демонстрационный список.");};
+  const resetSandbox=()=>{setTournament({name:"ISTe OPEN CUP",format:"single_elimination",bestOf:"BO1",capacity:8,status:"draft",startsAt:""});setTeams(["ISTe Main","ISTe Academy","Firestorm","Nova Squad"]);setScores(initialScores);setNotice("Демонстрация сброшена.");};
   const winners = seeds.map((pair, index) =>
     Number(scores[index].a) >= Number(scores[index].b) ? pair[0] : pair[1]
   );
@@ -99,13 +106,22 @@ export default function TournamentPreview() {
       </>}
 
       {tab === "manage" && <>
-        <div className="tp-heading"><div><h2>Панель организатора</h2><p>Так будет выглядеть управление своими турнирами</p></div><span className="tp-status">ПРОТОТИП</span></div>
-        <div className="tp-cards">
-          <article><small>УЧАСТНИКОВ</small><strong>8 / 8</strong><span>Регистрация закрыта</span></article>
-          <article><small>МАТЧЕЙ</small><strong>4 / 7</strong><span>Первый раунд</span></article>
-          <article><small>ИСТОЧНИК СЧЁТА</small><strong>Ручной</strong><span>Автоподключение позже</span></article>
+        <div className="tp-heading"><div><h2>Панель организатора · V2</h2><p>Закрытый этап 1 · настройка турнира и участников в браузере</p></div><span className="tp-status">SANDBOX · БЕЗ БАЗЫ</span></div>
+        <div className="tp-cards"><article><small>ЗАЯВКИ / МЕСТА</small><strong>{teams.length} / {tournament.capacity}</strong><span>Локальные тестовые команды</span></article><article><small>ФОРМАТ</small><strong>{tournament.bestOf}</strong><span>Single Elimination</span></article><article><small>СТАТУС</small><strong>{tournament.status}</strong><span>Не опубликовано</span></article></div>
+        <div className="tp-v2-grid">
+          <section className="tp-v2-panel"><h3>Настройки турнира</h3><div className="tp-v2-fields">
+            <label>Название турнира<input maxLength={80} value={tournament.name} onChange={e=>updateTournament("name",e.target.value)}/></label>
+            <label>Формат<select value={tournament.format} onChange={e=>updateTournament("format",e.target.value)}><option value="single_elimination">Single Elimination</option></select></label>
+            <label>Тип матчей<select value={tournament.bestOf} onChange={e=>updateTournament("bestOf",e.target.value)}><option>BO1</option><option>BO3</option><option>BO5</option></select></label>
+            <label>Количество команд<select value={tournament.capacity} onChange={e=>{const cap=Number(e.target.value);if(cap<teams.length){setNotice("Сначала удалите лишние команды.");return;}updateTournament("capacity",cap);}}><option value={4}>4</option><option value={8}>8</option><option value={16}>16</option><option value={32}>32</option></select></label>
+            <label>Начало (локальное время)<input type="datetime-local" value={tournament.startsAt} onChange={e=>updateTournament("startsAt",e.target.value)}/></label>
+            <label>Состояние<select value={tournament.status} onChange={e=>updateTournament("status",e.target.value)}><option value="draft">Черновик</option><option value="registration">Регистрация</option><option value="live">В процессе</option><option value="finished">Завершён</option></select></label>
+          </div></section>
+          <section className="tp-v2-panel"><h3>Участники ({teams.length})</h3><form className="tp-v2-add" onSubmit={e=>{e.preventDefault();addTeam();}}><input aria-label="Название команды" placeholder="Название команды" maxLength={60} value={newTeam} onChange={e=>setNewTeam(e.target.value)}/><button type="submit">Добавить</button></form><div className="tp-v2-teams">{teams.map((team,index)=><div key={team}><span><b>{String(index+1).padStart(2,"0")}</b> {team}</span><button type="button" onClick={()=>{setTeams(current=>current.filter(t=>t!==team));setNotice("Команда удалена из демонстрации.");}} aria-label={`Удалить ${team}`}>Удалить</button></div>)}</div></section>
         </div>
-        <label className="tp-checkbox"><input type="checkbox" checked={showFinished} onChange={e=>setShowFinished(e.target.checked)}/> Показывать завершённые матчи</label>
+        <p className="tp-v2-notice" role="status">{notice || "Все изменения работают только в этой вкладке. В Supabase ничего не записывается."}</p>
+        <button className="tp-v2-reset" type="button" onClick={resetSandbox}>Сбросить демо</button>
+        <label className="tp-checkbox"><input type="checkbox" checked={showFinished} onChange={e=>setShowFinished(e.target.checked)}/> Показать тестовые результаты матчей</label>
         {showFinished && <div className="tp-rows">{seeds.map((m,i)=><div key={i}><span>{m[0]} — {m[1]}</span><strong>{scores[i].a}:{scores[i].b}</strong></div>)}</div>}
       </>}
 
