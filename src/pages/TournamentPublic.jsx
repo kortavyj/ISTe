@@ -80,8 +80,15 @@ export default function TournamentPublic() {
       const data=await res.json();
       if(!res.ok||!data.ok)throw new Error(data.message||"Не удалось вступить в команду.");
       setJoinMessage("Заявка отправлена капитану. Доступ откроется после одобрения.");
-      const fresh=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id)+"&teamId="+encodeURIComponent(teamId)+"&view=roster",{credentials:"include",cache:"no-store"});
-      if(fresh.ok){const current=await fresh.json();if(current.ok)setRosters(prev=>({...prev,[teamId]:current}));}
+      try {
+        const fresh=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id)+"&teamId="+encodeURIComponent(teamId)+"&view=roster",{credentials:"include",cache:"no-store"});
+        if(!fresh.ok)throw new Error("Roster refresh failed");
+        const current=await fresh.json();
+        if(!current.ok)throw new Error("Roster refresh failed");
+        setRosters(prev=>({...prev,[teamId]:current}));
+      } catch {
+        setJoinMessage("Заявка отправлена капитану, но состав не обновился. Нажмите «Обновить составы и заявки».");
+      }
     }catch(err){setJoinMessage(err.message);}finally{setJoining(false);}
   }
   async function joinTournament(event) {
