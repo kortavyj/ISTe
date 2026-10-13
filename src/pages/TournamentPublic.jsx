@@ -68,7 +68,7 @@ export default function TournamentPublic() {
     {tournament && <>
       <div className="iste-tournaments__card">
         <span>{tournament.team_size || 5}vs{tournament.team_size || 5} · {tournament.best_of === 3 ? "BO3" : "BO1"} · Single Elimination · {({standard:"Стандартное оружие",awp:"Только AWP",pistols:"Только пистолеты",deagle:"Только Desert Eagle"})[tournament.weapon_mode] || "Стандартное оружие"}</span>
-        {(tournament.team_size === 1 || tournament.team_size === 2) && <p>Без запасных игроков и замен.</p>
+        {(tournament.team_size === 1 || tournament.team_size === 2) && <p>Без запасных игроков и замен.</p>}
         <h2>{tournament.status === "registration" ? "Регистрация команд открыта" : tournament.status}</h2>
         <p>{teams.length} из {tournament.max_teams} команд</p>
       </div>
@@ -96,26 +96,38 @@ export default function TournamentPublic() {
           <span>{index + 1}</span><strong>{team.name}</strong>
         </div>) : <p>Команды ещё не добавлены.</p>}
       </div>
-      {matches.length>0 ? (
+      {matches.length > 0 ? (
         <div className="iste-tournaments__bracket-preview">
-          <h2>Турнирная сетка</h2>
-          <div className="iste-tournaments__rounds">
-            {[...new Set(matches.map(match=>match.round_number))].map(round=>
-              <div key={round} className="iste-tournaments__round">
-                <h3>Раунд {round}</h3>
-                {matches.filter(match=>match.round_number===round).map(match=>{
+          <div className="iste-tournaments__bracket-head">
+            <div><span>ISTe / CHAMPIONSHIP BRACKET</span><h2>Сетка победителей</h2></div>
+            <small>{matches.length} матчей · {new Set(matches.map(match => match.round_number)).size} раундов</small>
+          </div>
+          <div className="iste-tournaments__rounds" aria-label="Турнирная сетка">
+            {[...new Set(matches.map(match => match.round_number))].sort((a,b)=>a-b).map((round,roundIndex,rounds)=>
+              <div key={round} className="iste-tournaments__round" style={{ "--round-index": roundIndex }}>
+                <h3><span>{rounds.length === roundIndex + 1 ? "ФИНАЛ" : "РАУНД " + round}</span><small>{matches.filter(match => match.round_number === round).length} матчей</small></h3>
+                {matches.filter(match => match.round_number === round).map(match=>{
                   const a=teams.find(team=>team.id===match.team_a_id);
                   const b=teams.find(team=>team.id===match.team_b_id);
-                  return <div className="iste-tournaments__match" key={match.id}>
-                    <small>{match.status}</small>
-                    <p>{a?.name||"Ожидается"} {match.score_a!==null?match.score_a:""}</p>
-                    <p>{b?.name||"Ожидается"} {match.score_b!==null?match.score_b:""}</p>
-                  </div>;
+                  const scoreA=match.score_a;
+                  const scoreB=match.score_b;
+                  const finished=match.status==="completed" || match.status==="finished";
+                  const winnerA=finished && scoreA!==null && scoreB!==null && scoreA>scoreB;
+                  const winnerB=finished && scoreA!==null && scoreB!==null && scoreB>scoreA;
+                  return <article className={"iste-tournaments__match"+(finished?" iste-tournaments__match--finished":"")} key={match.id}>
+                    <small className="iste-tournaments__match-status">{finished?"ЗАВЕРШЁН":match.status==="live"?"LIVE":"ОЖИДАНИЕ"}</small>
+                    <div className={"iste-tournaments__match-side"+(winnerA?" is-winner":"")}>
+                      <span>{a?.name||"Ожидается"}</span><strong>{scoreA??"—"}</strong>
+                    </div>
+                    <div className={"iste-tournaments__match-side"+(winnerB?" is-winner":"")}>
+                      <span>{b?.name||"Ожидается"}</span><strong>{scoreB??"—"}</strong>
+                    </div>
+                  </article>;
                 })}
               </div>
             )}
           </div>
-          <p className="iste-tournaments__note">Данные обновляются после перезагрузки страницы. LIVE подключим на отдельном этапе.</p>
+          <p className="iste-tournaments__note">Сетка обновляется после перезагрузки страницы. Автоматическое обновление LIVE пока в разработке.</p>
         </div>
       ) : <p className="iste-tournaments__note">Сетка появится после запуска турнира организатором.</p>}
     </>}
