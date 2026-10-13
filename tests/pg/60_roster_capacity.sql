@@ -51,6 +51,24 @@ begin
   '123e4567-e89b-12d3-a456-426614175006'::uuid,false);
 end $apply$;
 reset role;
+-- Separate captain requests the same approved player for a second team.
+set local role postgres;
+insert into public.tournament_teams(tournament_id,name,captain_user_id)
+select id,'Other Team','123e4567-e89b-12d3-a456-426614175006'
+from public.tournaments where slug='ci-roster-cap';
+select set_config('iste.cap.other',(select id::text from public.tournament_teams where name='Other Team'),true);
+set local role authenticated;
+do $other_team$
+begin
+ perform set_config('request.jwt.claim.sub','123e4567-e89b-12d3-a456-426614175002',true);
+ begin
+  perform public.iste_add_team_player(current_setting('iste.cap.other')::uuid,auth.uid());
+  raise exception 'DUPLICATE_PLAYER_APPLICATION_ALLOWED';
+ exception when others then
+  if sqlerrm <> 'PLAYER_ALREADY_IN_TOURNAMENT' then raise; end if;
+ end;
+end $other_team$;
+reset role;
 do $verify$
 begin
  if (select status from public.tournament_team_applications
