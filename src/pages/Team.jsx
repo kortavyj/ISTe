@@ -575,9 +575,11 @@ function PlayerProfile({ player, index, language, copy }) {
     uk: {
       title: player.realNameUk || player.realName || "Гравець ISTe",
       description:
-        player.rosterStatus === "substitute"
-          ? "Гравець заміни ISTe, готовий підключитися до складу за потреби."
-          : "Гравець основного складу ISTe.",
+        player.rosterStatus === "academy"
+          ? "Гравець складу ISTe Academy."
+          : player.rosterStatus === "substitute"
+            ? "Гравець заміни ISTe, готовий підключитися до складу за потреби."
+            : "Гравець основного складу ISTe.",
       strengths:
         Array.isArray(player.strengths) && player.strengths.length
           ? player.strengths
@@ -586,9 +588,11 @@ function PlayerProfile({ player, index, language, copy }) {
     en: {
       title: player.realNameEn || player.realName || "ISTe player",
       description:
-        player.rosterStatus === "substitute"
-          ? "ISTe substitute player, ready to join the lineup when needed."
-          : "ISTe main roster player.",
+        player.rosterStatus === "academy"
+          ? "ISTe Academy roster player."
+          : player.rosterStatus === "substitute"
+            ? "ISTe substitute player, ready to join the lineup when needed."
+            : "ISTe main roster player.",
       strengths:
         Array.isArray(player.strengths) && player.strengths.length
           ? player.strengths
@@ -858,10 +862,10 @@ export default function Team() {
 
       <header className="team-page__header">
         <p className="page-eyebrow">ISTE PLAYER PROFILES</p>
-        <h1>{copy.title}</h1>
+        <h1>{activeRoster === "academy" ? "ISTe Academy" : copy.title}</h1>
         <p>{copy.description}</p>
         <div className="team-page__counter">
-          <span>{mainPlayers.length || CUSTOM_PROFILES.length - SUBSTITUTE_PLAYERS.size}</span>
+          <span>{activeRoster === "academy" ? ACADEMY_PLAYERS.length : (mainPlayers.length || CUSTOM_PROFILES.length - SUBSTITUTE_PLAYERS.size)}</span>
           <small>PLAYER PROFILES</small>
         </div>
       </header>
