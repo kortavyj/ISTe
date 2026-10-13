@@ -93,6 +93,29 @@ export default function TournamentPublic() {
       setRosters(prev=>({...prev,[teamId]:updated}));setJoinMessage(accept?"Заявка одобрена.":"Заявка отклонена.");
     }catch(error){setJoinMessage(error.message);}finally{setJoining(false);}
   }
+  async function manageTeam(teamId, action, userId) {
+    if(!tournament || joining)return;
+    if(["leave","remove"].includes(action) &&
+       !window.confirm(action==="leave"?"Покинуть команду?":"Исключить игрока из команды?"))return;
+    setJoining(true);setJoinMessage("");
+    try {
+      const response=await fetch("/api/tournament-teams",{
+        method:"POST",credentials:"include",
+        headers:{"Content-Type":"application/json",Accept:"application/json"},
+        body:JSON.stringify({tournamentId:tournament.id,teamId,action,userId})
+      });
+      const data=await response.json();
+      if(!response.ok||!data.ok)throw new Error(data.message||"Операция недоступна.");
+      const [rosterResponse,teamsResponse]=await Promise.all([
+        fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id)+"&teamId="+encodeURIComponent(teamId)+"&view=roster",{credentials:"include",cache:"no-store"}),
+        fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id),{credentials:"include",cache:"no-store"})
+      ]);
+      const [roster,teamData]=await Promise.all([rosterResponse.json(),teamsResponse.json()]);
+      if(rosterResponse.ok&&roster.ok)setRosters(prev=>({...prev,[teamId]:roster}));
+      if(teamsResponse.ok&&teamData.ok)setTeams(teamData.teams||[]);
+      setJoinMessage(action==="leave"?"Вы вышли из команды.":action==="remove"?"Игрок исключён.":action==="ready"?"Команда готова к старту.":"Готовность команды снята.");
+    }catch(err){setJoinMessage(err.message);}finally{setJoining(false);}
+  }
   async function joinTeam(teamId) {
     if (!tournament || joining) return;
     setJoining(true); setJoinMessage("");
@@ -181,13 +204,27 @@ export default function TournamentPublic() {
       <div className="iste-tournaments__team-list">
         {teams.length ? teams.map((team, index) => <div className="iste-tournaments__team-item" key={team.id}>
           <span>{index + 1}</span><strong>{team.name}</strong>
-          {tournament.status === "registration" && user && <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Подать заявку</button>}
+          <small>{team.is_ready?"Готова к старту":"Не готова"}</small>
+          {tournament.status === "registration" && user && !rosters[team.id]?.players?.some(p=>p.userId===user.id) &&
+            rosters[team.id]?.myApplicationStatus!=="pending" &&
+            <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Подать заявку</button>}
+          {tournament.status === "registration" && user && rosters[team.id]?.players?.some(p=>p.userId===user.id&&p.captain) && <>
+            <button type="button" disabled={joining||rosters[team.id]?.players?.length!==5}
+              onClick={()=>manageTeam(team.id,team.is_ready?"unready":"ready")}>{team.is_ready?"Снять готовность":"Подтвердить готовность (5/5)"}</button>
+          </>}
           <div className="iste-tournaments__roster">
             <small>Состав: {rosters[team.id]?.players?.length ?? "—"} / 5</small>
             {rosters[team.id]?.myApplicationStatus==="pending"&&<small role="status">Ваша заявка ожидает решения капитана.</small>}
             {rosters[team.id]?.myApplicationStatus==="accepted"&&<small role="status">Ваша заявка одобрена — вы в составе.</small>}
             {rosters[team.id]?.myApplicationStatus==="rejected"&&<small role="status">Ваша заявка отклонена. Вы можете подать её повторно.</small>}
-            {rosters[team.id]?.players?.map(player=><span key={player.userId}>{player.captain?"Капитан":"Игрок"} · {player.name||"Игрок ISTe"}</span>)}
+            {rosters[team.id]?.players?.map(player=><div key={player.userId}>
+              <span>{player.captain?"Капитан":"Игрок"} · {player.name||"Игрок ISTe"}</span>
+              {tournament.status==="registration" && !player.captain && user &&
+                (user.id===player.userId || rosters[team.id]?.players?.some(p=>p.userId===user.id&&p.captain)) &&
+                <button type="button" disabled={joining} onClick={()=>manageTeam(team.id,user.id===player.userId?"leave":"remove",player.userId)}>
+                  {user.id===player.userId?"Покинуть команду":"Исключить"}
+                </button>}
+            </div>)}
             {rosters[team.id]?.applications?.map(application=><div key={application.userId}>
               <small>Заявка от: {application.name||"Игрок ISTe"}</small>
               <button type="button" disabled={joining} onClick={()=>reviewApplication(team.id,application.userId,true)}>Принять</button>
