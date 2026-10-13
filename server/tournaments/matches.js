@@ -1,4 +1,3 @@
-import { hasVerifiedAal2 } from "./mfa.js";
 import { encryptRoomPassword, decryptRoomPassword } from "./roomCrypto.js";
 import { guardRequest } from "../../api/lib/requestGuard.js";
 import { readJsonBody, isUuid } from "../../api/lib/requestBody.js";
@@ -18,9 +17,7 @@ export async function authenticatedUser(request,response,supabase){
   setAuthCookies(response,data.session);
   const {data:role,error:roleError}=await supabase.from("user_roles")
     .select("role,is_blocked").eq("user_id",data.user.id).maybeSingle();
-  if(roleError||(role?.is_blocked || role?.role !== "owner"))return null;
-  const {data:assurance,error:assuranceError}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel(data.session.access_token);
-  if(!hasVerifiedAal2(assurance,assuranceError)) return null;
+  if(roleError||(role?.is_blocked))return null;
   return data.user;
 }
 export default async function handler(request,response){
