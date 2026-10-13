@@ -105,9 +105,18 @@ export default function TournamentPublic() {
       });
       const data = await res.json();
       if (!res.ok || !data?.ok) throw new Error(data.message || "Не удалось зарегистрировать команду.");
-      setTeams(existing => [...existing, data.team]);
+      setTeams(existing => existing.some(team => team.id === data.team.id) ? existing : [...existing, data.team]);
       setTeamName("");
       setJoinMessage("Команда зарегистрирована.");
+      try {
+        const response = await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id)+"&teamId="+encodeURIComponent(data.team.id)+"&view=roster",{credentials:"include",cache:"no-store"});
+        if (!response.ok) throw new Error("Roster refresh failed");
+        const roster = await response.json();
+        if (!roster.ok) throw new Error("Roster refresh failed");
+        setRosters(previous => ({...previous,[data.team.id]:roster}));
+      } catch {
+        setJoinMessage("Команда зарегистрирована, но состав не обновился. Нажмите «Обновить составы и заявки».");
+      }
     } catch (err) {
       setJoinMessage(err.message);
     } finally {
