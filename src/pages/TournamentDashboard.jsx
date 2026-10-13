@@ -59,6 +59,8 @@ export default function TournamentDashboard() {
   const [teams, setTeams] = useState([]);
   const [teamName, setTeamName] = useState("");
   const [captainNames, setCaptainNames] = useState({});
+  const [captainSuggestions, setCaptainSuggestions] = useState([]);
+  const [activeCaptainTeam, setActiveCaptainTeam] = useState("");
   const [matches, setMatches] = useState([]);
   const [scores, setScores] = useState({});
   const [serverIds, setServerIds] = useState({});
@@ -103,6 +105,19 @@ export default function TournamentDashboard() {
       .catch(err => {if(err.name!=="AbortError") setError(err.message);});
     return () => controller.abort();
   }, [selected]);
+
+  useEffect(()=>{
+    const name=(captainNames[activeCaptainTeam]||"").trim();
+    if(!selected || !activeCaptainTeam || name.length<2){setCaptainSuggestions([]);return;}
+    const controller=new AbortController();
+    const timer=setTimeout(()=>{
+      fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(selected)+"&view=captain-search&q="+encodeURIComponent(name),
+        {credentials:"include",signal:controller.signal,cache:"no-store"})
+        .then(jsonResponse).then(data=>setCaptainSuggestions(data.usernames||[]))
+        .catch(err=>{if(err.name!=="AbortError")setCaptainSuggestions([]);});
+    },300);
+    return ()=>{clearTimeout(timer);controller.abort();};
+  },[selected,activeCaptainTeam,captainNames]);
 
   async function addTeam(event) {
     event.preventDefault();
@@ -287,9 +302,14 @@ export default function TournamentDashboard() {
                 <span>{index + 1}</span><strong>{team.name}</strong>
                 {team.captain_user_id ? <small>Капитан назначен</small> :
                   ["draft","registration"].includes(tournament?.status)&&<div style={{display:"flex",gap:8,flexWrap:"wrap",flex:"1 1 240px"}}>
-                    <input aria-label={"Никнейм капитана команды "+team.name} placeholder="Никнейм капитана ISTe"
+                    <input aria-label={"Username капитана команды "+team.name} placeholder="Поиск username на сайте ISTe"
+                      list={"iste-captains-"+team.id} autoComplete="off"
                       value={captainNames[team.id]||""} disabled={busy}
-                      onChange={event=>setCaptainNames(prev=>({...prev,[team.id]:event.target.value}))}/>
+                      onFocus={()=>setActiveCaptainTeam(team.id)}
+                      onChange={event=>{setActiveCaptainTeam(team.id);setCaptainNames(prev=>({...prev,[team.id]:event.target.value}));}}/>
+                    <datalist id={"iste-captains-"+team.id}>
+                      {activeCaptainTeam===team.id&&captainSuggestions.map(username=><option value={username} key={username}/>)}
+                    </datalist>
                     <button type="button" disabled={busy} onClick={()=>assignCaptain(team.id)}>Назначить капитана</button>
                   </div>}
               </div>
