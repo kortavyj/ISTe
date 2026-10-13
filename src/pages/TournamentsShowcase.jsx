@@ -7,7 +7,7 @@ uk:["Турніри CS2","Сітка переможців","РАУНД 1","ПІ�
 en:["CS2 Tournaments","Winners Bracket","ROUND 1","SEMIFINAL","WINNER","TOURNAMENT CHAMPION","ADVANCE","FINAL","FINISHED","Visual Beta. Real tournaments are not yet connected to the database.","Replay animation","Tournament creation coming soon"]};
 const games=[[["ISTe","TEAM ALPHA",13,7],["TEAM BRAVO","TEAM CHARLIE",13,9]],[["ISTe","TEAM BRAVO",13,10]]];
 function Match({m,t}){return <div className="ts-match"><small>{t[8]}</small>{[0,1].map(i=><div key={i} className={"ts-side"+(m[2+i]>m[3-i]?" ts-win":"")}><span>{m[i]}</span><b>{m[2+i]}</b></div>)}</div>}
-function Arrow({label,multi}){return <div className="ts-arrow" aria-hidden="true"><span>{label}</span><svg viewBox="0 0 75 230"><path className="ts-track" d={multi?"M0 45H22V115H66M0 185H22V115":"M0 75H22V115H66"}/><path className="ts-flow" d={multi?"M0 45H22V115H66M0 185H22V115":"M0 75H22V115H66"}/><path className="ts-tip" d="m59 108 8 7-8 7"/></svg></div>}
+function Arrow({label,multi}){return <div className="ts-arrow" aria-hidden="true"><span>{label}</span><svg viewBox="0 0 96 310"><path className="ts-track" d={multi?"M0 74 H34 V155 H86 M0 236 H34 V155":"M0 155 H86"}/><path className="ts-flow" d={multi?"M0 45H22V115H66M0 185H22V115":"M0 75H22V115H66"}/><path className="ts-tip" d="m77 147 9 8-9 8"/></svg></div>}
 export default function TournamentsShowcase(){
 const {language}=useLanguage(),t=words[language]||words.en;
 const [playing,setPlaying]=useState(false);
