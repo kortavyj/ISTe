@@ -1,14 +1,17 @@
 # ISTe: encrypted Supabase backups to Google Drive
 
+## Authorized destination
+Google account: esporthery@gmail.com (Hery Esport). The folder below is verified for this account. Do not use the earlier Drive account.
+
 ## Status
 Automation is prepared, **not active until the three GitHub Actions secrets are supplied and a successful manual run is checked**. Backups are made using PostgreSQL 17's pg_dump and GPG AES-256 encryption. No plaintext database dump is uploaded.
 
-Drive folder: https://drive.google.com/drive/folders/1YXmez3UPGklessRoXHg5j1TblSbtVHtf
+Drive folder: https://drive.google.com/drive/folders/1Ua2JLG7UFudgIPPBvWiNNwRA80sEkRXe
 
 ## GitHub Actions secrets (Settings → Secrets and variables → Actions)
 1. `ISTE_BACKUP_DATABASE_URL`: PostgreSQL connection string (use Supabase Dashboard → Connect → Session Pooler for CI if direct database IPv6 is unavailable). Requires a database role with enough privileges to read the intended schemas. Use SSL via `?sslmode=require`. **Do not paste credentials into chats, source code, screenshots or logs.** Consider a least-privilege dedicated backup role.
 2. `ISTE_BACKUP_PASSPHRASE`: long unique encryption password. Keep an offline copy: without it backups cannot be restored.
-3. `ISTE_RCLONE_CONFIG_B64`: base64 of a complete rclone.conf with a Google Drive OAuth remote called `iste_drive`, configured with `root_folder_id=1YXmez3UPGklessRoXHg5j1TblSbtVHtf`. Set it up locally using `rclone config`, authenticate the Google account, and verify write access to the folder. A Google service account on free personal My Drive can encounter storage quota constraints; user OAuth is preferred. On Windows, use `[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\\path\\to\\rclone.conf"))` in PowerShell and place only the resulting encoded string in GitHub Actions secrets, not in the repository.
+3. `ISTE_RCLONE_CONFIG_B64`: base64 of a complete rclone.conf with a Google Drive OAuth remote called `iste_drive`, configured with `root_folder_id=1Ua2JLG7UFudgIPPBvWiNNwRA80sEkRXe`. Set it up locally using `rclone config`, authenticate the Google account, and verify write access to the folder. A Google service account on free personal My Drive can encounter storage quota constraints; user OAuth is preferred. On Windows, use `[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\\path\\to\\rclone.conf"))` in PowerShell and place only the resulting encoded string in GitHub Actions secrets, not in the repository.
 
 Do not turn on public sharing for the backup folder. Google Drive access tokens and refresh tokens are secrets.
 
