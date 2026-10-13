@@ -31,6 +31,7 @@ export default function TournamentDashboard() {
   const [matches, setMatches] = useState([]);
   const [scores, setScores] = useState({});
   const [serverIds, setServerIds] = useState({});
+  const [matchModes, setMatchModes] = useState({});
   const [roomSettings, setRoomSettings] = useState({});
   const [assignments, setAssignments] = useState([]);
   const [assignmentHistory, setAssignmentHistory] = useState([]);
@@ -237,15 +238,26 @@ export default function TournamentDashboard() {
                 return <div className="iste-tournaments__match" key={match.id}>
                   <span>Раунд {match.round_number} · Матч {match.match_number} · {match.status}</span>
                   <strong>{a?.name||"Ожидается"} — {b?.name||"Ожидается"}</strong>
-                  <p>CS2-сервер: {assignments.find(item=>item.matchId===match.id)?.serverId||"не назначен"}</p>
                   {match.status==="completed"&&<p>Счёт: {match.score_a}:{match.score_b}</p>}
-                  {match.status==="scheduled"&&<RoomSettingsForm value={roomSettings[match.id]||{}} onChange={value=>setRoomSettings(current=>({...current,[match.id]:value}))} onSave={()=>matchAction("room-settings",match.id)} busy={busy}/>}
-                  {match.status==="scheduled"&&<>
+                  {match.status==="scheduled"&&<label>Режим проведения матча
+                    <select aria-label="Режим проведения матча" value={matchModes[match.id]||"manual"}
+                      onChange={event=>setMatchModes(current=>({...current,[match.id]:event.target.value}))}>
+                      <option value="manual">Ручное управление — без сервера</option>
+                      <option value="server">С CS2-сервером</option>
+                    </select>
+                  </label>}
+                  {match.status==="scheduled"&&(matchModes[match.id]||"manual")==="server"&&<>
+                    <p>CS2-сервер: {assignments.find(item=>item.matchId===match.id)?.serverId||"не назначен"}</p>
+                    <RoomSettingsForm value={roomSettings[match.id]||{}} onChange={value=>setRoomSettings(current=>({...current,[match.id]:value}))} onSave={()=>matchAction("room-settings",match.id)} busy={busy}/>
                     <label>UUID назначаемого CS2-сервера
                       <input type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" value={serverIds[match.id]||""}
                         onChange={event=>setServerIds(current=>({...current,[match.id]:event.target.value}))} disabled={busy} />
                     </label>
                     <button type="button" disabled={busy} onClick={()=>matchAction("assign-server",match.id)}>Назначить / переназначить сервер</button>
+                  </>}
+                  {match.status==="scheduled"&&<>
+                    {(matchModes[match.id]||"manual")==="manual"&&<p className="iste-tournaments__note">Сервер не требуется. Проведите игру самостоятельно, внесите итоговый счёт и подтвердите результат — победитель автоматически пройдёт дальше по сетке.</p>}
+                    <strong>{tournament?.best_of===3?"Итог серии BO3 (победы по картам)":"Итог матча BO1 (раунды CS2)"}</strong>
                     <div className="iste-tournaments__score-inputs">
                       <input type="number" min="0" max="100" aria-label="Счёт первой команды"
                         value={value.a} onChange={e=>setScores(v=>({...v,[match.id]:{...value,a:e.target.value}}))}/>
