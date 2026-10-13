@@ -1,0 +1,95 @@
+name: Encrypted Supabase backup to Google Drive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 2 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iste-supabase-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Export, encrypt and upload PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DATABASE_URL: ${{ secrets.ISTE_BACKUP_DATABASE_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.ISTE_BACKUP_PASSPHRASE }}
+      RCLONE_CONFIG_B64: ${{ secrets.ISTE_RCLONE_CONFIG_B64 }}
+    steps:
+      - name: Check required credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in DATABASE_URL BACKUP_PASSPHRASE RCLONE_CONFIG_B64; do
+            if [[ -z "${!value:-}" ]]; then
+              echo "::error::Missing configured backup secret: $value"
+              exit 1
+            fi
+          done
+
+      - name: Install Drive client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rclone gnupg
+
+      - name: Prepare private configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$RCLONE_CONFIG_B64" | base64 --decode > "$RUNNER_TEMP/rclone.conf"
+          printf '%s' "$BACKUP_PASSPHRASE" > "$RUNNER_TEMP/passphrase"
+          unset RCLONE_CONFIG_B64 BACKUP_PASSPHRASE
+          rclone --config "$RUNNER_TEMP/rclone.conf" listremotes | grep -Fx 'iste_drive:'
+
+      - name: Dump Supabase PostgreSQL 17
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          docker run --rm --network host -e DATABASE_URL postgres:17-alpine \
+            sh -c 'exec pg_dump --dbname="$DATABASE_URL" --format=custom --no-owner --no-acl --verbose' \
+            > "$RUNNER_TEMP/database.dump"
+          test -s "$RUNNER_TEMP/database.dump"
+          docker run --rm -v "$RUNNER_TEMP:/backups:ro" postgres:17-alpine \
+            pg_restore --list /backups/database.dump > /dev/null
+
+      - name: Encrypt and test decryption
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          FILENAME="iste-supabase-$(date -u +%Y%m%dT%H%M%SZ).dump.gpg"
+          echo "BACKUP_FILE=$FILENAME" >> "$GITHUB_ENV"
+          gpg --batch --yes --pinentry-mode loopback --cipher-algo AES256 \
+            --passphrase-file "$RUNNER_TEMP/passphrase" --symmetric \
+            --output "$RUNNER_TEMP/$FILENAME" "$RUNNER_TEMP/database.dump"
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-file "$RUNNER_TEMP/passphrase" --decrypt "$RUNNER_TEMP/$FILENAME" \
+            2>/dev/null | sha256sum | cut -d' ' -f1 > "$RUNNER_TEMP/decrypted.sha"
+          sha256sum "$RUNNER_TEMP/database.dump" | cut -d' ' -f1 > "$RUNNER_TEMP/source.sha"
+          cmp "$RUNNER_TEMP/source.sha" "$RUNNER_TEMP/decrypted.sha"
+          rm -f "$RUNNER_TEMP/database.dump"
+
+      - name: Upload encrypted backup and verify presence
+        shell: bash
+        run: |
+          set -euo pipefail
+          rclone --config "$RUNNER_TEMP/rclone.conf" copyto \
+            "$RUNNER_TEMP/$BACKUP_FILE" "iste_drive:$BACKUP_FILE" --retries 3
+          rclone --config "$RUNNER_TEMP/rclone.conf" lsf "iste_drive:" | grep -Fx "$BACKUP_FILE"
+          echo "Encrypted backup uploaded and verified by filename."
+
+      - name: Clean up secrets and local files
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/rclone.conf" "$RUNNER_TEMP/passphrase" \
+            "$RUNNER_TEMP/database.dump" "$RUNNER_TEMP"/*.dump.gpg \
+            "$RUNNER_TEMP/decrypted.sha" "$RUNNER_TEMP/source.sha"
