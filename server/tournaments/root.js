@@ -7,8 +7,10 @@ import { readAuthCookies, setAuthCookies } from "../../api/lib/authCookies.js";
 import { readJsonBody } from "../../api/lib/requestBody.js";
 import { getSupabaseServerClient } from "../../api/lib/supabaseServer.js";
 
-const SELECT = "id,slug,title,description,format,best_of,max_teams,status,starts_at,published_at,created_at";
+const SELECT = "id,slug,title,description,format,best_of,max_teams,team_size,weapon_mode,status,starts_at,published_at,created_at";
 const allowedBo = new Set([1, 3]);
+const allowedTeamSizes = new Set([1, 2, 5]);
+const allowedWeapons = new Set(["standard", "awp", "pistols", "deagle"]);
 function fail(response, status, error, message) {
   return response.status(status).json({ ok: false, error, message });
 }
@@ -86,9 +88,12 @@ export default async function handler(request, response) {
     const description = typeof body?.description === "string" ? body.description.trim() : "";
     const bestOf = Number(body?.bestOf);
     const maxTeams = Number(body?.maxTeams);
+    const teamSize = Number(body?.teamSize ?? 5);
+    const weaponMode = body?.weaponMode ?? "standard";
     if (title.length < 4 || title.length > 120 || description.length > 3000
         || !allowedBo.has(bestOf) || !Number.isInteger(maxTeams)
-        || maxTeams < 2 || maxTeams > 64) {
+        || maxTeams < 2 || maxTeams > 64
+        || !allowedTeamSizes.has(teamSize) || !allowedWeapons.has(weaponMode)) {
       return fail(response, 400, "VALIDATION", "Проверьте название, описание и параметры турнира.");
     }
     const { data, error } = await supabase.from("tournaments")
@@ -99,6 +104,8 @@ export default async function handler(request, response) {
         format: "single_elimination",
         best_of: bestOf,
         max_teams: maxTeams,
+        team_size: teamSize,
+        weapon_mode: weaponMode,
         status: "draft",
       }).select(SELECT).single();
     if (error) throw error;
