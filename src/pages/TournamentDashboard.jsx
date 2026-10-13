@@ -58,6 +58,7 @@ export default function TournamentDashboard() {
   const [selected, setSelected] = useState("");
   const [teams, setTeams] = useState([]);
   const [teamName, setTeamName] = useState("");
+  const [captainNames, setCaptainNames] = useState({});
   const [matches, setMatches] = useState([]);
   const [scores, setScores] = useState({});
   const [serverIds, setServerIds] = useState({});
@@ -124,6 +125,25 @@ export default function TournamentDashboard() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function assignCaptain(teamId) {
+    const username=(captainNames[teamId]||"").trim();
+    if(username.length<2){setError("Введите никнейм зарегистрированного пользователя.");return;}
+    if(busy)return;
+    setBusy(true);setError("");setSuccess("");
+    try {
+      const response=await fetch("/api/tournament-teams",{
+        method:"POST",credentials:"include",
+        headers:{"Content-Type":"application/json",Accept:"application/json"},
+        body:JSON.stringify({tournamentId:selected,teamId,username,action:"assign-captain"})
+      });
+      await jsonResponse(response);
+      const fresh=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(selected),{credentials:"include",cache:"no-store"});
+      const data=await jsonResponse(fresh);
+      setTeams(data.teams||[]);
+      setSuccess("Капитан "+username+" назначен.");
+    }catch(err){setError(err.message);}finally{setBusy(false);}
   }
 
   async function publishTournament() {
@@ -263,8 +283,15 @@ export default function TournamentDashboard() {
           )}
           <div className="iste-tournaments__team-list">
             {teams.length ? teams.map((team, index) =>
-              <div key={team.id} className="iste-tournaments__team-item">
+              <div key={team.id} className="iste-tournaments__team-item" style={{flexWrap:"wrap"}}>
                 <span>{index + 1}</span><strong>{team.name}</strong>
+                {team.captain_user_id ? <small>Капитан назначен</small> :
+                  ["draft","registration"].includes(tournament?.status)&&<div style={{display:"flex",gap:8,flexWrap:"wrap",flex:"1 1 240px"}}>
+                    <input aria-label={"Никнейм капитана команды "+team.name} placeholder="Никнейм капитана ISTe"
+                      value={captainNames[team.id]||""} disabled={busy}
+                      onChange={event=>setCaptainNames(prev=>({...prev,[team.id]:event.target.value}))}/>
+                    <button type="button" disabled={busy} onClick={()=>assignCaptain(team.id)}>Назначить капитана</button>
+                  </div>}
               </div>
             ) : <p>Список команд пока пуст.</p>}
           </div>
