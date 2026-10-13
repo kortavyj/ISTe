@@ -8,6 +8,7 @@ export default function TournamentPublic() {
   const { user } = useAuth();
   const [teamName, setTeamName] = useState("");
   const [playerNames, setPlayerNames] = useState(["", ""]);
+  const [steamIds, setSteamIds] = useState(["", ""]);
   const [joining, setJoining] = useState(false);
   const [joinMessage, setJoinMessage] = useState("");
   const [tournament, setTournament] = useState(null);
@@ -45,13 +46,14 @@ export default function TournamentPublic() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ tournamentId: tournament.id, name: teamName.trim(), join: true, ...(tournament.team_size < 5 ? { players: playerNames.slice(0,tournament.team_size) } : {}) }),
+        body: JSON.stringify({ tournamentId: tournament.id, name: teamName.trim(), join: true, ...(tournament.team_size < 5 ? { players: playerNames.slice(0,tournament.team_size), steamIds: steamIds.slice(0,tournament.team_size) } : {}) }),
       });
       const data = await res.json();
       if (!res.ok || !data?.ok) throw new Error(data.message || "Не удалось зарегистрировать команду.");
       setTeams(existing => [...existing, data.team]);
       setTeamName("");
       setPlayerNames(["", ""]);
+      setSteamIds(["", ""]);
       setJoinMessage("Команда зарегистрирована.");
     } catch (err) {
       setJoinMessage(err.message);
@@ -91,9 +93,13 @@ export default function TournamentPublic() {
                       <input required minLength={2} maxLength={32} autoComplete="off"
                         value={playerNames[index]} disabled={joining}
                         onChange={event=>setPlayerNames(current=>current.map((name,i)=>i===index?event.target.value:name))}/>
+                      <span className="iste-tournaments__steam-caption">SteamID64 игрока</span>
+                      <input required inputMode="numeric" pattern="7656119[0-9]{10}" minLength={17} maxLength={17}
+                        placeholder="17 цифр SteamID64" autoComplete="off" value={steamIds[index]} disabled={joining}
+                        onChange={event=>setSteamIds(current=>current.map((id,i)=>i===index?event.target.value.trim():id))}/>
                     </label>
                   )}
-                  <p className="iste-tournaments__note">Состав фиксируется при регистрации. Изменения и запасные игроки не допускаются.</p>
+                  <p className="iste-tournaments__note">SteamID64 проверяется по формату, но принадлежность аккаунта пока не подтверждается. Состав фиксируется при регистрации.</p>
                 </div>
               )}
               <button type="submit" disabled={joining || teams.length >= tournament.max_teams}>
