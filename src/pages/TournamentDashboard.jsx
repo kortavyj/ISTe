@@ -169,9 +169,19 @@ export default function TournamentDashboard() {
         payload.matchId=matchId;
         payload.scoreA=Number(input.a);
         payload.scoreB=Number(input.b);
-        if(!Number.isInteger(payload.scoreA)||!Number.isInteger(payload.scoreB)) {
-          throw new Error("Счёт должен быть целым числом.");
+        if(!Number.isInteger(payload.scoreA)||!Number.isInteger(payload.scoreB) || payload.scoreA<0 || payload.scoreB<0 || payload.scoreA===payload.scoreB) {
+          throw new Error("Счёт должен быть неотрицательным, целым и без ничьей.");
         }
+        const series=Number(tournament?.best_of)===3;
+        if(series ? (Math.max(payload.scoreA,payload.scoreB)!==2 || Math.min(payload.scoreA,payload.scoreB)>1)
+          : (Math.max(payload.scoreA,payload.scoreB)!==13 || Math.min(payload.scoreA,payload.scoreB)>11)) {
+          throw new Error(series?"Для BO3 укажите счёт по картам 2:0 или 2:1.":"Для BO1 допустим счёт по раундам от 13:0 до 13:11.");
+        }
+        const target=matches.find(item=>item.id===matchId);
+        if(!target || target.status!=="scheduled") throw new Error("Матч уже завершён или пока не готов.");
+        const nameA=teams.find(team=>team.id===target.team_a_id)?.name||"Команда A";
+        const nameB=teams.find(team=>team.id===target.team_b_id)?.name||"Команда B";
+        if(!window.confirm("Подтвердить результат "+nameA+" "+payload.scoreA+":"+payload.scoreB+" "+nameB+"? После подтверждения сетка обновится.")) return;
       }
       const response=await fetch("/api/tournament-matches",{
         method:"POST",credentials:"include",
