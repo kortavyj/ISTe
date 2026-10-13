@@ -538,7 +538,7 @@ export default function Navbar() {
               <span className="navbar-link-icon">
                 {navigationIcons[icon]}
               </span>
-              <span>{t(labelKey)}</span>
+              <span>{labelKey === "navigation.tournaments" ? ({uk:"Турніри",ru:"Турниры",en:"Tournaments"}[language] || "Tournaments") : t(labelKey)}</span>
             </NavLink>
           ))}
 
