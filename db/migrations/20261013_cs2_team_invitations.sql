@@ -33,7 +33,8 @@ begin
  if exists(select 1 from public.tournament_teams where tournament_id=v_team.tournament_id and captain_user_id=v_player)
  or exists(select 1 from public.tournament_team_players p join public.tournament_teams t on t.id=p.team_id where t.tournament_id=v_team.tournament_id and p.user_id=v_player)
  then raise exception 'PLAYER_ALREADY_IN_TOURNAMENT'; end if;
- if (select count(*) from public.tournament_team_players where team_id=p_team_id and roster_role=p_role)>=case when p_role='starter' then 4 else 2 end then raise exception 'TEAM_FULL'; end if;
+ if p_role='starter' and (select count(*) from public.tournament_team_players where team_id=p_team_id and roster_role='starter')>=4 then raise exception 'TEAM_FULL'; end if;
+ if p_role='substitute' and (select count(*) from public.tournament_team_players where team_id=p_team_id and roster_role='substitute')>=2 then raise exception 'TEAM_FULL'; end if;
  insert into public.tournament_team_invitations(team_id,user_id,status,reviewed_at,roster_role)
  values(p_team_id,v_player,'pending',null,p_role)
  on conflict(team_id,user_id) do update set status='pending',reviewed_at=null,roster_role=excluded.roster_role;
@@ -55,7 +56,8 @@ begin
  if p_accept then
    if exists(select 1 from public.user_roles where user_id=auth.uid() and is_blocked is true) then raise exception 'ACCOUNT_BLOCKED'; end if;
    if v_team.captain_user_id is null then raise exception 'CAPTAIN_REQUIRED'; end if;
-   if (select count(*) from public.tournament_team_players where team_id=p_team_id and roster_role=v_role)>=case when v_role='starter' then 4 else 2 end then raise exception 'TEAM_FULL'; end if;
+   if v_role='starter' and (select count(*) from public.tournament_team_players where team_id=p_team_id and roster_role='starter')>=4 then raise exception 'TEAM_FULL'; end if;
+   if v_role='substitute' and (select count(*) from public.tournament_team_players where team_id=p_team_id and roster_role='substitute')>=2 then raise exception 'TEAM_FULL'; end if;
    if exists(select 1 from public.tournament_teams where tournament_id=v_team.tournament_id and captain_user_id=auth.uid())
    or exists(select 1 from public.tournament_team_players p join public.tournament_teams t on t.id=p.team_id where t.tournament_id=v_team.tournament_id and p.user_id=auth.uid())
    then raise exception 'PLAYER_ALREADY_IN_TOURNAMENT'; end if;
