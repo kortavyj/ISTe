@@ -10,6 +10,36 @@ async function jsonResponse(response) {
 }
 
 
+function PlayoffBracket({ matches, teams, finished }) {
+  const names = new Map(teams.map(team => [team.id, team.name]));
+  const rounds = [...new Set(matches.map(match => match.round_number))].sort((a,b) => a-b);
+  const final = matches.find(match => match.round_number === rounds[rounds.length-1] && match.status === "completed" && match.winner_team_id);
+  const champion = finished && final ? names.get(final.winner_team_id) : null;
+  return <section className="iste-playoff" aria-label="Турнирная сетка плей-офф">
+    <div className="iste-playoff__heading">
+      <h3>Сетка плей-офф</h3>
+      <p>Путь команд от первого раунда до финала</p>
+    </div>
+    <div className="iste-playoff__rounds">
+      {rounds.map((round,index) => <div className="iste-playoff__round" key={round}>
+        <h4>{index===rounds.length-1?"Финал":rounds.length-index===2?"Полуфинал":"Раунд "+round}</h4>
+        {matches.filter(match=>match.round_number===round).sort((a,b)=>a.match_number-b.match_number).map(match=>
+          <div className="iste-playoff__match" key={match.id}>
+            <small>Матч {match.match_number} · {match.status==="completed"?"Завершён":match.status==="scheduled"?"Ожидает результата":"Ожидает соперников"}</small>
+            {[["a",match.team_a_id,match.score_a],["b",match.team_b_id,match.score_b]].map(([side,id,score])=>
+              <div key={side} className={"iste-playoff__team"+(match.status==="completed"&&id===match.winner_team_id?" iste-playoff__team--winner":"")}>
+                <span>{id?names.get(id)||"Команда":"Ожидается"}</span>
+                <strong>{match.status==="completed"&&score!==null?score:"—"}</strong>
+              </div>
+            )}
+          </div>
+        )}
+      </div>)}
+    </div>
+    {champion&&<div className="iste-playoff__champion"><span>🏆 Чемпион турнира</span><strong>{champion}</strong></div>}
+  </section>;
+}
+
 function RoomSettingsForm({value,onChange,onSave,busy}) {
   const update=(key,val)=>onChange({...value,[key]:val});
   return <div className="iste-tournaments__team-form">
@@ -230,7 +260,8 @@ export default function TournamentDashboard() {
           )}
           {matches.length>0 && (
             <div className="iste-tournaments__bracket-preview">
-              <h3>Матчи турнирной сетки</h3>
+              <PlayoffBracket matches={matches} teams={teams} finished={tournament?.status==="completed"}/>
+              <h3>Управление матчами</h3>
               {matches.map(match=>{
                 const a=teams.find(team=>team.id===match.team_a_id);
                 const b=teams.find(team=>team.id===match.team_b_id);
