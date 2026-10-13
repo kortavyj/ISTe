@@ -67,13 +67,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
       "level": 10,
-      "elo": 2710,
+      "elo": 2680,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 0.99
+      "kd": 1
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -3469,5 +3469,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-13T20:04:12.925Z"
+  "updatedAt": "2026-10-13T20:43:10.918Z"
 }
