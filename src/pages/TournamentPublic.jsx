@@ -67,7 +67,8 @@ export default function TournamentPublic() {
     {error && <p role="alert" className="iste-tournaments__error">{error}</p>}
     {tournament && <>
       <div className="iste-tournaments__card">
-        <span>{tournament.best_of === 3 ? "BO3" : "BO1"} · Single Elimination</span>
+        <span>{tournament.team_size || 5}vs{tournament.team_size || 5} · {tournament.best_of === 3 ? "BO3" : "BO1"} · Single Elimination · {({standard:"Стандартное оружие",awp:"Только AWP",pistols:"Только пистолеты",deagle:"Только Desert Eagle"})[tournament.weapon_mode] || "Стандартное оружие"}</span>
+        {(tournament.team_size === 1 || tournament.team_size === 2) && <p>Без запасных игроков и замен.</p>
         <h2>{tournament.status === "registration" ? "Регистрация команд открыта" : tournament.status}</h2>
         <p>{teams.length} из {tournament.max_teams} команд</p>
       </div>
