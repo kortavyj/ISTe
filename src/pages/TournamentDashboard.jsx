@@ -14,6 +14,7 @@ export default function TournamentDashboard() {
   const [selected, setSelected] = useState("");
   const [teams, setTeams] = useState([]);
   const [teamName, setTeamName] = useState("");
+  const [playerNames, setPlayerNames] = useState(["", ""]);
   const [matches, setMatches] = useState([]);
   const [scores, setScores] = useState({});
   const [serverIds, setServerIds] = useState({});
@@ -67,11 +68,12 @@ export default function TournamentDashboard() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ tournamentId: selected, name: teamName.trim() }),
+        body: JSON.stringify({ tournamentId: selected, name: teamName.trim(), ...(tournament?.team_size < 5 ? { players: playerNames.slice(0,tournament.team_size) } : {}) }),
       });
       const data = await jsonResponse(response);
       setTeams(current => [...current, data.team]);
       setTeamName("");
+      setPlayerNames(["", ""]);
       setSuccess("Команда добавлена.");
     } catch (err) {
       setError(err.message);
@@ -178,6 +180,18 @@ export default function TournamentDashboard() {
                   value={teamName} onChange={event => setTeamName(event.target.value)}
                   disabled={busy || teams.length >= tournament.max_teams} />
               </label>
+              {(tournament?.team_size === 1 || tournament?.team_size === 2) && (
+                <div className="iste-tournaments__roster-fields">
+                  {Array.from({length:tournament.team_size},(_,index)=>
+                    <label key={index}>Игрок {index+1}, ник CS2
+                      <input required minLength={2} maxLength={32} autoComplete="off"
+                        value={playerNames[index]} disabled={busy}
+                        onChange={event=>setPlayerNames(current=>current.map((name,i)=>i===index?event.target.value:name))}/>
+                    </label>
+                  )}
+                  <p className="iste-tournaments__note">Никаких запасных или замен после регистрации.</p>
+                </div>
+              )}
               <button type="submit" disabled={busy || teams.length >= tournament.max_teams}>
                 {busy ? "Добавляем..." : "Добавить команду"}
               </button>
