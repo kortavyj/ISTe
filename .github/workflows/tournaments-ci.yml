@@ -17,6 +17,10 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/tournaments-ci.yml'
+concurrency:
+  group: iste-tournaments-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tournament-checks:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.pull_request.head.ref == 'feature/cs2-tournaments-full-preview'
@@ -50,6 +54,11 @@ jobs:
           cache: npm
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: npm ci
+      - name: Check tournament API syntax
+        run: |
+          node --check server/tournaments/root.js
+          node --check server/tournaments/teams.js
+          node --check server/tournaments/matches.js
       - run: npm test
       - name: Ensure CS2 preview is not skipped by Vercel
         run: bash tests/vercel-preview-build.sh
