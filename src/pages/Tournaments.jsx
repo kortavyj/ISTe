@@ -4,7 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import "./Tournaments.css";
 
 export default function Tournaments({ create = false }) {
-  const { user, role } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(!create);
@@ -61,8 +61,8 @@ export default function Tournaments({ create = false }) {
           : "Здесь появятся опубликованные турниры ISTe и сообщества. Смотреть их могут все."}</p>
         <div className="iste-tournaments__actions">
           <Link to="/tournaments">Все турниры</Link>
-          {role === "owner" && <Link to="/account/tournaments">Управление турнирами</Link>}
-          {role === "owner" && <Link to="/tournaments/create">Создать турнир</Link>}
+          {user && <Link to="/account/tournaments">Управление турнирами</Link>}
+          {user && <Link to="/tournaments/create">Создать турнир</Link>}
         </div>
       </div>
       {error && <p className="iste-tournaments__error" role="alert">{error}</p>}
