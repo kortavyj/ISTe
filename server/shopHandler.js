@@ -11,7 +11,7 @@ import {
   readJsonBody,
   readQueryString,
 } from "../api/lib/requestBody.js";
-import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
+import { requireAdminOrOwner } from "./ownerRequest.js";
 
 const PRODUCT_COLUMNS = [
   "id",

@@ -1,0 +1,99 @@
+name: CS2 integration merge check
+on:
+  push:
+    branches:
+      - integration/cs2-main-sync-20261012
+    paths:
+      - .github/workflows/cs2-integration-merge.yml
+permissions:
+  contents: write
+jobs:
+  combine-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: tournaments_ci
+          POSTGRES_DB: iste_tournaments_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iste_tournaments_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: tournaments_ci
+      PGDATABASE: iste_tournaments_ci
+      PGOPTIONS: '-c client_min_messages=warning'
+      VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-publishable-placeholder-no-real-credentials
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Merge tournament feature into integration branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "iste-integration-bot"
+          git config user.email "integration-bot@users.noreply.github.com"
+          git fetch origin main feature/cs2-tournaments-full-preview
+          test "$(git branch --show-current)" = "integration/cs2-main-sync-20261012"
+          # Main may have advanced after the integration branch was created.
+          # Merge it first, then resolve tournament-specific conflicts separately.
+          git merge --no-edit origin/main
+          git merge --no-commit --no-ff origin/feature/cs2-tournaments-full-preview || true
+          mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
+          for path in "${conflicts[@]}"; do
+            case "$path" in
+              .github/workflows/tournaments-ci.yml|src/App.jsx|src/pages/FounderDashboard.jsx|src/pages/TournamentPreview.css|src/pages/TournamentPreview.jsx)
+                git checkout --theirs -- "$path"
+                git add "$path"
+                ;;
+              *)
+                echo "Unexpected merge conflict: $path"
+                git merge --abort || true
+                exit 1
+                ;;
+            esac
+          done
+          git diff --name-only --diff-filter=U | grep . && { echo 'Unresolved conflicts'; exit 1; } || true
+          # Preserve updated FACEIT source data from main, rather than the older feature branch.
+          git checkout origin/main -- public/data/faceit-stats.json
+          git add public/data/faceit-stats.json
+          git diff --cached --quiet && { echo 'No tournament changes merged'; exit 1; } || true
+          git commit -m "merge: integrate CS2 tournaments with main while preserving FACEIT data"
+          echo "Integrated HEAD: $(git rev-parse HEAD)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+      - run: npm run build
+      - name: Database migrations and integration test
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f tests/pg/00_auth_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournaments_foundation.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournament_teams.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_matches.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_bracket_rpcs.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_event_replay.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/pg/10_tournament_e2e.sql
+      - name: Publish tested merge to integration branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "integration/cs2-main-sync-20261012"
+          git push origin HEAD:refs/heads/integration/cs2-main-sync-20261012

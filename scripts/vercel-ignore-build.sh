@@ -9,6 +9,16 @@
 
 set -u
 
+# Preview builds use the same changed-path detection as production.
+# SQL/test-only commits are validated in GitHub Actions without consuming
+# a Vercel deployment. Web changes and manual redeploys still build.
+# The isolated CS2 beta may need a rebuild after branch-scoped env updates.
+# Never apply this exception to Production or other branches.
+if [ "${VERCEL_ENV:-}" = "preview" ] && [ "${VERCEL_GIT_COMMIT_REF:-}" = "integration/cs2-main-sync-20261012" ] && [ "${CS2_ISOLATED_STAGING:-}" = "yes" ]; then
+  echo "Isolated CS2 beta Preview: building to pick up staging configuration."
+  exit 1
+fi
+
 BASE_SHA="${VERCEL_GIT_PREVIOUS_SHA:-}"
 HEAD_SHA="$(git rev-parse HEAD)"
 

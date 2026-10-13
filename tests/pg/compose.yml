@@ -1,0 +1,16 @@
+services:
+  tournaments-db:
+    image: postgres:16-alpine
+    container_name: iste-tournaments-local-test
+    restart: "no"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: tournaments_local_only
+      POSTGRES_DB: iste_tournaments_test
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d iste_tournaments_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 20

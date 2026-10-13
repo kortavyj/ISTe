@@ -34,6 +34,22 @@
   ],
   "rewrites": [
     {
+      "source": "/api/tournaments",
+      "destination": "/api/owner?module=tournaments"
+    },
+    {
+      "source": "/api/tournament-teams",
+      "destination": "/api/owner?module=tournaments&submodule=teams"
+    },
+    {
+      "source": "/api/tournament-matches",
+      "destination": "/api/owner?module=tournaments&submodule=matches"
+    },
+    {
+      "source": "/api/tournament-action",
+      "destination": "/api/owner?module=tournaments&submodule=action"
+    },
+    {
       "source": "/api/shop",
       "destination": "/api/owner?module=shop"
     },

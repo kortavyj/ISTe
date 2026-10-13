@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/cs2-tournaments-full-preview
+      - integration/cs2-main-sync-20261012
   pull_request:
     paths:
       - 'src/**'
@@ -11,12 +12,19 @@ on:
       - 'api/**'
       - 'tests/**'
       - 'db/migrations/20261011_cs2_*.sql'
+      - 'db/migrations/20261012_cs2_*.sql'
+      - 'db/migrations/20261013_cs2_*.sql'
+      - 'db/preflight/cs2_beta_dependencies.sql'
+      - 'db/staging/cs2_beta_profiles.sql'
+      - 'scripts/cs2-staging-preflight.mjs'
+      - 'scripts/cs2-beta-env-check.mjs'
+      - 'docs/tournaments/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/tournaments-ci.yml'
 jobs:
   tournament-checks:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/cs2-tournaments-full-preview'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || contains(fromJSON('["feature/cs2-tournaments-full-preview", "integration/cs2-main-sync-20261012"]'), github.event.pull_request.head.ref)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -41,9 +49,6 @@ jobs:
       PGOPTIONS: '-c client_min_messages=warning'
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Manual dispatch from main tests the feature branch, not main's package.json.
-          ref: ${{ github.event_name == 'workflow_dispatch' && 'feature/cs2-tournaments-full-preview' || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -51,6 +56,14 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: npm ci
       - run: npm test
+      - name: Confirm staging guard refuses ISTe production
+        run: |
+          node scripts/cs2-staging-preflight.mjs --self-test
+          node scripts/cs2-beta-env-check.mjs --self-test
+      - name: Ensure CS2 preview is not skipped by Vercel
+        run: bash tests/vercel-preview-build.sh
+      - name: Verify Hobby function budget and server imports
+        run: node --test tests/vercel-hobby-shape.test.js
       - run: npm run lint
       - name: Build frontend with isolated CI-only placeholders
         run: npm run build
@@ -61,9 +74,46 @@ jobs:
         run: |
           set -euo pipefail
           psql -X -v ON_ERROR_STOP=1 -f tests/pg/00_auth_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/staging/cs2_beta_profiles.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournaments_foundation.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_tournament_teams.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_matches.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_bracket_rpcs.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_event_replay.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_match_rooms.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_team_players.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_team_approval.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_roster_profiles.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_community_organizers.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_community_match_permissions.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_application_status.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_serialized_team_approval.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_application_names.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_team_management.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_assign_captain.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_captain_username_search.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_formats_weapons.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_team_invitations.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_roster_roles_invitations.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_format_roster_limits.sql
+      - name: Verify staging schema dependency preflight
+        run: psql -X -v ON_ERROR_STOP=1 -f db/preflight/cs2_beta_dependencies.sql
+      - name: Verify beta profile self-only row permissions
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/80_beta_profiles_rls.sql
+      - name: Verify match-room access and timed credential release
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/40_match_room_security.sql
+      - name: Verify participant enrollment and match-room permissions
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/50_team_player_access.sql
+      - name: Verify five-player roster limits and applicant rejection
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/60_roster_capacity.sql
+      - name: Reject plaintext server passwords at database boundary
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/70_room_password_storage.sql
+      - name: Verify regular community creator isolation and blocked account restrictions
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/90_community_creator.sql
       - name: Simulate actual DB tournament from 2 to 64 teams
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/10_tournament_e2e.sql
+      - name: Verify concurrent tournament result confirmations
+        run: bash tests/pg/20_concurrency.sh
+
+      - name: Test backup and restoration on disposable CI database
+        run: bash tests/pg/30_restore_drill.sh

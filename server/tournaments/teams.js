@@ -1,0 +1,218 @@
+import { guardRequest } from "../../api/lib/requestGuard.js";
+import { readAuthCookies, setAuthCookies } from "../../api/lib/authCookies.js";
+import { readJsonBody, isUuid } from "../../api/lib/requestBody.js";
+import { getSupabaseServerClient } from "../../api/lib/supabaseServer.js";
+
+function send(response, status, error, message) {
+  return response.status(status).json({ ok: false, error, message });
+}
+export async function currentUser(request, response, supabase) {
+  const { accessToken, refreshToken } = readAuthCookies(request);
+  if (!refreshToken) return null;
+  const { data, error } = await supabase.auth.setSession({
+    access_token: accessToken, refresh_token: refreshToken,
+  });
+  if (error || !data?.user || !data?.session) return null;
+  setAuthCookies(response, data.session);
+  const { data: role, error: roleError } = await supabase.from("user_roles")
+    .select("role,is_blocked").eq("user_id", data.user.id).maybeSingle();
+  if (roleError || role?.is_blocked === true) return null;
+  return { ...data.user, isOwner: role?.role === "owner" };
+}
+
+export default async function handler(request, response) {
+  response.setHeader("Cache-Control", "no-store");
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  const method = request.method;
+  const guard = guardRequest(request, {
+    methods: ["GET", "POST"],
+    requireJson: method === "POST",
+    requireOrigin: method === "POST",
+    maxBodyBytes: 4096,
+  });
+  if (!guard.ok) return send(response, guard.status, guard.error, "Запрос отклонён.");
+  const body = method === "POST" ? readJsonBody(request) : null;
+  const tournamentId = method === "POST" ? body?.tournamentId : request.query?.tournamentId;
+  if (!isUuid(tournamentId)) return send(response, 400, "INVALID_TOURNAMENT", "Неверный идентификатор турнира.");
+  try {
+    const supabase = getSupabaseServerClient();
+    if(method==="GET" && request.query?.view==="captain-search"){
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      const prefix=typeof request.query?.q==="string"?request.query.q.trim():"";
+      if(prefix.length<2 || prefix.length>60)return response.status(200).json({ok:true,usernames:[]});
+      const {data,error}=await supabase.rpc("iste_captain_username_search",{
+        p_tournament_id:tournamentId,p_prefix:prefix
+      });
+      if(error){
+        if(/OWNER_REQUIRED|ACCOUNT_BLOCKED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Поиск доступен только организатору.");
+        throw error;
+      }
+      return response.status(200).json({ok:true,usernames:(data||[]).map(item=>item.username)});
+    }
+    if (method === "GET" && request.query?.view === "roster") {
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт для просмотра состава.");
+      const teamId=request.query?.teamId;
+      if(!isUuid(teamId)) return send(response,400,"INVALID_TEAM","Неверная команда.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams")
+        .select("id").eq("id",teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {data,error}=await supabase.rpc("iste_team_roster",{p_team_id:teamId});
+      if(error){if(/FORBIDDEN/.test(error.message||"")) return send(response,403,"FORBIDDEN","Доступ запрещён.");throw error;}
+      return response.status(200).json({ok:true,players:data?.players||[],applications:data?.applications||[],myApplicationStatus:data?.myApplicationStatus||null,myInvitation:data?.myInvitation||null});
+    }
+    if(method==="POST" && ["invite-player","respond-invite"].includes(body?.action)){
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      if(!isUuid(body?.teamId))return send(response,400,"INVALID_TEAM","Неверная команда.");
+      const {data:team,error:te}=await supabase.from("tournament_teams").select("id")
+        .eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(te)throw te;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      let rpc,params;
+      if(body.action==="invite-player"){
+        if(typeof body.username!=="string"||body.username.trim().length<2||body.username.length>60||
+          !["starter","substitute"].includes(body.role))
+          return send(response,400,"INVALID_INPUT","Выберите пользователя и роль.");
+        rpc="iste_invite_team_player";
+        params={p_team_id:body.teamId,p_username:body.username.trim(),p_role:body.role};
+      }else{
+        if(typeof body.accept!=="boolean")return send(response,400,"INVALID_INPUT","Неверный ответ.");
+        rpc="iste_respond_team_invitation";
+        params={p_team_id:body.teamId,p_accept:body.accept};
+      }
+      const {error}=await supabase.rpc(rpc,params);
+      if(error){
+        if(/CAPTAIN_REQUIRED|ACCOUNT_BLOCKED|AUTH_REQUIRED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Нет прав на действие.");
+        if(/USER_NOT_FOUND/.test(error.message||""))return send(response,404,"USER_NOT_FOUND","Username не найден.");
+        if(/REGISTRATION_CLOSED|TEAM_FULL|PLAYER_ALREADY_IN_TOURNAMENT|INVITATION_NOT_FOUND|INVALID_ROLE|PLAYER_BLOCKED/.test(error.message||""))
+          return send(response,409,"INVALID_STATE","Приглашение нельзя обработать.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
+    }
+    if (method === "POST" && body?.action === "assign-captain") {
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      if(!isUuid(body?.teamId)||typeof body?.username!=="string"||body.username.trim().length<2||body.username.length>60)
+        return send(response,400,"INVALID_INPUT","Укажите никнейм зарегистрированного капитана.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams")
+        .select("id").eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {error}=await supabase.rpc("iste_assign_team_captain",{
+        p_team_id:body.teamId,p_username:body.username.trim()
+      });
+      if(error){
+        if(/OWNER_REQUIRED|ACCOUNT_BLOCKED|AUTH_REQUIRED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Назначать капитана может только организатор.");
+        if(/USER_NOT_FOUND/.test(error.message||""))
+          return send(response,404,"USER_NOT_FOUND","Пользователь с таким никнеймом не найден.");
+        if(/PLAYER_ALREADY_IN_TOURNAMENT|CAPTAIN_ALREADY_ASSIGNED|REGISTRATION_CLOSED/.test(error.message||""))
+          return send(response,409,"INVALID_STATE","Капитан уже назначен или участвует в другой команде турнира.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
+    }
+    if (method === "POST" && ["leave","remove","ready","unready"].includes(body?.action)) {
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Необходимо войти.");
+      if(!isUuid(body?.teamId))return send(response,400,"INVALID_TEAM","Неверная команда.");
+      if(["leave","remove"].includes(body.action) && !isUuid(body?.userId))
+        return send(response,400,"INVALID_PLAYER","Неверный игрок.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams")
+        .select("id").eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {error}=await supabase.rpc("iste_manage_team",{
+        p_team_id:body.teamId,p_action:body.action,p_user_id:body.userId||null
+      });
+      if(error){
+        if(/CAPTAIN_REQUIRED|FORBIDDEN|ACCOUNT_BLOCKED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Недостаточно прав.");
+        if(/REGISTRATION_CLOSED|NOT_TEAM_MEMBER|ROSTER_INCOMPLETE|INVALID_PLAYER/.test(error.message||""))
+          return send(response,409,"INVALID_STATE","Действие недоступно для текущего состава.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
+    }
+    if (method === "POST" && body?.action === "review-application") {
+      const user=await currentUser(request,response,supabase);
+      if(!user) return send(response,401,"AUTH_REQUIRED","Необходимо войти.");
+      if(!isUuid(body?.teamId)||!isUuid(body?.userId)||typeof body?.accept!=="boolean")
+        return send(response,400,"INVALID_ACTION","Некорректные данные заявки.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams").select("id")
+        .eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {error}=await supabase.rpc("iste_review_team_application",{
+        p_team_id:body.teamId,p_user_id:body.userId,p_accept:body.accept
+      });
+      if(error){
+        if(/CAPTAIN_REQUIRED|ACCOUNT_BLOCKED/.test(error.message||"")) return send(response,403,"FORBIDDEN","Только капитан может обработать заявку.");
+        if(/TEAM_FULL|PLAYER_ALREADY_IN_TOURNAMENT|REGISTRATION_CLOSED|APPLICATION_NOT_FOUND/.test(error.message||"")) return send(response,409,"INVALID_STATE","Заявку нельзя обработать.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
+    }
+    if (method === "POST" && body?.action === "join-team") {
+      const user = await currentUser(request, response, supabase);
+      if (!user) return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      if (!isUuid(body?.teamId)) return send(response,400,"INVALID_TEAM","Неверная команда.");
+      const {data:team,error:teamError}=await supabase.from("tournament_teams")
+        .select("id").eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(teamError)throw teamError;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      const {error}=await supabase.rpc("iste_add_team_player",{p_team_id:body.teamId,p_user_id:user.id});
+      if(error){
+        if(/TEAM_FULL|PLAYER_ALREADY_IN_TOURNAMENT|REGISTRATION_CLOSED|ALREADY_CAPTAIN/.test(error.message||""))
+          return send(response,409,"JOIN_UNAVAILABLE","Невозможно вступить в эту команду.");
+        if(/ACCOUNT_BLOCKED|INVALID_PLAYER|CAPTAIN_REQUIRED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Регистрация отклонена.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
+    }
+    if (method === "GET") {
+      const { data, error } = await supabase.from("tournament_teams")
+        .select("id,tournament_id,name,captain_user_id,is_ready,created_at").eq("tournament_id", tournamentId)
+        .order("created_at", { ascending: true }).limit(64);
+      if (error) throw error;
+      return response.status(200).json({ ok: true, teams: data });
+    }
+    const user = await currentUser(request, response, supabase);
+    if (!user) return send(response, 401, "AUTH_REQUIRED", "Необходимо войти в аккаунт.");
+    const join = body?.join === true;
+    const name = typeof body?.name === "string" ? body.name.trim() : "";
+    if (name.length < 2 || name.length > 60) {
+      return send(response, 400, "INVALID_TEAM", "Название команды должно содержать от 2 до 60 символов.");
+    }
+    const { data: tournament, error: tournamentError } = await supabase
+      .from("tournaments").select("id,owner_user_id,status")
+      .eq("id", tournamentId).maybeSingle();
+    if (tournamentError) throw tournamentError;
+    const ownerAdding = !join && tournament?.owner_user_id === user.id
+      && ["draft", "registration"].includes(tournament.status);
+    const captainJoining = join && tournament?.status === "registration";
+    if (!ownerAdding && !captainJoining) {
+      return send(response, 403, "FORBIDDEN", "Регистрация закрыта или нет прав на добавление команды.");
+    }
+    const { data, error } = await supabase.from("tournament_teams")
+      .insert({ tournament_id: tournamentId, name, ...(join ? { captain_user_id: user.id } : {}) })
+      .select("id,tournament_id,name,created_at").single();
+    if (error?.code === "23505") return send(response, 409, "TEAM_EXISTS", "Название занято или вы уже капитан команды в этом турнире.");
+    if (error?.code === "42501") return send(response, 403, "FORBIDDEN", "У вас нет прав на регистрацию.");
+    if (error?.message?.includes("TOURNAMENT_FULL")) {
+      return send(response, 409, "TOURNAMENT_FULL", "Достигнут лимит команд.");
+    }
+    if (error) throw error;
+    return response.status(201).json({ ok: true, team: data });
+  } catch (error) {
+    console.error("Tournament teams request:", error?.code || error?.message);
+    return send(response, 503, "TEAMS_UNAVAILABLE", "Сервис команд временно недоступен.");
+  }
+}

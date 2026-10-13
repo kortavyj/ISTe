@@ -2,13 +2,14 @@ import { guardRequest } from "./lib/requestGuard.js";
 import {
   mapOwnerRpcError,
   requireAdminOrOwner,
-} from "./lib/ownerRequest.js";
+} from "../server/ownerRequest.js";
 import {
   isUuid,
   readJsonBody,
   readQueryString,
 } from "./lib/requestBody.js";
 import shopHandler from "../server/shopHandler.js";
+import tournamentHandler from "../server/tournaments/root.js";
 import discordHandler from "../server/discordHandler.js";
 import botPortalHandler from "../server/botPortalHandler.js";
 import highlightsHandler from "../server/highlightsHandler.js";
@@ -362,6 +363,13 @@ export default async function handler(request, response) {
     typeof rawModule === "string"
       ? rawModule.trim().toLowerCase()
       : "";
+
+  if (moduleName === "tournaments") {
+    // Tournament handlers enforce their own per-action authorization.
+    // Public listings, fixtures and captain registration must not be
+    // blocked by the owner-only admin router.
+    return tournamentHandler(request, response);
+  }
 
   if (moduleName === "shop") {
     return shopHandler(request, response);

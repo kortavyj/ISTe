@@ -2,8 +2,8 @@ import {
   clearAuthCookies,
   readAuthCookies,
   setAuthCookies,
-} from "./authCookies.js";
-import { getSupabaseServerClient } from "./supabaseServer.js";
+} from "../api/lib/authCookies.js";
+import { getSupabaseServerClient } from "../api/lib/supabaseServer.js";
 
 const ERROR_MESSAGES = Object.freeze({
   AUTH_REQUIRED:
@@ -288,6 +288,16 @@ export async function requireAdminOrOwner(
   }
 }
 
+export function ownerRoleDecision(access) {
+  if (access?.is_blocked === true) return "ACCOUNT_BLOCKED";
+  if (access?.role !== "owner") return "OWNER_REQUIRED";
+  return null;
+}
+
+export function ownerMfaPassed(assurance, error) {
+  return !error && assurance?.currentLevel === "aal2";
+}
+
 export async function requireOwner(
   request,
   response,
@@ -376,7 +386,7 @@ export async function requireOwner(
       };
     }
 
-    if (access?.is_blocked === true) {
+    if (ownerRoleDecision(access) === "ACCOUNT_BLOCKED") {
       return {
         ok: false,
         status: 403,
@@ -387,7 +397,7 @@ export async function requireOwner(
       };
     }
 
-    if (access?.role !== "owner") {
+    if (ownerRoleDecision(access) === "OWNER_REQUIRED") {
   return {
     ok: false,
     status: 403,
@@ -408,9 +418,7 @@ const {
     );
 
 if (
-  assuranceError ||
-  assurance?.currentLevel !==
-    "aal2"
+  !ownerMfaPassed(assurance, assuranceError)
 ) {
   clearAuthCookies(response);
 

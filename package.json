@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "oxlint src",
     "preview": "vite preview",
-    "faceit:update": "node scripts/update-faceit-stats.mjs"
+    "faceit:update": "node scripts/update-faceit-stats.mjs",
+    "test": "node --test tests/tournament-bracket.test.js tests/tournament-full-bracket.test.js tests/tournament-server-events.test.js tests/tournament-http-webhook.test.js tests/tournament-webhook-integration.test.js tests/tournament-mfa.test.js tests/tournament-owner-session.test.js tests/tournament-public-routing.test.js tests/tournament-room-crypto.test.js tests/tournament-roster-session.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.110.8",
