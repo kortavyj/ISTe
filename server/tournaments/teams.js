@@ -38,7 +38,7 @@ export default async function handler(request, response) {
     const supabase = getSupabaseServerClient();
     if (method === "GET") {
       const { data, error } = await supabase.from("tournament_teams")
-        .select("id,tournament_id,name,player_names,created_at").eq("tournament_id", tournamentId)
+        .select("id,tournament_id,name,player_names,player_steam_ids,created_at").eq("tournament_id", tournamentId)
         .order("created_at", { ascending: true }).limit(64);
       if (error) throw error;
       return response.status(200).json({ ok: true, teams: data });
@@ -61,6 +61,7 @@ export default async function handler(request, response) {
       return send(response, 403, "FORBIDDEN", "Регистрация закрыта или нет прав на добавление команды.");
     }
     const roster = body?.players;
+    const steamIds = body?.steamIds;
     const teamSize = tournament.team_size ?? 5;
     if (teamSize === 1 || teamSize === 2) {
       if (!Array.isArray(roster) || roster.length !== teamSize
@@ -70,13 +71,22 @@ export default async function handler(request, response) {
         return send(response, 400, "INVALID_ROSTER",
           "Для этого режима требуется точный состав без запасных и повторяющихся игроков.");
       }
+      if (!Array.isArray(steamIds) || steamIds.length !== teamSize
+        || !steamIds.every(id => typeof id === "string" && /^7656119[0-9]{10}$/.test(id))
+        || new Set(steamIds).size !== teamSize) {
+        return send(response, 400, "INVALID_STEAM_ROSTER",
+          "Для каждого участника укажите уникальный SteamID64 из 17 цифр.");
+      }
     } else if (roster !== undefined && (!Array.isArray(roster) || roster.length > 0)) {
       return send(response, 400, "ROSTER_UNSUPPORTED", "Состав 5vs5 пока не поддерживается.");
     }
+    if (teamSize === 5 && steamIds !== undefined) {
+      return send(response, 400, "ROSTER_UNSUPPORTED", "Привязка состава 5vs5 пока не поддерживается.");
+    }
     const { data, error } = await supabase.from("tournament_teams")
-      .insert({ tournament_id: tournamentId, name, player_names: teamSize < 5 ? roster.map(player => player.trim()) : [], ...(join ? { captain_user_id: user.id } : {}) })
-      .select("id,tournament_id,name,player_names,created_at").single();
-    if (error?.message?.includes("ROSTER_")) {
+      .insert({ tournament_id: tournamentId, name, player_steam_ids: teamSize < 5 ? steamIds : [], player_names: teamSize < 5 ? roster.map(player => player.trim()) : [], ...(join ? { captain_user_id: user.id } : {}) })
+      .select("id,tournament_id,name,player_names,player_steam_ids,created_at").single();
+    if (error?.message?.includes("ROSTER_") || error?.message?.includes("STEAM_ID_") || error?.message?.includes("STEAM_ROSTER_")) {
       return send(response, 409, "ROSTER_REJECTED",
         "Состав не соответствует правилам турнира или игрок уже зарегистрирован.");
     }
