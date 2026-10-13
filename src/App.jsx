@@ -140,8 +140,8 @@ export default function App() {
           <Route path="/tournaments" element={<Tournaments />} />
           <Route path="/tournaments/:slug" element={<TournamentPublic />} />
           <Route path="/tournaments/:slug/matches/:matchId" element={<TournamentMatchRoom />} />
-          <Route path="/tournaments/create" element={<OwnerRoute><Tournaments create /></OwnerRoute>} />
-          <Route path="/account/tournaments" element={<OwnerRoute><TournamentDashboard /></OwnerRoute>} />
+          <Route path="/tournaments/create" element={<ProtectedRoute><Tournaments create /></ProtectedRoute>} />
+          <Route path="/account/tournaments" element={<ProtectedRoute><TournamentDashboard /></ProtectedRoute>} />
           <Route path="/news" element={<News />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/discord" element={<DiscordBot />} />
