@@ -38,6 +38,11 @@ const navigation = [
     icon: "team",
   },
   {
+    to: "/tournaments",
+    labelKey: "navigation.tournaments",
+    icon: "trophy",
+  },
+  {
     to: "/news",
     labelKey: "navigation.news",
     icon: "news",
@@ -147,6 +152,12 @@ const navigationIcons = {
         fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
       <circle cx="9.5" cy="13" r="1" fill="currentColor" />
       <circle cx="14.5" cy="13" r="1" fill="currentColor" />
+    </svg>
+  ),
+  trophy: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 4h10v6a5 5 0 0 1-10 0V4ZM7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4M12 15v4M8 20h8"
+        fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
   tactics: (
@@ -532,7 +543,7 @@ export default function Navbar() {
               <span className="navbar-link-icon">
                 {navigationIcons[icon]}
               </span>
-              <span>{t(labelKey)}</span>
+              <span>{labelKey === "navigation.tournaments" ? (language === "uk" ? "Турніри" : language === "ru" ? "Турниры" : "Tournaments") : t(labelKey)}</span>
             </NavLink>
           ))}
 
