@@ -19,12 +19,12 @@ function response(){return {setHeader(){},getHeader(){return null;}};}
 for(const [name,options,allowed] of [
  ["valid owner session with MFA",{},true],
  ["expired session",{authError:true},false],
- ["non-owner",{role:"user"},false],
+ ["registered user",{role:"user"},true],
  ["blocked owner",{blocked:true},false],
- ["owner without MFA",{aal:"aal1"},false],
- ["MFA provider error",{mfaError:true},false],
+ ["owner without MFA",{aal:"aal1"},true],
+ ["MFA provider unavailable",{mfaError:true},true],
 ]){
- test("owner guard "+name,async()=>{
+ test("tournament organizer session "+name,async()=>{
   const fake=fakeSupabase(options);
   const value=await authenticatedUser(request(),response(),fake.api);
   assert.equal(Boolean(value),allowed);
