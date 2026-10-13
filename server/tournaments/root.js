@@ -30,7 +30,7 @@ async function sessionForRequest(request, response, supabase) {
   setAuthCookies(response, data.session);
   const { data: role, error: roleError } = await supabase.from("user_roles")
     .select("role,is_blocked").eq("user_id", data.user.id).maybeSingle();
-  if (roleError || (role?.is_blocked === true || role?.role !== "owner")) return null;
+  if (roleError || (role?.is_blocked === true)) return null;
   return data.user;
 }
 export default async function handler(request, response) {
