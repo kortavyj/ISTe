@@ -11,7 +11,7 @@ export default function Tournaments({ create = false }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    title: "", description: "", bestOf: "1", maxTeams: "16",
+    title: "", description: "", bestOf: "1", maxTeams: "16", teamSize:"5", weaponRule:"standard",
   });
 
   useEffect(() => {
@@ -39,6 +39,7 @@ export default function Tournaments({ create = false }) {
         body: JSON.stringify({
           title: form.title, description: form.description,
           bestOf: Number(form.bestOf), maxTeams: Number(form.maxTeams),
+          teamSize:Number(form.teamSize),weaponRule:form.weaponRule,
         }),
       });
       const data = await res.json();
@@ -76,6 +77,21 @@ export default function Tournaments({ create = false }) {
             <textarea maxLength={3000} rows={4} value={form.description}
               onChange={e => setForm(v => ({ ...v, description: e.target.value }))} />
           </label>
+          <label>Формат команд
+            <select value={form.teamSize} onChange={e=>setForm(v=>({...v,teamSize:e.target.value,weaponRule:"standard"}))}>
+              <option value="1">1v1 — без запасных</option>
+              <option value="2">2v2 — без запасных</option>
+              <option value="5">5v5 — 5 основных + 2 запасных</option>
+            </select>
+          </label>
+          {form.teamSize!=="5"&&<label>Оружие турнира
+            <select value={form.weaponRule} onChange={e=>setForm(v=>({...v,weaponRule:e.target.value}))}>
+              <option value="standard">Без ограничений</option>
+              <option value="awp_only">Только AWP</option>
+              <option value="pistols_only">Только пистолеты</option>
+              <option value="rifles_only">Только винтовки</option>
+            </select>
+          </label>}
           <label>Формат серии
             <select value={form.bestOf} onChange={e => setForm(v => ({ ...v, bestOf: e.target.value }))}>
               <option value="1">BO1</option><option value="3">BO3</option>
@@ -91,7 +107,7 @@ export default function Tournaments({ create = false }) {
       ) : loading ? <p>Загружаем турниры…</p> : items.length ? (
         <div className="iste-tournaments__grid">{items.map(item => (
           <article className="iste-tournaments__card" key={item.id}>
-            <span>CS2 · {item.best_of === 3 ? "BO3" : "BO1"}</span>
+            <span>CS2 · {item.team_size||5}v{item.team_size||5} · {item.weapon_rule==="awp_only"?"AWP-only · ":""}{item.best_of === 3 ? "BO3" : "BO1"}</span>
             <h2><Link to={"/tournaments/" + item.slug}>{item.title}</Link></h2>
             <p>{item.description || "Турнир Counter Strike 2"}</p>
             <small>{item.max_teams} команд · {item.status}</small>
