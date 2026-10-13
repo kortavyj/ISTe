@@ -174,8 +174,11 @@ export default function TournamentDashboard() {
         }
         const series=Number(tournament?.best_of)===3;
         if(series ? (Math.max(payload.scoreA,payload.scoreB)!==2 || Math.min(payload.scoreA,payload.scoreB)>1)
-          : (Math.max(payload.scoreA,payload.scoreB)!==13 || Math.min(payload.scoreA,payload.scoreB)>11)) {
-          throw new Error(series?"Для BO3 укажите счёт по картам 2:0 или 2:1.":"Для BO1 допустим счёт по раундам от 13:0 до 13:11.");
+          : !((Math.max(payload.scoreA,payload.scoreB)===13 && Math.min(payload.scoreA,payload.scoreB)<=11)
+            || (Math.max(payload.scoreA,payload.scoreB)>=16
+              && (Math.max(payload.scoreA,payload.scoreB)-16)%3===0
+              && Math.abs(payload.scoreA-payload.scoreB)===2))) {
+          throw new Error(series?"Для BO3 укажите счёт по картам 2:0 или 2:1.":"Для BO1 укажите 13:0–13:11 либо результат овертайма 16:14, 19:17 и т. д.");
         }
         const target=matches.find(item=>item.id===matchId);
         if(!target || target.status!=="scheduled") throw new Error("Матч уже завершён или пока не готов.");
