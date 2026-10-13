@@ -1,6 +1,5 @@
 -- Five starters (including captain) plus two substitutes.
 alter table public.tournament_team_players add column if not exists roster_role text not null default 'starter' check(roster_role in ('starter','substitute'));
-alter table public.tournament_team_invitations add column if not exists roster_role text not null default 'starter' check(roster_role in ('starter','substitute'));
 
 -- Captain-initiated, player-accepted invitations (no automatic roster insertion).
 create table if not exists public.tournament_team_invitations (
@@ -11,6 +10,7 @@ create table if not exists public.tournament_team_invitations (
  reviewed_at timestamptz,
  primary key(team_id,user_id)
 );
+alter table public.tournament_team_invitations add column if not exists roster_role text not null default 'starter' check(roster_role in ('starter','substitute'));
 alter table public.tournament_team_invitations enable row level security;
 revoke all on public.tournament_team_invitations from public,anon,authenticated;
 
