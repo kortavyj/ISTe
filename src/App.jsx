@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "./auth/AuthContext.jsx";
 import AdminRoute from "./auth/AdminRoute.jsx";
@@ -58,11 +58,43 @@ import "./styles/Typography.css";
 
 export default function App() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [tournamentTransition, setTournamentTransition] = useState(false);
+  const tournamentTransitionTimer = useRef(null);
   const { user, loading, isBlocked } = useAuth();
 
   const [showIntro, setShowIntro] = useState(location.pathname === "/");
   const initialViewWasPositionedRef = useRef(false);
   const introIsActive = showIntro && location.pathname === "/";
+
+  useEffect(() => {
+    function handleTournamentLink(event) {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target.closest?.("a[href]");
+      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin || destination.pathname !== "/tournaments" || location.pathname === "/tournaments") return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (tournamentTransitionTimer.current) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        navigate(destination.pathname + destination.search + destination.hash);
+        return;
+      }
+      setTournamentTransition(true);
+      tournamentTransitionTimer.current = window.setTimeout(() => {
+        tournamentTransitionTimer.current = null;
+        navigate(destination.pathname + destination.search + destination.hash);
+        setTournamentTransition(false);
+      }, 1550);
+    }
+    document.addEventListener("click", handleTournamentLink, true);
+    return () => {
+      document.removeEventListener("click", handleTournamentLink, true);
+      window.clearTimeout(tournamentTransitionTimer.current);
+      tournamentTransitionTimer.current = null;
+    };
+  }, [navigate, location.pathname]);
 
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration;
@@ -123,6 +155,23 @@ export default function App() {
       }`}
     >
       <SeoManager />
+      {tournamentTransition && (
+        <div className="iste-bracket-transition" role="status" aria-label="Открывается турнирная сетка">
+          <div className="iste-bracket-transition__rounds" aria-hidden="true">
+            <div className="iste-bracket-transition__round"><span>ISTe</span><span>TEAM ALPHA</span><span>TEAM BRAVO</span><span>TEAM CHARLIE</span></div>
+            <div className="iste-bracket-transition__round iste-bracket-transition__semis"><span>SEMI FINAL</span><span>ISTe</span></div>
+            <div className="iste-bracket-transition__round iste-bracket-transition__winner"><span>WINNER</span><strong>ISTe</strong></div>
+          </div>
+          <div className="iste-bracket-transition__bullet" aria-hidden="true">
+            <svg viewBox="0 0 180 56" fill="none">
+              <path d="M2 9h116l44 19-44 19H2z" fill="#AB783E" stroke="#F4D09C" strokeWidth="2"/>
+              <path d="M119 9v38M19 9v38" stroke="#6C492B" strokeWidth="3"/>
+              <path d="M162 28 118 47V9z" fill="#CC9051"/>
+            </svg>
+          </div>
+          <p className="iste-bracket-transition__caption">ISTe <span>TOURNAMENTS</span></p>
+        </div>
+      )}
 
       {introIsActive && <SiteIntro onFinish={closeIntro} />}
 
