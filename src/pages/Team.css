@@ -726,3 +726,12 @@
     width: min(245px, 72vw);
   }
 }
+
+/* ISTe Academy / Main roster switcher */
+.iste-roster-tabs{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:18px auto 34px}
+.iste-roster-tabs button{min-width:150px;border:1px solid rgba(255,37,37,.35);border-radius:12px;background:#101011;color:#ccc;padding:12px 20px;cursor:pointer;font-size:.85rem;font-weight:900;letter-spacing:.1em;transition:background .2s,border-color .2s,color .2s}
+.iste-roster-tabs button:hover,.iste-roster-tabs button:focus-visible{border-color:#ff2525;color:#fff}
+.iste-roster-tabs button[aria-pressed="true"]{background:linear-gradient(125deg,#a60000,#ff2525);border-color:#ff2525;color:white;box-shadow:0 5px 25px rgba(255,37,37,.17)}
+.iste-academy-info{text-align:center;margin:28px auto 12px}
+.iste-academy-info a{color:#ff6b6b;text-decoration:none;font-weight:800;letter-spacing:.06em}
+.iste-academy-info a:hover{text-decoration:underline}

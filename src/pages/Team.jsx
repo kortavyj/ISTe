@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { ACADEMY_PLAYERS, centerCaptain } from "../data/academyRoster.js";
 import useOfficialRoster from "../hooks/useOfficialRoster.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import sharedPlayerPortrait from "../assets/players/team-player.webp";
@@ -573,9 +575,11 @@ function PlayerProfile({ player, index, language, copy }) {
     uk: {
       title: player.realNameUk || player.realName || "Гравець ISTe",
       description:
-        player.rosterStatus === "substitute"
-          ? "Гравець заміни ISTe, готовий підключитися до складу за потреби."
-          : "Гравець основного складу ISTe.",
+        player.rosterStatus === "academy"
+          ? "Гравець складу ISTe Academy."
+          : player.rosterStatus === "substitute"
+            ? "Гравець заміни ISTe, готовий підключитися до складу за потреби."
+            : "Гравець основного складу ISTe.",
       strengths:
         Array.isArray(player.strengths) && player.strengths.length
           ? player.strengths
@@ -584,9 +588,11 @@ function PlayerProfile({ player, index, language, copy }) {
     en: {
       title: player.realNameEn || player.realName || "ISTe player",
       description:
-        player.rosterStatus === "substitute"
-          ? "ISTe substitute player, ready to join the lineup when needed."
-          : "ISTe main roster player.",
+        player.rosterStatus === "academy"
+          ? "ISTe Academy roster player."
+          : player.rosterStatus === "substitute"
+            ? "ISTe substitute player, ready to join the lineup when needed."
+            : "ISTe main roster player.",
       strengths:
         Array.isArray(player.strengths) && player.strengths.length
           ? player.strengths
@@ -787,6 +793,7 @@ function ProfilesSkeleton({ copy }) {
 
 export default function Team() {
   const { language, t } = useLanguage();
+  const [activeRoster,setActiveRoster] = useState("main");
   const { stats, loading, error, reload } = useOfficialRoster();
   const copy = PAGE_COPY[language] || PAGE_COPY.uk;
 
@@ -840,6 +847,7 @@ export default function Team() {
           !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
   );
 
+  const centeredMainPlayers = centerCaptain(mainPlayers);
   const substitutePlayers = players.filter(
     (player) =>
       player.officialRoster
@@ -854,19 +862,21 @@ export default function Team() {
 
       <header className="team-page__header">
         <p className="page-eyebrow">ISTE PLAYER PROFILES</p>
-        <h1>{copy.title}</h1>
+        <h1>{activeRoster === "academy" ? "ISTe Academy" : copy.title}</h1>
         <p>{copy.description}</p>
         <div className="team-page__counter">
-          <span>{mainPlayers.length || CUSTOM_PROFILES.length - SUBSTITUTE_PLAYERS.size}</span>
+          <span>{activeRoster === "academy" ? ACADEMY_PLAYERS.length : (mainPlayers.length || CUSTOM_PROFILES.length - SUBSTITUTE_PLAYERS.size)}</span>
           <small>PLAYER PROFILES</small>
         </div>
       </header>
 
+      <nav className="iste-roster-tabs" aria-label="ISTe rosters"><button type="button" aria-pressed={activeRoster==="main"} onClick={()=>setActiveRoster("main")}>ISTe MAIN</button><button type="button" aria-pressed={activeRoster==="academy"} onClick={()=>setActiveRoster("academy")}>ISTe ACADEMY</button></nav>
+      {activeRoster === "academy" ? <><div className="team-profiles">{ACADEMY_PLAYERS.map((player,index)=><PlayerProfile player={player} index={index} language={language} copy={copy} key={player.playerId}/>)}</div></> : <>
       {loading && players.length === 0 ? <ProfilesSkeleton copy={copy} /> : null}
 
       {!loading && mainPlayers.length > 0 ? (
         <div className="team-profiles">
-          {mainPlayers.map((player, index) => (
+          {centeredMainPlayers.map((player, index) => (
             <PlayerProfile
               player={player}
               index={index}
@@ -907,6 +917,7 @@ export default function Team() {
           </button>
         </div>
       ) : null}
+      </>}
     </section>
   );
 }
