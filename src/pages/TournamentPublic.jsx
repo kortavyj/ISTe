@@ -7,6 +7,7 @@ export default function TournamentPublic() {
   const { slug } = useParams();
   const { user } = useAuth();
   const [teamName, setTeamName] = useState("");
+  const [playerNames, setPlayerNames] = useState(["", ""]);
   const [joining, setJoining] = useState(false);
   const [joinMessage, setJoinMessage] = useState("");
   const [tournament, setTournament] = useState(null);
@@ -44,12 +45,13 @@ export default function TournamentPublic() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ tournamentId: tournament.id, name: teamName.trim(), join: true }),
+        body: JSON.stringify({ tournamentId: tournament.id, name: teamName.trim(), join: true, ...(tournament.team_size < 5 ? { players: playerNames.slice(0,tournament.team_size) } : {}) }),
       });
       const data = await res.json();
       if (!res.ok || !data?.ok) throw new Error(data.message || "Не удалось зарегистрировать команду.");
       setTeams(existing => [...existing, data.team]);
       setTeamName("");
+      setPlayerNames(["", ""]);
       setJoinMessage("Команда зарегистрирована.");
     } catch (err) {
       setJoinMessage(err.message);
@@ -82,6 +84,18 @@ export default function TournamentPublic() {
                   disabled={joining || teams.length >= tournament.max_teams}
                   onChange={event => setTeamName(event.target.value)} />
               </label>
+              {(tournament.team_size === 1 || tournament.team_size === 2) && (
+                <div className="iste-tournaments__roster-fields">
+                  {Array.from({length:tournament.team_size},(_,index)=>
+                    <label key={index}>Игрок {index+1}, ник CS2
+                      <input required minLength={2} maxLength={32} autoComplete="off"
+                        value={playerNames[index]} disabled={joining}
+                        onChange={event=>setPlayerNames(current=>current.map((name,i)=>i===index?event.target.value:name))}/>
+                    </label>
+                  )}
+                  <p className="iste-tournaments__note">Состав фиксируется при регистрации. Изменения и запасные игроки не допускаются.</p>
+                </div>
+              )}
               <button type="submit" disabled={joining || teams.length >= tournament.max_teams}>
                 {joining ? "Отправляем..." : "Зарегистрировать команду"}
               </button>
@@ -93,7 +107,7 @@ export default function TournamentPublic() {
       <h2>Участники</h2>
       <div className="iste-tournaments__team-list">
         {teams.length ? teams.map((team, index) => <div className="iste-tournaments__team-item" key={team.id}>
-          <span>{index + 1}</span><strong>{team.name}</strong>
+          <span>{index + 1}</span><strong>{team.name}</strong>{team.player_names?.length>0 && <small>{team.player_names.join(" · ")}</small>}
         </div>) : <p>Команды ещё не добавлены.</p>}
       </div>
       {matches.length > 0 ? (
