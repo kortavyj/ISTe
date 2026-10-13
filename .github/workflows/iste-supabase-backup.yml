@@ -48,13 +48,39 @@ jobs:
           unset RCLONE_CONFIG_B64 BACKUP_PASSPHRASE
           rclone --config "$RUNNER_TEMP/rclone.conf" listremotes | grep -Fx 'iste_drive:'
 
+      - name: Validate database URL (without exposing credentials)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          from urllib.parse import urlsplit, parse_qs
+          url = os.environ.get("DATABASE_URL", "").strip()
+          try:
+              parsed = urlsplit(url)
+              valid = (
+                  parsed.scheme in ("postgres", "postgresql")
+                  and bool(parsed.hostname)
+                  and bool(parsed.username)
+                  and bool(parsed.password)
+                  and parsed.path == "/postgres"
+                  and parse_qs(parsed.query).get("sslmode") == ["require"]
+                  and "[YOUR-PASSWORD]" not in url
+              )
+          except ValueError:
+              valid = False
+          if not valid:
+              print("::error::ISTE_BACKUP_DATABASE_URL must contain a complete PostgreSQL URI with username, database password, remote host, /postgres and ?sslmode=require. Update the secret in GitHub; do not post its value.")
+              raise SystemExit(1)
+          print("PostgreSQL connection string has a valid shape; credentials remain hidden.")
+          PY
+
       - name: Dump Supabase PostgreSQL 17
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          docker run --rm --network host -e DATABASE_URL postgres:17-alpine \
-            sh -c 'exec pg_dump --dbname="$DATABASE_URL" --format=custom --no-owner --no-acl --verbose' \
+          docker run --rm --network host -e DATABASE_URL="$DATABASE_URL" postgres:17-alpine \
+            sh -c 'exec pg_dump --dbname="$DATABASE_URL" --format=custom --no-owner --no-acl' \
             > "$RUNNER_TEMP/database.dump"
           test -s "$RUNNER_TEMP/database.dump"
           docker run --rm -v "$RUNNER_TEMP:/backups:ro" postgres:17-alpine \
