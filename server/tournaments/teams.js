@@ -104,7 +104,7 @@ export default async function handler(request, response) {
       .from("tournaments").select("id,owner_user_id,status")
       .eq("id", tournamentId).maybeSingle();
     if (tournamentError) throw tournamentError;
-    const ownerAdding = !join && user.isOwner && tournament?.owner_user_id === user.id
+    const ownerAdding = !join && tournament?.owner_user_id === user.id
       && ["draft", "registration"].includes(tournament.status);
     const captainJoining = join && tournament?.status === "registration";
     if (!ownerAdding && !captainJoining) {
