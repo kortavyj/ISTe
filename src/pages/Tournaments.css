@@ -92,3 +92,34 @@
 .iste-tournaments__roster-fields input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .iste-tournaments__team-item small{color:#aaa;margin-left:auto;overflow-wrap:anywhere}
 @media(max-width:560px){.iste-tournaments__team-item{flex-wrap:wrap}.iste-tournaments__team-item small{width:100%;margin-left:0}}
+
+/* Approved ISTe bracket V2: centered columns, animated connectors, champion card. */
+.iste-tournaments__bracket-v2{overflow:hidden;font-family:"Exo 2",Inter,system-ui,sans-serif}
+.iste-tournaments__bracket-v2 .iste-tournaments__bracket-head h2{font-weight:900;letter-spacing:-.025em}
+.iste-tournaments__bracket-flow{display:flex;justify-content:safe center;align-items:center;gap:12px;overflow-x:auto;scrollbar-color:#5d2727 #101010;padding:30px 3px 24px}
+.iste-tournaments__flow-fragment{display:flex;align-items:center;gap:12px;flex:none}
+.iste-tournaments__bracket-v2 .iste-tournaments__round{width:250px;min-width:250px;max-width:250px;display:flex;flex-direction:column;gap:14px;flex:none}
+.iste-tournaments__bracket-v2 .iste-tournaments__round h3{font-weight:850;color:#ff3535;min-height:48px;letter-spacing:.13em}
+.iste-tournaments__round-matches{display:flex;flex-direction:column;justify-content:space-around;gap:16px;min-height:218px}
+.iste-tournaments__bracket-v2 .iste-tournaments__match{animation:iste-tournament-reveal .45s calc(var(--round-index)*140ms) both}
+.iste-tournaments__bracket-v2 .iste-tournaments__match-side{padding:14px;font-size:13px}
+.iste-tournaments__bracket-v2 .iste-tournaments__match-side strong{font-size:21px}
+.iste-tournaments__bracket-v2 .iste-tournaments__match-status{letter-spacing:.14em}
+.iste-tournaments__flow-arrow{position:relative;width:70px;min-width:70px;height:180px;color:#ff2525}
+.iste-tournaments__flow-arrow span{position:absolute;z-index:1;top:20%;left:50%;transform:translateX(-50%);white-space:nowrap;padding:5px 8px;border:1px solid #542328;border-radius:20px;background:#0e0e0e;font-size:9px;font-weight:800;letter-spacing:.1em}
+.iste-tournaments__flow-arrow svg{display:block;width:100%;height:100%;overflow:visible}
+.iste-tournaments__flow-line{stroke:rgba(255,37,37,.22);stroke-width:2;fill:none}
+.iste-tournaments__flow-light{stroke:#ff2525;stroke-width:2;stroke-dasharray:8 12;stroke-linecap:round;fill:none;filter:drop-shadow(0 0 4px rgba(255,37,37,.5));animation:iste-bracket-pulse 1.4s linear infinite}
+.iste-tournaments__flow-tip{stroke:#ff2525;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;fill:none}
+@keyframes iste-bracket-pulse{to{stroke-dashoffset:-40}}
+.iste-tournaments__champion{width:268px;min-width:268px;align-self:center}
+.iste-tournaments__champion h3{font-size:12px;color:#ff4343;letter-spacing:.16em;border-bottom:1px solid #383838;margin:0 0 14px;padding-bottom:17px}
+.iste-tournaments__champion-card{min-height:135px;display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:7px;align-content:center;padding:20px;border:1px solid #663033;border-radius:13px;background:linear-gradient(105deg,#2e1114,#100b0b);position:relative;overflow:hidden}
+.iste-tournaments__champion-card.is-confirmed{border-color:#ff2525;box-shadow:0 0 31px rgba(255,37,37,.2)}
+.iste-tournaments__champion-card>span{font-size:10px;letter-spacing:.14em;color:#ff8888;font-weight:800}
+.iste-tournaments__champion-card>strong{font-size:clamp(19px,2vw,29px);grid-column:1;overflow-wrap:anywhere}
+.iste-tournaments__champion-card svg{grid-column:2;grid-row:1 / span 2;width:42px;height:42px;color:#ff4444;align-self:center}
+.iste-tournaments__champion-card.is-confirmed::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.08) 50%,transparent 65%);transform:translateX(-110%);animation:iste-champion-shine 4s ease-in-out infinite}
+@keyframes iste-champion-shine{0%,30%{transform:translateX(-110%)}65%,100%{transform:translateX(110%)}}
+@media(max-width:680px){.iste-tournaments__bracket-flow{justify-content:flex-start}.iste-tournaments__bracket-v2 .iste-tournaments__round{width:210px;min-width:210px}.iste-tournaments__flow-arrow{width:55px;min-width:55px}.iste-tournaments__champion{min-width:220px;width:220px}}
+@media(prefers-reduced-motion:reduce){.iste-tournaments__flow-light,.iste-tournaments__champion-card::after{animation:none!important}}
