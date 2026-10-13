@@ -13,6 +13,7 @@ on:
       - 'tests/**'
       - 'db/migrations/20261011_cs2_*.sql'
       - 'db/migrations/20261012_cs2_*.sql'
+      - 'db/migrations/20261013_cs2_*.sql'
       - 'db/preflight/cs2_beta_dependencies.sql'
       - 'db/staging/cs2_beta_profiles.sql'
       - 'scripts/cs2-staging-preflight.mjs'
@@ -83,6 +84,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_team_players.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_team_approval.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261012_cs2_roster_profiles.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_community_organizers.sql
       - name: Verify staging schema dependency preflight
         run: psql -X -v ON_ERROR_STOP=1 -f db/preflight/cs2_beta_dependencies.sql
       - name: Verify beta profile self-only row permissions
