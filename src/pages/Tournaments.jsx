@@ -11,7 +11,7 @@ export default function Tournaments({ create = false }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    title: "", description: "", bestOf: "1", maxTeams: "16",
+    title: "", description: "", bestOf: "1", maxTeams: "16", teamSize: "5", weaponMode: "standard",
   });
 
   useEffect(() => {
@@ -39,6 +39,7 @@ export default function Tournaments({ create = false }) {
         body: JSON.stringify({
           title: form.title, description: form.description,
           bestOf: Number(form.bestOf), maxTeams: Number(form.maxTeams),
+          teamSize: Number(form.teamSize), weaponMode: form.weaponMode,
         }),
       });
       const data = await res.json();
@@ -76,6 +77,22 @@ export default function Tournaments({ create = false }) {
             <textarea maxLength={3000} rows={4} value={form.description}
               onChange={e => setForm(v => ({ ...v, description: e.target.value }))} />
           </label>
+          <label>Формат участников
+            <select value={form.teamSize} onChange={e => setForm(v => ({ ...v, teamSize: e.target.value }))}>
+              <option value="5">5vs5 · командный</option>
+              <option value="2">2vs2 · без замен</option>
+              <option value="1">1vs1 · без замен</option>
+            </select>
+          </label>
+          <label>Разрешённое оружие
+            <select value={form.weaponMode} onChange={e => setForm(v => ({ ...v, weaponMode: e.target.value }))}>
+              <option value="standard">Стандартное вооружение CS2</option>
+              <option value="awp">Только AWP</option>
+              <option value="pistols">Только пистолеты</option>
+              <option value="deagle">Только Desert Eagle</option>
+            </select>
+          </label>
+          {Number(form.teamSize) < 5 && <p className="iste-tournaments__note">В этом формате допускаются только основные игроки, запасные и замены запрещены.</p>}
           <label>Формат серии
             <select value={form.bestOf} onChange={e => setForm(v => ({ ...v, bestOf: e.target.value }))}>
               <option value="1">BO1</option><option value="3">BO3</option>
@@ -91,7 +108,7 @@ export default function Tournaments({ create = false }) {
       ) : loading ? <p>Загружаем турниры…</p> : items.length ? (
         <div className="iste-tournaments__grid">{items.map(item => (
           <article className="iste-tournaments__card" key={item.id}>
-            <span>CS2 · {item.best_of === 3 ? "BO3" : "BO1"}</span>
+            <span>CS2 · {item.team_size || 5}vs{item.team_size || 5} · {item.best_of === 3 ? "BO3" : "BO1"} · {({standard:"Стандарт",awp:"AWP",pistols:"Пистолеты",deagle:"Desert Eagle"})[item.weapon_mode] || "Стандарт"}</span>
             <h2><Link to={"/tournaments/" + item.slug}>{item.title}</Link></h2>
             <p>{item.description || "Турнир Counter Strike 2"}</p>
             <small>{item.max_teams} команд · {item.status}</small>
