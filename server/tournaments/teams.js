@@ -38,7 +38,7 @@ export default async function handler(request, response) {
     const supabase = getSupabaseServerClient();
     if (method === "GET") {
       const { data, error } = await supabase.from("tournament_teams")
-        .select("id,tournament_id,name,created_at").eq("tournament_id", tournamentId)
+        .select("id,tournament_id,name,player_names,created_at").eq("tournament_id", tournamentId)
         .order("created_at", { ascending: true }).limit(64);
       if (error) throw error;
       return response.status(200).json({ ok: true, teams: data });
@@ -51,7 +51,7 @@ export default async function handler(request, response) {
       return send(response, 400, "INVALID_TEAM", "Название команды должно содержать от 2 до 60 символов.");
     }
     const { data: tournament, error: tournamentError } = await supabase
-      .from("tournaments").select("id,owner_user_id,status")
+      .from("tournaments").select("id,owner_user_id,status,team_size")
       .eq("id", tournamentId).maybeSingle();
     if (tournamentError) throw tournamentError;
     const ownerAdding = !join && user.isOwner && tournament?.owner_user_id === user.id
@@ -60,9 +60,26 @@ export default async function handler(request, response) {
     if (!ownerAdding && !captainJoining) {
       return send(response, 403, "FORBIDDEN", "Регистрация закрыта или нет прав на добавление команды.");
     }
+    const roster = body?.players;
+    const teamSize = tournament.team_size ?? 5;
+    if (teamSize === 1 || teamSize === 2) {
+      if (!Array.isArray(roster) || roster.length !== teamSize
+        || !roster.every(player => typeof player === "string"
+          && player.trim().length >= 2 && player.trim().length <= 32)
+        || new Set(roster.map(player => player.trim().toLocaleLowerCase("en"))).size !== teamSize) {
+        return send(response, 400, "INVALID_ROSTER",
+          "Для этого режима требуется точный состав без запасных и повторяющихся игроков.");
+      }
+    } else if (roster !== undefined && (!Array.isArray(roster) || roster.length > 0)) {
+      return send(response, 400, "ROSTER_UNSUPPORTED", "Состав 5vs5 пока не поддерживается.");
+    }
     const { data, error } = await supabase.from("tournament_teams")
-      .insert({ tournament_id: tournamentId, name, ...(join ? { captain_user_id: user.id } : {}) })
-      .select("id,tournament_id,name,created_at").single();
+      .insert({ tournament_id: tournamentId, name, player_names: teamSize < 5 ? roster.map(player => player.trim()) : [], ...(join ? { captain_user_id: user.id } : {}) })
+      .select("id,tournament_id,name,player_names,created_at").single();
+    if (error?.message?.includes("ROSTER_")) {
+      return send(response, 409, "ROSTER_REJECTED",
+        "Состав не соответствует правилам турнира или игрок уже зарегистрирован.");
+    }
     if (error?.code === "23505") return send(response, 409, "TEAM_EXISTS", "Название занято или вы уже капитан команды в этом турнире.");
     if (error?.code === "42501") return send(response, 403, "FORBIDDEN", "У вас нет прав на регистрацию.");
     if (error?.message?.includes("TOURNAMENT_FULL")) {
