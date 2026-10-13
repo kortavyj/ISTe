@@ -53,7 +53,7 @@ export default function Tournaments({ create = false }) {
   }
 
   return (
-    <section className="iste-tournaments">
+    <section className="iste-tournaments iste-tournaments--entrance">
       <div className="iste-tournaments__head">
         <span className="iste-tournaments__eyebrow">ISTe · COUNTER STRIKE 2</span>
         <h1>{create ? "Создать турнир" : "Турниры CS2"}</h1>
