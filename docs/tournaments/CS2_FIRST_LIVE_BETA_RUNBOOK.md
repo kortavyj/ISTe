@@ -28,3 +28,10 @@ Disconnect Preview from the staging backend or disable the Preview deployment. D
 
 ## Verified secondary-project limitation
 The read-only audit in `docs/tournaments/CS2_SECOND_SUPABASE_AUDIT.md` found **no `public.profiles`**, match rooms, team applications, or test users. Until permission is granted and these dependencies are installed, Preview is for UI review only—not live tournament signup. The existing preview may require Vercel SSO. Never claim production is migrated or that browser acceptance tests have passed based on green CI alone.
+
+## Beta login protection (2026-10-13)
+- The isolated staging database now has `db/staging/cs2_beta_auth_security.sql`: server-only login throttling, rate-limit reset, and security-event records. Its RPCs must be executable by `service_role`, but not by `anon` or `authenticated`.
+- On the `integration/cs2-main-sync-20261012` Vercel Preview branch only, set `SUPABASE_SECRET_KEY` (preferred) or `SUPABASE_SERVICE_ROLE_KEY` from **the secondary** Supabase project's Settings → API Keys. Never use a production or publishable/anon key for this server-only variable. Store it as encrypted/sensitive and never prefix it `VITE_`.
+- `AUTH_RATE_LIMIT_SECRET` is already branch-scoped and must remain private. Do not skip the limiter, relax RLS, or reuse production secrets to make beta login pass.
+- Trigger a fresh Preview deployment after secrets are configured. Test account registration and login with a **new secondary-project** identity. Existing production ISTe accounts are not replicated.
+- Green website/SQL CI does not prove Preview login works; validate real login from the browser and confirm there is no 503 `AUTH_SECURITY_NOT_CONFIGURED`.
