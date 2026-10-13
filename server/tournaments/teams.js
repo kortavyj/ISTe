@@ -62,7 +62,38 @@ export default async function handler(request, response) {
       if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
       const {data,error}=await supabase.rpc("iste_team_roster",{p_team_id:teamId});
       if(error){if(/FORBIDDEN/.test(error.message||"")) return send(response,403,"FORBIDDEN","Доступ запрещён.");throw error;}
-      return response.status(200).json({ok:true,players:data?.players||[],applications:data?.applications||[],myApplicationStatus:data?.myApplicationStatus||null});
+      return response.status(200).json({ok:true,players:data?.players||[],applications:data?.applications||[],myApplicationStatus:data?.myApplicationStatus||null,myInvitation:data?.myInvitation||null});
+    }
+    if(method==="POST" && ["invite-player","respond-invite"].includes(body?.action)){
+      const user=await currentUser(request,response,supabase);
+      if(!user)return send(response,401,"AUTH_REQUIRED","Войдите в аккаунт.");
+      if(!isUuid(body?.teamId))return send(response,400,"INVALID_TEAM","Неверная команда.");
+      const {data:team,error:te}=await supabase.from("tournament_teams").select("id")
+        .eq("id",body.teamId).eq("tournament_id",tournamentId).maybeSingle();
+      if(te)throw te;
+      if(!team)return send(response,404,"TEAM_NOT_FOUND","Команда не найдена.");
+      let rpc,params;
+      if(body.action==="invite-player"){
+        if(typeof body.username!=="string"||body.username.trim().length<2||body.username.length>60||
+          !["starter","substitute"].includes(body.role))
+          return send(response,400,"INVALID_INPUT","Выберите пользователя и роль.");
+        rpc="iste_invite_team_player";
+        params={p_team_id:body.teamId,p_username:body.username.trim(),p_role:body.role};
+      }else{
+        if(typeof body.accept!=="boolean")return send(response,400,"INVALID_INPUT","Неверный ответ.");
+        rpc="iste_respond_team_invitation";
+        params={p_team_id:body.teamId,p_accept:body.accept};
+      }
+      const {error}=await supabase.rpc(rpc,params);
+      if(error){
+        if(/CAPTAIN_REQUIRED|ACCOUNT_BLOCKED|AUTH_REQUIRED/.test(error.message||""))
+          return send(response,403,"FORBIDDEN","Нет прав на действие.");
+        if(/USER_NOT_FOUND/.test(error.message||""))return send(response,404,"USER_NOT_FOUND","Username не найден.");
+        if(/REGISTRATION_CLOSED|TEAM_FULL|PLAYER_ALREADY_IN_TOURNAMENT|INVITATION_NOT_FOUND|INVALID_ROLE|PLAYER_BLOCKED/.test(error.message||""))
+          return send(response,409,"INVALID_STATE","Приглашение нельзя обработать.");
+        throw error;
+      }
+      return response.status(200).json({ok:true});
     }
     if (method === "POST" && body?.action === "assign-captain") {
       const user=await currentUser(request,response,supabase);
