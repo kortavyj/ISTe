@@ -15,6 +15,7 @@ export default function TournamentDashboard() {
   const [teams, setTeams] = useState([]);
   const [teamName, setTeamName] = useState("");
   const [playerNames, setPlayerNames] = useState(["", ""]);
+  const [steamIds, setSteamIds] = useState(["", ""]);
   const [matches, setMatches] = useState([]);
   const [scores, setScores] = useState({});
   const [serverIds, setServerIds] = useState({});
@@ -68,12 +69,13 @@ export default function TournamentDashboard() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ tournamentId: selected, name: teamName.trim(), ...(tournament?.team_size < 5 ? { players: playerNames.slice(0,tournament.team_size) } : {}) }),
+        body: JSON.stringify({ tournamentId: selected, name: teamName.trim(), ...(tournament?.team_size < 5 ? { players: playerNames.slice(0,tournament.team_size), steamIds: steamIds.slice(0,tournament.team_size) } : {}) }),
       });
       const data = await jsonResponse(response);
       setTeams(current => [...current, data.team]);
       setTeamName("");
       setPlayerNames(["", ""]);
+      setSteamIds(["", ""]);
       setSuccess("Команда добавлена.");
     } catch (err) {
       setError(err.message);
@@ -187,9 +189,13 @@ export default function TournamentDashboard() {
                       <input required minLength={2} maxLength={32} autoComplete="off"
                         value={playerNames[index]} disabled={busy}
                         onChange={event=>setPlayerNames(current=>current.map((name,i)=>i===index?event.target.value:name))}/>
+                      <span className="iste-tournaments__steam-caption">SteamID64 игрока</span>
+                      <input required inputMode="numeric" pattern="7656119[0-9]{10}" minLength={17} maxLength={17}
+                        placeholder="17 цифр SteamID64" autoComplete="off" value={steamIds[index]} disabled={busy}
+                        onChange={event=>setSteamIds(current=>current.map((id,i)=>i===index?event.target.value.trim():id))}/>
                     </label>
                   )}
-                  <p className="iste-tournaments__note">Никаких запасных или замен после регистрации.</p>
+                  <p className="iste-tournaments__note">SteamID64 пока указывается вручную, без подтверждения владельца. После публикации замены запрещены.</p>
                 </div>
               )}
               <button type="submit" disabled={busy || teams.length >= tournament.max_teams}>
