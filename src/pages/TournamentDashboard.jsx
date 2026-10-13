@@ -147,6 +147,8 @@ export default function TournamentDashboard() {
     if (busy) return;
     setBusy(true); setError(""); setSuccess("");
     try {
+      if(action==="start" && teams.some(team=>!team.is_ready) &&
+        !window.confirm("Не все команды подтвердили готовность. Запустить турнир в ручном режиме всё равно?")) return;
       const input = scores[matchId] || { a:"", b:"" };
       const payload = { tournamentId:selected, action };
       if (action === "assign-server") {
@@ -266,6 +268,9 @@ export default function TournamentDashboard() {
               </div>
             ) : <p>Список команд пока пуст.</p>}
           </div>
+          {tournament?.status==="registration" && teams.length>=2 && (
+            <p className="iste-tournaments__note">Готовность команд: {teams.filter(team=>team.is_ready).length} из {teams.length}. Команды без капитана или неполным составом могут участвовать в ручном турнире, но организатор получит предупреждение перед запуском.</p>
+          )}
           {tournament?.status==="registration" && teams.length>=2 && (
             <button type="button" disabled={busy} onClick={()=>matchAction("start")}>
               Зафиксировать сетку и запустить турнир
