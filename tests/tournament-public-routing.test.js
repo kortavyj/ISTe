@@ -15,11 +15,11 @@ test("tournament API delegates without an owner-only global gate", () => {
   assert.doesNotMatch(block[1], /requireOwner|requireAdminOrOwner/);
 });
 
-test("tournament pages are public but create and dashboard stay owner-only", () => {
+test("tournament pages are public and authenticated accounts can create and manage", () => {
   assert.match(app, /path="\/tournaments" element=\{<Tournaments \/>\}/);
   assert.match(app, /path="\/tournaments\/:slug" element=\{<TournamentPublic \/>\}/);
-  assert.match(app, /path="\/tournaments\/create" element=\{<OwnerRoute>/);
-  assert.match(app, /path="\/account\/tournaments" element=\{<OwnerRoute>/);
+  assert.match(app, /path="\/tournaments\/create" element=\{<ProtectedRoute>/);
+  assert.match(app, /path="\/account\/tournaments" element=\{<ProtectedRoute>/);
 });
 
 test("public reads and guarded mutations remain separate", () => {
