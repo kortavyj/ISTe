@@ -17,7 +17,13 @@ export default function TournamentPublic() {
   const [error, setError] = useState("");
   useEffect(() => {
     const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    setTournament(null);
+    setTeams([]);
+    setMatches([]);
     setRosters({});
+    setJoinMessage("");
     (async () => {
       const r = await fetch("/api/tournaments?slug=" + encodeURIComponent(slug), { signal: controller.signal });
       const d = await r.json();
