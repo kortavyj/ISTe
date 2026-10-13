@@ -37,7 +37,7 @@ begin
  insert into public.tournament_team_invitations(team_id,user_id,status,reviewed_at,roster_role)
  values(p_team_id,v_player,'pending',null,p_role)
  on conflict(team_id,user_id) do update set status='pending',reviewed_at=null,roster_role=excluded.roster_role;
-end; $;
+end; $$;
 
 create or replace function public.iste_respond_team_invitation(p_team_id uuid,p_accept boolean)
 returns void language plpgsql security definer set search_path='' as $$
@@ -64,7 +64,7 @@ begin
  end if;
  update public.tournament_team_invitations set status=case when p_accept then 'accepted' else 'declined' end,
  reviewed_at=now() where team_id=p_team_id and user_id=auth.uid();
-end; $;
+end; $$;
 revoke all on function public.iste_invite_team_player(uuid,text,text) from public,anon;
 revoke all on function public.iste_respond_team_invitation(uuid,boolean) from public,anon;
 grant execute on function public.iste_invite_team_player(uuid,text,text) to authenticated;
