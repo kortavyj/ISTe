@@ -92,6 +92,10 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_team_management.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_assign_captain.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_captain_username_search.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_formats_weapons.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_team_invitations.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_roster_roles_invitations.sql
+          psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_format_roster_limits.sql
       - name: Verify staging schema dependency preflight
         run: psql -X -v ON_ERROR_STOP=1 -f db/preflight/cs2_beta_dependencies.sql
       - name: Verify beta profile self-only row permissions
