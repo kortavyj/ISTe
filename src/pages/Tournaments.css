@@ -43,3 +43,24 @@
 .iste-tournaments__actions a,.iste-tournaments button{background:var(--accent);color:#fff}
 .iste-tournaments__actions a:first-child{background:#1a1a1a}
 .iste-tournaments__builder-form button[type="submit"]{background:var(--accent);color:#fff}
+
+/* ISTe tournament screen reveal: red scan, title and staggered content. */
+.iste-tournaments--entrance{position:relative;isolation:isolate}
+.iste-tournaments--entrance::before{content:"";position:absolute;z-index:-1;pointer-events:none;top:60px;left:24px;right:24px;height:1px;transform-origin:left center;background:linear-gradient(90deg,transparent,var(--accent),rgba(255,37,37,.08));box-shadow:0 0 16px rgba(255,37,37,.42);animation:iste-tournament-scan .72s cubic-bezier(.16,1,.3,1) both}
+.iste-tournaments--entrance .iste-tournaments__eyebrow{animation:iste-tournament-reveal .54s .08s cubic-bezier(.16,1,.3,1) both}
+.iste-tournaments--entrance .iste-tournaments__head h1{animation:iste-tournament-title .72s .14s cubic-bezier(.16,1,.3,1) both}
+.iste-tournaments--entrance .iste-tournaments__head>p{animation:iste-tournament-reveal .55s .27s cubic-bezier(.16,1,.3,1) both}
+.iste-tournaments--entrance .iste-tournaments__actions{animation:iste-tournament-reveal .55s .33s cubic-bezier(.16,1,.3,1) both}
+.iste-tournaments--entrance .iste-tournaments__builder-form{animation:iste-tournament-reveal .68s .38s cubic-bezier(.16,1,.3,1) both}
+.iste-tournaments--entrance .iste-tournaments__summary{animation:iste-tournament-reveal .7s .5s cubic-bezier(.16,1,.3,1) both}
+.iste-tournaments--entrance .iste-tournaments__grid>.iste-tournaments__card{animation:iste-tournament-reveal .6s cubic-bezier(.16,1,.3,1) both}
+.iste-tournaments--entrance .iste-tournaments__grid>.iste-tournaments__card:nth-child(1){animation-delay:.1s}
+.iste-tournaments--entrance .iste-tournaments__grid>.iste-tournaments__card:nth-child(2){animation-delay:.17s}
+.iste-tournaments--entrance .iste-tournaments__grid>.iste-tournaments__card:nth-child(3){animation-delay:.24s}
+.iste-tournaments--entrance .iste-tournaments__grid>.iste-tournaments__card:nth-child(n+4){animation-delay:.3s}
+.iste-tournaments--entrance .iste-tournaments__empty{animation:iste-tournament-reveal .5s .1s both}
+@keyframes iste-tournament-scan{from{opacity:0;transform:scaleX(0)}to{opacity:1;transform:scaleX(1)}}
+@keyframes iste-tournament-reveal{from{opacity:0;transform:translate3d(0,20px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes iste-tournament-title{from{opacity:0;transform:translate3d(0,26px,0);filter:blur(5px)}to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
+@media(max-width:560px){.iste-tournaments--entrance::before{left:16px;right:16px}}
+@media(prefers-reduced-motion:reduce){.iste-tournaments--entrance::before,.iste-tournaments--entrance .iste-tournaments__eyebrow,.iste-tournaments--entrance .iste-tournaments__head h1,.iste-tournaments--entrance .iste-tournaments__head>p,.iste-tournaments--entrance .iste-tournaments__actions,.iste-tournaments--entrance .iste-tournaments__builder-form,.iste-tournaments--entrance .iste-tournaments__summary,.iste-tournaments--entrance .iste-tournaments__grid>.iste-tournaments__card,.iste-tournaments--entrance .iste-tournaments__empty{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}}
