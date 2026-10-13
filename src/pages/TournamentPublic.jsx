@@ -7,6 +7,8 @@ export default function TournamentPublic() {
   const { slug } = useParams();
   const { user } = useAuth();
   const [teamName, setTeamName] = useState("");
+  const [inviteNames,setInviteNames]=useState({});
+  const [inviteRoles,setInviteRoles]=useState({});
   const [joining, setJoining] = useState(false);
   const [joinMessage, setJoinMessage] = useState("");
   const [tournament, setTournament] = useState(null);
@@ -92,6 +94,26 @@ export default function TournamentPublic() {
       if(!updatedResponse.ok||!updated.ok)throw new Error("Заявка обработана, но обновить состав не удалось. Нажмите «Обновить составы и заявки».");
       setRosters(prev=>({...prev,[teamId]:updated}));setJoinMessage(accept?"Заявка одобрена.":"Заявка отклонена.");
     }catch(error){setJoinMessage(error.message);}finally{setJoining(false);}
+  }
+  async function invitationAction(teamId,action,accept) {
+    if(!tournament||joining)return;
+    setJoining(true);setJoinMessage("");
+    try {
+      const payload={tournamentId:tournament.id,teamId,action};
+      if(action==="invite-player"){
+        payload.username=(inviteNames[teamId]||"").trim();
+        payload.role=inviteRoles[teamId]||"starter";
+        if(payload.username.length<2)throw new Error("Введите username игрока ISTe.");
+      }else payload.accept=accept;
+      const r=await fetch("/api/tournament-teams",{method:"POST",credentials:"include",
+        headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(payload)});
+      const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.message||"Действие недоступно.");
+      const fresh=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(tournament.id)+"&teamId="+encodeURIComponent(teamId)+"&view=roster",
+        {credentials:"include",cache:"no-store"});
+      const data=await fresh.json();
+      if(fresh.ok&&data.ok)setRosters(prev=>({...prev,[teamId]:data}));
+      setJoinMessage(action==="invite-player"?"Приглашение отправлено. Игрок должен принять его.":accept?"Приглашение принято.":"Приглашение отклонено.");
+    }catch(err){setJoinMessage(err.message);}finally{setJoining(false);}
   }
   async function manageTeam(teamId, action, userId) {
     if(!tournament || joining)return;
@@ -209,22 +231,41 @@ export default function TournamentPublic() {
             rosters[team.id]?.myApplicationStatus!=="pending" &&
             <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Подать заявку</button>}
           {tournament.status === "registration" && user && rosters[team.id]?.players?.some(p=>p.userId===user.id&&p.captain) && <>
-            <button type="button" disabled={joining||rosters[team.id]?.players?.length!==5}
-              onClick={()=>manageTeam(team.id,team.is_ready?"unready":"ready")}>{team.is_ready?"Снять готовность":"Подтвердить готовность (5/5)"}</button>
+            <button type="button" disabled={joining||rosters[team.id]?.players?.filter(p=>p.role!=="substitute").length!==(tournament.team_size||5)}
+              onClick={()=>manageTeam(team.id,team.is_ready?"unready":"ready")}>{team.is_ready?"Снять готовность":"Подтвердить готовность"}</button>
           </>}
           <div className="iste-tournaments__roster">
-            <small>Состав: {rosters[team.id]?.players?.length ?? "—"} / 5</small>
+            <small>Основные: {rosters[team.id]?.players?.filter(p=>p.role!=="substitute").length ?? "—"} / {tournament.team_size||5}{(tournament.team_size||5)===5?` · Запасные: ${rosters[team.id]?.players?.filter(p=>p.role==="substitute").length??"—"} / 2`:""}</small>
             {rosters[team.id]?.myApplicationStatus==="pending"&&<small role="status">Ваша заявка ожидает решения капитана.</small>}
             {rosters[team.id]?.myApplicationStatus==="accepted"&&<small role="status">Ваша заявка одобрена — вы в составе.</small>}
             {rosters[team.id]?.myApplicationStatus==="rejected"&&<small role="status">Ваша заявка отклонена. Вы можете подать её повторно.</small>}
             {rosters[team.id]?.players?.map(player=><div key={player.userId}>
-              <span>{player.captain?"Капитан":"Игрок"} · {player.name||"Игрок ISTe"}</span>
+              <span>{player.captain?"Капитан":player.role==="substitute"?"Запасной":"Игрок"} · {player.name||"Игрок ISTe"}</span>
               {tournament.status==="registration" && !player.captain && user &&
                 (user.id===player.userId || rosters[team.id]?.players?.some(p=>p.userId===user.id&&p.captain)) &&
                 <button type="button" disabled={joining} onClick={()=>manageTeam(team.id,user.id===player.userId?"leave":"remove",player.userId)}>
                   {user.id===player.userId?"Покинуть команду":"Исключить"}
                 </button>}
             </div>)}
+            {tournament.status==="registration"&&user&&rosters[team.id]?.players?.some(p=>p.userId===user.id&&p.captain)&&
+              <div className="iste-tournaments__team-form">
+                <label>Пригласить по username ISTe
+                  <input value={inviteNames[team.id]||""} placeholder="Username игрока"
+                    onChange={e=>setInviteNames(prev=>({...prev,[team.id]:e.target.value}))} disabled={joining}/>
+                </label>
+                {(tournament.team_size||5)===5&&<label>Роль
+                  <select value={inviteRoles[team.id]||"starter"} onChange={e=>setInviteRoles(prev=>({...prev,[team.id]:e.target.value}))}>
+                    <option value="starter">Основной состав</option>
+                    <option value="substitute">Запасной (до 2)</option>
+                  </select>
+                </label>}
+                <button type="button" disabled={joining} onClick={()=>invitationAction(team.id,"invite-player")}>Отправить приглашение</button>
+              </div>}
+            {tournament.status==="registration"&&rosters[team.id]?.myInvitation?.status==="pending"&&
+              <div><small>Вас пригласили: {rosters[team.id].myInvitation.role==="substitute"?"запасным":"в основной состав"}</small>
+                <button type="button" disabled={joining} onClick={()=>invitationAction(team.id,"respond-invite",true)}>Принять приглашение</button>
+                <button type="button" disabled={joining} onClick={()=>invitationAction(team.id,"respond-invite",false)}>Отклонить</button>
+              </div>}
             {rosters[team.id]?.applications?.map(application=><div key={application.userId}>
               <small>Заявка от: {application.name||"Игрок ISTe"}</small>
               <button type="button" disabled={joining} onClick={()=>reviewApplication(team.id,application.userId,true)}>Принять</button>
