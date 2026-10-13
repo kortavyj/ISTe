@@ -12,6 +12,7 @@ on:
       - 'tests/**'
       - 'db/migrations/20261011_cs2_*.sql'
       - 'db/migrations/20261013_cs2_tournament_modes.sql'
+      - 'db/migrations/20261013_cs2_immutable_rosters.sql'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/tournaments-ci.yml'
@@ -69,6 +70,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_bracket_rpcs.sql
           psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261011_cs2_event_replay.sql
       - run: psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_tournament_modes.sql
+      - run: psql -X -v ON_ERROR_STOP=1 -f db/migrations/20261013_cs2_immutable_rosters.sql
       - name: Simulate actual DB tournament from 2 to 64 teams
         run: psql -X -v ON_ERROR_STOP=1 -f tests/pg/10_tournament_e2e.sql
       - name: Verify concurrent tournament result confirmations
