@@ -162,12 +162,28 @@ export default function App() {
             <div className="iste-bracket-transition__round iste-bracket-transition__semis"><span>SEMI FINAL</span><span>ISTe</span></div>
             <div className="iste-bracket-transition__round iste-bracket-transition__winner"><span>WINNER</span><strong>ISTe</strong></div>
           </div>
-          <div className="iste-bracket-transition__bullet" aria-hidden="true">
-            <svg viewBox="0 0 180 56" fill="none">
-              <path d="M2 9h116l44 19-44 19H2z" fill="#AB783E" stroke="#F4D09C" strokeWidth="2"/>
-              <path d="M119 9v38M19 9v38" stroke="#6C492B" strokeWidth="3"/>
-              <path d="M162 28 118 47V9z" fill="#CC9051"/>
-            </svg>
+          <div className="iste-bracket-transition__bullet-flight" aria-hidden="true">
+            <div className="iste-bracket-transition__trail" />
+            <div className="iste-bracket-transition__bullet">
+              <svg viewBox="0 0 180 56" fill="none">
+                <defs>
+                  <linearGradient id="iste-cartridge" x1="0" y1="0" x2="0.85" y2="1">
+                    <stop offset="0" stopColor="#faf4df"/>
+                    <stop offset=".26" stopColor="#bba67c"/>
+                    <stop offset=".57" stopColor="#554c3d"/>
+                    <stop offset=".8" stopColor="#e0c599"/>
+                    <stop offset="1" stopColor="#524535"/>
+                  </linearGradient>
+                  <linearGradient id="iste-tip" x1="0" y1="0" x2="1" y2="1">
+                    <stop stopColor="#dfdfdc"/><stop offset=".55" stopColor="#848483"/><stop offset="1" stopColor="#e9e9e7"/>
+                  </linearGradient>
+                </defs>
+                <path d="M5 9h108l48 19-48 19H5z" fill="url(#iste-cartridge)" stroke="#eee1bf" strokeWidth="1.4"/>
+                <path d="M113 9 161 28 113 47z" fill="url(#iste-tip)"/>
+                <path d="M17 9v38M109 9v38" stroke="#554533" strokeWidth="2"/>
+                <path d="M5 14h108" stroke="#fff8e1" strokeOpacity=".5" strokeWidth="1.5"/>
+              </svg>
+            </div>
           </div>
           <p className="iste-bracket-transition__caption">ISTe <span>TOURNAMENTS</span></p>
         </div>
