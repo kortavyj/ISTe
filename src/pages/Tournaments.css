@@ -64,3 +64,24 @@
 @keyframes iste-tournament-title{from{opacity:0;transform:translate3d(0,26px,0);filter:blur(5px)}to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
 @media(max-width:560px){.iste-tournaments--entrance::before{left:16px;right:16px}}
 @media(prefers-reduced-motion:reduce){.iste-tournaments--entrance::before,.iste-tournaments--entrance .iste-tournaments__eyebrow,.iste-tournaments--entrance .iste-tournaments__head h1,.iste-tournaments--entrance .iste-tournaments__head>p,.iste-tournaments--entrance .iste-tournaments__actions,.iste-tournaments--entrance .iste-tournaments__builder-form,.iste-tournaments--entrance .iste-tournaments__summary,.iste-tournaments--entrance .iste-tournaments__grid>.iste-tournaments__card,.iste-tournaments--entrance .iste-tournaments__empty{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}}
+
+/* ISTe public winner bracket */
+.iste-tournaments__bracket-preview{margin-top:35px;border:1px solid #2d2d2d;border-radius:18px;padding:28px;background:radial-gradient(circle at 94% 0%,rgba(255,37,37,.09),transparent 34%),#090909}
+.iste-tournaments__bracket-head{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:25px}
+.iste-tournaments__bracket-head>div>span{font-size:11px;letter-spacing:.18em;font-weight:800;color:var(--accent)}
+.iste-tournaments__bracket-head h2{font-size:clamp(25px,3vw,38px);margin:8px 0 0}
+.iste-tournaments__bracket-head>small{color:#a9a9a9}
+.iste-tournaments__bracket-preview .iste-tournaments__rounds{gap:24px;padding:14px 3px 24px;scrollbar-color:#6b2222 #101010}
+.iste-tournaments__bracket-preview .iste-tournaments__round{min-width:230px;max-width:320px;gap:16px;flex:1}
+.iste-tournaments__bracket-preview .iste-tournaments__round h3{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #343434;padding-bottom:14px;margin:0;font-size:12px;letter-spacing:.12em;color:#eee}
+.iste-tournaments__bracket-preview .iste-tournaments__round h3 small{font-size:11px;letter-spacing:0;color:#8d8d8d}
+.iste-tournaments__bracket-preview .iste-tournaments__match{display:grid;gap:0;border:1px solid #303030;background:#111;border-radius:12px;padding:0;overflow:hidden;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;animation:iste-tournament-reveal .4s calc(var(--round-index)*110ms) both}
+.iste-tournaments__bracket-preview .iste-tournaments__match:hover{transform:translateY(-3px);border-color:rgba(255,37,37,.62);box-shadow:0 8px 26px rgba(255,37,37,.12)}
+.iste-tournaments__match-status{display:block;padding:10px 13px;font-size:10px!important;letter-spacing:.12em;color:#acacac!important;background:#171717}
+.iste-tournaments__match-side{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 13px;border-top:1px solid #282828;font-size:13px;color:#b9b9b9;min-width:0}
+.iste-tournaments__match-side span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iste-tournaments__match-side strong{font-size:17px;font-variant-numeric:tabular-nums;color:#f7f7f7}
+.iste-tournaments__match-side.is-winner{color:#fff;background:linear-gradient(90deg,rgba(255,37,37,.14),rgba(255,37,37,.03));box-shadow:inset 3px 0 0 var(--accent)}
+.iste-tournaments__match-side.is-winner strong{color:#ff4545}
+@media(max-width:650px){.iste-tournaments__bracket-preview{padding:17px}.iste-tournaments__bracket-preview .iste-tournaments__round{min-width:205px}.iste-tournaments__bracket-preview .iste-tournaments__rounds{gap:15px}}
+@media(prefers-reduced-motion:reduce){.iste-tournaments__bracket-preview .iste-tournaments__match{animation:none;transition:none}.iste-tournaments__bracket-preview .iste-tournaments__match:hover{transform:none}}
