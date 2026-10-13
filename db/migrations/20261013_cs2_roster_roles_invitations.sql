@@ -35,6 +35,6 @@ begin
    select a.status from public.tournament_team_applications a
    where a.team_id=t.id and a.user_id=auth.uid()
  ));
-end; $;
+end; $$;
 revoke all on function public.iste_team_roster(uuid) from public,anon;
 grant execute on function public.iste_team_roster(uuid) to authenticated;
