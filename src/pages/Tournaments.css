@@ -85,3 +85,10 @@
 .iste-tournaments__match-side.is-winner strong{color:#ff4545}
 @media(max-width:650px){.iste-tournaments__bracket-preview{padding:17px}.iste-tournaments__bracket-preview .iste-tournaments__round{min-width:205px}.iste-tournaments__bracket-preview .iste-tournaments__rounds{gap:15px}}
 @media(prefers-reduced-motion:reduce){.iste-tournaments__bracket-preview .iste-tournaments__match{animation:none;transition:none}.iste-tournaments__bracket-preview .iste-tournaments__match:hover{transform:none}}
+
+.iste-tournaments__roster-fields{display:grid;gap:12px;padding:17px;border:1px solid rgba(255,37,37,.23);border-radius:12px;background:rgba(255,37,37,.045)}
+.iste-tournaments__roster-fields label{display:grid;gap:8px;color:#eee;font-weight:600}
+.iste-tournaments__roster-fields input{width:100%;padding:12px;color:#fff;background:#090909;border:1px solid #383838;border-radius:8px;font:inherit}
+.iste-tournaments__roster-fields input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.iste-tournaments__team-item small{color:#aaa;margin-left:auto;overflow-wrap:anywhere}
+@media(max-width:560px){.iste-tournaments__team-item{flex-wrap:wrap}.iste-tournaments__team-item small{width:100%;margin-left:0}}
