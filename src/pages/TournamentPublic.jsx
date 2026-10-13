@@ -35,11 +35,17 @@ export default function TournamentPublic() {
       if (!teamsResponse.ok || !teamsData.ok) throw new Error(teamsData.message || "Ошибка загрузки команд.");
       setTeams(teamsData.teams || []);
       const rosterResults=await Promise.all((teamsData.teams||[]).map(async team=>{
-        const res=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(d.tournament.id)+"&teamId="+encodeURIComponent(team.id)+"&view=roster",{credentials:"include",signal:controller.signal});
-        if(!res.ok)return [team.id,null];
-        const data=await res.json();return [team.id,data.ok?data:null];
+        try {
+          const res=await fetch("/api/tournament-teams?tournamentId="+encodeURIComponent(d.tournament.id)+"&teamId="+encodeURIComponent(team.id)+"&view=roster",{credentials:"include",signal:controller.signal,cache:"no-store"});
+          if(!res.ok)return [team.id,null];
+          const data=await res.json();
+          return [team.id,data.ok?data:null];
+        } catch (err) {
+          if(err.name==="AbortError")throw err;
+          return [team.id,null];
+        }
       }));
-      setRosters(Object.fromEntries(rosterResults));
+      if(!controller.signal.aborted)setRosters(Object.fromEntries(rosterResults));
       const matchResponse = await fetch("/api/tournament-matches?tournamentId="+encodeURIComponent(d.tournament.id),{signal:controller.signal});
       const matchData=await matchResponse.json();
       if(matchResponse.ok&&matchData.ok)setMatches(matchData.matches||[]);
