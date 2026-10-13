@@ -184,6 +184,9 @@ export default function TournamentPublic() {
           {tournament.status === "registration" && user && <button type="button" disabled={joining} onClick={()=>joinTeam(team.id)}>Подать заявку</button>}
           <div className="iste-tournaments__roster">
             <small>Состав: {rosters[team.id]?.players?.length ?? "—"} / 5</small>
+            {rosters[team.id]?.myApplicationStatus==="pending"&&<small role="status">Ваша заявка ожидает решения капитана.</small>}
+            {rosters[team.id]?.myApplicationStatus==="accepted"&&<small role="status">Ваша заявка одобрена — вы в составе.</small>}
+            {rosters[team.id]?.myApplicationStatus==="rejected"&&<small role="status">Ваша заявка отклонена. Вы можете подать её повторно.</small>}
             {rosters[team.id]?.players?.map(player=><span key={player.userId}>{player.captain?"Капитан":"Игрок"} · {player.name||"Игрок ISTe"}</span>)}
             {rosters[team.id]?.applications?.map(application=><div key={application.userId}>
               <small>Заявка: {application.userId.slice(0,8)}</small>
