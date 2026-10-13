@@ -49,3 +49,29 @@
 .ts-flow{stroke-width:2.4;stroke-dasharray:9 15}
 .ts-tip{stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:700px){.ts-bracket{align-items:flex-start;gap:6px}.ts-arrow{width:76px;min-width:76px;margin-top:59px}.ts-arrow span{font-size:9px;padding:5px 7px}.ts-round:nth-of-type(3)>.ts-match{margin-top:82px}}
+
+
+/* Bracket V3: fixed visual lanes. No margin hacks on SVG paths. */
+.ts-bracket.ts-bracket--grid{display:grid;grid-template-columns:minmax(208px,250px) 80px minmax(208px,250px) 80px minmax(220px,270px);justify-content:center;column-gap:12px;align-items:start;overflow-x:auto;padding:30px 4px 36px}
+.ts-bracket--grid>.ts-round{min-width:0;width:auto;display:flex;flex-direction:column;gap:0}
+.ts-bracket--grid>.ts-champion{min-width:0;width:auto}
+.ts-bracket--grid .ts-round h3,.ts-bracket--grid .ts-champion h3{box-sizing:border-box;min-height:46px;height:46px;display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;padding:0 0 12px;border-bottom:1px solid #383838}
+.ts-bracket--grid>.ts-round:first-child>.ts-match+.ts-match{margin-top:18px}
+.ts-bracket--grid>.ts-round:nth-child(3)>.ts-match{margin-top:83px}
+.ts-bracket--grid>.ts-champion>.ts-champion-card{margin-top:83px}
+.ts-bracket--grid .ts-match{width:100%;box-sizing:border-box;flex:none}
+.ts-bracket--grid .ts-side{min-height:51px}
+.ts-bracket--grid .ts-join{height:300px;width:80px;min-width:80px;position:relative;margin-top:60px;align-self:start}
+.ts-bracket--grid .ts-join svg{display:block;width:100%;height:100%;overflow:visible}
+.ts-bracket--grid .ts-join-label{position:absolute;top:96px;left:50%;transform:translateX(-50%);display:block;white-space:nowrap;z-index:2;color:#ff8484;font-size:10px;font-weight:900;letter-spacing:.14em;background:#131012;border:1px solid #733034;border-radius:999px;padding:5px 9px;line-height:1.2;box-shadow:0 0 12px rgba(255,37,37,.1)}
+.ts-bracket--grid .ts-join-track{fill:none;stroke:#ff2525;stroke-width:2;opacity:.24;stroke-linejoin:round}
+.ts-bracket--grid .ts-join-moving{fill:none;stroke:#ff3b3b;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:8 14;filter:drop-shadow(0 0 4px rgba(255,37,37,.48));animation:ts-march 1.5s linear infinite}
+.ts-bracket--grid .ts-join-tip{fill:none;stroke:#ff4444;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+@media(max-width:1070px){.ts-bracket.ts-bracket--grid{justify-content:start;grid-template-columns:232px 70px 232px 70px 245px;column-gap:8px}.ts-bracket--grid .ts-join{width:70px;min-width:70px}}
+@media(max-width:700px){.ts-bracket.ts-bracket--grid{grid-template-columns:220px 65px 220px 65px 230px;gap:6px}.ts-bracket--grid .ts-join{width:65px;min-width:65px}.ts-bracket--grid .ts-join-label{font-size:9px;padding:5px 7px}}
+@media(prefers-reduced-motion:reduce){.ts-bracket--grid .ts-join-moving{animation:none}}
+
+/* V3.1: first connector label floats above the outgoing horizontal segment. */
+.ts-bracket--grid .ts-join--merge .ts-join-label{top:112px;left:69%;transform:translateX(-50%);border-color:#56262a;background:#0c0b0c;font-size:9px;padding:4px 7px}
+.ts-bracket--grid .ts-join--merge .ts-join-track,.ts-bracket--grid .ts-join--merge .ts-join-moving{stroke-linecap:round}
+@media(max-width:700px){.ts-bracket--grid .ts-join--merge .ts-join-label{left:72%;font-size:8px;padding:4px 5px}}
