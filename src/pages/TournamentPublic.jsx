@@ -59,14 +59,23 @@ export default function TournamentPublic() {
     setJoining(true);
     try {
       const result = await Promise.all(teams.map(async team => {
-        const response = await fetch("/api/tournament-teams?tournamentId=" +
-          encodeURIComponent(tournament.id) + "&teamId=" + encodeURIComponent(team.id) +
-          "&view=roster", { credentials: "include", cache: "no-store" });
-        if (!response.ok) return [team.id, null];
-        const data = await response.json();
-        return [team.id, data.ok ? data : null];
+        try {
+          const response = await fetch("/api/tournament-teams?tournamentId=" +
+            encodeURIComponent(tournament.id) + "&teamId=" + encodeURIComponent(team.id) +
+            "&view=roster", { credentials: "include", cache: "no-store" });
+          if (!response.ok) return [team.id, null];
+          const data = await response.json();
+          return [team.id, data.ok ? data : null];
+        } catch {
+          return [team.id, null];
+        }
       }));
-      setRosters(Object.fromEntries(result));
+      setRosters(previous => ({
+        ...previous,
+        ...Object.fromEntries(result.filter(([, roster]) => roster !== null)),
+      }));
+      if (result.some(([, roster]) => roster === null))
+        setJoinMessage("Не все составы обновились. Повторите попытку.");
     } catch (err) {
       setJoinMessage(err.message || "Не удалось обновить составы.");
     } finally {
