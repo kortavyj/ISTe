@@ -183,3 +183,22 @@ main {
 @keyframes iste-bracket-screen{0%{opacity:0}8%,86%{opacity:1}100%{opacity:0}}
 @media(max-width:600px){.iste-bracket-transition__rounds{gap:8px}.iste-bracket-transition__round{min-width:0;width:27vw;gap:8px}.iste-bracket-transition__round>span,.iste-bracket-transition__round>strong{padding:10px 5px;font-size:9px}.iste-bracket-transition__winner strong{font-size:17px!important}.iste-bracket-transition__bullet{top:45%}}
 @media(prefers-reduced-motion:reduce){.iste-bracket-transition{display:none}}
+
+/* Cinematic V2: spinning cartridge, red trail, sequential bracket progression. */
+.iste-bracket-transition__bullet-flight{position:absolute;z-index:4;left:0;top:40%;width:clamp(110px,17vw,200px);animation:iste-bullet-flight-v2 .9s cubic-bezier(.35,.05,.45,1) both;will-change:transform,opacity}
+.iste-bracket-transition__bullet-flight .iste-bracket-transition__bullet{position:relative;left:auto;top:auto;width:100%;filter:drop-shadow(0 0 9px rgba(255,37,37,.65));animation:iste-cartridge-spin .22s linear 4}
+.iste-bracket-transition__bullet-flight .iste-bracket-transition__bullet svg{display:block;width:100%;height:auto}
+.iste-bracket-transition__trail{position:absolute;right:85%;top:50%;height:4px;width:min(75vw,800px);transform:translateY(-50%);background:linear-gradient(90deg,transparent,rgba(255,37,37,.04) 12%,rgba(255,37,37,.28) 65%,#ff2525 100%);filter:drop-shadow(0 0 12px rgba(255,37,37,.85));animation:iste-trail-pulse .17s linear 5}
+.iste-bracket-transition__rounds{animation:iste-bracket-appear-v2 .35s .28s both}
+.iste-bracket-transition__round:first-child{animation:iste-round-reveal .29s .34s both}
+.iste-bracket-transition__semis{animation:iste-round-reveal .29s .66s both}
+.iste-bracket-transition__winner{animation:iste-round-reveal .29s .97s both}
+.iste-bracket-transition__winner strong{animation:iste-winner-glow .4s 1.17s both}
+@keyframes iste-bullet-flight-v2{0%{transform:translate3d(-35vw,14vh,0) rotate(-12deg) scale(.65);opacity:0}10%{opacity:1}85%{opacity:1}100%{transform:translate3d(125vw,-8vh,0) rotate(1deg) scale(1.15);opacity:0}}
+@keyframes iste-cartridge-spin{0%{transform:rotateX(0deg) rotateY(0deg)}50%{transform:rotateX(180deg) rotateY(12deg)}100%{transform:rotateX(360deg) rotateY(0deg)}}
+@keyframes iste-trail-pulse{0%,100%{opacity:.65}50%{opacity:1}}
+@keyframes iste-bracket-appear-v2{from{opacity:0;filter:blur(7px)}to{opacity:1;filter:blur(0)}}
+@keyframes iste-round-reveal{from{opacity:0;transform:translateX(-25px) scale(.95);filter:blur(7px)}to{opacity:1;transform:translateX(0) scale(1);filter:blur(0)}}
+@keyframes iste-winner-glow{from{border-color:rgba(255,37,37,.4);box-shadow:0 0 0 rgba(255,37,37,0)}to{border-color:#ff2525;box-shadow:0 0 36px rgba(255,37,37,.68)}}
+@media(max-width:600px){.iste-bracket-transition__bullet-flight{top:45%}}
+@media(prefers-reduced-motion:reduce){.iste-bracket-transition__bullet-flight,.iste-bracket-transition__bullet-flight .iste-bracket-transition__bullet,.iste-bracket-transition__trail,.iste-bracket-transition__rounds,.iste-bracket-transition__round:first-child,.iste-bracket-transition__semis,.iste-bracket-transition__winner,.iste-bracket-transition__winner strong{animation:none!important}}
