@@ -3,7 +3,7 @@ export const ACADEMY_FACEIT_TEAM = "https://www.faceit.com/ru/teams/32334a69-a46
 export const ACADEMY_PLAYERS = [
   {nickname:"E34-M50B25"},
   {nickname:"S1Zapooo"},
-  {nickname:"DETT3N",isCaptain:true,role:"CAPTAIN"},
+  {nickname:"DETT3N",isCaptain:true,role:"IGL"},
   {nickname:"SaDaMXynBceM"},
   {nickname:"syro_S"},
 ].map((player,index)=>({ ...player, playerId:"academy-"+index, rosterStatus:"academy", displayName:player.nickname, faceitUrl:"https://www.faceit.com/ru/players/"+encodeURIComponent(player.nickname), role:player.role||"PLAYER", officialRoster:true, sortOrder:index, strengths:[], socials:[] }));
