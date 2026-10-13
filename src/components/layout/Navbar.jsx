@@ -38,6 +38,11 @@ const navigation = [
     icon: "team",
   },
   {
+    to: "/tournaments",
+    labelKey: "navigation.tournaments",
+    icon: "trophy",
+  },
+  {
     to: "/news",
     labelKey: "navigation.news",
     icon: "news",
@@ -114,6 +119,7 @@ const adminCopy = {
 };
 
 const navigationIcons = {
+  trophy: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v7a5 5 0 0 1-10 0V4ZM7 7H3v3a5 5 0 0 0 5 5M17 7h4v3a5 5 0 0 1-5 5M12 16v3M8 21h8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   home: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
