@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ACADEMY_PLAYERS, centerCaptain, ACADEMY_FACEIT_TEAM } from "../data/academyRoster.js";
+import { ACADEMY_PLAYERS, centerCaptain } from "../data/academyRoster.js";
 import useOfficialRoster from "../hooks/useOfficialRoster.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import sharedPlayerPortrait from "../assets/players/team-player.webp";
@@ -871,7 +871,7 @@ export default function Team() {
       </header>
 
       <nav className="iste-roster-tabs" aria-label="ISTe rosters"><button type="button" aria-pressed={activeRoster==="main"} onClick={()=>setActiveRoster("main")}>ISTe MAIN</button><button type="button" aria-pressed={activeRoster==="academy"} onClick={()=>setActiveRoster("academy")}>ISTe ACADEMY</button></nav>
-      {activeRoster === "academy" ? <><div className="team-profiles">{ACADEMY_PLAYERS.map((player,index)=><PlayerProfile player={player} index={index} language={language} copy={copy} key={player.playerId}/>)}</div><p className="iste-academy-info"><a href={ACADEMY_FACEIT_TEAM} target="_blank" rel="noreferrer">ISTe Academy · FACEIT ↗</a></p></> : <>
+      {activeRoster === "academy" ? <><div className="team-profiles">{ACADEMY_PLAYERS.map((player,index)=><PlayerProfile player={player} index={index} language={language} copy={copy} key={player.playerId}/>)}</div></> : <>
       {loading && players.length === 0 ? <ProfilesSkeleton copy={copy} /> : null}
 
       {!loading && mainPlayers.length > 0 ? (
