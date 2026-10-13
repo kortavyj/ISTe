@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { ACADEMY_PLAYERS, centerCaptain, ACADEMY_FACEIT_TEAM } from "../data/academyRoster.js";
 import useOfficialRoster from "../hooks/useOfficialRoster.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import sharedPlayerPortrait from "../assets/players/team-player.webp";
@@ -787,6 +789,7 @@ function ProfilesSkeleton({ copy }) {
 
 export default function Team() {
   const { language, t } = useLanguage();
+  const [activeRoster,setActiveRoster] = useState("main");
   const { stats, loading, error, reload } = useOfficialRoster();
   const copy = PAGE_COPY[language] || PAGE_COPY.uk;
 
@@ -840,6 +843,7 @@ export default function Team() {
           !SUBSTITUTE_PLAYERS.has(normalizeRosterKey(player.nickname)),
   );
 
+  const centeredMainPlayers = centerCaptain(mainPlayers);
   const substitutePlayers = players.filter(
     (player) =>
       player.officialRoster
@@ -862,11 +866,13 @@ export default function Team() {
         </div>
       </header>
 
+      <nav className="iste-roster-tabs" aria-label="ISTe rosters"><button type="button" aria-pressed={activeRoster==="main"} onClick={()=>setActiveRoster("main")}>ISTe MAIN</button><button type="button" aria-pressed={activeRoster==="academy"} onClick={()=>setActiveRoster("academy")}>ISTe ACADEMY</button></nav>
+      {activeRoster === "academy" ? <><div className="team-profiles">{ACADEMY_PLAYERS.map((player,index)=><PlayerProfile player={player} index={index} language={language} copy={copy} key={player.playerId}/>)}</div><p className="iste-academy-info"><a href={ACADEMY_FACEIT_TEAM} target="_blank" rel="noreferrer">ISTe Academy · FACEIT ↗</a></p></> : <>
       {loading && players.length === 0 ? <ProfilesSkeleton copy={copy} /> : null}
 
       {!loading && mainPlayers.length > 0 ? (
         <div className="team-profiles">
-          {mainPlayers.map((player, index) => (
+          {centeredMainPlayers.map((player, index) => (
             <PlayerProfile
               player={player}
               index={index}
@@ -907,6 +913,7 @@ export default function Team() {
           </button>
         </div>
       ) : null}
+      </>}
     </section>
   );
 }
