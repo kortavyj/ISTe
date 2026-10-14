@@ -147,6 +147,11 @@ begin
       team_b_id=case when v_match.match_index%2=1 then v_winner else team_b_id end,
       version=version+1,updated_at=now()
     where id=v_parent.id;
+    -- Once both finalists advance, the next match becomes confirmable.
+    -- Keep its version increment from the slot update above.
+    update public.iste_tournament_matches set status='ready',updated_at=now()
+    where id=v_parent.id and status='scheduled'
+      and team_a_id is not null and team_b_id is not null;
   end if;
   v_new := jsonb_build_object('matchId',p_match_id,'winnerTeamId',v_winner,
      'scoreA',v_wins_a,'scoreB',v_wins_b,'maps',v_maps,'version',v_match.version+1);
