@@ -35,6 +35,7 @@ jobs:
       PGDATABASE: iste_restore_test
 
     steps:
+      - uses: actions/checkout@v4
       - name: Validate required backup credentials
         shell: bash
         run: |
