@@ -11,8 +11,8 @@ const copy = {
     intro:
       "Окремий центр керування ISTe, доступний лише власнику. Усі ключові адміністративні розділи зібрані в одному місці.",
     protected: "OWNER ONLY",
-    previewTitle: "Турніри CS2 · тест",
-    previewText: "Закритий інтерактивний перегляд майбутнього турнірного розділу.",
+    previewTitle: "ISTe Tournaments V2",
+    previewText: "Панель організатора: перегляд турнірів, тестова сітка та ручне керування результатами матчів (деморежим).",
     open: "Відкрити",
     rosterTitle: "Roster Manager",
     rosterText:
@@ -45,8 +45,8 @@ const copy = {
     intro:
       "A dedicated ISTe management center available only to the owner. All key administrative sections are collected in one place.",
     protected: "OWNER ONLY",
-    previewTitle: "CS2 Tournaments · Preview",
-    previewText: "Private interactive preview of the future tournament area.",
+    previewTitle: "ISTe Tournaments V2",
+    previewText: "Organizer dashboard: tournament overview, demo bracket and manual match result controls (demo mode).",
     open: "Open",
     rosterTitle: "Roster Manager",
     rosterText:
@@ -84,7 +84,7 @@ const cards = [
   { key: "discord", to: "/owner/discord", mark: "06" },
   { key: "publicBot", to: "/discord", mark: "07" },
   { key: "website", to: "/", mark: "08" },
-  { key: "preview", to: "/owner/tournaments-preview", mark: "09" },
+  { key: "preview", to: "/owner/tournaments", mark: "09" },
 ];
 
 export default function FounderDashboard() {
