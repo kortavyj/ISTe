@@ -104,7 +104,7 @@ begin
   insert into public.iste_tournament_members(team_id,user_id,faceit_player_id,is_captain)
   values(v_team,nullif(v_member->>'userId','')::uuid,
     nullif(lower(v_member->>'faceitPlayerId'),''),
-    (v_member->>'userId')::uuid=v_actor);
+    coalesce((v_member->>'userId')::uuid=v_actor,false));
  end loop;
  insert into public.iste_tournament_audit_log(tournament_id,actor_id,entity_type,entity_id,action,new_data)
  values(v_tournament.id,v_actor,'team',v_team,'team_application',
