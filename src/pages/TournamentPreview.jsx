@@ -27,11 +27,12 @@ export default function TournamentPreview() {
 
   return (
     <section className="tp-page">
+      <nav className="tp-breadcrumbs" aria-label="Навигация"><Link to="/founder">Панель владельца</Link><span>/</span><Link to="/owner/tournaments">Турниры</Link><span>/</span><span>Демо-сетка</span></nav>
       <header className="tp-hero">
         <div>
-          <div className="tp-eyebrow">ISTe / PRIVATE DEVELOPMENT PREVIEW</div>
-          <h1>CS2 TOURNAMENTS</h1>
-          <p>Закрытый интерактивный прототип турнирного раздела. Только для владельца ISTe.</p>
+          <div className="tp-eyebrow">ISTe ESPORTS / TOURNAMENT CONTROL</div>
+          <h1>CS2 <span>TOURNAMENTS</span></h1>
+          <p>Демонстрационная сетка и управление матчами в едином интерфейсе ISTe. Изменения не затрагивают реальные турниры.</p>
           <div className="tp-tags"><span>CS2</span><span>Single Elimination</span><span>BO1 / BO3</span><span>8 команд</span></div>
         </div>
         <div className="tp-preview-badge">TEST MODE <small>Не реальные матчи</small></div>
@@ -109,7 +110,7 @@ export default function TournamentPreview() {
         {showFinished && <div className="tp-rows">{seeds.map((m,i)=><div key={i}><span>{m[0]} — {m[1]}</span><strong>{scores[i].a}:{scores[i].b}</strong></div>)}</div>}
       </>}
 
-      <footer className="tp-footer"><span>PRIVATE PREVIEW · Только макет, никаких реальных турниров</span><Link to="/founder">← Панель владельца</Link></footer>
+      <footer className="tp-footer"><span>ISTe / TOURNAMENT OPERATIONS · ДЕМОНСТРАЦИОННЫЕ ДАННЫЕ</span><Link to="/owner/tournaments">← К управлению турнирами</Link></footer>
     </section>
   );
 }
