@@ -4,6 +4,7 @@ on:
     paths:
       - "supabase/migrations/20261014_iste_tournament*.sql"
       - "tests/tournaments-v2-all-migrations-smoke.sql"
+      - "tests/tournaments-v2-privilege-regression.sql"
       - ".github/workflows/iste-full-sql-stack-tests.yml"
   workflow_dispatch:
 permissions:
@@ -46,6 +47,8 @@ jobs:
             supabase/migrations/20261014_iste_tournament_owner_get_bracket_rpc.sql \
             supabase/migrations/20261014_iste_tournament_status_transition_rpc.sql \
             supabase/migrations/20261014_iste_tournament_owner_list_all_rpc.sql \
+            supabase/migrations/20261014_iste_tournaments_v2_restrict_table_privileges.sql \
+            tests/tournaments-v2-privilege-regression.sql \
             tests/tournaments-v2-all-migrations-smoke.sql; do
             echo "Testing $file"
             docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
