@@ -1,0 +1,46 @@
+name: Verify Tournament V2 Owner Draft Reads
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261014_iste_tournament_owner_list_all_rpc.sql"
+      - "tests/tournaments-v2-owner-all-fixture.sql"
+      - ".github/workflows/iste-owner-all-read-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-drafts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: iste_drafts_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iste_drafts_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check private drafts in disposable PostgreSQL
+        env:
+          PGPASSWORD: disposable_only
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            tests/tournaments-v2-setup.sql \
+            supabase/migrations/20261014_iste_tournaments_v2_foundation.sql \
+            supabase/migrations/20261014_iste_tournament_owner_list_all_rpc.sql \
+            tests/tournaments-v2-owner-all-fixture.sql; do
+            docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
+              -v "$PWD:/workspace:ro" postgres:17-alpine \
+              psql -h 127.0.0.1 -U postgres -d iste_drafts_test \
+              -X -v ON_ERROR_STOP=1 -f "/workspace/$file"
+          done
