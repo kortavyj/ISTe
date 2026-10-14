@@ -8,6 +8,7 @@ function response(){
  const headers={};
  return {headers,statusCode:200,body:null,
   setHeader(k,v){headers[k]=v;return this;},
+  getHeader(k){return headers[k];},
   status(code){this.statusCode=code;return this;},
   json(value){this.body=value;return this;}};
 }
