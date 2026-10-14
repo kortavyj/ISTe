@@ -75,12 +75,12 @@ end
 $test$;
 
 do $test$
+declare v_changed integer;
 begin
-  begin
-    update public.iste_tournaments set title = 'Hacked' where slug = 'public-cup';
-    raise exception 'TEST FAILED: authenticated update unexpectedly permitted';
-  exception when insufficient_privilege then null;
-  end;
+  -- With no UPDATE RLS policy PostgreSQL may silently affect zero rows.
+  update public.iste_tournaments set title = 'Hacked' where slug = 'public-cup';
+  get diagnostics v_changed = row_count;
+  if v_changed <> 0 then raise exception 'TEST FAILED: authenticated changed % rows', v_changed; end if;
 end
 $test$;
 reset role;
