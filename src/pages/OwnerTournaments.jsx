@@ -22,7 +22,7 @@ export default function OwnerTournaments() {
       const result = await response.json();
       if (!response.ok || result?.ok !== true) {
         if (result?.error === "TOURNAMENT_SCHEMA_NOT_INSTALLED") {
-          throw new Error("База турниров ещё не подключена. Это ожидаемо: миграции пока не применялись.");
+          throw new Error("Защищённый список турниров ещё не подключён. Миграции пока не применялись.");
         }
         throw new Error(result?.message || "Не удалось загрузить турниры.");
       }
@@ -59,7 +59,7 @@ export default function OwnerTournaments() {
       <div className="ot-toolbar">
         <div>
           <h2>Мои турниры</h2>
-          <p>Отображаются только опубликованные турниры. Черновики станут доступны после проверки серверных прав.</p>
+          <p>Отображаются все турниры владельца, включая черновики, если защищённая SQL-функция установлена.</p>
         </div>
         <button type="button" onClick={() => void refresh()} disabled={loading}>
           {loading ? "Загрузка…" : "Обновить"}
@@ -71,7 +71,7 @@ export default function OwnerTournaments() {
         <strong>Данные пока недоступны</strong><p>{error}</p>
       </div> : null}
       {!loading && !error && !tournaments.length ? <div className="ot-state">
-        <strong>Опубликованных турниров пока нет</strong>
+        <strong>Турниров пока нет</strong>
         <p>После подключения базы здесь появятся реальные турниры ISTe.</p>
       </div> : null}
 
