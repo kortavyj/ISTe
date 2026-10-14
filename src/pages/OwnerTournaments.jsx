@@ -89,6 +89,7 @@ export default function OwnerTournaments() {
 
       <div className="ot-links">
         <Link to="/owner/tournaments-preview">Открыть демонстрационную сетку →</Link>
+        <Link to="/owner/tournaments-match-lab">Ручное управление матчами (демо) →</Link>
         <Link to="/founder">← Вернуться в панель владельца</Link>
       </div>
     </section>
