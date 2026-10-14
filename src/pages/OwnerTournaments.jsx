@@ -91,6 +91,7 @@ export default function OwnerTournaments() {
         <Link to="/owner/tournaments-preview">Открыть демонстрационную сетку →</Link>
         <Link to="/owner/tournaments-match-lab">Ручное управление матчами (демо) →</Link>
         <Link to="/owner/tournaments-teams">Рассмотрение заявок команд (демо) →</Link>
+        <Link to="/owner/tournaments-team-applications">Реальные заявки (только просмотр) →</Link>
         <Link to="/founder">← Вернуться в панель владельца</Link>
       </div>
     </section>
