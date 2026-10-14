@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createSingleEliminationBracket as create, confirmBracketWinner as confirm } from "../api/lib/tournamentBracket.js";
+import { createSingleEliminationBracket as create, confirmBracketWinner as confirm } from "../server/apiLib/tournamentBracket.js";
 
 const teams = (n) => Array.from({length:n},(_,i)=>({id:`team-${i+1}`,seed:i+1}));
 

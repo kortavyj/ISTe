@@ -1,9 +1,9 @@
-import { guardRequest } from "../lib/requestGuard.js";
+import { guardRequest } from "../../server/apiLib/requestGuard.js";
 import {
   enforceRegisterRateLimit,
   recordAuthSecurityEvent,
 } from "../../server/lib/authSecurity.js";
-import { getSupabaseServerClient } from "../lib/supabaseServer.js";
+import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
 
 const usernamePattern =
   /^[A-Za-z0-9_]{3,32}$/;

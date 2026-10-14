@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { createSingleEliminationBracket, confirmBracketWinner } from "../../api/lib/tournamentBracket.js";
-import { validateManualMatchResult } from "../../api/lib/tournamentManualResults.js";
+import { createSingleEliminationBracket, confirmBracketWinner } from "../../server/apiLib/tournamentBracket.js";
+import { validateManualMatchResult } from "../../server/apiLib/tournamentManualResults.js";
 import "./TournamentMatchLab.css";
 
 const MAPS = ["Mirage", "Inferno", "Nuke", "Ancient", "Anubis", "Dust2", "Overpass", "Train", "Vertigo"];

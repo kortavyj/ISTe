@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateManualMatchResult as check } from "../api/lib/tournamentManualResults.js";
+import { validateManualMatchResult as check } from "../server/apiLib/tournamentManualResults.js";
 
 const mirage = { name: "Mirage", scoreA: 13, scoreB: 9 };
 const nuke = { name: "Nuke", scoreA: 11, scoreB: 13 };

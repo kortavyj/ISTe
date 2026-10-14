@@ -1,9 +1,9 @@
-import { guardRequest } from "../lib/requestGuard.js";
+import { guardRequest } from "../../server/apiLib/requestGuard.js";
 import {
   clearAuthCookies,
   readAuthCookies,
-} from "../lib/authCookies.js";
-import { getSupabaseServerClient } from "../lib/supabaseServer.js";
+} from "../../server/apiLib/authCookies.js";
+import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
 
 export default async function handler(
   request,

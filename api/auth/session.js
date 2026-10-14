@@ -1,17 +1,17 @@
 import { randomUUID } from "node:crypto";
 import { handleExtensionMedia } from "../../server/lib/extensionMedia.js";
 
-import { guardRequest } from "../lib/requestGuard.js";
+import { guardRequest } from "../../server/apiLib/requestGuard.js";
 import {
   clearAuthCookies,
   readAuthCookies,
   readPendingMfaCookies,
   setAuthCookies,
   setPendingMfaCookies,
-} from "../lib/authCookies.js";
+} from "../../server/apiLib/authCookies.js";
 
-import { readJsonBody } from "../lib/requestBody.js";
-import { getSupabaseServerClient } from "../lib/supabaseServer.js";
+import { readJsonBody } from "../../server/apiLib/requestBody.js";
+import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
 import {
   enforceMfaRateLimit,
   recordAuthSecurityEvent,
