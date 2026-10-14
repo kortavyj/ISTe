@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 43,
-  "matches": 88,
-  "wins": 71,
+  "matches": 89,
+  "wins": 72,
   "winRate": 81,
   "players": 7,
   "roster": [
@@ -40,8 +40,8 @@
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
-      "winRate": 50,
-      "kd": 1.27
+      "winRate": 51,
+      "kd": 1.28
     },
     {
       "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
@@ -73,13 +73,13 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.08
+      "kd": 1.09
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
       "nickname": "1sagi",
       "avatar": "https://distribution.faceit-cdn.net/images/66f667f0-6121-479d-bec3-95fae354c6bf.jpg",
-      "country": "mc",
+      "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
       "level": 10,
@@ -89,7 +89,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 0.99
+      "kd": 1
     },
     {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
@@ -104,8 +104,8 @@
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.07
+      "winRate": 50,
+      "kd": 1.08
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -121,10 +121,34 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.1
+      "kd": 1.11
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-0054525c-ebdb-406c-a7d2-4908e1e80493",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-0054525c-ebdb-406c-a7d2-4908e1e80493",
+      "tournamentId": "3b1873c0-4401-4a4e-8aef-111138b9a3c4",
+      "competitionName": "S59 EU Open10 B - Regular Season",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-10-14T18:05:44.000Z",
+      "startedAt": "2026-10-14T18:05:44.000Z",
+      "finishedAt": "2026-10-14T18:43:29.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "BOEF",
+        "avatar": "https://distribution.faceit-cdn.net/images/a89b8112-0482-41fe-8108-6d32c1a4050e.jpg",
+        "score": 6
+      }
+    },
     {
       "matchId": "1-b6937415-d0a4-424d-809b-bea8f2401273",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-b6937415-d0a4-424d-809b-bea8f2401273",
@@ -3438,14 +3462,14 @@
       }
     }
   ],
-  "teamMatchCount": 138,
+  "teamMatchCount": 139,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 8,
-    "historyMatchesFound": 8,
+    "historyMatchesFound": 9,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3453,5 +3477,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-14T18:06:16.625Z"
+  "updatedAt": "2026-10-14T21:36:05.932Z"
 }
