@@ -2,8 +2,8 @@ import {
   clearAuthCookies,
   readAuthCookies,
   setAuthCookies,
-} from ".././apiLib/authCookies.js";
-import { getSupabaseServerClient } from ".././apiLib/supabaseServer.js";
+} from "../apiLib/authCookies.js";
+import { getSupabaseServerClient } from "../apiLib/supabaseServer.js";
 
 const ACCESS_ROLES = new Set([
   "player",
