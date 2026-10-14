@@ -1,0 +1,30 @@
+name: ISTe DEV Auth catalog preflight (manual read only)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: iste-dev-auth-preflight
+  cancel-in-progress: false
+jobs:
+  catalog-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      DATABASE_URL: ${{ secrets.ISTE_DEV_BACKUP_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify DEV-only connection identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/validate_iste_dev_backup_url.py
+      - name: Check live DEV Auth catalog without writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network host \
+            -e DATABASE_URL="$DATABASE_URL" \
+            -v "$PWD/tests:/tests:ro" postgres:17-alpine \
+            sh -c 'exec psql -X -v ON_ERROR_STOP=1 --dbname="$DATABASE_URL" -f /tests/tournaments-v2-dev-auth-catalog-readonly.sql'
+          echo "::notice::Read-only catalog audit succeeded on approved DEV project. This is not a live JWT/RLS authorization test."
