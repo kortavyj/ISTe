@@ -1,0 +1,47 @@
+name: Verify Tournament V2 Match Confirmation SQL
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261014_iste_tournament_confirm_match_rpc.sql"
+      - "tests/tournaments-v2-confirm-rpc-fixture.sql"
+      - ".github/workflows/iste-confirm-match-rpc-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  confirm-match:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: iste_confirm_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iste_confirm_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run isolated SQL and authorization tests
+        shell: bash
+        env:
+          PGPASSWORD: disposable_only
+        run: |
+          set -euo pipefail
+          for file in \
+            tests/tournaments-v2-setup.sql \
+            supabase/migrations/20261014_iste_tournaments_v2_foundation.sql \
+            supabase/migrations/20261014_iste_tournament_confirm_match_rpc.sql \
+            tests/tournaments-v2-confirm-rpc-fixture.sql; do
+            echo "Executing: $file"
+            docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
+              -v "$PWD:/workspace:ro" postgres:17-alpine \
+              psql -h 127.0.0.1 -U postgres -d iste_confirm_test \
+              -X -v ON_ERROR_STOP=1 -f "/workspace/$file"
+          done
