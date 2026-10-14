@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import TournamentOwnerActions from "../components/tournaments/TournamentOwnerActions.jsx";
 import "./OwnerTournaments.css";
+import "./TournamentPremiumTheme.css";
 
 const statusLabels = {
   draft: "Черновик", registration: "Регистрация", checkin: "Чекин",
