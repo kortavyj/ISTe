@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 
-const SITE_URL = "https://istesport.com";
+const SITE_URL = "https://www.istesport.com";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 
 const OG_LOCALE = {
@@ -220,24 +220,24 @@ function getFounderProfileSchema(language) {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
     "@id":
-      "https://istesport.com/history#profilepage",
-    url: "https://istesport.com/history",
+      "https://www.istesport.com/history#profilepage",
+    url: "https://www.istesport.com/history",
     name: content.founder.pageName,
     description:
       content.founder.pageDescription,
     inLanguage: language,
     isPartOf: {
       "@id":
-        "https://istesport.com/#website",
+        "https://www.istesport.com/#website",
     },
     publisher: {
       "@id":
-        "https://istesport.com/#organization",
+        "https://www.istesport.com/#organization",
     },
     mainEntity: {
       "@type": "Person",
       "@id":
-        "https://istesport.com/history#person",
+        "https://www.istesport.com/history#person",
       name:
         language === "uk"
           ? "Євген"
@@ -245,7 +245,7 @@ function getFounderProfileSchema(language) {
             ? "Evgeniy"
             : "Евгений",
       alternateName: "Kortavyj",
-      url: "https://istesport.com/history",
+      url: "https://www.istesport.com/history",
       jobTitle: "Founder & Owner of ISTe",
       description:
         content.founder.personDescription,
@@ -255,15 +255,15 @@ function getFounderProfileSchema(language) {
       ],
       worksFor: {
         "@id":
-          "https://istesport.com/#organization",
+          "https://www.istesport.com/#organization",
       },
       affiliation: {
         "@id":
-          "https://istesport.com/#organization",
+          "https://www.istesport.com/#organization",
       },
       mainEntityOfPage: {
         "@id":
-          "https://istesport.com/history#profilepage",
+          "https://www.istesport.com/history#profilepage",
       },
     },
   };
