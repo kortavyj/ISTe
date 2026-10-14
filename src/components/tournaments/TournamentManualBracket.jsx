@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ManualMatchEditor from "./ManualMatchEditor.jsx";
+import { createShareLink } from "./manualBracketShare.js";
 import "./TournamentManualBracket.css";
 
 const sizes = [2, 4, 8, 16, 32];
@@ -245,6 +246,19 @@ export default function TournamentManualBracket() {
       setLibraryError(error instanceof SyntaxError ? "Файл не является корректным JSON." : error.message || "Импорт не выполнен.");
     }
   }
+  async function shareCurrent() {
+    try {
+      const raw = localStorage.getItem(entryKey(library.activeId));
+      if (!raw) throw new Error("Сначала создайте сетку.");
+      const data = JSON.parse(raw);
+      if (!data.entries) throw new Error("Сначала сформируйте сетку с командами.");
+      const link = await createShareLink(data);
+      await navigator.clipboard.writeText(link);
+      setLibraryError("Ссылка на снимок сетки скопирована. После изменения результатов создайте новую ссылку.");
+    } catch (error) {
+      setLibraryError(error?.message || "Не удалось скопировать ссылку.");
+    }
+  }
   function exportCurrent() {
     try { downloadTournament(library.activeId, library.items.find(item=>item.id===library.activeId)?.title || "ISTe");setLibraryError(""); }
     catch { setLibraryError("Не удалось экспортировать турнир. Проверьте настройки браузера."); }
@@ -260,6 +274,7 @@ export default function TournamentManualBracket() {
       <div className="tmb-library-actions">
         <button type="button" onClick={create}>+ Новый турнир</button>
         <button type="button" onClick={exportCurrent}>Экспорт JSON ↓</button>
+        <button type="button" onClick={() => void shareCurrent()}>Поделиться сеткой ↗</button>
         <label className="tmb-import-label">Импорт JSON ↑<input type="file" accept=".json,application/json" onChange={importFile}/></label>
         <button type="button" onClick={remove} className="tmb-remove">Удалить</button>
       </div>
