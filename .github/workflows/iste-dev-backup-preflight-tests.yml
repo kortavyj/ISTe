@@ -1,0 +1,21 @@
+name: Verify ISTe DEV Backup URL Preflight
+on:
+  pull_request:
+    paths:
+      - "scripts/validate_iste_dev_backup_url.py"
+      - "tests/test_iste_dev_backup_url.py"
+      - ".github/workflows/iste-dev-backup.yml"
+      - ".github/workflows/iste-dev-backup-preflight-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate direct/pooler and reject incorrect project
+        run: python -m unittest discover -s tests -p test_iste_dev_backup_url.py -v
