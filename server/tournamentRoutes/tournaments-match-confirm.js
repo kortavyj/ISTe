@@ -5,7 +5,8 @@ import { validateManualMatchResult } from "../apiLib/tournamentManualResults.js"
 
 // Deliberately fail closed until a separately audited transactional Supabase
 // RPC has been installed and tested on a nonproduction project.
-export default async function handler(request, response) {
+export function createMatchConfirmationHandler({ authorize = requireOwner, writesEnabled = () => process.env.ISTE_TOURNAMENT_WRITES_ENABLED === "true" } = {}) {
+ return async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store, private");
   response.setHeader("X-Content-Type-Options", "nosniff");
 
@@ -19,13 +20,13 @@ export default async function handler(request, response) {
     if (guard.allow) response.setHeader("Allow", guard.allow);
     return response.status(guard.status).json({ ok: false, error: guard.error });
   }
-  const owner = await requireOwner(request, response);
+  const owner = await authorize(request, response);
   if (!owner.ok) {
     return response.status(owner.status).json({
       ok: false, error: owner.error, message: owner.message,
     });
   }
-  if (process.env.ISTE_TOURNAMENT_WRITES_ENABLED !== "true") {
+  if (!writesEnabled()) {
     return response.status(503).json({
       ok: false, error: "TOURNAMENT_WRITES_DISABLED",
       message: "Подтверждение результатов отключено до проверки базы.",
@@ -75,4 +76,7 @@ export default async function handler(request, response) {
       message: "Не удалось подтвердить матч.",
     });
   }
+ };
 }
+
+export default createMatchConfirmationHandler();
