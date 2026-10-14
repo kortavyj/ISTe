@@ -34,6 +34,7 @@ import Login from "./pages/Login.jsx";
 import Matches from "./pages/Matches.jsx";
 import TournamentPreview from "./pages/TournamentPreview.jsx";
 import TournamentMatchLab from "./pages/TournamentMatchLab.jsx";
+import TournamentTeamReviewLab from "./pages/TournamentTeamReviewLab.jsx";
 import OwnerTournaments from "./pages/OwnerTournaments.jsx";
 import TournamentsShowcase from "./pages/TournamentsShowcase.jsx";
 import News from "./pages/News.jsx";
@@ -138,6 +139,7 @@ export default function App() {
           <Route path="/tournaments" element={<TournamentsShowcase />} />
           <Route path="/owner/tournaments-preview" element={<OwnerRoute><TournamentPreview /></OwnerRoute>} />
           <Route path="/owner/tournaments-match-lab" element={<OwnerRoute><TournamentMatchLab /></OwnerRoute>} />
+          <Route path="/owner/tournaments-teams" element={<OwnerRoute><TournamentTeamReviewLab /></OwnerRoute>} />
           <Route path="/owner/tournaments" element={<OwnerRoute><OwnerTournaments /></OwnerRoute>} />
           <Route path="/news" element={<News />} />
           <Route path="/partners" element={<Partners />} />
