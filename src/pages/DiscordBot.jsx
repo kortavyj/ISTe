@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -244,6 +245,33 @@ export default function DiscordBot() {
   const { language } = useLanguage();
   const { user } = useAuth();
   const c = copy[language] || copy.uk;
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+  const [copied, setCopied] = useState("");
+  const ui = {
+    uk: { all: "Усі", search: "Пошук команди...", shown: "Команд", empty: "Нічого не знайдено", copy: "Копіювати", copied: "Скопійовано", reset: "Скинути фільтри" },
+    ru: { all: "Все", search: "Поиск команды...", shown: "Команд", empty: "Ничего не найдено", copy: "Копировать", copied: "Скопировано", reset: "Сбросить фильтры" },
+    en: { all: "All", search: "Search commands...", shown: "Commands", empty: "No commands found", copy: "Copy", copied: "Copied", reset: "Reset filters" },
+  }[language] || { all: "Усі", search: "Пошук команди...", shown: "Команд", empty: "Нічого не знайдено", copy: "Копіювати", copied: "Скопійовано", reset: "Скинути фільтри" };
+  const query = search.trim().toLocaleLowerCase();
+  const visibleGroups = commandGroups
+    .filter((group) => category === "all" || category === group.key)
+    .map((group) => ({
+      ...group,
+      commands: group.commands.filter((name) =>
+        !query || ("/" + name + " " + (c.commands[name] || "") + " " + c.categories[group.key]).toLocaleLowerCase().includes(query)
+      ),
+    }))
+    .filter((group) => group.commands.length);
+  const total = visibleGroups.reduce((sum, group) => sum + group.commands.length, 0);
+  const copyCommand = async (name) => {
+    try {
+      await navigator.clipboard.writeText("/" + name);
+      setCopied(name);
+    } catch {
+      setCopied("");
+    }
+  };
 
   return (
     <section className="discord-bot-page">
@@ -288,26 +316,50 @@ export default function DiscordBot() {
           </div>
         </div>
 
-        <div className="discord-bot-command-section">
-          <h2>{c.commandsTitle}</h2>
-
-          <div className="discord-bot-command-groups">
-            {commandGroups.map((group) => (
-              <section className="discord-bot-command-group" key={group.key}>
-                <h3>{c.categories[group.key]}</h3>
-
-                <div className="discord-bot-command-list">
-                  {group.commands.map((name) => (
-                    <div className="discord-bot-command" key={name}>
-                      <code>/{name}</code>
-                      <span>{c.commands[name]}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
+        <section className="discord-bot-command-section" aria-label={c.commandsTitle}>
+          <div className="discord-bot-directory-heading">
+            <div><span className="discord-bot-eyebrow">DISCORD / SLASH COMMANDS</span><h2>{c.commandsTitle}</h2></div>
+            <span className="discord-bot-count">{total} {ui.shown}</span>
           </div>
-        </div>
+          <div className="discord-bot-directory-tools">
+            <label className="discord-bot-search">
+              <span aria-hidden="true">⌕</span>
+              <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={ui.search} aria-label={ui.search} />
+            </label>
+            <div className="discord-bot-filters" aria-label={c.commandsTitle}>
+              <button type="button" className={category === "all" ? "active" : ""} onClick={() => setCategory("all")}>{ui.all}</button>
+              {commandGroups.map((group) => (
+                <button type="button" key={group.key} className={category === group.key ? "active" : ""} onClick={() => setCategory(group.key)}>
+                  {c.categories[group.key]} <span>{group.commands.length}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          {visibleGroups.length ? (
+            <div className="discord-bot-command-groups">
+              {visibleGroups.map((group) => (
+                <section className="discord-bot-command-group" key={group.key}>
+                  <h3>{c.categories[group.key]} <span>{group.commands.length}</span></h3>
+                  <div className="discord-bot-command-list">
+                    {group.commands.map((name) => (
+                      <div className="discord-bot-command" key={name}>
+                        <div className="discord-bot-command-top">
+                          <code>/{name}</code>
+                          <button type="button" onClick={() => copyCommand(name)} aria-label={ui.copy + " /" + name} title={copied === name ? ui.copied : ui.copy}>
+                            {copied === name ? "✓" : "⧉"}
+                          </button>
+                        </div>
+                        <span>{c.commands[name]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <div className="discord-bot-empty"><p>{ui.empty}</p><button type="button" onClick={() => { setSearch(""); setCategory("all"); }}>{ui.reset}</button></div>
+          )}
+        </section>
 
         <div className="discord-bot-info">
           <div>
