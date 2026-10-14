@@ -7,6 +7,7 @@ const sourceIndex = resolve(distDirectory, "index.html");
 const routes = [
   "team",
   "matches",
+  "tournaments",
   "news",
   "partners",
   "history",
