@@ -1,6 +1,6 @@
-import { guardRequest } from "../server/apiLib/requestGuard.js";
-import { requireOwner } from "../server/apiLib/ownerRequest.js";
-import { isUuid, readQueryString } from "../server/apiLib/requestBody.js";
+import { guardRequest } from "../apiLib/requestGuard.js";
+import { requireOwner } from "../apiLib/ownerRequest.js";
+import { isUuid, readQueryString } from "../apiLib/requestBody.js";
 
 // Only the authenticated owner with MFA AAL2 may read pending rosters.
 // Unlike regular RLS public views, private application data goes through

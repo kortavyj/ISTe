@@ -1,8 +1,8 @@
-import { guardRequest } from "../server/apiLib/requestGuard.js";
-import { readJsonBody } from "../server/apiLib/requestBody.js";
-import { readAuthCookies, setAuthCookies, clearAuthCookies } from "../server/apiLib/authCookies.js";
-import { getSupabaseServerClient } from "../server/apiLib/supabaseServer.js";
-import { validateTournamentTeamApplication } from "../server/apiLib/tournamentTeamRegistration.js";
+import { guardRequest } from "../apiLib/requestGuard.js";
+import { readJsonBody } from "../apiLib/requestBody.js";
+import { readAuthCookies, setAuthCookies, clearAuthCookies } from "../apiLib/authCookies.js";
+import { getSupabaseServerClient } from "../apiLib/supabaseServer.js";
+import { validateTournamentTeamApplication } from "../apiLib/tournamentTeamRegistration.js";
 
 // Team applications use the authenticated account as captain, not an owner
 // session. Server remains fail-closed until an audited DB RPC is deployed.

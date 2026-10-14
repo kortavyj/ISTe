@@ -1,6 +1,6 @@
-import { guardRequest } from "../server/apiLib/requestGuard.js";
-import { requireOwner } from "../server/apiLib/ownerRequest.js";
-import { readQueryString, isUuid } from "../server/apiLib/requestBody.js";
+import { guardRequest } from "../apiLib/requestGuard.js";
+import { requireOwner } from "../apiLib/ownerRequest.js";
+import { readQueryString, isUuid } from "../apiLib/requestBody.js";
 
 // Read-only endpoint; no mock data and no mutation fallback.
 export default async function handler(request,response) {

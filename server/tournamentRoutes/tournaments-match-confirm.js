@@ -1,7 +1,7 @@
-import { guardRequest } from "../server/apiLib/requestGuard.js";
-import { requireOwner } from "../server/apiLib/ownerRequest.js";
-import { readJsonBody, isUuid } from "../server/apiLib/requestBody.js";
-import { validateManualMatchResult } from "../server/apiLib/tournamentManualResults.js";
+import { guardRequest } from "../apiLib/requestGuard.js";
+import { requireOwner } from "../apiLib/ownerRequest.js";
+import { readJsonBody, isUuid } from "../apiLib/requestBody.js";
+import { validateManualMatchResult } from "../apiLib/tournamentManualResults.js";
 
 // Deliberately fail closed until a separately audited transactional Supabase
 // RPC has been installed and tested on a nonproduction project.

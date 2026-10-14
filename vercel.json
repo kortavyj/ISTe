@@ -34,6 +34,38 @@
   ],
   "rewrites": [
     {
+      "source": "/api/tournaments-owner",
+      "destination": "/api/tournaments?route=owner"
+    },
+    {
+      "source": "/api/tournaments-match-confirm",
+      "destination": "/api/tournaments?route=match-confirm"
+    },
+    {
+      "source": "/api/tournaments-team-apply",
+      "destination": "/api/tournaments?route=team-apply"
+    },
+    {
+      "source": "/api/tournaments-team-review",
+      "destination": "/api/tournaments?route=team-review"
+    },
+    {
+      "source": "/api/tournaments-team-list",
+      "destination": "/api/tournaments?route=team-list"
+    },
+    {
+      "source": "/api/tournaments-bracket-generate",
+      "destination": "/api/tournaments?route=bracket-generate"
+    },
+    {
+      "source": "/api/tournaments-bracket",
+      "destination": "/api/tournaments?route=bracket"
+    },
+    {
+      "source": "/api/tournaments-status-transition",
+      "destination": "/api/tournaments?route=status-transition"
+    },
+    {
       "source": "/api/shop",
       "destination": "/api/owner?module=shop"
     },

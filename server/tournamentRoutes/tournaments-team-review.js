@@ -1,6 +1,6 @@
-import { guardRequest } from "../server/apiLib/requestGuard.js";
-import { requireOwner } from "../server/apiLib/ownerRequest.js";
-import { readJsonBody, isUuid } from "../server/apiLib/requestBody.js";
+import { guardRequest } from "../apiLib/requestGuard.js";
+import { requireOwner } from "../apiLib/ownerRequest.js";
+import { readJsonBody, isUuid } from "../apiLib/requestBody.js";
 
 // Staged owner-only application review; no direct table mutation.
 export default async function handler(request, response) {

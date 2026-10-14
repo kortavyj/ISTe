@@ -1,0 +1,21 @@
+name: Verify Vercel Hobby Serverless Budget
+on:
+  pull_request:
+    paths:
+      - "api/**"
+      - "server/tournamentRoutes/**"
+      - "vercel.json"
+      - "tests/vercelHobbyApiBudget.test.js"
+      - ".github/workflows/iste-vercel-hobby-budget.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  serverless-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test tests/vercelHobbyApiBudget.test.js

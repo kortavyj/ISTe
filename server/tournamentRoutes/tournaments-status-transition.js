@@ -1,6 +1,6 @@
-import { guardRequest } from "../server/apiLib/requestGuard.js";
-import { requireOwner } from "../server/apiLib/ownerRequest.js";
-import { readJsonBody, isUuid } from "../server/apiLib/requestBody.js";
+import { guardRequest } from "../apiLib/requestGuard.js";
+import { requireOwner } from "../apiLib/ownerRequest.js";
+import { readJsonBody, isUuid } from "../apiLib/requestBody.js";
 
 const NEXT = Object.freeze({
   draft: "registration",

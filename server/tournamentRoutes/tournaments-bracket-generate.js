@@ -1,6 +1,6 @@
-import { guardRequest } from "../server/apiLib/requestGuard.js";
-import { requireOwner } from "../server/apiLib/ownerRequest.js";
-import { readJsonBody, isUuid } from "../server/apiLib/requestBody.js";
+import { guardRequest } from "../apiLib/requestGuard.js";
+import { requireOwner } from "../apiLib/ownerRequest.js";
+import { readJsonBody, isUuid } from "../apiLib/requestBody.js";
 
 // A full bracket is generated only by an audited owner-only database RPC.
 // Production mutation stays disabled until migration and integration review.
