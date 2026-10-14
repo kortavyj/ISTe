@@ -861,16 +861,15 @@ export default function Team() {
       <div className="team-page__glow" aria-hidden="true" />
 
       <header className="team-page__header">
-        <p className="page-eyebrow">ISTE PLAYER PROFILES</p>
+        <p className="page-eyebrow">ISTesport / CS2</p>
         <h1>{activeRoster === "academy" ? "ISTe Academy" : copy.title}</h1>
-        <p>{copy.description}</p>
         <div className="team-page__counter">
           <span>{activeRoster === "academy" ? ACADEMY_PLAYERS.length : (mainPlayers.length || CUSTOM_PROFILES.length - SUBSTITUTE_PLAYERS.size)}</span>
           <small>PLAYER PROFILES</small>
         </div>
       </header>
 
-      <nav className="iste-roster-tabs" aria-label="ISTe rosters"><button type="button" aria-pressed={activeRoster==="main"} onClick={()=>setActiveRoster("main")}>ISTe MAIN</button><button type="button" aria-pressed={activeRoster==="academy"} onClick={()=>setActiveRoster("academy")}>ISTe ACADEMY</button></nav>
+      <nav className="iste-roster-tabs" aria-label="ISTe rosters"><button type="button" aria-pressed={activeRoster==="main"} onClick={()=>setActiveRoster("main")}>ISTesport MAIN</button><button type="button" aria-pressed={activeRoster==="academy"} onClick={()=>setActiveRoster("academy")}>ISTe ACADEMY</button></nav>
       {activeRoster === "academy" ? <><div className="team-profiles">{ACADEMY_PLAYERS.map((player,index)=><PlayerProfile player={player} index={index} language={language} copy={copy} key={player.playerId}/>)}</div></> : <>
       {loading && players.length === 0 ? <ProfilesSkeleton copy={copy} /> : null}
 
