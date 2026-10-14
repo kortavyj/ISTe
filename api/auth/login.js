@@ -1,16 +1,16 @@
-import { guardRequest } from "../lib/requestGuard.js";
+import { guardRequest } from "../../server/apiLib/requestGuard.js";
 import {
   clearAuthCookies,
   setAuthCookies,
   setPendingMfaCookies,
-} from "../lib/authCookies.js";
+} from "../../server/apiLib/authCookies.js";
 
 import {
   enforceLoginRateLimit,
   recordAuthSecurityEvent,
   resetAuthRateLimitBucket,
 } from "../../server/lib/authSecurity.js";
-import { getSupabaseServerClient } from "../lib/supabaseServer.js";
+import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

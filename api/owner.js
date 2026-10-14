@@ -1,13 +1,13 @@
-import { guardRequest } from "./lib/requestGuard.js";
+import { guardRequest } from "../server/apiLib/requestGuard.js";
 import {
   mapOwnerRpcError,
   requireAdminOrOwner,
-} from "./lib/ownerRequest.js";
+} from "../server/apiLib/ownerRequest.js";
 import {
   isUuid,
   readJsonBody,
   readQueryString,
-} from "./lib/requestBody.js";
+} from "../server/apiLib/requestBody.js";
 import shopHandler from "../server/shopHandler.js";
 import discordHandler from "../server/discordHandler.js";
 import botPortalHandler from "../server/botPortalHandler.js";

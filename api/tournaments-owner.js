@@ -1,7 +1,7 @@
-import { guardRequest } from "./lib/requestGuard.js";
-import { requireOwner } from "./lib/ownerRequest.js";
-import { readJsonBody } from "./lib/requestBody.js";
-import { validateTournamentDraft } from "./lib/tournamentValidation.js";
+import { guardRequest } from "../server/apiLib/requestGuard.js";
+import { requireOwner } from "../server/apiLib/ownerRequest.js";
+import { readJsonBody } from "../server/apiLib/requestBody.js";
+import { validateTournamentDraft } from "../server/apiLib/tournamentValidation.js";
 
 // Owner-only API. Mutations fail closed until a separately audited, protected
 // database RPC is deployed and the explicit server-side rollout flag is enabled.

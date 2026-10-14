@@ -1,12 +1,12 @@
 import { randomBytes } from "node:crypto";
 
-import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
-import { guardRequest } from "../api/lib/requestGuard.js";
+import { requireAdminOrOwner } from "./apiLib/ownerRequest.js";
+import { guardRequest } from "./apiLib/requestGuard.js";
 import {
   isUuid,
   readJsonBody,
   readQueryString,
-} from "../api/lib/requestBody.js";
+} from "./apiLib/requestBody.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 
 const COLUMNS = [

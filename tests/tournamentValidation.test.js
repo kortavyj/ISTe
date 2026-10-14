@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateTournamentDraft } from "../api/lib/tournamentValidation.js";
+import { validateTournamentDraft } from "../server/apiLib/tournamentValidation.js";
 
 const valid = { slug:"iste-fall-cup",title:"ISTe Fall Cup",capacity:8,best_of:3,
   registration_start:"2026-11-01T12:00:00Z",

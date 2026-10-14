@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 
-import { guardRequest } from "../api/lib/requestGuard.js";
-import { readJsonBody, readQueryString } from "../api/lib/requestBody.js";
+import { guardRequest } from "./apiLib/requestGuard.js";
+import { readJsonBody, readQueryString } from "./apiLib/requestBody.js";
 import { requireRosterAccess } from "./lib/rosterRequest.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 
