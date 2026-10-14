@@ -34,6 +34,8 @@ export default async function handler(request, response) {
     const { data, error } = await owner.supabase
       .from("iste_tournaments")
       .select("id,slug,title,game,format,best_of,capacity,timezone,registration_start,registration_end,starts_at,status,published_at,created_at,updated_at")
+      // This user-scoped client can only read published rows under current RLS.
+      .not("published_at", "is", null)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -57,6 +59,7 @@ export default async function handler(request, response) {
       ok: true,
       tournaments: Array.isArray(data) ? data : [],
       readOnly: true,
+      scope: "published_only",
     });
   } catch {
     return response.status(500).json({
