@@ -85,35 +85,24 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { data, error } = await owner.supabase
-      .from("iste_tournaments")
-      .select("id,slug,title,game,format,best_of,capacity,timezone,registration_start,registration_end,starts_at,status,published_at,created_at,updated_at")
-      // This user-scoped client can only read published rows under current RLS.
-      .not("published_at", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(50);
-
+    // Always require owner+MFA in both the API and the SQL RPC.
+    // This includes unpublished drafts and never uses a service role key.
+    const { data, error } = await owner.supabase.rpc("iste_owner_list_tournaments");
     if (error) {
-      // The SQL migration is deliberately not applied to production yet.
-      if (error.code === "42P01" || error.code === "PGRST205") {
+      if (["PGRST202", "42883", "42P01", "PGRST205"].includes(error.code)) {
         return response.status(503).json({
-          ok: false,
-          error: "TOURNAMENT_SCHEMA_NOT_INSTALLED",
-          message: "Турнирная база ещё не подключена. Записи не изменены.",
+          ok: false, error: "TOURNAMENT_OWNER_LIST_RPC_NOT_INSTALLED",
+          message: "Защищённый список турниров ещё не установлен.",
         });
       }
       return response.status(502).json({
-        ok: false,
-        error: "TOURNAMENT_READ_FAILED",
-        message: "Не удалось прочитать список турниров.",
+        ok: false, error: "TOURNAMENT_READ_FAILED",
+        message: "Не удалось загрузить список турниров.",
       });
     }
-
     return response.status(200).json({
-      ok: true,
-      tournaments: Array.isArray(data) ? data : [],
-      readOnly: true,
-      scope: "published_only",
+      ok: true, tournaments: Array.isArray(data) ? data : [],
+      readOnly: true, scope: "owner_all",
     });
   } catch {
     return response.status(500).json({
