@@ -20,6 +20,7 @@ jobs:
       BACKUP_PASSPHRASE: ${{ secrets.ISTE_BACKUP_PASSPHRASE }}
       RCLONE_CONFIG_B64: ${{ secrets.ISTE_RCLONE_CONFIG_B64 }}
     steps:
+      - uses: actions/checkout@v4
       - name: Check credentials and enforce DEV identity
         shell: bash
         run: |
@@ -30,29 +31,7 @@ jobs:
               exit 1
             fi
           done
-          python3 - <<'PY'
-          import os
-          from urllib.parse import urlsplit
-          url = os.environ["DATABASE_URL"]
-          try:
-              parsed = urlsplit(url)
-              # Direct database host or Supabase pooler with project-scoped username.
-              target = "jwzsawumiadlfxarvauc"
-              host = (parsed.hostname or "").lower()
-              username = parsed.username or ""
-              identity_matches = host == f"db.{target}.supabase.co" or username.endswith(f".{target}")
-              valid = (
-                  parsed.scheme in ("postgres", "postgresql")
-                  and identity_matches and bool(parsed.password)
-                  and parsed.path == "/postgres"
-                  and "sslmode=require" in parsed.query
-              )
-          except ValueError:
-              valid = False
-          if not valid:
-              raise SystemExit("::error::DEV database URL does not identify the approved DEV project. No connection attempted.")
-          print("Verified DEV project identity; no credential values printed.")
-          PY
+          python3 scripts/validate_iste_dev_backup_url.py
 
       - name: Install encryption and Drive tools
         run: |
