@@ -33,6 +33,7 @@ import FaceitPrivacy from "./pages/FaceitPrivacy.jsx";
 import Login from "./pages/Login.jsx";
 import Matches from "./pages/Matches.jsx";
 import TournamentPreview from "./pages/TournamentPreview.jsx";
+import OwnerTournaments from "./pages/OwnerTournaments.jsx";
 import TournamentsShowcase from "./pages/TournamentsShowcase.jsx";
 import News from "./pages/News.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -135,6 +136,7 @@ export default function App() {
           <Route path="/matches" element={<Matches />} />
           <Route path="/tournaments" element={<TournamentsShowcase />} />
           <Route path="/owner/tournaments-preview" element={<OwnerRoute><TournamentPreview /></OwnerRoute>} />
+          <Route path="/owner/tournaments" element={<OwnerRoute><OwnerTournaments /></OwnerRoute>} />
           <Route path="/news" element={<News />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/discord" element={<DiscordBot />} />
