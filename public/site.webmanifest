@@ -1,7 +1,7 @@
 {
-  "name": "ISTe Esports",
-  "short_name": "ISTe",
-  "description": "Официальный сайт киберспортивной команды ISTe Esports",
+  "name": "ISTesport",
+  "short_name": "ISTesport",
+  "description": "Официальный сайт киберспортивной команды ISTesport",
   "lang": "ru",
   "start_url": "/",
   "scope": "/",
