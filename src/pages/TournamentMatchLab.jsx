@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createSingleEliminationBracket, confirmBracketWinner } from "../../server/apiLib/tournamentBracket.js";
 import { validateManualMatchResult } from "../../server/apiLib/tournamentManualResults.js";
 import "./TournamentMatchLab.css";
+import "./TournamentWorkspaceShared.css";
 
 const MAPS = ["Mirage", "Inferno", "Nuke", "Ancient", "Anubis", "Dust2", "Overpass", "Train", "Vertigo"];
 const PLAYERS = Array.from({ length: 8 }, (_, i) => ({ id: `istedev-${i + 1}`, seed: i + 1 }));
