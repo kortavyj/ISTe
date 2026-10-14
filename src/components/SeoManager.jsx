@@ -24,7 +24,7 @@ const SEO = {
         title:
           "ISTe Esports | Офіційний сайт кіберспортивної команди",
         description:
-          "Офіційний сайт ISTe Esports: склад команди CS2, матчі, результати, новини, історія клубу та офіційні соціальні мережі.",
+          "ISTe Esports (ISTeSport, ISTesport) — офіційний сайт кіберспортивної команди CS2: склад, матчі, результати, новини та історія клубу.",
       },
       "/team": {
         title:
@@ -84,7 +84,7 @@ const SEO = {
         title:
           "ISTe Esports | Официальный сайт киберспортивной команды",
         description:
-          "Официальный сайт ISTe Esports: состав команды CS2, матчи, результаты, новости, история клуба и официальные социальные сети.",
+          "ISTe Esports (ISTeSport, ISTesport) — официальный сайт киберспортивной команды CS2: состав, матчи, результаты, новости и история клуба.",
       },
       "/team": {
         title:
@@ -144,7 +144,7 @@ const SEO = {
         title:
           "ISTe Esports | Official Esports Team Website",
         description:
-          "Official ISTe Esports website: CS2 roster, matches, results, news, club history and official social channels.",
+          "ISTe Esports (ISTeSport, ISTesport) — official CS2 esports team website with roster, matches, results, news and club history.",
       },
       "/team": {
         title:
