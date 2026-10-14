@@ -65,11 +65,18 @@ jobs:
                   and parsed.path == "/postgres"
                   and parse_qs(parsed.query).get("sslmode") == ["require"]
                   and "[YOUR-PASSWORD]" not in url
+                  and (
+                      parsed.hostname == "db.niwgrrprbcgbdaloijhq.supabase.co"
+                      or (
+                          parsed.hostname.endswith(".pooler.supabase.com")
+                          and parsed.username.endswith(".niwgrrprbcgbdaloijhq")
+                      )
+                  )
               )
           except ValueError:
               valid = False
           if not valid:
-              print("::error::ISTE_BACKUP_DATABASE_URL must contain a complete PostgreSQL URI with username, database password, remote host, /postgres and ?sslmode=require. Update the secret in GitHub; do not post its value.")
+              print("::error::ISTE_BACKUP_DATABASE_URL must contain a complete PostgreSQL URI with username, database password, remote host, /postgres and ?sslmode=require. The connection must target ISTe production project niwgrrprbcgbdaloijhq; update the secret in GitHub without sharing its value.")
               raise SystemExit(1)
           print("PostgreSQL connection string has a valid shape; credentials remain hidden.")
           PY
