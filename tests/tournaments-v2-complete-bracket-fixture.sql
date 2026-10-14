@@ -23,14 +23,17 @@ select set_config('request.jwt.claims','{"aal":"aal2"}',false);
 select public.iste_owner_confirm_match(
  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1',0,
  '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":13,"scoreB":9}]}'::jsonb);
+reset role;
 do $$
 begin
  if (select status from public.iste_tournament_matches where id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3')<>'scheduled'
  then raise exception 'FINAL_PREMATURELY_READY'; end if;
 end $$;
+set role authenticated;
 select public.iste_owner_confirm_match(
  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2',0,
  '{"bestOf":1,"maps":[{"name":"Nuke","scoreA":13,"scoreB":11}]}'::jsonb);
+reset role;
 do $$
 declare m public.iste_tournament_matches%rowtype;
 begin
@@ -40,6 +43,7 @@ begin
   m.team_b_id<>'00000000-0000-4000-8000-000000000002'
  then raise exception 'FINAL_NOT_READY: % % % %',m.status,m.version,m.team_a_id,m.team_b_id; end if;
 end $$;
+set role authenticated;
 select public.iste_owner_confirm_match(
  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3',2,
  '{"bestOf":1,"maps":[{"name":"Inferno","scoreA":13,"scoreB":7}]}'::jsonb);
