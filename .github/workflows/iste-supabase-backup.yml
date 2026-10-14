@@ -2,6 +2,10 @@ name: Encrypted Supabase backup to Google Drive
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/iste-supabase-backup.yml"
   schedule:
     - cron: "25 2 * * *"
 
