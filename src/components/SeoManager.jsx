@@ -15,181 +15,181 @@ const OG_LOCALE = {
 const SEO = {
   uk: {
     fallback: {
-      title: "ISTe Esports",
+      title: "ISTesport",
       description:
-        "Офіційний сайт кіберспортивної команди ISTe Esports.",
+        "Офіційний сайт кіберспортивної команди ISTesport.",
     },
     pages: {
       "/": {
         title:
-          "ISTe Esports | Офіційний сайт кіберспортивної команди",
+          "ISTesport | Офіційний сайт кіберспортивної команди",
         description:
-          "ISTe Esports (ISTeSport, ISTesport) — офіційний сайт кіберспортивної команди CS2: склад, матчі, результати, новини та історія клубу.",
+          "ISTesport — офіційний сайт кіберспортивної команди CS2: склад, матчі, результати, новини та історія клубу.",
       },
       "/team": {
         title:
-          "Склад ISTe Esports з CS2 | Гравці команди",
+          "Склад ISTesport з CS2 | Гравці команди",
         description:
-          "Актуальний склад ISTe Esports з CS2: гравці, ролі, статистика FACEIT та офіційні соціальні мережі учасників команди.",
+          "Актуальний склад ISTesport з CS2: гравці, ролі, статистика FACEIT та офіційні соціальні мережі учасників команди.",
       },
       "/matches": {
         title:
-          "Матчі ISTe Esports | Результати та розклад",
+          "Матчі ISTesport | Результати та розклад",
         description:
-          "Майбутні та завершені матчі ISTe Esports, результати зустрічей і актуальні дані команди з FACEIT.",
+          "Майбутні та завершені матчі ISTesport, результати зустрічей і актуальні дані команди з FACEIT.",
       },
       "/news": {
         title:
-          "Новини ISTe Esports | Команда, турніри та оновлення",
+          "Новини ISTesport | Команда, турніри та оновлення",
         description:
-          "Офіційні новини ISTe Esports: зміни складу, турніри, матчі, результати та оновлення кіберспортивного клубу.",
+          "Офіційні новини ISTesport: зміни складу, турніри, матчі, результати та оновлення кіберспортивного клубу.",
       },
       "/partners": {
         title:
-          "Партнери ISTe Esports | Співпраця з командою",
+          "Партнери ISTesport | Співпраця з командою",
         description:
-          "Офіційні партнери ISTe Esports та інформація для брендів, організаторів турнірів і медіапроєктів.",
+          "Офіційні партнери ISTesport та інформація для брендів, організаторів турнірів і медіапроєктів.",
       },
       "/history": {
         title:
           "Євген Kortavyj | Засновник ISTe, стример і музикант",
         description:
-          "Євген, відомий як Kortavyj, — засновник і власник ISTe Esports, стример і музикант. Історія створення ISTe та розвитку проєкту.",
+          "Євген, відомий як Kortavyj, — засновник і власник ISTesport, стример і музикант. Історія створення ISTe та розвитку проєкту.",
       },
       "/contacts": {
         title:
-          "Контакти ISTe Esports | Зв’язатися з командою",
+          "Контакти ISTesport | Зв’язатися з командою",
         description:
-          "Офіційні контакти ISTe Esports для партнерства, турнірів, медіапроєктів і зв’язку з командою.",
+          "Офіційні контакти ISTesport для партнерства, турнірів, медіапроєктів і зв’язку з командою.",
       },
     },
     founder: {
       pageName:
         "Євген Kortavyj — засновник ISTe",
       pageDescription:
-        "Офіційна сторінка Євгена, відомого під ніком Kortavyj, засновника і власника ISTe Esports, стримера та музиканта.",
+        "Офіційна сторінка Євгена, відомого під ніком Kortavyj, засновника і власника ISTesport, стримера та музиканта.",
       personDescription:
-        "Засновник і власник ISTe Esports, стример та музикант.",
+        "Засновник і власник ISTesport, стример та музикант.",
     },
   },
 
   ru: {
     fallback: {
-      title: "ISTe Esports",
+      title: "ISTesport",
       description:
-        "Официальный сайт киберспортивной команды ISTe Esports.",
+        "Официальный сайт киберспортивной команды ISTesport.",
     },
     pages: {
       "/": {
         title:
-          "ISTe Esports | Официальный сайт киберспортивной команды",
+          "ISTesport | Официальный сайт киберспортивной команды",
         description:
-          "ISTe Esports (ISTeSport, ISTesport) — официальный сайт киберспортивной команды CS2: состав, матчи, результаты, новости и история клуба.",
+          "ISTesport — официальный сайт киберспортивной команды CS2: состав, матчи, результаты, новости и история клуба.",
       },
       "/team": {
         title:
-          "Состав ISTe Esports по CS2 | Игроки команды",
+          "Состав ISTesport по CS2 | Игроки команды",
         description:
-          "Актуальный состав ISTe Esports по CS2: игроки, роли, FACEIT статистика и официальные социальные сети участников команды.",
+          "Актуальный состав ISTesport по CS2: игроки, роли, FACEIT статистика и официальные социальные сети участников команды.",
       },
       "/matches": {
         title:
-          "Матчи ISTe Esports | Результаты и расписание",
+          "Матчи ISTesport | Результаты и расписание",
         description:
-          "Предстоящие и завершённые матчи ISTe Esports, результаты встреч и актуальные данные команды с FACEIT.",
+          "Предстоящие и завершённые матчи ISTesport, результаты встреч и актуальные данные команды с FACEIT.",
       },
       "/news": {
         title:
-          "Новости ISTe Esports | Команда, турниры и обновления",
+          "Новости ISTesport | Команда, турниры и обновления",
         description:
-          "Официальные новости ISTe Esports: изменения состава, турниры, матчи, результаты и обновления киберспортивного клуба.",
+          "Официальные новости ISTesport: изменения состава, турниры, матчи, результаты и обновления киберспортивного клуба.",
       },
       "/partners": {
         title:
-          "Партнёры ISTe Esports | Сотрудничество с командой",
+          "Партнёры ISTesport | Сотрудничество с командой",
         description:
-          "Официальные партнёры ISTe Esports и информация для брендов, организаторов турниров и медиапроектов.",
+          "Официальные партнёры ISTesport и информация для брендов, организаторов турниров и медиапроектов.",
       },
       "/history": {
         title:
           "Евгений Kortavyj | Основатель ISTe, стример и музыкант",
         description:
-          "Евгений, известный как Kortavyj, — основатель и владелец ISTe Esports, стример и музыкант. История создания ISTe и развития проекта.",
+          "Евгений, известный как Kortavyj, — основатель и владелец ISTesport, стример и музыкант. История создания ISTe и развития проекта.",
       },
       "/contacts": {
         title:
-          "Контакты ISTe Esports | Связаться с командой",
+          "Контакты ISTesport | Связаться с командой",
         description:
-          "Официальные контакты ISTe Esports для партнёрства, турниров, медиапроектов и связи с командой.",
+          "Официальные контакты ISTesport для партнёрства, турниров, медиапроектов и связи с командой.",
       },
     },
     founder: {
       pageName:
         "Евгений Kortavyj — основатель ISTe",
       pageDescription:
-        "Официальная страница Евгения, известного под ником Kortavyj, основателя и владельца ISTe Esports, стримера и музыканта.",
+        "Официальная страница Евгения, известного под ником Kortavyj, основателя и владельца ISTesport, стримера и музыканта.",
       personDescription:
-        "Основатель и владелец ISTe Esports, стример и музыкант.",
+        "Основатель и владелец ISTesport, стример и музыкант.",
     },
   },
 
   en: {
     fallback: {
-      title: "ISTe Esports",
+      title: "ISTesport",
       description:
-        "Official website of the ISTe Esports team.",
+        "Official website of the ISTesport team.",
     },
     pages: {
       "/": {
         title:
-          "ISTe Esports | Official Esports Team Website",
+          "ISTesport | Official Esports Team Website",
         description:
-          "ISTe Esports (ISTeSport, ISTesport) — official CS2 esports team website with roster, matches, results, news and club history.",
+          "ISTesport — official CS2 esports team website with roster, matches, results, news and club history.",
       },
       "/team": {
         title:
-          "ISTe Esports CS2 Roster | Team Players",
+          "ISTesport CS2 Roster | Team Players",
         description:
-          "Current ISTe Esports CS2 roster: players, roles, FACEIT statistics and official social profiles.",
+          "Current ISTesport CS2 roster: players, roles, FACEIT statistics and official social profiles.",
       },
       "/matches": {
         title:
-          "ISTe Esports Matches | Results and Schedule",
+          "ISTesport Matches | Results and Schedule",
         description:
-          "Upcoming and completed ISTe Esports matches, results and current FACEIT team data.",
+          "Upcoming and completed ISTesport matches, results and current FACEIT team data.",
       },
       "/news": {
         title:
-          "ISTe Esports News | Team, Tournaments and Updates",
+          "ISTesport News | Team, Tournaments and Updates",
         description:
-          "Official ISTe Esports news: roster changes, tournaments, matches, results and club updates.",
+          "Official ISTesport news: roster changes, tournaments, matches, results and club updates.",
       },
       "/partners": {
         title:
-          "ISTe Esports Partners | Work With the Team",
+          "ISTesport Partners | Work With the Team",
         description:
-          "Official ISTe Esports partners and information for brands, tournament organizers and media projects.",
+          "Official ISTesport partners and information for brands, tournament organizers and media projects.",
       },
       "/history": {
         title:
           "Evgeniy Kortavyj | ISTe Founder, Streamer and Musician",
         description:
-          "Evgeniy, known online as Kortavyj, is the founder and owner of ISTe Esports, a streamer and musician. The story of ISTe and its development.",
+          "Evgeniy, known online as Kortavyj, is the founder and owner of ISTesport, a streamer and musician. The story of ISTe and its development.",
       },
       "/contacts": {
         title:
-          "ISTe Esports Contacts | Contact the Team",
+          "ISTesport Contacts | Contact the Team",
         description:
-          "Official ISTe Esports contacts for partnerships, tournaments, media projects and team inquiries.",
+          "Official ISTesport contacts for partnerships, tournaments, media projects and team inquiries.",
       },
     },
     founder: {
       pageName:
         "Evgeniy Kortavyj — Founder of ISTe",
       pageDescription:
-        "Official profile of Evgeniy, known online as Kortavyj, founder and owner of ISTe Esports, streamer and musician.",
+        "Official profile of Evgeniy, known online as Kortavyj, founder and owner of ISTesport, streamer and musician.",
       personDescription:
-        "Founder and owner of ISTe Esports, streamer and musician.",
+        "Founder and owner of ISTesport, streamer and musician.",
     },
   },
 };
