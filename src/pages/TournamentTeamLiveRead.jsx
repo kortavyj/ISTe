@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./TournamentTeamReviewLab.css";
 import "./TournamentWorkspaceShared.css";
+import "./TournamentPremiumTheme.css";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const LABELS = {pending:"Ожидает",approved:"Одобрена",rejected:"Отклонена",withdrawn:"Отозвана",checked_in:"Прошла check-in"};

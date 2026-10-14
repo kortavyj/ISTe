@@ -4,6 +4,7 @@ import { createSingleEliminationBracket, confirmBracketWinner } from "../../serv
 import { validateManualMatchResult } from "../../server/apiLib/tournamentManualResults.js";
 import "./TournamentMatchLab.css";
 import "./TournamentWorkspaceShared.css";
+import "./TournamentPremiumTheme.css";
 
 const MAPS = ["Mirage", "Inferno", "Nuke", "Ancient", "Anubis", "Dust2", "Overpass", "Train", "Vertigo"];
 const PLAYERS = Array.from({ length: 8 }, (_, i) => ({ id: `istedev-${i + 1}`, seed: i + 1 }));

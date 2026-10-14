@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./TournamentTeamReviewLab.css";
 import "./TournamentWorkspaceShared.css";
+import "./TournamentPremiumTheme.css";
 
 const EXAMPLES = [
  {id:"example-1",name:"ISTe Alpha",captain:"AlphaCaptain",members:["AlphaCaptain","A1","A2","A3","A4"],status:"pending"},

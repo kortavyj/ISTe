@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./TournamentPreview.css";
+import "./TournamentPremiumTheme.css";
 
 const seeds = [
   ["ISTe Alpha", "Firestorm", 13, 8],
