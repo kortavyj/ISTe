@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./TournamentTeamReviewLab.css";
 
@@ -12,7 +12,6 @@ export default function TournamentTeamLiveRead() {
  const [loading,setLoading]=useState(false);
  const [error,setError]=useState("");
  const [loadedId,setLoadedId]=useState("");
- useEffect(()=>()=>{},[]);
  async function load(event) {
    event.preventDefault();
    if (!UUID.test(tournamentId.trim())) {setError("Введите корректный UUID турнира.");return;}
