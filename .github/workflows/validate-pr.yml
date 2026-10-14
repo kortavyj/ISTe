@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Test tournament owner API security gates
+        run: node --test tests/tournamentsOwnerEndpointsSecurity.test.js
+
       - name: Build website
         run: npm run build
 
