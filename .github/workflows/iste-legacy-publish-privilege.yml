@@ -1,0 +1,42 @@
+name: Verify Legacy Publish Privilege
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261015_iste_legacy_publish_access.sql"
+      - "tests/legacy-publish-rpc-privileges.sql"
+      - ".github/workflows/iste-legacy-publish-privilege.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d testdb"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify restricted RPC permissions
+        env:
+          PGPASSWORD: disposable_only
+        run: |
+          set -euo pipefail
+          psql -h localhost -U postgres -d testdb -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon nologin;
+          create role authenticated nologin;
+          create function public.iste_publish_tournament(uuid)
+            returns void language plpgsql as 'begin null; end';
+          SQL
+          psql -h localhost -U postgres -d testdb -v ON_ERROR_STOP=1 -f supabase/migrations/20261015_iste_legacy_publish_access.sql
+          psql -h localhost -U postgres -d testdb -v ON_ERROR_STOP=1 -f tests/legacy-publish-rpc-privileges.sql
