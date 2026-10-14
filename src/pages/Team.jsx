@@ -80,9 +80,9 @@ const PAGE_COPY = Object.freeze({
     strengthsAria: "Сильні сторони гравця",
     loadingAria: "Завантаження гравців команди",
     loadError:
-      "Не вдалося отримати склад із FACEIT. Перевір GitHub Actions і секрет FACEIT_API_KEY.",
+      "Не вдалося завантажити склад команди. Спробуйте ще раз пізніше.",
     empty:
-      "Склад ще не синхронізовано. Запусти оновлення FACEIT у GitHub Actions.",
+      "Інформація про склад тимчасово недоступна.",
     retry: "Повторити завантаження",
   },
   en: {
@@ -94,9 +94,9 @@ const PAGE_COPY = Object.freeze({
     strengthsAria: "Player strengths",
     loadingAria: "Loading team players",
     loadError:
-      "Could not retrieve the roster from FACEIT. Check GitHub Actions and the FACEIT_API_KEY secret.",
+      "Could not load the team roster. Please try again later.",
     empty:
-      "The roster has not been synchronized yet. Run the FACEIT update in GitHub Actions.",
+      "The team roster is temporarily unavailable.",
     retry: "Retry loading",
   },
 });
