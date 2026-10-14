@@ -144,6 +144,47 @@ function ManualBracketEditor({ workspaceId, onTitleChange }) {
   </section>;
 }
 
+function validateTournamentImport(payload) {
+  if (!payload || payload.schema !== "iste-manual-tournament-v1") throw new Error("Неподдерживаемый формат экспорта ISTe.");
+  const t = payload.tournament;
+  if (!t || !sizes.includes(t.size) || ![1,3,5].includes(t.bestOf)
+    || typeof t.title !== "string" || t.title.length > 100
+    || !Array.isArray(t.teams) || t.teams.length !== t.size
+    || t.teams.some(x => typeof x !== "string" || x.length > 60)
+    || !(t.entries === null || (Array.isArray(t.entries) && t.entries.length === t.size
+      && t.entries.every(x => typeof x === "string" && x.length >= 2 && x.length <= 60)))) {
+    throw new Error("Некорректный состав, формат или название турнира.");
+  }
+  if (t.entries && new Set(t.entries.map(x => x.toLocaleLowerCase())).size !== t.entries.length)
+    throw new Error("В экспорте повторяются названия команд.");
+  if (t.results === null || typeof t.results !== "object" || Array.isArray(t.results)) throw new Error("Некорректные результаты матчей.");
+  const numberOfRounds = Math.log2(t.size);
+  if (Object.keys(t.results).length > t.size - 1) throw new Error("Слишком много результатов матчей.");
+  for (const [key, result] of Object.entries(t.results)) {
+    const match = /^(\\d+)-(\\d+)$/.exec(key);
+    if (!match) throw new Error("Недопустимый идентификатор матча.");
+    const round = Number(match[1]), index = Number(match[2]);
+    if (round >= numberOfRounds || index >= t.size / (2 ** (round + 1))
+      || !result || typeof result.winner !== "string" || result.winner.length > 60
+      || !Array.isArray(result.maps) || result.maps.length < 1 || result.maps.length > t.bestOf
+      || !Number.isSafeInteger(result.scoreA) || !Number.isSafeInteger(result.scoreB)) throw new Error("Некорректный результат матча.");
+    let winsA = 0, winsB = 0;
+    const usedMaps = new Set();
+    for (const map of result.maps) {
+      if (!map || typeof map.name !== "string" || map.name.length > 30 || usedMaps.has(map.name)
+        || !Number.isSafeInteger(map.a) || !Number.isSafeInteger(map.b)
+        || map.a < 0 || map.a > 99 || map.b < 0 || map.b > 99 || map.a === map.b
+        || winsA > Math.floor(t.bestOf / 2) || winsB > Math.floor(t.bestOf / 2)) throw new Error("Недопустимый счёт карт.");
+      usedMaps.add(map.name);
+      winsA += Number(map.a > map.b);
+      winsB += Number(map.b > map.a);
+    }
+    if (winsA !== result.scoreA || winsB !== result.scoreB
+      || Math.max(winsA,winsB) !== Math.floor(t.bestOf / 2) + 1) throw new Error("Несогласованный итог матча.");
+  }
+  return t;
+}
+
 function downloadTournament(id, title) {
   const raw = localStorage.getItem(entryKey(id));
   if (!raw) throw new Error("Сохранённые данные не найдены.");
@@ -186,6 +227,24 @@ export default function TournamentManualBracket() {
       setLibrary({items:[{id,title:"ISTe OPEN CUP"}],activeId:id});
     } else setLibrary({items:remaining,activeId:remaining[0].id});
   }
+  async function importFile(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (library.items.length >= 50) { setLibraryError("Достигнут лимит 50 локальных турниров."); return; }
+    if (file.size > 512 * 1024) { setLibraryError("Файл слишком большой (не более 512 КБ)."); return; }
+    try {
+      const payload = JSON.parse(await file.text());
+      const tournament = validateTournamentImport(payload);
+      const id = newId();
+      const title = tournament.title.trim() || "Импортированный турнир";
+      localStorage.setItem(entryKey(id), JSON.stringify(tournament));
+      setLibrary(old => ({items:[...old.items,{id,title}],activeId:id}));
+      setLibraryError("");
+    } catch (error) {
+      setLibraryError(error instanceof SyntaxError ? "Файл не является корректным JSON." : error.message || "Импорт не выполнен.");
+    }
+  }
   function exportCurrent() {
     try { downloadTournament(library.activeId, library.items.find(item=>item.id===library.activeId)?.title || "ISTe");setLibraryError(""); }
     catch { setLibraryError("Не удалось экспортировать турнир. Проверьте настройки браузера."); }
@@ -201,6 +260,7 @@ export default function TournamentManualBracket() {
       <div className="tmb-library-actions">
         <button type="button" onClick={create}>+ Новый турнир</button>
         <button type="button" onClick={exportCurrent}>Экспорт JSON ↓</button>
+        <label className="tmb-import-label">Импорт JSON ↑<input type="file" accept=".json,application/json" onChange={importFile}/></label>
         <button type="button" onClick={remove} className="tmb-remove">Удалить</button>
       </div>
     </div>

@@ -20,3 +20,8 @@
 .tmb-library-actions button:hover{border-color:#ff7b8a;box-shadow:0 0 18px #ff36502a}
 @media(max-width:1050px){.tmb-library{grid-template-columns:1fr 1fr}.tmb-library-actions{grid-column:1/-1;max-width:none}}
 @media(max-width:680px){.tmb-library{grid-template-columns:1fr;padding:18px}.tmb-library-actions{grid-column:auto}}
+
+.tmb-import-label{position:relative;display:inline-flex!important;align-items:center;justify-content:center;min-height:39px;border:1px solid #8b5065!important;border-radius:8px;background:linear-gradient(115deg,#34303f,#242430);color:#f4eaf0!important;padding:11px 13px;font-size:12px!important;font-weight:750!important;cursor:pointer;overflow:hidden}
+.tmb-import-label:hover{border-color:#ff8294!important;box-shadow:0 0 18px #ff36502a}
+.tmb-import-label input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.tmb-import-label:focus-within{outline:2px solid #ff8193;outline-offset:2px}
