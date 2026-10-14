@@ -130,7 +130,8 @@ jobs:
           # Helpers are stubs only; this stage verifies DDL compatibility, NOT JWT authorization.
           docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
             psql -X -v ON_ERROR_STOP=1 -h localhost -U restore_test -d iste_restore_test \
-              -c "DO \\\$\\\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF; IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon NOLOGIN; END IF; END \\\$\\\$;" \
+              -c "CREATE ROLE authenticated NOLOGIN;" \\
+              -c "CREATE ROLE anon NOLOGIN;" \\
               -c "CREATE OR REPLACE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS 'SELECT NULL::text';" \
               -c "CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS 'SELECT ''{}''::jsonb';"
           for file in \
