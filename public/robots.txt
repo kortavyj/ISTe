@@ -12,4 +12,4 @@ Disallow: /admin/
 Disallow: /owner/
 Disallow: /shop
 
-Sitemap: https://istesport.com/sitemap.xml
+Sitemap: https://www.istesport.com/sitemap.xml
