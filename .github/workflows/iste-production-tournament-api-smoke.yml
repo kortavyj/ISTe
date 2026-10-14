@@ -1,6 +1,13 @@
 name: Verify ISTe Production Tournament API Routes
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "server/tournamentRoutes/**"
+      - "tests/tournaments-v2-production-smoke.py"
+      - ".github/workflows/iste-production-tournament-api-smoke.yml"
   pull_request:
     paths:
       - "tests/tournaments-v2-production-smoke.py"
