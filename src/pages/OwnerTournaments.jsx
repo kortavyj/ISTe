@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./OwnerTournaments.css";
+import TournamentOwnerActions from "../components/tournaments/TournamentOwnerActions.jsx";
 
 export default function OwnerTournaments() {
   const [loading, setLoading] = useState(true);
@@ -80,7 +81,8 @@ export default function OwnerTournaments() {
             <article className="ot-item" key={t.id}>
               <div><p className="ot-eyebrow">{t.game || "CS2"} · {t.format || "single_elimination"}</p>
                 <h3>{t.title}</h3>
-                <p>{t.capacity} команд · BO{t.best_of} · {t.slug}</p></div>
+                <p>{t.capacity} команд · BO{t.best_of} · {t.slug}</p>
+                <TournamentOwnerActions tournament={t} onUpdated={refresh} /></div>
               <span>{t.status}</span>
             </article>
           ))}
