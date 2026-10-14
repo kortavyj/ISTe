@@ -32,6 +32,10 @@ const SEO = {
         description:
           "Актуальний склад ISTesport з CS2: гравці, ролі, статистика FACEIT та офіційні соціальні мережі учасників команди.",
       },
+      "/tournaments": {
+        title: "Турніри ISTesport | Змагання CS2",
+        description: "Турніри ISTesport з Counter-Strike 2: змагання, турнірні сітки та інформація для команд.",
+      },
       "/matches": {
         title:
           "Матчі ISTesport | Результати та розклад",
@@ -92,6 +96,10 @@ const SEO = {
         description:
           "Актуальный состав ISTesport по CS2: игроки, роли, FACEIT статистика и официальные социальные сети участников команды.",
       },
+      "/tournaments": {
+        title: "Турниры ISTesport | Соревнования CS2",
+        description: "Турниры ISTesport по Counter-Strike 2: соревнования, турнирные сетки и информация для команд.",
+      },
       "/matches": {
         title:
           "Матчи ISTesport | Результаты и расписание",
@@ -151,6 +159,10 @@ const SEO = {
           "ISTesport CS2 Roster | Team Players",
         description:
           "Current ISTesport CS2 roster: players, roles, FACEIT statistics and official social profiles.",
+      },
+      "/tournaments": {
+        title: "ISTesport Tournaments | CS2 Competitions",
+        description: "ISTesport Counter-Strike 2 tournaments, brackets, competitions and information for participating teams.",
       },
       "/matches": {
         title:
