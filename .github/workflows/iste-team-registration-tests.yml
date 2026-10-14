@@ -1,0 +1,19 @@
+name: Validate Tournament V2 Team Applications
+on:
+  pull_request:
+    paths:
+      - "server/apiLib/tournamentTeamRegistration.js"
+      - "tests/tournamentTeamRegistration.test.js"
+      - ".github/workflows/iste-team-registration-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  team-registration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test tests/tournamentTeamRegistration.test.js
