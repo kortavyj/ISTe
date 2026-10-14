@@ -6,7 +6,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const LABELS = {pending:"Ожидает",approved:"Одобрена",rejected:"Отклонена",withdrawn:"Отозвана",checked_in:"Прошла check-in"};
 
 export default function TournamentTeamLiveRead() {
- const [tournamentId,setTournamentId]=useState("");
+ const [tournamentId,setTournamentId]=useState(()=>new URLSearchParams(window.location.search).get("tournamentId")||"");
  const [teams,setTeams]=useState([]);
  const [filter,setFilter]=useState("all");
  const [loading,setLoading]=useState(false);

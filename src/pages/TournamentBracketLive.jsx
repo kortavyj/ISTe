@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "./TournamentBracketLive.css";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export default function TournamentBracketLive(){
- const [id,setId]=useState("");const [matches,setMatches]=useState(null);
+ const [id,setId]=useState(()=>new URLSearchParams(window.location.search).get("tournamentId")||"");const [matches,setMatches]=useState(null);
  const [loading,setLoading]=useState(false);const [error,setError]=useState("");
  async function load(e){
   e.preventDefault();setError("");setMatches(null);
