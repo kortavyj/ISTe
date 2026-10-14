@@ -1,0 +1,22 @@
+name: Verify ISTe Production Tournament API Routes
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tests/tournaments-v2-production-smoke.py"
+      - ".github/workflows/iste-production-tournament-api-smoke.yml"
+permissions:
+  contents: read
+jobs:
+  unauthenticated-read-only-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Probe public routes without authentication or mutations
+        env:
+          ISTE_SMOKE_BASE_URL: https://www.istesport.com
+        run: python tests/tournaments-v2-production-smoke.py
