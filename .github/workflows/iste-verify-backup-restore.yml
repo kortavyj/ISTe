@@ -1,0 +1,113 @@
+name: Verify Supabase backup restore (isolated)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Restore public schema into disposable PostgreSQL 17
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: restore_test
+          POSTGRES_PASSWORD: local_only_test_password
+          POSTGRES_DB: iste_restore_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U restore_test -d iste_restore_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      RCLONE_CONFIG_B64: ${{ secrets.ISTE_RCLONE_CONFIG_B64 }}
+      BACKUP_PASSPHRASE: ${{ secrets.ISTE_BACKUP_PASSPHRASE }}
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: restore_test
+      PGPASSWORD: local_only_test_password
+      PGDATABASE: iste_restore_test
+
+    steps:
+      - name: Validate required backup credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$RCLONE_CONFIG_B64" || { echo "::error::Missing ISTE_RCLONE_CONFIG_B64"; exit 1; }
+          test -n "$BACKUP_PASSPHRASE" || { echo "::error::Missing ISTE_BACKUP_PASSPHRASE"; exit 1; }
+
+      - name: Install backup clients
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rclone gnupg postgresql-client-17
+
+      - name: Prepare private credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$RCLONE_CONFIG_B64" | base64 --decode > "$RUNNER_TEMP/rclone.conf"
+          printf '%s' "$BACKUP_PASSPHRASE" > "$RUNNER_TEMP/passphrase"
+          rclone --config "$RUNNER_TEMP/rclone.conf" listremotes | grep -Fx 'iste_drive:'
+
+      - name: Retrieve newest encrypted backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          # Sort immutable UTC timestamp names lexicographically; ignore unrelated files.
+          BACKUP_FILE="$(rclone --config "$RUNNER_TEMP/rclone.conf" lsf --files-only 'iste_drive:' \
+            | grep -E '^iste-supabase-[0-9]{8}T[0-9]{6}Z\.dump\.gpg$' | LC_ALL=C sort | tail -n 1)"
+          test -n "$BACKUP_FILE" || { echo "::error::No ISTe encrypted backup found"; exit 1; }
+          echo "Restoring backup: $BACKUP_FILE"
+          rclone --config "$RUNNER_TEMP/rclone.conf" copyto "iste_drive:$BACKUP_FILE" "$RUNNER_TEMP/backup.dump.gpg"
+
+      - name: Decrypt and verify PostgreSQL archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-file "$RUNNER_TEMP/passphrase" \
+            --output "$RUNNER_TEMP/backup.dump" \
+            --decrypt "$RUNNER_TEMP/backup.dump.gpg"
+          pg_restore --list "$RUNNER_TEMP/backup.dump" > "$RUNNER_TEMP/archive.list"
+          grep -Eq ' TABLE public | TABLE DATA public ' "$RUNNER_TEMP/archive.list" || {
+            echo "::error::Backup has no public tables. Review dump scope."
+            exit 1
+          }
+          echo "Encrypted archive decrypted; PostgreSQL custom archive parsed."
+
+      - name: Restore public schema into disposable database
+        shell: bash
+        run: |
+          set -euo pipefail
+          # This targets ONLY the ephemeral service container, never production Supabase.
+          pg_isready
+          pg_restore --verbose --exit-on-error --no-owner --no-acl \
+            --schema=public --dbname="$PGDATABASE" "$RUNNER_TEMP/backup.dump" \
+            > "$RUNNER_TEMP/restore.log" 2>&1 || {
+              echo "::error::Public-schema restore failed. Supabase-managed dependencies (roles, extensions, auth references) may require a dedicated restore fixture."
+              tail -n 25 "$RUNNER_TEMP/restore.log" | sed -E 's/(password|token|secret)=[^ ]+/\1=[REDACTED]/Ig'
+              exit 1
+            }
+          psql -v ON_ERROR_STOP=1 -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');" > "$RUNNER_TEMP/table_count"
+          TABLE_COUNT="$(cat "$RUNNER_TEMP/table_count")"
+          test "$TABLE_COUNT" -gt 0 || { echo "::error::No public tables restored"; exit 1; }
+          echo "Restore successful: $TABLE_COUNT public tables in isolated PostgreSQL 17."
+          echo "No production data or schemas were changed."
+
+      - name: Remove local secrets and dump
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/rclone.conf" "$RUNNER_TEMP/passphrase" \
+            "$RUNNER_TEMP/backup.dump.gpg" "$RUNNER_TEMP/backup.dump" \
+            "$RUNNER_TEMP/archive.list" "$RUNNER_TEMP/restore.log" "$RUNNER_TEMP/table_count"
