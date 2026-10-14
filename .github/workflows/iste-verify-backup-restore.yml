@@ -46,7 +46,8 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq rclone gnupg postgresql-client-17
+          sudo apt-get install -y -qq rclone gnupg
+          # PostgreSQL 17 utilities run from postgres:17-alpine Docker image.
 
       - name: Prepare private credentials
         shell: bash
@@ -78,7 +79,7 @@ jobs:
             --passphrase-file "$RUNNER_TEMP/passphrase" \
             --output "$RUNNER_TEMP/backup.dump" \
             --decrypt "$RUNNER_TEMP/backup.dump.gpg"
-          pg_restore --list "$RUNNER_TEMP/backup.dump" > "$RUNNER_TEMP/archive.list"
+          docker run --rm -v "$RUNNER_TEMP:/backups:ro" postgres:17-alpine pg_restore --list /backups/backup.dump > "$RUNNER_TEMP/archive.list"
           grep -Eq ' TABLE public | TABLE DATA public ' "$RUNNER_TEMP/archive.list" || {
             echo "::error::Backup has no public tables. Review dump scope."
             exit 1
@@ -90,15 +91,20 @@ jobs:
         run: |
           set -euo pipefail
           # This targets ONLY the ephemeral service container, never production Supabase.
-          pg_isready
-          pg_restore --verbose --exit-on-error --no-owner --no-acl \
-            --schema=public --dbname="$PGDATABASE" "$RUNNER_TEMP/backup.dump" \
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
+            pg_isready -h localhost -p 5432 -U restore_test -d iste_restore_test
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
+            -v "$RUNNER_TEMP:/backups:ro" postgres:17-alpine \
+            pg_restore --verbose --exit-on-error --no-owner --no-acl \
+            --host=localhost --port=5432 --username=restore_test \
+            --schema=public --dbname=iste_restore_test /backups/backup.dump \
             > "$RUNNER_TEMP/restore.log" 2>&1 || {
               echo "::error::Public-schema restore failed. Supabase-managed dependencies (roles, extensions, auth references) may require a dedicated restore fixture."
               tail -n 25 "$RUNNER_TEMP/restore.log" | sed -E 's/(password|token|secret)=[^ ]+/\1=[REDACTED]/Ig'
               exit 1
             }
-          psql -v ON_ERROR_STOP=1 -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');" > "$RUNNER_TEMP/table_count"
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
+            psql -h localhost -p 5432 -U restore_test -d iste_restore_test -v ON_ERROR_STOP=1 -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');" > "$RUNNER_TEMP/table_count"
           TABLE_COUNT="$(cat "$RUNNER_TEMP/table_count")"
           test "$TABLE_COUNT" -gt 0 || { echo "::error::No public tables restored"; exit 1; }
           echo "Restore successful: $TABLE_COUNT public tables in isolated PostgreSQL 17."
