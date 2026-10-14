@@ -1,0 +1,163 @@
+name: Rehearse ISTe V2 migrations against DEV backup (isolated)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Rehearse V2 migrations in disposable PostgreSQL 17
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: restore_test
+          POSTGRES_PASSWORD: local_only_test_password
+          POSTGRES_DB: iste_restore_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U restore_test -d iste_restore_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      RCLONE_CONFIG_B64: ${{ secrets.ISTE_RCLONE_CONFIG_B64 }}
+      BACKUP_PASSPHRASE: ${{ secrets.ISTE_BACKUP_PASSPHRASE }}
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: restore_test
+      PGPASSWORD: local_only_test_password
+      PGDATABASE: iste_restore_test
+
+    steps:
+      - name: Validate required backup credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$RCLONE_CONFIG_B64" || { echo "::error::Missing ISTE_RCLONE_CONFIG_B64"; exit 1; }
+          test -n "$BACKUP_PASSPHRASE" || { echo "::error::Missing ISTE_BACKUP_PASSPHRASE"; exit 1; }
+
+      - name: Install backup clients
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rclone gnupg
+          # PostgreSQL 17 utilities run from postgres:17-alpine Docker image.
+
+      - name: Prepare private credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$RCLONE_CONFIG_B64" | base64 --decode > "$RUNNER_TEMP/rclone.conf"
+          printf '%s' "$BACKUP_PASSPHRASE" > "$RUNNER_TEMP/passphrase"
+          rclone --config "$RUNNER_TEMP/rclone.conf" listremotes | grep -Fx 'iste_drive:'
+
+      - name: Retrieve newest encrypted backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          # Sort immutable UTC timestamp names lexicographically; ignore unrelated files.
+          BACKUP_FILE="$(rclone --config "$RUNNER_TEMP/rclone.conf" lsf --files-only 'iste_drive:DEV/' \
+            | grep -E '^iste-dev-jwzsawumiadlfxarvauc-[0-9]{8}T[0-9]{6}Z\.dump\.gpg$' | LC_ALL=C sort | tail -n 1)"
+          test -n "$BACKUP_FILE" || { echo "::error::No encrypted DEV archive found"; exit 1; }
+          echo "Restoring backup: $BACKUP_FILE"
+          rclone --config "$RUNNER_TEMP/rclone.conf" copyto "iste_drive:DEV/$BACKUP_FILE" "$RUNNER_TEMP/backup.dump.gpg"
+
+      - name: Decrypt and verify PostgreSQL archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-file "$RUNNER_TEMP/passphrase" \
+            --output "$RUNNER_TEMP/backup.dump" \
+            --decrypt "$RUNNER_TEMP/backup.dump.gpg"
+          docker run --rm -v "$RUNNER_TEMP:/backups:ro" postgres:17-alpine pg_restore --list /backups/backup.dump > "$RUNNER_TEMP/archive.list"
+          grep -Eq ' TABLE public | TABLE DATA public ' "$RUNNER_TEMP/archive.list" || {
+            echo "::error::Backup has no public tables. Review dump scope."
+            exit 1
+          }
+          echo "Encrypted archive decrypted; PostgreSQL custom archive parsed."
+
+      - name: Restore public schema structure and data into disposable database
+        shell: bash
+        run: |
+          set -euo pipefail
+          # This targets ONLY the ephemeral service container, never production Supabase.
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
+            pg_isready -h localhost -p 5432 -U restore_test -d iste_restore_test
+          # Supabase-authenticated tables reference auth.uid() in defaults and RLS.
+          # Only create a non-authenticating compatibility stub in this disposable DB.
+          # This is a public-schema test, NOT a full Supabase platform restore.
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
+            psql -h localhost -p 5432 -U restore_test -d iste_restore_test -v ON_ERROR_STOP=1 \
+            -c 'CREATE SCHEMA IF NOT EXISTS auth;' \
+            -c 'CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS '\''SELECT NULL::uuid'\'';'
+          # Supabase public tables can have FKs into auth.users. This smoke test
+          # verifies pre-data DDL and table data, not post-data constraints,
+          # triggers, indexes or a full Supabase recovery.
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
+            -v "$RUNNER_TEMP:/backups:ro" postgres:17-alpine \
+            pg_restore --verbose --exit-on-error --no-owner --no-acl \
+            --section=pre-data --section=data \
+            --host=localhost --port=5432 --username=restore_test \
+            --schema=public --dbname=iste_restore_test /backups/backup.dump \
+            > "$RUNNER_TEMP/restore.log" 2>&1 || {
+              echo "::error::Public schema/data smoke restore failed; see sanitized log tail."
+              tail -n 25 "$RUNNER_TEMP/restore.log" | sed -E 's/(password|token|secret)=[^ ]+/\1=[REDACTED]/Ig'
+              exit 1
+            }
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
+            psql -h localhost -p 5432 -U restore_test -d iste_restore_test -v ON_ERROR_STOP=1 -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');" > "$RUNNER_TEMP/table_count"
+          TABLE_COUNT="$(cat "$RUNNER_TEMP/table_count")"
+          test "$TABLE_COUNT" -gt 0 || { echo "::error::No public tables restored"; exit 1; }
+          echo "DEV public schema and data smoke restore successful: $TABLE_COUNT tables in isolated PostgreSQL 17."
+          echo "::notice::Post-data objects (FKs, indexes, triggers, policies) and full Supabase Auth/Storage recovery have NOT been verified."
+          echo "Neither DEV nor production Supabase was changed."
+
+      - name: Rehearse V2 migrations against restored DEV public tables
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The disposable PostgreSQL is NOT a Supabase Auth instance.
+          # Helpers are stubs only; this stage verifies DDL compatibility, NOT JWT authorization.
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
+            psql -X -v ON_ERROR_STOP=1 -h localhost -U restore_test -d iste_restore_test \
+              -c "DO \\\$\\\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF; IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon NOLOGIN; END IF; END \\\$\\\$;" \
+              -c "CREATE OR REPLACE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS 'SELECT NULL::text';" \
+              -c "CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS 'SELECT ''{}''::jsonb';"
+          for file in \
+            supabase/migrations/20261014_iste_tournaments_v2_foundation.sql \
+            supabase/migrations/20261014_iste_tournament_owner_create_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_team_apply_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_team_review_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_owner_list_teams_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_generate_bracket_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_confirm_match_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_owner_get_bracket_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_status_transition_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_owner_list_all_rpc.sql \
+            tests/tournaments-v2-all-migrations-smoke.sql; do
+            echo "Rehearsing: $file"
+            docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
+              -v "$PWD:/workspace:ro" postgres:17-alpine \
+              psql -h localhost -U restore_test -d iste_restore_test \
+              -X -v ON_ERROR_STOP=1 -f "/workspace/$file"
+          done
+          echo "::notice::All V2 migrations applied only to disposable DB restored from DEV public backup. No live Supabase writes."
+          echo "::notice::Not a full Supabase Auth/JWT/RLS or post-data restoration test."
+
+      - name: Remove local secrets and dump
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/rclone.conf" "$RUNNER_TEMP/passphrase" \
+            "$RUNNER_TEMP/backup.dump.gpg" "$RUNNER_TEMP/backup.dump" \
+            "$RUNNER_TEMP/archive.list" "$RUNNER_TEMP/restore.log" "$RUNNER_TEMP/table_count"
