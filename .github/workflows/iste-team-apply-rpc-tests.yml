@@ -1,0 +1,46 @@
+name: Verify Tournament V2 Team Application SQL
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261014_iste_tournament_team_apply_rpc.sql"
+      - "tests/tournaments-v2-team-apply-fixture.sql"
+      - ".github/workflows/iste-team-apply-rpc-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  team-apply-rpc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: iste_apply_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iste_apply_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify RPC in isolated PostgreSQL
+        env:
+          PGPASSWORD: disposable_only
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            tests/tournaments-v2-setup.sql \
+            supabase/migrations/20261014_iste_tournaments_v2_foundation.sql \
+            supabase/migrations/20261014_iste_tournament_team_apply_rpc.sql \
+            tests/tournaments-v2-team-apply-fixture.sql; do
+            docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
+              -v "$PWD:/workspace:ro" postgres:17-alpine \
+              psql -h 127.0.0.1 -U postgres -d iste_apply_test \
+              -X -v ON_ERROR_STOP=1 -f "/workspace/$file"
+          done
