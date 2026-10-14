@@ -1,0 +1,53 @@
+name: Verify Tournament V2 Full SQL Stack
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261014_iste_tournament*.sql"
+      - "tests/tournaments-v2-all-migrations-smoke.sql"
+      - ".github/workflows/iste-full-sql-stack-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: iste_full_stack_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iste_full_stack_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ALL tournament V2 migrations on isolated PostgreSQL
+        shell: bash
+        env:
+          PGPASSWORD: disposable_only
+        run: |
+          set -euo pipefail
+          for file in \
+            tests/tournaments-v2-setup.sql \
+            supabase/migrations/20261014_iste_tournaments_v2_foundation.sql \
+            supabase/migrations/20261014_iste_tournament_owner_create_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_team_apply_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_team_review_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_owner_list_teams_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_generate_bracket_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_confirm_match_rpc.sql \
+            supabase/migrations/20261014_iste_tournament_owner_get_bracket_rpc.sql \
+            tests/tournaments-v2-all-migrations-smoke.sql; do
+            echo "Testing $file"
+            docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
+              -v "$PWD:/workspace:ro" postgres:17-alpine \
+              psql -h 127.0.0.1 -U postgres -d iste_full_stack_test \
+              -X -v ON_ERROR_STOP=1 -f "/workspace/$file"
+          done
