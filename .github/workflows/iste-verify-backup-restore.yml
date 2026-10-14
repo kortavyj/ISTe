@@ -93,6 +93,13 @@ jobs:
           # This targets ONLY the ephemeral service container, never production Supabase.
           docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
             pg_isready -h localhost -p 5432 -U restore_test -d iste_restore_test
+          # Supabase-authenticated tables reference auth.uid() in defaults and RLS.
+          # Only create a non-authenticating compatibility stub in this disposable DB.
+          # This is a public-schema test, NOT a full Supabase platform restore.
+          docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" postgres:17-alpine \
+            psql -h localhost -p 5432 -U restore_test -d iste_restore_test -v ON_ERROR_STOP=1 \
+            -c 'CREATE SCHEMA IF NOT EXISTS auth;' \
+            -c 'CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS '\''SELECT NULL::uuid'\'';'
           docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
             -v "$RUNNER_TEMP:/backups:ro" postgres:17-alpine \
             pg_restore --verbose --exit-on-error --no-owner --no-acl \
