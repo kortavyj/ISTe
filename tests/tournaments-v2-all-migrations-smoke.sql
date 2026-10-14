@@ -2,7 +2,8 @@
 do $$
 declare names text[] := array[
 'iste_owner_create_tournament','iste_owner_confirm_match','iste_apply_tournament_team',
-'iste_owner_review_team','iste_owner_list_teams','iste_owner_generate_bracket','iste_owner_get_bracket'
+'iste_owner_review_team','iste_owner_list_teams','iste_owner_generate_bracket','iste_owner_get_bracket',
+'iste_owner_transition_tournament','iste_owner_list_tournaments'
 ]; item text; total int;
 begin
  foreach item in array names loop
@@ -17,4 +18,4 @@ begin
  if total<>6 then raise exception 'Expected six V2 tables, got %',total; end if;
 end $$;
 -- Distinguish real Supabase Auth/RLS verification from these minimal stubs.
-\echo 'PASS: all seven V2 RPCs and six V2 tables coexist in disposable PostgreSQL'
+\echo 'PASS: all nine V2 RPCs and six V2 tables coexist in disposable PostgreSQL'
