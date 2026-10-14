@@ -3,7 +3,8 @@ import { requireOwner } from "../apiLib/ownerRequest.js";
 import { readJsonBody, isUuid } from "../apiLib/requestBody.js";
 
 // Staged owner-only application review; no direct table mutation.
-export default async function handler(request, response) {
+export function createTeamReviewHandler({ authorize = requireOwner, writesEnabled = () => process.env.ISTE_TOURNAMENT_WRITES_ENABLED === "true" } = {}) {
+ return async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store, private");
   response.setHeader("X-Content-Type-Options", "nosniff");
   const guard = guardRequest(request, {
@@ -13,11 +14,11 @@ export default async function handler(request, response) {
     if (guard.allow) response.setHeader("Allow",guard.allow);
     return response.status(guard.status).json({ok:false,error:guard.error});
   }
-  const owner = await requireOwner(request,response);
+  const owner = await authorize(request,response);
   if (!owner.ok) return response.status(owner.status).json({
     ok:false,error:owner.error,message:owner.message,
   });
-  if (process.env.ISTE_TOURNAMENT_WRITES_ENABLED !== "true")
+  if (!writesEnabled())
     return response.status(503).json({ok:false,error:"TOURNAMENT_WRITES_DISABLED"});
   const input = readJsonBody(request);
   if (!input || typeof input !== "object" || Array.isArray(input)
@@ -39,4 +40,7 @@ export default async function handler(request, response) {
   } catch {
     return response.status(500).json({ok:false,error:"TEAM_REVIEW_FAILED"});
   }
+ };
 }
+
+export default createTeamReviewHandler();
