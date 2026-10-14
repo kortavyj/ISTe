@@ -16,7 +16,7 @@ test("five teams get exactly three first-round byes",()=>{
   assert.equal(rounds[0].filter(m=>m.winner && !m.confirmed).length,3);
   assert.deepEqual(rounds[1].map(m=>[m.teamA,m.teamB]),[
     ["team-1",null],["team-2","team-3"]
-  ].map((v,i)=>i===0?v:v)); // actual second-round pairings verified below
+  ]);
 });
 test("winner advances only after explicit confirmation",()=>{
   const rounds=create(teams(8),8);
