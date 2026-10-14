@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   verify:
-    name: Restore public schema into disposable PostgreSQL 17
+    name: Verify public schema and data in disposable PostgreSQL 17
     runs-on: ubuntu-latest
     timeout-minutes: 35
     services:
@@ -86,7 +86,7 @@ jobs:
           }
           echo "Encrypted archive decrypted; PostgreSQL custom archive parsed."
 
-      - name: Restore public schema into disposable database
+      - name: Restore public schema structure and data into disposable database
         shell: bash
         run: |
           set -euo pipefail
@@ -100,13 +100,17 @@ jobs:
             psql -h localhost -p 5432 -U restore_test -d iste_restore_test -v ON_ERROR_STOP=1 \
             -c 'CREATE SCHEMA IF NOT EXISTS auth;' \
             -c 'CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS '\''SELECT NULL::uuid'\'';'
+          # Supabase public tables can have FKs into auth.users. This smoke test
+          # verifies pre-data DDL and table data, not post-data constraints,
+          # triggers, indexes or a full Supabase recovery.
           docker run --rm --network host -e PGPASSWORD="$PGPASSWORD" \
             -v "$RUNNER_TEMP:/backups:ro" postgres:17-alpine \
             pg_restore --verbose --exit-on-error --no-owner --no-acl \
+            --section=pre-data --section=data \
             --host=localhost --port=5432 --username=restore_test \
             --schema=public --dbname=iste_restore_test /backups/backup.dump \
             > "$RUNNER_TEMP/restore.log" 2>&1 || {
-              echo "::error::Public-schema restore failed. Supabase-managed dependencies (roles, extensions, auth references) may require a dedicated restore fixture."
+              echo "::error::Public schema/data smoke restore failed; see sanitized log tail."
               tail -n 25 "$RUNNER_TEMP/restore.log" | sed -E 's/(password|token|secret)=[^ ]+/\1=[REDACTED]/Ig'
               exit 1
             }
@@ -114,7 +118,8 @@ jobs:
             psql -h localhost -p 5432 -U restore_test -d iste_restore_test -v ON_ERROR_STOP=1 -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');" > "$RUNNER_TEMP/table_count"
           TABLE_COUNT="$(cat "$RUNNER_TEMP/table_count")"
           test "$TABLE_COUNT" -gt 0 || { echo "::error::No public tables restored"; exit 1; }
-          echo "Restore successful: $TABLE_COUNT public tables in isolated PostgreSQL 17."
+          echo "Public schema and data smoke restore successful: $TABLE_COUNT tables in isolated PostgreSQL 17."
+          echo "::notice::Post-data objects (FKs, indexes, triggers, policies) and full Supabase Auth/Storage recovery have NOT been verified."
           echo "No production data or schemas were changed."
 
       - name: Remove local secrets and dump
