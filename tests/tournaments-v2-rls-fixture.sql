@@ -96,3 +96,57 @@ begin
 end
 $test$;
 \echo 'PASS: published-only read, sensitive tables hidden, API-role writes denied'
+
+
+-- Additional RLS regression checks with API-role table grants in place.
+-- PostgreSQL RLS is active for all six V2 tables and not bypassed by API roles.
+do $check$
+declare table_name text; protected_tables text[] := array[
+ 'iste_tournaments','iste_tournament_teams','iste_tournament_members',
+ 'iste_tournament_matches','iste_tournament_maps','iste_tournament_audit_log'
+]; bad_count integer;
+begin
+ foreach table_name in array protected_tables loop
+   select count(*) into bad_count from pg_class c
+     join pg_namespace n on n.oid=c.relnamespace
+     where n.nspname='public' and c.relname=table_name
+       and c.relrowsecurity and not c.relforcerowsecurity;
+   if bad_count<>1 then raise exception 'RLS_NOT_ENABLED_OR_SCHEMA_MISSING: %',table_name; end if;
+ end loop;
+ select count(*) into bad_count from pg_policies p
+   where p.schemaname='public'
+     and p.tablename=any(protected_tables)
+     and p.cmd in ('INSERT','UPDATE','DELETE','ALL');
+ if bad_count>0 then raise exception 'UNEXPECTED_WRITABLE_RLS_POLICY: %',bad_count; end if;
+end $check$;
+
+set role anon;
+do $check$
+declare table_name text; changed integer;
+begin
+ foreach table_name in array array[
+  'iste_tournaments','iste_tournament_teams','iste_tournament_members',
+  'iste_tournament_matches','iste_tournament_maps','iste_tournament_audit_log'
+ ] loop
+   execute format('DELETE FROM public.%I',table_name);
+   get diagnostics changed=row_count;
+   if changed<>0 then raise exception 'ANON_DELETED_%_ROWS_FROM_%',changed,table_name; end if;
+ end loop;
+end $check$;
+reset role;
+
+set role authenticated;
+do $check$
+declare table_name text; changed integer;
+begin
+ foreach table_name in array array[
+  'iste_tournaments','iste_tournament_teams','iste_tournament_members',
+  'iste_tournament_matches','iste_tournament_maps','iste_tournament_audit_log'
+ ] loop
+   execute format('DELETE FROM public.%I',table_name);
+   get diagnostics changed=row_count;
+   if changed<>0 then raise exception 'AUTHENTICATED_DELETED_%_ROWS_FROM_%',changed,table_name; end if;
+ end loop;
+end $check$;
+reset role;
+\echo 'PASS: RLS enabled for all six V2 tables and DELETE blocked for both API roles'
