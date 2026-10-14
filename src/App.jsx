@@ -36,6 +36,7 @@ import TournamentPreview from "./pages/TournamentPreview.jsx";
 import TournamentMatchLab from "./pages/TournamentMatchLab.jsx";
 import TournamentTeamReviewLab from "./pages/TournamentTeamReviewLab.jsx";
 import TournamentTeamLiveRead from "./pages/TournamentTeamLiveRead.jsx";
+import TournamentBracketLive from "./pages/TournamentBracketLive.jsx";
 import OwnerTournaments from "./pages/OwnerTournaments.jsx";
 import TournamentsShowcase from "./pages/TournamentsShowcase.jsx";
 import News from "./pages/News.jsx";
@@ -142,6 +143,7 @@ export default function App() {
           <Route path="/owner/tournaments-match-lab" element={<OwnerRoute><TournamentMatchLab /></OwnerRoute>} />
           <Route path="/owner/tournaments-teams" element={<OwnerRoute><TournamentTeamReviewLab /></OwnerRoute>} />
           <Route path="/owner/tournaments-team-applications" element={<OwnerRoute><TournamentTeamLiveRead /></OwnerRoute>} />
+          <Route path="/owner/tournaments-bracket" element={<OwnerRoute><TournamentBracketLive /></OwnerRoute>} />
           <Route path="/owner/tournaments" element={<OwnerRoute><OwnerTournaments /></OwnerRoute>} />
           <Route path="/news" element={<News />} />
           <Route path="/partners" element={<Partners />} />
