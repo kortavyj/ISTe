@@ -52,10 +52,14 @@ begin
  elsif p_next_status='finished' then
    select count(*),count(*) filter(where status='finished' and winner_team_id is not null)
      into v_matches,v_finished from public.iste_tournament_matches where tournament_id=p_tournament_id;
-   select count(*),max(winner_team_id) into v_final,v_final_winner
+   select count(*) into v_final
    from public.iste_tournament_matches where tournament_id=p_tournament_id
     and round_index=(select max(round_index) from public.iste_tournament_matches where tournament_id=p_tournament_id)
     and status='finished';
+   select winner_team_id into v_final_winner
+   from public.iste_tournament_matches where tournament_id=p_tournament_id
+    and round_index=(select max(round_index) from public.iste_tournament_matches where tournament_id=p_tournament_id)
+    and status='finished' limit 1;
    if v_matches<>v_t.capacity-1 or v_finished<>v_matches or v_final<>1 or v_final_winner is null then
      raise exception 'TOURNAMENT_NOT_COMPLETE' using errcode='22023'; end if;
  end if;
