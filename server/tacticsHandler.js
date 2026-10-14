@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 
-import { guardRequest } from "../api/lib/requestGuard.js";
-import { readJsonBody } from "../api/lib/requestBody.js";
+import { guardRequest } from "./apiLib/requestGuard.js";
+import { readJsonBody } from "./apiLib/requestBody.js";
 import { requireTacticsAccess } from "./lib/tacticsRequest.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 

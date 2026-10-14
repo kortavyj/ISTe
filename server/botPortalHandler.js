@@ -8,14 +8,14 @@ import {
   clearAuthCookies,
   readAuthCookies,
   setAuthCookies,
-} from "../api/lib/authCookies.js";
-import { guardRequest } from "../api/lib/requestGuard.js";
+} from "./apiLib/authCookies.js";
+import { guardRequest } from "./apiLib/requestGuard.js";
 import {
   readJsonBody,
   readQueryString,
-} from "../api/lib/requestBody.js";
-import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
-import { getSupabaseServerClient } from "../api/lib/supabaseServer.js";
+} from "./apiLib/requestBody.js";
+import { requireAdminOrOwner } from "./apiLib/ownerRequest.js";
+import { getSupabaseServerClient } from "./apiLib/supabaseServer.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 
 const DISCORD_API =

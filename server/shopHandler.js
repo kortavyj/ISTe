@@ -5,13 +5,13 @@ import {
 } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
-import { guardRequest } from "../api/lib/requestGuard.js";
+import { guardRequest } from "./apiLib/requestGuard.js";
 import {
   isUuid,
   readJsonBody,
   readQueryString,
-} from "../api/lib/requestBody.js";
-import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
+} from "./apiLib/requestBody.js";
+import { requireAdminOrOwner } from "./apiLib/ownerRequest.js";
 
 const PRODUCT_COLUMNS = [
   "id",

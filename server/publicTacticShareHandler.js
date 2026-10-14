@@ -1,4 +1,4 @@
-import { guardRequest } from "../api/lib/requestGuard.js";
+import { guardRequest } from "./apiLib/requestGuard.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 
 function sendError(

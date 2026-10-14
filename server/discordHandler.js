@@ -1,6 +1,6 @@
-import { guardRequest } from "../api/lib/requestGuard.js";
-import { readJsonBody, readQueryString } from "../api/lib/requestBody.js";
-import { requireAdminOrOwner } from "../api/lib/ownerRequest.js";
+import { guardRequest } from "./apiLib/requestGuard.js";
+import { readJsonBody, readQueryString } from "./apiLib/requestBody.js";
+import { requireAdminOrOwner } from "./apiLib/ownerRequest.js";
 import { getSupabaseAdminClient } from "./lib/supabaseAdmin.js";
 import { ISTE_COMMANDS } from "../presence-worker/commands.mjs";
 
