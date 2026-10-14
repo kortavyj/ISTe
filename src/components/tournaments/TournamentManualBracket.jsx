@@ -1,12 +1,28 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ManualMatchEditor from "./ManualMatchEditor.jsx";
 import "./TournamentManualBracket.css";
 
 const sizes = [2, 4, 8, 16, 32];
-const STORAGE_KEY = "iste:manual-bracket:v2";
-function initialState() {
+const LEGACY_KEY = "iste:manual-bracket:v2";
+const LIBRARY_KEY = "iste:manual-bracket:library:v1";
+const entryKey = id => `iste:manual-bracket:entry:${id}`;
+const newId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+function readLibrary() {
   try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    const data = JSON.parse(localStorage.getItem(LIBRARY_KEY) || "null");
+    if (data && Array.isArray(data.items) && data.items.length > 0 && data.items.length <= 50
+      && data.items.every(t => typeof t.id === "string" && /^local-[a-zA-Z0-9-]+$/.test(t.id) && typeof t.title === "string")) {
+      return { items: data.items, activeId: data.items.some(t => t.id === data.activeId) ? data.activeId : data.items[0].id };
+    }
+  } catch { /* fall through to local default */ }
+  const id = newId();
+  try { const old = localStorage.getItem(LEGACY_KEY); if (old) localStorage.setItem(entryKey(id), old); } catch { /* storage might be unavailable */ }
+  return { items:[{ id, title:"ISTe OPEN CUP" }], activeId:id };
+}
+
+function initialState(storageKey) {
+  try {
+    const data = JSON.parse(localStorage.getItem(storageKey) || "null");
     if (data && sizes.includes(data.size) && [1,3,5].includes(data.bestOf) && typeof data.title === "string" && data.title.length <= 100
       && Array.isArray(data.teams) && data.teams.length === data.size && data.teams.every(x => typeof x === "string" && x.length <= 60)
       && (data.entries === null || (Array.isArray(data.entries) && data.entries.length === data.size && data.entries.every(x => typeof x === "string" && x.length <= 60)))) {
@@ -18,8 +34,9 @@ function initialState() {
 const emptyTeams = (size) => Array.from({ length: size }, () => "");
 const normalizeName = (value) => value.trim().replace(/\s+/g, " ");
 
-export default function TournamentManualBracket() {
-  const [initial] = useState(initialState);
+function ManualBracketEditor({ workspaceId, onTitleChange }) {
+  const storageKey = entryKey(workspaceId);
+  const [initial] = useState(() => initialState(storageKey));
   const [size, setSize] = useState(initial.size);
   const [title, setTitle] = useState(initial.title);
   const [teams, setTeams] = useState(initial.teams);
@@ -30,9 +47,10 @@ export default function TournamentManualBracket() {
   const [editing, setEditing] = useState(null);
   const [storageError, setStorageError] = useState(false);
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({size,title,teams,entries,results,bestOf})); setStorageError(false); }
+    try { localStorage.setItem(storageKey, JSON.stringify({size,title,teams,entries,results,bestOf})); setStorageError(false); }
     catch { setStorageError(true); }
-  }, [size,title,teams,entries,results,bestOf]);
+  }, [size,title,teams,entries,results,bestOf,storageKey]);
+  useEffect(() => { onTitleChange(workspaceId, title.trim() || "Без названия"); }, [workspaceId,title,onTitleChange]);
 
   const rounds = useMemo(() => {
     if (!entries) return [];
@@ -94,7 +112,7 @@ export default function TournamentManualBracket() {
         <p>Добавляйте команды вручную и выбирайте победителей матчей. Сетка автоматически обновляет следующие раунды.</p></div>
       <span className="tmb-local-mode">ЛОКАЛЬНЫЙ РЕЖИМ</span>
     </div>
-    <div className="tmb-note" role="note">Этот режим работает только в браузере. Данные не записываются в Supabase и не публикуются для участников; они автоматически сохраняются в этом браузере и не публикуются для участников.</div>
+    <div className="tmb-note" role="note">Этот режим работает только в браузере. Данные сохраняются отдельно для каждого турнира в этом браузере. Они не отправляются в Supabase и не публикуются для участников.</div>
     <form className="tmb-setup" onSubmit={generate}>
       <div className="tmb-settings">
         <label>Название турнира<input value={title} onChange={e => setTitle(e.target.value)} maxLength={100} placeholder="Название турнира" /></label>
@@ -124,4 +142,69 @@ export default function TournamentManualBracket() {
       <div className="tmb-champion">{champion ? <><small>ПОБЕДИТЕЛЬ ТУРНИРА</small><strong>🏆 {champion}</strong></> : <><small>ФИНАЛЬНЫЙ РЕЗУЛЬТАТ</small><strong>Победитель ещё не определён</strong></>}</div>
     </div>}
   </section>;
+}
+
+function downloadTournament(id, title) {
+  const raw = localStorage.getItem(entryKey(id));
+  if (!raw) throw new Error("Сохранённые данные не найдены.");
+  const parsed = JSON.parse(raw);
+  const payload = JSON.stringify({ schema:"iste-manual-tournament-v1", title, tournament:parsed }, null, 2);
+  const blob = new Blob([payload], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "ISTe-tournament-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(anchor); anchor.click(); anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export default function TournamentManualBracket() {
+  const [library, setLibrary] = useState(readLibrary);
+  const [libraryError, setLibraryError] = useState("");
+  useEffect(() => {
+    try { localStorage.setItem(LIBRARY_KEY, JSON.stringify(library)); }
+    catch { setLibraryError("Не удалось сохранить список турниров в браузере."); }
+  }, [library]);
+  const updateTitle = useCallback((id, title) => {
+    setLibrary(old => {
+      if (!old.items.some(item => item.id === id && item.title !== title)) return old;
+      return { ...old, items:old.items.map(item => item.id === id ? {...item,title} : item) };
+    });
+  }, []);
+  function create() {
+    if (library.items.length >= 50) { setLibraryError("Лимит — 50 локальных турниров."); return; }
+    const id = newId();
+    setLibrary(old => ({ items:[...old.items,{id,title:"Новый турнир"}],activeId:id }));
+    setLibraryError("");
+  }
+  function remove() {
+    if (!window.confirm("Удалить текущий локальный турнир? Отменить действие будет нельзя.")) return;
+    try { localStorage.removeItem(entryKey(library.activeId)); } catch { /* warn on next storage failure */ }
+    const remaining = library.items.filter(item => item.id !== library.activeId);
+    if (!remaining.length) {
+      const id = newId();
+      setLibrary({items:[{id,title:"ISTe OPEN CUP"}],activeId:id});
+    } else setLibrary({items:remaining,activeId:remaining[0].id});
+  }
+  function exportCurrent() {
+    try { downloadTournament(library.activeId, library.items.find(item=>item.id===library.activeId)?.title || "ISTe");setLibraryError(""); }
+    catch { setLibraryError("Не удалось экспортировать турнир. Проверьте настройки браузера."); }
+  }
+  return <>
+    <div className="tmb-library">
+      <div><p className="tmb-eyebrow">ISTe / MY MANUAL TOURNAMENTS</p><h2>Мои локальные турниры</h2><p>Переключайтесь между независимыми сетками без UUID.</p></div>
+      <label>Выбранный турнир
+        <select value={library.activeId} onChange={e=>setLibrary(old=>({...old,activeId:e.target.value}))}>
+          {library.items.map(item=><option key={item.id} value={item.id}>{item.title}</option>)}
+        </select>
+      </label>
+      <div className="tmb-library-actions">
+        <button type="button" onClick={create}>+ Новый турнир</button>
+        <button type="button" onClick={exportCurrent}>Экспорт JSON ↓</button>
+        <button type="button" onClick={remove} className="tmb-remove">Удалить</button>
+      </div>
+    </div>
+    {libraryError && <p role="alert" className="tmb-error">{libraryError}</p>}
+    <ManualBracketEditor key={library.activeId} workspaceId={library.activeId} onTitleChange={updateTitle}/>
+  </>;
 }
