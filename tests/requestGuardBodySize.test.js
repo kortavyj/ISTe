@@ -86,3 +86,17 @@ test("valid Origin takes precedence over conflicting Referer", () => {
   assert.equal(result.status, 403);
   assert.equal(result.error, "ORIGIN_NOT_ALLOWED");
 });
+
+test("rejects deceptive application/json suffixes", () => {
+  for (const type of ["application/jsonp", "application/json-extra", "application/json2"]) {
+    const result = guardRequest(request({ok: true}, {"content-type": type}), options);
+    assert.equal(result.status, 415, type);
+  }
+});
+
+test("accepts standard JSON media type with charset", () => {
+  const result = guardRequest(request({ok: true}, {
+    "content-type": "application/json; charset=utf-8",
+  }), options);
+  assert.equal(result.ok, true);
+});
