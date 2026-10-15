@@ -64,3 +64,25 @@ test("accepts same-origin JSON requests", () => {
   }), { methods: ["POST"], requireJson: true, requireOrigin: true });
   assert.equal(result.ok, true);
 });
+
+test("malformed Origin cannot be replaced by trusted Referer", () => {
+  const result = guardRequest(request({ message: "help" }, {
+    origin: "null",
+    referer: "https://www.istesport.com/support",
+    host: "www.istesport.com",
+    "sec-fetch-site": "same-origin",
+  }), { requireOrigin: true });
+  assert.equal(result.status, 403);
+  assert.equal(result.error, "ORIGIN_MISSING");
+});
+
+test("valid Origin takes precedence over conflicting Referer", () => {
+  const result = guardRequest(request({ message: "help" }, {
+    origin: "https://evil.example",
+    referer: "https://www.istesport.com/support",
+    host: "www.istesport.com",
+    "sec-fetch-site": "same-origin",
+  }), { requireOrigin: true });
+  assert.equal(result.status, 403);
+  assert.equal(result.error, "ORIGIN_NOT_ALLOWED");
+});
