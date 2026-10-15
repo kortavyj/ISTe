@@ -100,3 +100,29 @@ test("accepts standard JSON media type with charset", () => {
   }), options);
   assert.equal(result.ok, true);
 });
+
+test("rejects malformed Origin URLs even when their host is trusted", () => {
+  for (const origin of [
+    "https://www.istesport.com/path",
+    "https://www.istesport.com?query=1",
+    "https://user@www.istesport.com",
+    "https://www.istesport.com/",
+    "https://www.istesport.com https://evil.example",
+  ]) {
+    const result = guardRequest(request({ action: "save" }, {
+      origin,
+      host: "www.istesport.com",
+      "sec-fetch-site": "same-origin",
+    }), { requireOrigin: true });
+    assert.equal(result.status, 403, origin);
+  }
+});
+
+test("accepts a canonical same-origin header", () => {
+  const result = guardRequest(request({ action: "save" }, {
+    origin: "https://www.istesport.com",
+    host: "www.istesport.com",
+    "sec-fetch-site": "same-origin",
+  }), { requireOrigin: true });
+  assert.equal(result.ok, true);
+});
