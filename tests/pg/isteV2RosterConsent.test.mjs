@@ -3,20 +3,22 @@ import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
 const migration = readFileSync(new URL("../../db/migrations/20261015_iste_v2_roster_consent.sql", import.meta.url), "utf8");
+const teamApply = readFileSync(new URL("../../supabase/migrations/20261014_iste_tournament_team_apply_rpc.sql", import.meta.url), "utf8").replace(/^begin;\s*/im, "").replace(/\s*commit;\s*$/im, "");
 const sql = `
 BEGIN;
 CREATE SCHEMA auth;
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
 CREATE TABLE public.user_roles(user_id uuid primary key,role text,is_blocked boolean not null default false);
-CREATE TABLE public.iste_tournaments(id uuid primary key,status text,capacity integer,title text);
-CREATE TABLE public.iste_tournament_teams(id uuid primary key,tournament_id uuid,name text,status text,captain_user_id uuid,updated_at timestamptz default now());
-CREATE TABLE public.iste_tournament_members(id uuid primary key,team_id uuid,user_id uuid,is_captain boolean,created_at timestamptz default now());
+CREATE TABLE public.iste_tournaments(id uuid primary key,status text,capacity integer,title text,registration_start timestamptz,registration_end timestamptz);
+CREATE TABLE public.iste_tournament_teams(id uuid primary key default gen_random_uuid(),tournament_id uuid,name text,status text,captain_user_id uuid,updated_at timestamptz default now());
+CREATE TABLE public.iste_tournament_members(id uuid primary key default gen_random_uuid(),team_id uuid,user_id uuid,faceit_player_id text,is_captain boolean,created_at timestamptz default now());
 CREATE TABLE public.iste_tournament_audit_log(tournament_id uuid,actor_id uuid,entity_type text,entity_id uuid,action text,previous_data jsonb,new_data jsonb);
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
 CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS 'select coalesce(nullif(current_setting(''request.jwt.claim.role'',true),''''),''anon'')';
 CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
 ${migration}
+${teamApply}
 INSERT INTO public.user_roles VALUES
  ('10000000-0000-4000-8000-000000000001','owner',false),
  ('10000000-0000-4000-8000-000000000002','user',false),
@@ -176,6 +178,63 @@ BEGIN
  END IF;
 END
 $full_team$;
+-- Integration: actual captain application RPC creates invitations, then five people consent and owner approves.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000002','registration',2,'Full Application Cup');
+SET LOCAL request.jwt.claim.role='authenticated';
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+SELECT public.iste_apply_tournament_team(
+ jsonb_build_object('tournamentId','20000000-0000-4000-8000-000000000002',
+ 'name','Full Flow Team','members',jsonb_build_array(
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000010'),
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000011'),
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000012'),
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000013'),
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000014'))));
+DO $registration$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members m
+      JOIN public.iste_tournament_teams t ON t.id=m.team_id
+      WHERE t.tournament_id='20000000-0000-4000-8000-000000000002'
+        AND m.accepted_at IS NULL)<>5 THEN
+   RAISE EXCEPTION 'application did not create five pending invitations';
+ END IF;
+END $registration$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000011';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000012';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000013';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000014';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+SELECT public.iste_owner_review_team(
+ (SELECT id FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000002'),
+ 'pending','approve');
+DO $full_flow$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_teams
+     WHERE tournament_id='20000000-0000-4000-8000-000000000002' AND status='approved')<>1
+ OR (SELECT count(*) FROM public.iste_tournament_audit_log
+     WHERE tournament_id='20000000-0000-4000-8000-000000000002' AND action='team_application')<>1
+ OR (SELECT count(*) FROM public.iste_tournament_audit_log
+     WHERE tournament_id='20000000-0000-4000-8000-000000000002' AND action='member_accepted')<>5
+ THEN RAISE EXCEPTION 'end-to-end application/consent/approval failed'; END IF;
+END $full_flow$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
