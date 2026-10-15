@@ -69,6 +69,25 @@ BEGIN
  END;
 END $anonymous_execution$;
 RESET ROLE;
+-- An authenticated SQL role without a JWT subject must not gain mutation rights.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.role','authenticated',true);
+DO $no_subject$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(NULL::uuid,NULL::uuid);
+  RAISE EXCEPTION 'authenticated SQL role without identity invited a player';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'AUTH_REQUIRED' THEN RAISE; END IF;
+ END;
+ BEGIN
+  PERFORM public.iste_apply_tournament_team('{}'::jsonb);
+  RAISE EXCEPTION 'authenticated SQL role without identity created a team';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'AUTH_REQUIRED' THEN RAISE; END IF;
+ END;
+END $no_subject$;
+RESET ROLE;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
