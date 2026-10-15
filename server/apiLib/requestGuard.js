@@ -55,10 +55,12 @@ function getAllowedOrigins() {
 }
 
 function getSourceOrigin(request) {
-  const origin = normalizeOrigin(getHeader(request, "origin"));
+  const rawOrigin = getHeader(request, "origin");
 
-  if (origin) {
-    return origin;
+  // A supplied Origin is authoritative even if malformed or "null".
+  // Do not fall back to Referer and accidentally accept conflicting headers.
+  if (rawOrigin) {
+    return normalizeOrigin(rawOrigin);
   }
 
   const referer = getHeader(request, "referer");
