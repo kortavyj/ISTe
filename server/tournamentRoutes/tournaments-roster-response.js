@@ -3,7 +3,8 @@ import { readJsonBody, isUuid } from "../apiLib/requestBody.js";
 import { readAuthCookies, setAuthCookies, clearAuthCookies } from "../apiLib/authCookies.js";
 import { getSupabaseServerClient } from "../apiLib/supabaseServer.js";
 
-export default async function handler(request,response) {
+export function createRosterResponseHandler({ getClient = getSupabaseServerClient, writesEnabled = () => process.env.ISTE_TOURNAMENT_WRITES_ENABLED === "true" } = {}) {
+ return async function handler(request,response) {
  response.setHeader("Cache-Control","no-store, private");
  response.setHeader("X-Content-Type-Options","nosniff");
  const guard=guardRequest(request,{methods:["POST"],requireJson:true,requireOrigin:true,maxBodyBytes:1024});
@@ -22,14 +23,14 @@ export default async function handler(request,response) {
    return response.status(401).json({ok:false,error:"AUTH_REQUIRED"});
  }
  try {
-   const supabase=getSupabaseServerClient();
+   const supabase=getClient();
    const session=await supabase.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
    if(session.error || !session.data?.session || !session.data?.user) {
      clearAuthCookies(response);
      return response.status(401).json({ok:false,error:"AUTH_REQUIRED"});
    }
    setAuthCookies(response,session.data.session);
-   if(process.env.ISTE_TOURNAMENT_WRITES_ENABLED!=="true")
+   if(!writesEnabled())
      return response.status(503).json({ok:false,error:"TOURNAMENT_WRITES_DISABLED"});
    const {data,error}=await supabase.rpc("iste_v2_respond_roster_membership",{
      p_member_id:input.memberId,p_accept:input.accept,
@@ -47,4 +48,7 @@ export default async function handler(request,response) {
  } catch {
    return response.status(500).json({ok:false,error:"ROSTER_RESPONSE_FAILED"});
  }
+ };
 }
+
+export default createRosterResponseHandler();
