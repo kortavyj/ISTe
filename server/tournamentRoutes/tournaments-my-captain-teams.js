@@ -2,7 +2,8 @@ import { guardRequest } from "../apiLib/requestGuard.js";
 import { readAuthCookies, setAuthCookies, clearAuthCookies } from "../apiLib/authCookies.js";
 import { getSupabaseServerClient } from "../apiLib/supabaseServer.js";
 
-export default async function handler(request,response) {
+export function createMyCaptainTeamsHandler({getClient=getSupabaseServerClient}={}) {
+ return async function handler(request,response) {
  response.setHeader("Cache-Control","no-store, private");
  response.setHeader("X-Content-Type-Options","nosniff");
  const guard=guardRequest(request,{methods:["GET"],requireJson:false,requireOrigin:false});
@@ -13,7 +14,7 @@ export default async function handler(request,response) {
  const {accessToken,refreshToken}=readAuthCookies(request);
  if(!refreshToken){clearAuthCookies(response);return response.status(401).json({ok:false,error:"AUTH_REQUIRED"});}
  try {
-  const supabase=getSupabaseServerClient();
+  const supabase=getClient();
   const session=await supabase.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
   if(session.error || !session.data?.session || !session.data?.user){
    clearAuthCookies(response);return response.status(401).json({ok:false,error:"AUTH_REQUIRED"});
@@ -26,4 +27,6 @@ export default async function handler(request,response) {
   }
   return response.status(200).json({ok:true,teams:Array.isArray(data)?data:[]});
  }catch{return response.status(500).json({ok:false,error:"CAPTAIN_TEAMS_FAILED"});}
+ };
 }
+export default createMyCaptainTeamsHandler();
