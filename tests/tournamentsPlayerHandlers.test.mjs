@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import invitationHandler from "../server/tournamentRoutes/tournaments-my-invitations.js";
-import responseHandler from "../server/tournamentRoutes/tournaments-roster-response.js";
+import responseHandler, { createRosterResponseHandler } from "../server/tournamentRoutes/tournaments-roster-response.js";
 
 function res() { return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;return this;},getHeader(k){return this.headers[k];},status(n){this.statusCode=n;return this;},json(body){this.body=body;return this;}}; }
 function req(method,body) { return {method,headers:{"content-type":"application/json",origin:"https://www.istesport.com",host:"www.istesport.com"},body,query:{}}; }
@@ -32,4 +32,38 @@ test("decision refuses GET and does not silently mutate",async()=>{
  const result=res();
  await responseHandler(req("GET"),result);
  assert.equal(result.statusCode,405);
+});
+
+function authed(error = null, writes = true) {
+ const calls = [];
+ const supabase = {
+   auth: { setSession: async () => ({data: {session: {access_token:"stub",refresh_token:"stub"},user:{id:"10000000-0000-4000-8000-000000000001"}},error:null}) },
+   rpc: async (name,args) => {calls.push({name,args});return {data:{accepted:true},error};},
+ };
+ return {calls,handler:createRosterResponseHandler({getClient:()=>supabase,writesEnabled:()=>writes})};
+}
+function sessionRequest(accept=true) {
+ const r=req("POST",{memberId,accept});
+ r.headers.cookie="sb-access-token=fake; sb-refresh-token=fake";
+ return r;
+}
+test("authenticated responses still respect disabled writes",async()=>{
+ const {handler,calls}=authed(null,false),result=res();
+ await handler(sessionRequest(),result);
+ assert.equal(result.statusCode,503);
+ assert.equal(result.body.error,"TOURNAMENT_WRITES_DISABLED");
+ assert.equal(calls.length,0);
+});
+test("authenticated roster acceptance invokes user-scoped RPC",async()=>{
+ const {handler,calls}=authed(),result=res();
+ await handler(sessionRequest(),result);
+ assert.equal(result.statusCode,200);
+ assert.equal(result.body.ok,true);
+ assert.deepEqual(calls,[{name:"iste_v2_respond_roster_membership",args:{p_member_id:memberId,p_accept:true}}]);
+});
+test("database errors do not disclose SQL details",async()=>{
+ const {handler}=authed({code:"22023",message:"private sql internals"}),result=res();
+ await handler(sessionRequest(false),result);
+ assert.equal(result.statusCode,409);
+ assert.deepEqual(result.body,{ok:false,error:"ROSTER_RESPONSE_REJECTED"});
 });
