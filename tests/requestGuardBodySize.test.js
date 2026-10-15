@@ -37,3 +37,30 @@ test("rejects JSON body that cannot be serialized safely", () => {
 test("still enforces declared Content-Length", () => {
   assert.equal(guardRequest(request({}, { "content-length": "1000" }), options).status, 413);
 });
+
+test("rejects missing origin on browser-facing POST APIs", () => {
+  const result = guardRequest(request({ message: "help" }), {
+    methods: ["POST"], requireJson: true, requireOrigin: true,
+  });
+  assert.equal(result.status, 403);
+  assert.equal(result.error, "ORIGIN_MISSING");
+});
+
+test("rejects cross-origin support requests", () => {
+  const result = guardRequest(request({ message: "help" }, {
+    origin: "https://untrusted.example",
+    host: "www.istesport.com",
+    "sec-fetch-site": "cross-site",
+  }), { methods: ["POST"], requireJson: true, requireOrigin: true });
+  assert.equal(result.status, 403);
+  assert.equal(result.error, "ORIGIN_NOT_ALLOWED");
+});
+
+test("accepts same-origin JSON requests", () => {
+  const result = guardRequest(request({ message: "help" }, {
+    origin: "https://www.istesport.com",
+    host: "www.istesport.com",
+    "sec-fetch-site": "same-origin",
+  }), { methods: ["POST"], requireJson: true, requireOrigin: true });
+  assert.equal(result.ok, true);
+});
