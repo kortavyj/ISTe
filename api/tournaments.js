@@ -7,6 +7,7 @@ import confirm from "../server/tournamentRoutes/tournaments-match-confirm.js";
 import teamApply from "../server/tournamentRoutes/tournaments-team-apply.js";
 import teamReview from "../server/tournamentRoutes/tournaments-team-review.js";
 import teamList from "../server/tournamentRoutes/tournaments-team-list.js";
+import myInvitations from "../server/tournamentRoutes/tournaments-my-invitations.js";
 import bracketGenerate from "../server/tournamentRoutes/tournaments-bracket-generate.js";
 import bracketRead from "../server/tournamentRoutes/tournaments-bracket.js";
 import statusTransition from "../server/tournamentRoutes/tournaments-status-transition.js";
@@ -17,6 +18,7 @@ const routes = Object.freeze({
   "team-apply": teamApply,
   "team-review": teamReview,
   "team-list": teamList,
+  "my-invitations": myInvitations,
   "bracket-generate": bracketGenerate,
   bracket: bracketRead,
   "status-transition": statusTransition,
