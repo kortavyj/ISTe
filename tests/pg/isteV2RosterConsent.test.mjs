@@ -65,6 +65,46 @@ BEGIN
   END IF;
 END
 $test$;
+-- A different player can refuse their own invitation, which removes their slot.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
+DO $test$
+BEGIN
+  PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000002',false);
+  IF EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000002') THEN
+    RAISE EXCEPTION 'declined invitation still present';
+  END IF;
+END
+$test$;
+-- A blocked member must not be able to accept another pending membership.
+UPDATE public.user_roles SET is_blocked=true WHERE user_id='10000000-0000-4000-8000-000000000003';
+INSERT INTO public.iste_tournament_members (id,team_id,user_id,is_captain)
+VALUES ('40000000-0000-4000-8000-000000000006','30000000-0000-4000-8000-000000000001',
+'10000000-0000-4000-8000-000000000003',false);
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000006',true);
+    RAISE EXCEPTION 'blocked player accepted';
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    IF SQLERRM <> 'ACCOUNT_BLOCKED' THEN RAISE; END IF;
+  END;
+  IF EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000006' AND accepted_at IS NOT NULL) THEN
+    RAISE EXCEPTION 'blocked player mutated acceptance';
+  END IF;
+END
+$test$;
+-- A captain cannot decline their own required position.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000001',false);
+    RAISE EXCEPTION 'captain declined their own position';
+  EXCEPTION WHEN SQLSTATE '22023' THEN
+    IF SQLERRM <> 'CAPTAIN_CANNOT_DECLINE' THEN RAISE; END IF;
+  END;
+END
+$test$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
