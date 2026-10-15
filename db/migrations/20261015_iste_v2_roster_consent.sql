@@ -247,3 +247,28 @@ end;
 $function$;
 revoke all on function public.iste_v2_invite_replacement(uuid,uuid) from public,anon;
 grant execute on function public.iste_v2_invite_replacement(uuid,uuid) to authenticated;
+
+
+-- Only the captain may discover the ID of their own pending team.
+create or replace function public.iste_v2_my_pending_captain_teams()
+returns table(team_id uuid,team_name text,tournament_title text,member_count bigint)
+language plpgsql security definer set search_path=''
+as $function$
+begin
+ if auth.role() is distinct from 'authenticated' or auth.uid() is null then
+  raise exception 'AUTH_REQUIRED' using errcode='42501'; end if;
+ if exists(select 1 from public.user_roles where user_id=auth.uid() and is_blocked) then
+  raise exception 'ACCOUNT_BLOCKED' using errcode='42501'; end if;
+ return query
+ select t.id,t.name,ev.title,count(m.id)
+ from public.iste_tournament_teams t
+ join public.iste_tournaments ev on ev.id=t.tournament_id
+ left join public.iste_tournament_members m on m.team_id=t.id
+ where t.captain_user_id=auth.uid() and t.status='pending'
+   and ev.status='registration'
+ group by t.id,t.name,ev.title
+ order by t.name,t.id;
+end;
+$function$;
+revoke all on function public.iste_v2_my_pending_captain_teams() from public,anon;
+grant execute on function public.iste_v2_my_pending_captain_teams() to authenticated;
