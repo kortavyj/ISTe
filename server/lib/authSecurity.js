@@ -375,3 +375,18 @@ export async function recordAuthSecurityEvent({
     return false;
   }
 }
+
+/**
+ * Separate client quota for expensive public news translation.
+ * Reuses the existing database-backed auth limiter; do not couple this
+ * quota to sign-in, recovery or MFA buckets.
+ */
+export async function enforceNewsTranslationRateLimit(request) {
+  const { clientHash } = getAuthSecurityContext(request);
+  return consumeBucket(
+    `news:translation:client:${clientHash}`,
+    12,
+    60 * 60,
+    60 * 60,
+  );
+}
