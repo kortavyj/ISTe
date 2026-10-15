@@ -269,6 +269,8 @@ begin
  left join public.iste_tournament_members m on m.team_id=t.id
  where t.captain_user_id=auth.uid() and t.status='pending'
    and ev.status='registration'
+   and (ev.registration_start is null or now()>=ev.registration_start)
+   and (ev.registration_end is null or now()<ev.registration_end)
  group by t.id,t.name,ev.title
  order by t.name,t.id;
 end;
