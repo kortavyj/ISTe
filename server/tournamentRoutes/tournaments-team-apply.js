@@ -6,7 +6,8 @@ import { validateTournamentTeamApplication } from "../apiLib/tournamentTeamRegis
 
 // Team applications use the authenticated account as captain, not an owner
 // session. Server remains fail-closed until an audited DB RPC is deployed.
-export default async function handler(request, response) {
+export function createTeamApplyHandler({ getClient = getSupabaseServerClient, writesEnabled = () => process.env.ISTE_TOURNAMENT_WRITES_ENABLED === "true" } = {}) {
+ return async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store, private");
   response.setHeader("X-Content-Type-Options", "nosniff");
 
@@ -26,7 +27,7 @@ export default async function handler(request, response) {
   let supabase;
   let userId;
   try {
-    supabase = getSupabaseServerClient();
+    supabase = getClient();
     const { data, error } = await supabase.auth.setSession({
       access_token: accessToken, refresh_token: refreshToken,
     });
@@ -49,7 +50,7 @@ export default async function handler(request, response) {
   }
 
   // Even the valid applicant has no write access before migration review.
-  if (process.env.ISTE_TOURNAMENT_WRITES_ENABLED !== "true") {
+  if (!writesEnabled()) {
     return response.status(503).json({ ok:false,error:"TOURNAMENT_WRITES_DISABLED",
       message:"Заявки команд пока не принимаются." });
   }
@@ -88,4 +89,7 @@ export default async function handler(request, response) {
   } catch {
     return response.status(500).json({ok:false,error:"TEAM_APPLICATION_FAILED"});
   }
+ };
 }
+
+export default createTeamApplyHandler();
