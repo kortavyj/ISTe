@@ -5,6 +5,8 @@ on:
     paths:
       - "db/migrations/20261015_iste_v2_roster_consent.sql"
       - "tests/pg/isteV2RosterConsent.test.mjs"
+      - "tests/tournamentsTeamReviewError.test.mjs"
+      - "server/tournamentRoutes/tournaments-team-review.js"
       - ".github/workflows/tournament-v2-roster-consent.yml"
   workflow_dispatch:
 
@@ -40,5 +42,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Test API review error mapping
+        run: node --test tests/tournamentsTeamReviewError.test.mjs
       - name: Test roster consent and approval
         run: node tests/pg/isteV2RosterConsent.test.mjs
