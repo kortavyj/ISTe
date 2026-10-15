@@ -12,7 +12,7 @@ CREATE ROLE authenticated NOLOGIN;
 CREATE TABLE public.user_roles(user_id uuid primary key,role text,is_blocked boolean not null default false);
 CREATE TABLE public.iste_tournaments(id uuid primary key,status text,capacity integer,title text,registration_start timestamptz,registration_end timestamptz);
 CREATE TABLE public.iste_tournament_teams(id uuid primary key default gen_random_uuid(),tournament_id uuid,name text,status text,captain_user_id uuid,updated_at timestamptz default now());
-CREATE TABLE public.iste_tournament_members(id uuid primary key default gen_random_uuid(),team_id uuid,user_id uuid,faceit_player_id text,is_captain boolean,created_at timestamptz default now());
+CREATE TABLE public.iste_tournament_members(id uuid primary key default gen_random_uuid(),team_id uuid,user_id uuid,faceit_player_id text,role text not null default 'player' check (role in ('player','substitute','coach')),is_captain boolean,created_at timestamptz default now());
 CREATE TABLE public.iste_tournament_audit_log(tournament_id uuid,actor_id uuid,entity_type text,entity_id uuid,action text,previous_data jsonb,new_data jsonb);
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
 CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS 'select coalesce(nullif(current_setting(''request.jwt.claim.role'',true),''''),''anon'')';
