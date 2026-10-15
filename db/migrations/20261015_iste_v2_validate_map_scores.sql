@@ -176,4 +176,4 @@ begin
        'scoreA',v_match.score_a,'scoreB',v_match.score_b),v_new);
   return v_new;
 end;
-$function$
+$function$;
