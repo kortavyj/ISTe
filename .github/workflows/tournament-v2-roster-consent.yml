@@ -51,6 +51,9 @@ jobs:
       - name: Install project dependencies
         run: npm ci
       - name: Build account and tournament invitation UI
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder-not-a-real-key
         run: npm run build
       - name: Test API review error mapping
         run: node --test tests/tournamentsTeamReviewError.test.mjs
