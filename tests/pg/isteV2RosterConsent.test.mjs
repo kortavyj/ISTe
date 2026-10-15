@@ -1,0 +1,70 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+
+const migration = readFileSync(new URL("../../db/migrations/20261015_iste_v2_roster_consent.sql", import.meta.url), "utf8");
+const sql = `
+BEGIN;
+CREATE SCHEMA auth;
+CREATE TABLE public.user_roles(user_id uuid primary key,role text,is_blocked boolean not null default false);
+CREATE TABLE public.iste_tournaments(id uuid primary key,status text,capacity integer);
+CREATE TABLE public.iste_tournament_teams(id uuid primary key,tournament_id uuid,name text,status text,captain_user_id uuid,updated_at timestamptz default now());
+CREATE TABLE public.iste_tournament_members(id uuid primary key,team_id uuid,user_id uuid,is_captain boolean,created_at timestamptz default now());
+CREATE TABLE public.iste_tournament_audit_log(tournament_id uuid,actor_id uuid,entity_type text,entity_id uuid,action text,previous_data jsonb,new_data jsonb);
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
+CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS 'select coalesce(nullif(current_setting(''request.jwt.claim.role'',true),''''),''anon'')';
+CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
+${migration}
+INSERT INTO public.user_roles VALUES
+ ('10000000-0000-4000-8000-000000000001','owner',false),
+ ('10000000-0000-4000-8000-000000000002','user',false),
+ ('10000000-0000-4000-8000-000000000003','user',false);
+INSERT INTO public.iste_tournaments VALUES ('20000000-0000-4000-8000-000000000001','registration',2);
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id) VALUES
+ ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Alpha','pending','10000000-0000-4000-8000-000000000002');
+INSERT INTO public.iste_tournament_members (id,team_id,user_id,is_captain) VALUES
+ ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000002',true),
+ ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000003',false),
+ ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000004',false),
+ ('40000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000005',false),
+ ('40000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000006',false);
+
+SET LOCAL request.jwt.claim.role='authenticated';
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000002',true);
+    RAISE EXCEPTION 'cross-user consent allowed';
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    IF SQLERRM <> 'MEMBER_NOT_FOUND' THEN RAISE; END IF;
+  END;
+  IF EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000002' AND accepted_at IS NOT NULL) THEN
+    RAISE EXCEPTION 'cross-user membership mutated';
+  END IF;
+  PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000001',true);
+  IF NOT EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000001' AND accepted_at IS NOT NULL) THEN
+    RAISE EXCEPTION 'self-confirmation not saved';
+  END IF;
+END
+$test$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.iste_owner_review_team('30000000-0000-4000-8000-000000000001','pending','approve');
+    RAISE EXCEPTION 'unconfirmed roster approved';
+  EXCEPTION WHEN SQLSTATE '22023' THEN
+    IF SQLERRM <> 'ROSTER_NOT_CONFIRMED' THEN RAISE; END IF;
+  END;
+  IF (SELECT status FROM public.iste_tournament_teams WHERE id='30000000-0000-4000-8000-000000000001') <> 'pending' THEN
+    RAISE EXCEPTION 'review changed status unexpectedly';
+  END IF;
+END
+$test$;
+ROLLBACK;
+`;
+const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
+assert.equal(result.status,0,result.stderr||result.stdout||"psql failed");
+console.log("V2 roster consent RPC and approval guard passed in isolated PostgreSQL");
