@@ -102,6 +102,27 @@ export function guardRequest(
     };
   }
 
+  // Vercel/Node may deliver a parsed body without a trustworthy
+  // Content-Length (e.g. chunked transfer or mismatched headers).
+  // Reject oversized payloads based on the actual received data too.
+  if (request.body != null) {
+    let actualBodyBytes;
+    try {
+      if (Buffer.isBuffer(request.body)) {
+        actualBodyBytes = request.body.byteLength;
+      } else if (typeof request.body === "string") {
+        actualBodyBytes = Buffer.byteLength(request.body, "utf8");
+      } else {
+        actualBodyBytes = Buffer.byteLength(JSON.stringify(request.body), "utf8");
+      }
+    } catch {
+      return { ok: false, status: 400, error: "INVALID_REQUEST_BODY" };
+    }
+    if (actualBodyBytes > maxBodyBytes) {
+      return { ok: false, status: 413, error: "REQUEST_TOO_LARGE" };
+    }
+  }
+
   if (requireJson) {
     const contentType = getHeader(
       request,
