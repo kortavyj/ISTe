@@ -9,6 +9,8 @@ on:
       - "tests/tournamentsPlayerRoutes.test.mjs"
       - "tests/tournamentsPlayerHandlers.test.mjs"
       - "tests/tournamentsTeamApplyHandler.test.mjs"
+      - "tests/tournamentsReplacementInvite.test.mjs"
+      - "server/tournamentRoutes/tournaments-replacement-invite.js"
       - "server/tournamentRoutes/tournaments-team-apply.js"
       - "server/tournamentRoutes/tournaments-team-review.js"
       - "server/tournamentRoutes/tournaments-my-invitations.js"
@@ -59,6 +61,8 @@ jobs:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder-not-a-real-key
         run: npm run build
+      - name: Test captain replacement API
+        run: node --test tests/tournamentsReplacementInvite.test.mjs
       - name: Test captain team applications
         run: node --test tests/tournamentsTeamApplyHandler.test.mjs
       - name: Test player API handlers
