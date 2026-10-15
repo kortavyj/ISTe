@@ -111,6 +111,20 @@ BEGIN
    END IF;
  END LOOP;
 END $rls_boundary$;
+-- Direct client table privileges remain forbidden even if future RLS policies change.
+DO $private_grants$
+DECLARE tab text; role_name text; operation text;
+BEGIN
+ FOREACH tab IN ARRAY ARRAY['iste_tournament_members','iste_tournament_teams','iste_tournament_audit_log'] LOOP
+  FOREACH role_name IN ARRAY ARRAY['anon','authenticated'] LOOP
+   FOREACH operation IN ARRAY ARRAY['SELECT','INSERT','UPDATE','DELETE'] LOOP
+    IF has_table_privilege(role_name,format('public.%I',tab),operation) THEN
+     RAISE EXCEPTION 'direct % grant for % on %',operation,role_name,tab;
+    END IF;
+   END LOOP;
+  END LOOP;
+ END LOOP;
+END $private_grants$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
