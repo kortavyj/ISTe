@@ -63,6 +63,10 @@ export default async function handler(request, response) {
     ...input, captainUserId: userId,
   });
   if (!validated.ok) return response.status(400).json({ ok:false,error:validated.error });
+  // V2 owner approval requires explicit consent from every ISTe account.
+  // FACEIT-only roster entries cannot confirm until identity linking exists.
+  if (validated.value.members.some(member => !member.userId))
+    return response.status(400).json({ok:false,error:"ROSTER_ACCOUNT_REQUIRED"});
 
   try {
     // RPC must independently require auth.uid() as captain and validate
