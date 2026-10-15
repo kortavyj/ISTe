@@ -245,6 +245,7 @@ BEGIN
  ) THEN RAISE EXCEPTION 'approved team surfaced as a pending invitation'; END IF;
 END $closed_invitations$;
 -- A blocked account cannot browse even its own pending invitations.
+UPDATE public.user_roles SET is_blocked=true WHERE user_id='10000000-0000-4000-8000-000000000003';
 SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
 DO $blocked_listing$
 BEGIN
