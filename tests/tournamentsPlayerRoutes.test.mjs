@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 
 const read = readFileSync(new URL("../server/tournamentRoutes/tournaments-my-invitations.js", import.meta.url), "utf8");
+const apply = readFileSync(new URL("../server/tournamentRoutes/tournaments-team-apply.js", import.meta.url), "utf8");
 const respond = readFileSync(new URL("../server/tournamentRoutes/tournaments-roster-response.js", import.meta.url), "utf8");
 const router = readFileSync(new URL("../api/tournaments.js", import.meta.url), "utf8");
 const vercel = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
@@ -31,4 +32,9 @@ test("both player endpoints use the single serverless entrypoint", () => {
       rule.source === path && rule.destination === '/api/tournaments?route='+name
     ));
   }
+});
+
+test("captain applications cannot enter an unconfirmable FACEIT-only roster", () => {
+  assert.match(apply, /validated\.value\.members\.some\(member => !member\.userId\)/);
+  assert.match(apply, /ROSTER_ACCOUNT_REQUIRED/);
 });
