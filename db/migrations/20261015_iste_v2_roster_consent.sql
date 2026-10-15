@@ -39,6 +39,9 @@ begin
   if v_tournament.status <> 'registration' or v_team.status <> 'pending' then
     raise exception 'ROSTER_CLOSED' using errcode='22023';
   end if;
+  if p_accept and v_member.accepted_at is not null then
+    raise exception 'MEMBERSHIP_ALREADY_CONFIRMED' using errcode='40001';
+  end if;
   if p_accept then
     if exists(select 1 from public.user_roles
        where user_id=v_actor and is_blocked is true) then
