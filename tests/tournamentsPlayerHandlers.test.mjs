@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import invitationHandler from "../server/tournamentRoutes/tournaments-my-invitations.js";
+import invitationHandler, { createMyInvitationsHandler } from "../server/tournamentRoutes/tournaments-my-invitations.js";
 import responseHandler, { createRosterResponseHandler } from "../server/tournamentRoutes/tournaments-roster-response.js";
 
 function res() { return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;return this;},getHeader(k){return this.headers[k];},status(n){this.statusCode=n;return this;},json(body){this.body=body;return this;}}; }
@@ -66,4 +66,32 @@ test("database errors do not disclose SQL details",async()=>{
  await handler(sessionRequest(false),result);
  assert.equal(result.statusCode,409);
  assert.deepEqual(result.body,{ok:false,error:"ROSTER_RESPONSE_REJECTED"});
+});
+
+function invited(error = null, data = []) {
+ const calls = [];
+ const supabase = {
+   auth: {setSession: async () => ({data:{session:{access_token:"stub",refresh_token:"stub"},user:{id:"10000000-0000-4000-8000-000000000001"}},error:null})},
+   rpc: async (name) => { calls.push(name); return {data,error}; },
+ };
+ return {calls,handler:createMyInvitationsHandler({getClient:()=>supabase})};
+}
+function invitationSessionRequest() {
+ const request=req("GET");
+ request.headers.cookie="iste_access=fake; iste_refresh=fake";
+ return request;
+}
+test("authenticated player gets only own invitation RPC result",async()=>{
+ const rows=[{member_id:memberId,team_name:"Alpha",tournament_title:"Test Cup"}];
+ const {handler,calls}=invited(null,rows),result=res();
+ await handler(invitationSessionRequest(),result);
+ assert.equal(result.statusCode,200);
+ assert.deepEqual(result.body,{ok:true,invitations:rows});
+ assert.deepEqual(calls,["iste_v2_my_roster_invitations"]);
+});
+test("invitation SQL errors remain private",async()=>{
+ const {handler}=invited({code:"22023",message:"internal private information"}),result=res();
+ await handler(invitationSessionRequest(),result);
+ assert.equal(result.statusCode,502);
+ assert.deepEqual(result.body,{ok:false,error:"INVITATIONS_UNAVAILABLE"});
 });
