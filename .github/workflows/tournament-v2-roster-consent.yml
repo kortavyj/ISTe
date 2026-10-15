@@ -1,0 +1,44 @@
+name: Tournament V2 roster consent
+
+on:
+  pull_request:
+    paths:
+      - "db/migrations/20261015_iste_v2_roster_consent.sql"
+      - "tests/pg/isteV2RosterConsent.test.mjs"
+      - ".github/workflows/tournament-v2-roster-consent.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  roster-consent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tournament_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tournament_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: tournament_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test roster consent and approval
+        run: node tests/pg/isteV2RosterConsent.test.mjs
