@@ -38,3 +38,6 @@ The checked-in `db/preflight/iste_v2_staging_readonly.sql` checks were replicate
 - No proof of a recoverable staging backup or completed restore drill was available from the connected tooling. **The migration was NOT applied.**
 
 Immediate gate: secure and verify an independent recoverable staging copy, then rehearse the migration on that copy; avoid assuming that an automatically provisioned Supabase project has usable restore snapshots.
+
+## Budget decision
+The owner declined creation of a paid Supabase development branch. Do not create one or incur new hosting charges. Continue existing GitHub Actions PostgreSQL 17 CI and read-only inspection of existing Supabase projects; do not apply candidate DDL to existing projects without verified recovery capability.
