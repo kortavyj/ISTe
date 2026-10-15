@@ -256,6 +256,49 @@ BEGIN
    IF SQLERRM <> 'ACCOUNT_BLOCKED' THEN RAISE; END IF;
  END;
 END $blocked_listing$;
+-- Captain repairs a declined roster slot; invitee must still confirm.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000003','registration',2,'Replacement Cup');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000003','20000000-0000-4000-8000-000000000003',
+ 'Replacement Squad','pending','10000000-0000-4000-8000-000000000010');
+INSERT INTO public.iste_tournament_members(id,team_id,user_id,is_captain)
+VALUES ('40000000-0000-4000-8000-000000000030','30000000-0000-4000-8000-000000000003',
+ '10000000-0000-4000-8000-000000000010',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000011';
+DO $not_captain$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000012');
+  RAISE EXCEPTION 'noncaptain invited a member';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'TEAM_NOT_FOUND' THEN RAISE; END IF;
+ END;
+END $not_captain$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+SELECT public.iste_v2_invite_replacement(
+ '30000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000012');
+DO $pending_replacement$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000003'
+    AND user_id='10000000-0000-4000-8000-000000000012'
+    AND accepted_at IS NULL)<>1
+ THEN RAISE EXCEPTION 'replacement invitation not pending'; END IF;
+END $pending_replacement$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000012';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT id FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003'
+ AND user_id=auth.uid()),true);
+DO $accepted_replacement$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003'
+ AND user_id=auth.uid() AND accepted_at IS NOT NULL)<>1
+ THEN RAISE EXCEPTION 'replacement confirmation missing'; END IF;
+END $accepted_replacement$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
