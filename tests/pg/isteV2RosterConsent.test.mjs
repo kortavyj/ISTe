@@ -299,6 +299,24 @@ BEGIN
  AND user_id=auth.uid() AND accepted_at IS NOT NULL)<>1
  THEN RAISE EXCEPTION 'replacement confirmation missing'; END IF;
 END $accepted_replacement$;
+-- Only the captain sees their pending team in the replacement selector.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000011';
+DO $not_captain_teams$
+BEGIN
+ IF EXISTS (SELECT 1 FROM public.iste_v2_my_pending_captain_teams()
+   WHERE team_id='30000000-0000-4000-8000-000000000003') THEN
+   RAISE EXCEPTION 'noncaptain saw another captain team';
+ END IF;
+END $not_captain_teams$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $captain_teams$
+BEGIN
+ IF NOT EXISTS (SELECT 1 FROM public.iste_v2_my_pending_captain_teams()
+    WHERE team_id='30000000-0000-4000-8000-000000000003'
+      AND member_count=2) THEN
+   RAISE EXCEPTION 'captain team missing from own replacement list';
+ END IF;
+END $captain_teams$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
