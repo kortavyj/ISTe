@@ -154,3 +154,34 @@ begin
    'status',v_next);
 end;
 $function$;
+
+
+-- A user may list only their own outstanding V2 roster invitations.
+-- The RPC returns no other players' identifiers.
+create or replace function public.iste_v2_my_roster_invitations()
+returns table (
+  member_id uuid, team_id uuid, team_name text,
+  tournament_id uuid, tournament_title text, is_captain boolean
+)
+language plpgsql security definer set search_path=''
+as $function$
+begin
+  if auth.role() is distinct from 'authenticated' or auth.uid() is null then
+    raise exception 'AUTH_REQUIRED' using errcode='42501';
+  end if;
+  if exists (select 1 from public.user_roles
+      where user_id=auth.uid() and is_blocked is true) then
+    raise exception 'ACCOUNT_BLOCKED' using errcode='42501';
+  end if;
+  return query
+    select m.id,t.id,t.name,t.tournament_id,ev.title,m.is_captain
+    from public.iste_tournament_members m
+    join public.iste_tournament_teams t on t.id=m.team_id
+    join public.iste_tournaments ev on ev.id=t.tournament_id
+    where m.user_id=auth.uid() and m.accepted_at is null
+      and t.status='pending' and ev.status='registration'
+    order by m.created_at, m.id;
+end;
+$function$;
+revoke all on function public.iste_v2_my_roster_invitations() from public,anon;
+grant execute on function public.iste_v2_my_roster_invitations() to authenticated;
