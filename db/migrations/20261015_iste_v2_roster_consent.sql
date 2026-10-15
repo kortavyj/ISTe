@@ -52,6 +52,13 @@ begin
     end if;
     delete from public.iste_tournament_members where id=p_member_id;
   end if;
+  insert into public.iste_tournament_audit_log
+    (tournament_id,actor_id,entity_type,entity_id,action,previous_data,new_data)
+  values
+    (v_tournament.id,v_actor,'member',p_member_id,
+     case when p_accept then 'member_accepted' else 'member_declined' end,
+     jsonb_build_object('acceptedAt',v_member.accepted_at),
+     jsonb_build_object('accepted',p_accept));
   return jsonb_build_object('memberId',p_member_id,'accepted',p_accept);
 end;
 $function$;
