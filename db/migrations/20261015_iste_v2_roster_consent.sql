@@ -31,6 +31,13 @@ begin
     where id=v_member.team_id;
   select * into v_tournament from public.iste_tournaments
     where id=v_team.tournament_id for update;
+  -- Refresh and lock the team after the tournament lock: a concurrent owner
+  -- review may have changed its status while this request was waiting.
+  select * into v_team from public.iste_tournament_teams
+    where id=v_member.team_id for update;
+  if not found or v_team.tournament_id is distinct from v_tournament.id then
+    raise exception 'ROSTER_CLOSED' using errcode='22023';
+  end if;
   select * into v_member from public.iste_tournament_members
     where id=p_member_id for update;
   if v_member.user_id is distinct from v_actor then
