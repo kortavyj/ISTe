@@ -5,6 +5,7 @@ import { getAuthErrorMessage } from "../auth/authErrors.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { formatAccountId } from "../utils/accountId.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
+import TournamentInvitations from "../components/tournaments/TournamentInvitations.jsx";
 
 import "./Auth.css";
 import "./AccountId.css";
@@ -196,6 +197,7 @@ export default function Account() {
           <p>{t("accountPage.description")}</p>
         </header>
 
+        <TournamentInvitations />
         <div className="account-grid">
           <aside className="auth-card account-summary">
             <div className="account-avatar" aria-hidden="true">
