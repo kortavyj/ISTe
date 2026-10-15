@@ -11,6 +11,8 @@ on:
       - "tests/tournamentsTeamApplyHandler.test.mjs"
       - "tests/tournamentsReplacementInvite.test.mjs"
       - "server/tournamentRoutes/tournaments-replacement-invite.js"
+      - "server/tournamentRoutes/tournaments-my-captain-teams.js"
+      - "src/components/tournaments/CaptainReplacementInvites.jsx"
       - "server/tournamentRoutes/tournaments-team-apply.js"
       - "server/tournamentRoutes/tournaments-team-review.js"
       - "server/tournamentRoutes/tournaments-my-invitations.js"
