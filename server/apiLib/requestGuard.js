@@ -131,7 +131,7 @@ export function guardRequest(
       "content-type",
     ).toLowerCase();
 
-    if (!contentType.startsWith("application/json")) {
+    if (!/^application\/json(?:\s*;|\s*$)/.test(contentType)) {
       return {
         ok: false,
         status: 415,
