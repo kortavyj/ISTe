@@ -7,6 +7,12 @@ on:
       - "tests/pg/isteV2RosterConsent.test.mjs"
       - "tests/tournamentsTeamReviewError.test.mjs"
       - "server/tournamentRoutes/tournaments-team-review.js"
+      - "server/tournamentRoutes/tournaments-my-invitations.js"
+      - "server/tournamentRoutes/tournaments-roster-response.js"
+      - "src/components/tournaments/TournamentInvitations.jsx"
+      - "src/pages/Account.jsx"
+      - "api/tournaments.js"
+      - "vercel.json"
       - ".github/workflows/tournament-v2-roster-consent.yml"
   workflow_dispatch:
 
@@ -44,6 +50,8 @@ jobs:
           node-version: "22"
       - name: Install project dependencies
         run: npm ci
+      - name: Build account and tournament invitation UI
+        run: npm run build
       - name: Test API review error mapping
         run: node --test tests/tournamentsTeamReviewError.test.mjs
       - name: Test roster consent and approval
