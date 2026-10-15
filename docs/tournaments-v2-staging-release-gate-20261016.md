@@ -27,3 +27,14 @@ This document records read-only live inspections. It is not evidence of a succes
 - Do not run candidate DDL against production.
 - Do not enable public writes until staging E2E, backup/restore, and operator sign-off succeed.
 - Production and test projects may have different migration histories; assess independently.
+
+
+## Read-only preflight execution results (16 October 2026)
+The checked-in `db/preflight/iste_v2_staging_readonly.sql` checks were replicated as read-only queries on test Supabase:
+- Required relations: 7/7 present.
+- Existing application and review RPCs: anonymous EXECUTE = false; authenticated EXECUTE = true.
+- Consent/invitation/replacement RPCs: absent, as expected before candidate migration.
+- RLS enabled on all six V2 tournament tables. Policy counts: tournaments 1, matches 1, maps 1, teams 0, members 0, audit 0. The three policy-free tables remain deny-by-default for ordinary roles; inspect SQL-definer privileges and grants before enabling writes.
+- No proof of a recoverable staging backup or completed restore drill was available from the connected tooling. **The migration was NOT applied.**
+
+Immediate gate: secure and verify an independent recoverable staging copy, then rehearse the migration on that copy; avoid assuming that an automatically provisioned Supabase project has usable restore snapshots.
