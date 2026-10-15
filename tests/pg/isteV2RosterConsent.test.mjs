@@ -137,6 +137,45 @@ BEGIN
   END;
 END
 $test$;
+-- End-to-end SQL path: captain and four players confirm, then owner approves.
+DELETE FROM public.iste_tournament_members
+ WHERE id='40000000-0000-4000-8000-000000000006';
+UPDATE public.user_roles SET is_blocked=false
+ WHERE user_id='10000000-0000-4000-8000-000000000003';
+INSERT INTO public.iste_tournament_members(id,team_id,user_id,is_captain)
+VALUES ('40000000-0000-4000-8000-000000000007',
+ '30000000-0000-4000-8000-000000000001',
+ '10000000-0000-4000-8000-000000000003',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
+SELECT public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000007',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000004';
+SELECT public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000003',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000005';
+SELECT public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000004',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000006';
+SELECT public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000005',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+DO $full_team$
+DECLARE outcome jsonb;
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members
+    WHERE team_id='30000000-0000-4000-8000-000000000001'
+      AND accepted_at IS NOT NULL)<>5 THEN
+   RAISE EXCEPTION 'five explicit confirmations missing';
+ END IF;
+ outcome:=public.iste_owner_review_team(
+  '30000000-0000-4000-8000-000000000001','pending','approve');
+ IF outcome->>'status'<>'approved' OR
+    (SELECT status FROM public.iste_tournament_teams
+      WHERE id='30000000-0000-4000-8000-000000000001')<>'approved' THEN
+   RAISE EXCEPTION 'confirmed roster was not approved';
+ END IF;
+ IF (SELECT count(*) FROM public.iste_tournament_audit_log
+     WHERE action='team_approved')<>1 THEN
+   RAISE EXCEPTION 'approval audit event missing';
+ END IF;
+END
+$full_team$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
