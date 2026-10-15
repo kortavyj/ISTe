@@ -112,6 +112,7 @@ export default async function publicRosterHandler(
   );
 
   if (request.method !== "GET") {
+    response.setHeader("Cache-Control", "no-store");
     response.setHeader("Allow", "GET");
 
     return response.status(405).json({
@@ -170,6 +171,7 @@ export default async function publicRosterHandler(
             : [],
       });
   } catch (error) {
+    response.setHeader("Cache-Control", "no-store");
     console.error(
       "Public roster error:",
       error,
@@ -182,7 +184,7 @@ export default async function publicRosterHandler(
         error:
           "PUBLIC_ROSTER_LOAD_FAILED",
         message:
-          "Не удалось загрузить официальный состав ISTe.",
+          "Не удалось загрузить официальный состав ISTesport.",
       });
   }
 }
