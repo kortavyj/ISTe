@@ -344,6 +344,41 @@ DO $replacement_flow$ BEGIN
  (SELECT count(*) FROM public.iste_tournament_audit_log WHERE tournament_id='20000000-0000-4000-8000-000000000004' AND action='member_invited')<>1
  THEN RAISE EXCEPTION 'replacement-to-approval flow failed'; END IF;
 END $replacement_flow$;
+-- Review-closed teams cannot be edited even by the original captain.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $closed_replacement$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   (SELECT id FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000004'),
+   '10000000-0000-4000-8000-000000000026');
+  RAISE EXCEPTION 'approved team accepted another invitation';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+END $closed_replacement$;
+-- A seven-player pending roster cannot invite an eighth player.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000005','registration',2,'Capacity Cup');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000005',
+ '20000000-0000-4000-8000-000000000005','Capacity Squad','pending',
+ '10000000-0000-4000-8000-000000000020');
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain)
+SELECT '30000000-0000-4000-8000-000000000005'::uuid,
+ ('10000000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
+ n=20 FROM generate_series(20,26) n;
+DO $full_replacement$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+    '30000000-0000-4000-8000-000000000005',
+    '10000000-0000-4000-8000-000000000027');
+  RAISE EXCEPTION 'full roster accepted eighth invite';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_FULL' THEN RAISE; END IF;
+ END;
+END $full_replacement$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
