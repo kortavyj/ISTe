@@ -58,6 +58,10 @@
       "destination": "/api/tournaments?route=team-list"
     },
     {
+      "source": "/api/tournaments-my-invitations",
+      "destination": "/api/tournaments?route=my-invitations"
+    },
+    {
       "source": "/api/tournaments-bracket-generate",
       "destination": "/api/tournaments?route=bracket-generate"
     },
