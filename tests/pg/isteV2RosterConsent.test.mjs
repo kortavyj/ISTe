@@ -235,6 +235,26 @@ BEGIN
      WHERE tournament_id='20000000-0000-4000-8000-000000000002' AND action='member_accepted')<>5
  THEN RAISE EXCEPTION 'end-to-end application/consent/approval failed'; END IF;
 END $full_flow$;
+-- Approved teams must never reappear as pending invitations.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $closed_invitations$
+BEGIN
+ IF EXISTS (
+   SELECT 1 FROM public.iste_v2_my_roster_invitations()
+   WHERE tournament_id='20000000-0000-4000-8000-000000000002'
+ ) THEN RAISE EXCEPTION 'approved team surfaced as a pending invitation'; END IF;
+END $closed_invitations$;
+-- A blocked account cannot browse even its own pending invitations.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
+DO $blocked_listing$
+BEGIN
+ BEGIN
+   PERFORM * FROM public.iste_v2_my_roster_invitations();
+   RAISE EXCEPTION 'blocked account viewed roster invitations';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+   IF SQLERRM <> 'ACCOUNT_BLOCKED' THEN RAISE; END IF;
+ END;
+END $blocked_listing$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
