@@ -8,6 +8,8 @@ on:
       - "tests/tournamentsTeamReviewError.test.mjs"
       - "tests/tournamentsPlayerRoutes.test.mjs"
       - "tests/tournamentsPlayerHandlers.test.mjs"
+      - "tests/tournamentsTeamApplyHandler.test.mjs"
+      - "server/tournamentRoutes/tournaments-team-apply.js"
       - "server/tournamentRoutes/tournaments-team-review.js"
       - "server/tournamentRoutes/tournaments-my-invitations.js"
       - "server/tournamentRoutes/tournaments-roster-response.js"
@@ -57,6 +59,8 @@ jobs:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder-not-a-real-key
         run: npm run build
+      - name: Test captain team applications
+        run: node --test tests/tournamentsTeamApplyHandler.test.mjs
       - name: Test player API handlers
         run: node --test tests/tournamentsPlayerHandlers.test.mjs
       - name: Test player invitation route invariants
