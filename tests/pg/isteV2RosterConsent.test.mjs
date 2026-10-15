@@ -413,6 +413,39 @@ BEGIN
   IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
  END;
 END $early_replacement$;
+-- Roster responses must honor the registration window, not only tournament status.
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain)
+VALUES ('30000000-0000-4000-8000-000000000006',
+ '10000000-0000-4000-8000-000000000021',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000021';
+DO $future_consent$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_respond_roster_membership(
+   (SELECT id FROM public.iste_tournament_members
+     WHERE team_id='30000000-0000-4000-8000-000000000006' AND user_id=auth.uid()),true);
+  RAISE EXCEPTION 'future registration accepted consent';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+END $future_consent$;
+UPDATE public.iste_tournaments SET registration_start=null,
+ registration_end=now()-interval '1 minute'
+WHERE id='20000000-0000-4000-8000-000000000006';
+DO $expired_consent$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_respond_roster_membership(
+   (SELECT id FROM public.iste_tournament_members
+     WHERE team_id='30000000-0000-4000-8000-000000000006' AND user_id=auth.uid()),true);
+  RAISE EXCEPTION 'expired registration accepted consent';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+ IF EXISTS(SELECT 1 FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000006' AND accepted_at IS NOT NULL)
+ THEN RAISE EXCEPTION 'closed registration mutated consent'; END IF;
+END $expired_consent$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
