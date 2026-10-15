@@ -6,6 +6,8 @@ const migration = readFileSync(new URL("../../db/migrations/20261015_iste_v2_ros
 const sql = `
 BEGIN;
 CREATE SCHEMA auth;
+CREATE ROLE anon NOLOGIN;
+CREATE ROLE authenticated NOLOGIN;
 CREATE TABLE public.user_roles(user_id uuid primary key,role text,is_blocked boolean not null default false);
 CREATE TABLE public.iste_tournaments(id uuid primary key,status text,capacity integer);
 CREATE TABLE public.iste_tournament_teams(id uuid primary key,tournament_id uuid,name text,status text,captain_user_id uuid,updated_at timestamptz default now());
