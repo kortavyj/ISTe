@@ -34,6 +34,25 @@ BEGIN
   RAISE EXCEPTION 'a V2 consent function failed to install';
  END IF;
 END $verify$;
+-- Verify SQL grants on the real foundation (not only function existence).
+DO $grants$
+DECLARE signature text;
+BEGIN
+ FOREACH signature IN ARRAY ARRAY[
+  'public.iste_apply_tournament_team(jsonb)',
+  'public.iste_v2_respond_roster_membership(uuid,boolean)',
+  'public.iste_v2_invite_replacement(uuid,uuid)',
+  'public.iste_v2_my_roster_invitations()',
+  'public.iste_v2_my_pending_captain_teams()'
+ ] LOOP
+  IF has_function_privilege('anon',signature,'EXECUTE') THEN
+   RAISE EXCEPTION 'anonymous EXECUTE permission remains on %',signature;
+  END IF;
+  IF NOT has_function_privilege('authenticated',signature,'EXECUTE') THEN
+   RAISE EXCEPTION 'authenticated EXECUTE permission missing on %',signature;
+  END IF;
+ END LOOP;
+END $grants$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
