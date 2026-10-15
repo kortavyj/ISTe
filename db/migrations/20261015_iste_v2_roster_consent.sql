@@ -43,7 +43,9 @@ begin
   if v_member.user_id is distinct from v_actor then
     raise exception 'MEMBER_NOT_FOUND' using errcode='42501';
   end if;
-  if v_tournament.status <> 'registration' or v_team.status <> 'pending' then
+  if v_tournament.status <> 'registration' or v_team.status <> 'pending'
+    or (v_tournament.registration_start is not null and now()<v_tournament.registration_start)
+    or (v_tournament.registration_end is not null and now()>=v_tournament.registration_end) then
     raise exception 'ROSTER_CLOSED' using errcode='22023';
   end if;
   if p_accept and v_member.accepted_at is not null then
