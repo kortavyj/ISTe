@@ -53,6 +53,22 @@ BEGIN
   END IF;
  END LOOP;
 END $grants$;
+-- Check execution as the actual anon database role, not only ACL metadata.
+SET ROLE anon;
+DO $anonymous_execution$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(NULL::uuid,NULL::uuid);
+  RAISE EXCEPTION 'anonymous user executed replacement RPC';
+ EXCEPTION WHEN insufficient_privilege THEN NULL;
+ END;
+ BEGIN
+  PERFORM public.iste_apply_tournament_team('{}'::jsonb);
+  RAISE EXCEPTION 'anonymous user executed application RPC';
+ EXCEPTION WHEN insufficient_privilege THEN NULL;
+ END;
+END $anonymous_execution$;
+RESET ROLE;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
