@@ -88,6 +88,29 @@ BEGIN
  END;
 END $no_subject$;
 RESET ROLE;
+-- On the real foundation, private roster and audit tables must retain RLS.
+DO $rls_boundary$
+DECLARE relation_name text;
+BEGIN
+ FOREACH relation_name IN ARRAY ARRAY[
+   'iste_tournament_members','iste_tournament_teams','iste_tournament_audit_log'
+ ] LOOP
+   IF NOT EXISTS (
+     SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+     WHERE n.nspname='public' AND c.relname=relation_name
+       AND c.relrowsecurity
+   ) THEN
+     RAISE EXCEPTION 'RLS disabled on private V2 table: %', relation_name;
+   END IF;
+   IF EXISTS (
+     SELECT 1 FROM pg_policies
+     WHERE schemaname='public' AND tablename=relation_name
+       AND ('anon'=ANY(roles) OR 'public'=ANY(roles))
+   ) THEN
+     RAISE EXCEPTION 'anonymous table policy on private V2 table: %',relation_name;
+   END IF;
+ END LOOP;
+END $rls_boundary$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
