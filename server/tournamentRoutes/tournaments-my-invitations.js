@@ -2,7 +2,8 @@ import { guardRequest } from "../apiLib/requestGuard.js";
 import { readAuthCookies, setAuthCookies, clearAuthCookies } from "../apiLib/authCookies.js";
 import { getSupabaseServerClient } from "../apiLib/supabaseServer.js";
 
-export default async function handler(request, response) {
+export function createMyInvitationsHandler({ getClient = getSupabaseServerClient } = {}) {
+ return async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store, private");
   response.setHeader("X-Content-Type-Options", "nosniff");
   const guard = guardRequest(request, {
@@ -18,7 +19,7 @@ export default async function handler(request, response) {
     return response.status(401).json({ ok: false, error: "AUTH_REQUIRED" });
   }
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = getClient();
     const session = await supabase.auth.setSession({
       access_token: accessToken, refresh_token: refreshToken,
     });
@@ -41,4 +42,7 @@ export default async function handler(request, response) {
   } catch {
     return response.status(500).json({ ok: false, error: "INVITATIONS_FAILED" });
   }
+ };
 }
+
+export default createMyInvitationsHandler();
