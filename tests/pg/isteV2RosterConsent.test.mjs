@@ -446,6 +446,29 @@ BEGIN
   WHERE team_id='30000000-0000-4000-8000-000000000006' AND accepted_at IS NOT NULL)
  THEN RAISE EXCEPTION 'closed registration mutated consent'; END IF;
 END $expired_consent$;
+-- A coach cannot be counted as the fifth playing-roster member.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000007','registration',2,'Coaches Are Not Players');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000007','20000000-0000-4000-8000-000000000007',
+ 'Coach Squad','pending','10000000-0000-4000-8000-000000000020');
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain,role,accepted_at)
+SELECT '30000000-0000-4000-8000-000000000007'::uuid,
+ ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
+ n=20,CASE WHEN n=24 THEN 'coach' ELSE 'player' END,now()
+FROM generate_series(20,24) n;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+DO $coach_guard$
+BEGIN
+ BEGIN
+  PERFORM public.iste_owner_review_team('30000000-0000-4000-8000-000000000007',
+   'pending','approve');
+  RAISE EXCEPTION 'coach counted as fifth player';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_INCOMPLETE' THEN RAISE; END IF;
+ END;
+END $coach_guard$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
