@@ -9,7 +9,7 @@ CREATE SCHEMA auth;
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
 CREATE TABLE public.user_roles(user_id uuid primary key,role text,is_blocked boolean not null default false);
-CREATE TABLE public.iste_tournaments(id uuid primary key,status text,capacity integer);
+CREATE TABLE public.iste_tournaments(id uuid primary key,status text,capacity integer,title text);
 CREATE TABLE public.iste_tournament_teams(id uuid primary key,tournament_id uuid,name text,status text,captain_user_id uuid,updated_at timestamptz default now());
 CREATE TABLE public.iste_tournament_members(id uuid primary key,team_id uuid,user_id uuid,is_captain boolean,created_at timestamptz default now());
 CREATE TABLE public.iste_tournament_audit_log(tournament_id uuid,actor_id uuid,entity_type text,entity_id uuid,action text,previous_data jsonb,new_data jsonb);
@@ -21,7 +21,7 @@ INSERT INTO public.user_roles VALUES
  ('10000000-0000-4000-8000-000000000001','owner',false),
  ('10000000-0000-4000-8000-000000000002','user',false),
  ('10000000-0000-4000-8000-000000000003','user',false);
-INSERT INTO public.iste_tournaments VALUES ('20000000-0000-4000-8000-000000000001','registration',2);
+INSERT INTO public.iste_tournaments(id,status,capacity,title) VALUES ('20000000-0000-4000-8000-000000000001','registration',2,'Test Cup');
 INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id) VALUES
  ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Alpha','pending','10000000-0000-4000-8000-000000000002');
 INSERT INTO public.iste_tournament_members (id,team_id,user_id,is_captain) VALUES
@@ -74,6 +74,20 @@ BEGIN
   END IF;
 END
 $test$;
+-- Only the caller's outstanding invitation must be visible.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
+DO $mine$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_v2_my_roster_invitations())<>1 THEN
+   RAISE EXCEPTION 'own pending invitations not filtered';
+ END IF;
+ IF NOT EXISTS (
+   SELECT 1 FROM public.iste_v2_my_roster_invitations()
+   WHERE member_id='40000000-0000-4000-8000-000000000002'
+     AND team_name='Alpha' AND tournament_title='Test Cup'
+ ) THEN RAISE EXCEPTION 'expected invitation missing'; END IF;
+END
+$mine$;
 -- A different player can refuse their own invitation, which removes their slot.
 SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
 DO $test$
