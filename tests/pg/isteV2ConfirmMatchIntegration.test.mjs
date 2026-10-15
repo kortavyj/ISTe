@@ -108,8 +108,82 @@ $test$;
 ROLLBACK;
 `;
 
+
+// Four-team bracket: semifinal winners advance to a versioned final.
+const four = {
+  tournament: "66666666-6666-4666-8666-666666666666",
+  a: "77777777-7777-4777-8777-777777777771",
+  b: "77777777-7777-4777-8777-777777777772",
+  c: "77777777-7777-4777-8777-777777777773",
+  d: "77777777-7777-4777-8777-777777777774",
+  semiA: "88888888-8888-4888-8888-888888888881",
+  semiB: "88888888-8888-4888-8888-888888888882",
+  final: "88888888-8888-4888-8888-888888888883",
+};
+const bracket = `
+INSERT INTO public.iste_tournaments (id,capacity,status)
+VALUES ('${four.tournament}',4,'live');
+INSERT INTO public.iste_tournament_teams (id,tournament_id) VALUES
+('${four.a}','${four.tournament}'),
+('${four.b}','${four.tournament}'),
+('${four.c}','${four.tournament}'),
+('${four.d}','${four.tournament}');
+INSERT INTO public.iste_tournament_matches
+(id,tournament_id,round_index,match_index,team_a_id,team_b_id,best_of,status)
+VALUES
+('${four.semiA}','${four.tournament}',0,0,'${four.a}','${four.b}',1,'ready'),
+('${four.semiB}','${four.tournament}',0,1,'${four.c}','${four.d}',1,'ready');
+INSERT INTO public.iste_tournament_matches
+(id,tournament_id,round_index,match_index,best_of,status)
+VALUES ('${four.final}','${four.tournament}',1,0,1,'scheduled');
+
+DO $bracket$
+DECLARE v_result jsonb;
+BEGIN
+  v_result := public.iste_owner_confirm_match(
+    '${four.semiA}'::uuid,0,'{"bestOf":1,"maps":[{"name":"Mirage","scoreA":13,"scoreB":8}]}'::jsonb
+  );
+  IF v_result->>'winnerTeamId' <> '${four.a}' THEN RAISE EXCEPTION 'first semifinal winner incorrect'; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.iste_tournament_matches
+    WHERE id='${four.final}' AND team_a_id='${four.a}'
+      AND team_b_id IS NULL AND status='scheduled' AND version=1
+  ) THEN RAISE EXCEPTION 'first semifinal advancement failed'; END IF;
+
+  v_result := public.iste_owner_confirm_match(
+    '${four.semiB}'::uuid,0,'{"bestOf":1,"maps":[{"name":"Nuke","scoreA":6,"scoreB":13}]}'::jsonb
+  );
+  IF v_result->>'winnerTeamId' <> '${four.d}' THEN RAISE EXCEPTION 'second semifinal winner incorrect'; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.iste_tournament_matches
+    WHERE id='${four.final}' AND team_a_id='${four.a}'
+      AND team_b_id='${four.d}' AND status='ready' AND version=2
+  ) THEN RAISE EXCEPTION 'final readiness failed'; END IF;
+
+  BEGIN
+    PERFORM public.iste_owner_confirm_match(
+      '${four.final}'::uuid,0,'{"bestOf":1,"maps":[{"name":"Ancient","scoreA":13,"scoreB":7}]}'::jsonb
+    );
+    RAISE EXCEPTION 'stale final version accepted';
+  EXCEPTION WHEN sqlstate '40001' THEN
+    IF SQLERRM <> 'STALE_OR_FINISHED_MATCH' THEN RAISE; END IF;
+  END;
+
+  v_result := public.iste_owner_confirm_match(
+    '${four.final}'::uuid,2,'{"bestOf":1,"maps":[{"name":"Ancient","scoreA":13,"scoreB":7}]}'::jsonb
+  );
+  IF v_result->>'winnerTeamId' <> '${four.a}' THEN RAISE EXCEPTION 'wrong champion'; END IF;
+  IF (SELECT count(*) FROM public.iste_tournament_matches
+      WHERE tournament_id='${four.tournament}' AND status='finished' AND winner_team_id IS NOT NULL) <> 3
+    OR (SELECT count(*) FROM public.iste_tournament_audit_log
+      WHERE tournament_id='${four.tournament}' AND action='confirm_result') <> 3
+  THEN RAISE EXCEPTION 'four-team bracket not fully finalized'; END IF;
+END
+$bracket$;
+`;
+
 const result = spawnSync("psql", ["-X", "-v", "ON_ERROR_STOP=1", "-q"], {
-  input: setup + migration + "\n" + seed + assertions,
+  input: setup + migration + "\n" + seed + assertions.replace("ROLLBACK;", "") + bracket + "ROLLBACK;\n",
   encoding: "utf8",
   env: process.env,
 });
