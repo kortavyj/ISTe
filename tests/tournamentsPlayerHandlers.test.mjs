@@ -44,7 +44,7 @@ function authed(error = null, writes = true) {
 }
 function sessionRequest(accept=true) {
  const r=req("POST",{memberId,accept});
- r.headers.cookie="sb-access-token=fake; sb-refresh-token=fake";
+ r.headers.cookie="iste_access=fake; iste_refresh=fake";
  return r;
 }
 test("authenticated responses still respect disabled writes",async()=>{
