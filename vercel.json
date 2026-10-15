@@ -104,6 +104,10 @@
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
+    },
+    {
+      "source": "/api/tournaments-my-captain-teams",
+      "destination": "/api/tournaments?route=my-captain-teams"
     }
   ],
   "ignoreCommand": "bash scripts/vercel-ignore-build.sh"
