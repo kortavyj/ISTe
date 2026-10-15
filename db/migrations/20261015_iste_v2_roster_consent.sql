@@ -277,3 +277,10 @@ end;
 $function$;
 revoke all on function public.iste_v2_my_pending_captain_teams() from public,anon;
 grant execute on function public.iste_v2_my_pending_captain_teams() to authenticated;
+
+-- Private V2 roster and audit tables are writable only through identity-scoped
+-- SECURITY DEFINER RPCs, never directly through Supabase client roles.
+-- Explicit table-level REVOKE is defense in depth alongside deny-by-default RLS.
+revoke all on table public.iste_tournament_teams,
+ public.iste_tournament_members,
+ public.iste_tournament_audit_log from anon, authenticated;
