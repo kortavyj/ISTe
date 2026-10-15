@@ -451,6 +451,8 @@ function readPublicNewsLocalizationInput(
       : [];
 
   const normalizedPosts = [];
+  let totalTranslationCharacters = 0;
+  const MAX_TRANSLATION_CHARACTERS_PER_REQUEST = 100000;
 
   for (const post of posts) {
     const id =
@@ -497,6 +499,16 @@ function readPublicNewsLocalizationInput(
           "INVALID_NEWS_LOCALIZATION_INPUT",
         message:
           "Invalid news localization payload.",
+      };
+    }
+
+    totalTranslationCharacters += title.length + excerpt.length + content.length + category.length;
+    if (totalTranslationCharacters > MAX_TRANSLATION_CHARACTERS_PER_REQUEST) {
+      return {
+        ok: false,
+        status: 413,
+        error: "NEWS_TRANSLATION_REQUEST_TOO_LARGE",
+        message: "Too much news text in one translation request.",
       };
     }
 
