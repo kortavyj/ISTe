@@ -66,6 +66,10 @@
       "destination": "/api/tournaments?route=roster-response"
     },
     {
+      "source": "/api/tournaments-replacement-invite",
+      "destination": "/api/tournaments?route=replacement-invite"
+    },
+    {
       "source": "/api/tournaments-bracket-generate",
       "destination": "/api/tournaments?route=bracket-generate"
     },
