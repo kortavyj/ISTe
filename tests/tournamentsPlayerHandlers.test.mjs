@@ -3,7 +3,7 @@ import test from "node:test";
 import invitationHandler from "../server/tournamentRoutes/tournaments-my-invitations.js";
 import responseHandler from "../server/tournamentRoutes/tournaments-roster-response.js";
 
-function res() { return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;return this;},status(n){this.statusCode=n;return this;},json(body){this.body=body;return this;}}; }
+function res() { return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;return this;},getHeader(k){return this.headers[k];},status(n){this.statusCode=n;return this;},json(body){this.body=body;return this;}}; }
 function req(method,body) { return {method,headers:{"content-type":"application/json",origin:"https://www.istesport.com",host:"www.istesport.com"},body,query:{}}; }
 const memberId="40000000-0000-4000-8000-000000000001";
 
