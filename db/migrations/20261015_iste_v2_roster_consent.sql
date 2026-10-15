@@ -127,7 +127,8 @@ begin
  if p_decision='approve' then
    select count(*),count(*) filter (where is_captain)
    into v_members,v_captains from public.iste_tournament_members
-   where team_id=p_team_id;
+   where team_id=p_team_id and role in ('player','substitute');
+   -- Coaches cannot satisfy the required 5–7 playing roster slots.
    -- An account holder must explicitly consent to tournament participation.
    -- FACEIT-only records have no authenticated account to consent and
    -- must be verified via a separate identity-proof workflow.
@@ -140,7 +141,7 @@ begin
    end if;
    if v_members not between 5 and 7 or v_captains<>1 or
       not exists (select 1 from public.iste_tournament_members
-      where team_id=p_team_id and is_captain and user_id=v_team.captain_user_id) then
+      where team_id=p_team_id and role in ('player','substitute') and is_captain and user_id=v_team.captain_user_id) then
      raise exception 'ROSTER_INCOMPLETE' using errcode='22023';
    end if;
    select count(*) into v_approved from public.iste_tournament_teams
