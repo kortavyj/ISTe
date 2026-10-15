@@ -5,6 +5,7 @@ on:
     paths:
       - "db/migrations/20261015_iste_v2_validate_map_scores.sql"
       - "tests/pg/isteV2MapScores.test.mjs"
+      - "tests/pg/isteV2ConfirmMatchIntegration.test.mjs"
       - ".github/workflows/tournament-v2-score-validation.yml"
   workflow_dispatch:
 
@@ -42,3 +43,5 @@ jobs:
           node-version: "22"
       - name: Validate SQL score predicate against PostgreSQL
         run: node tests/pg/isteV2MapScores.test.mjs
+      - name: Run match confirmation integration test
+        run: node tests/pg/isteV2ConfirmMatchIntegration.test.mjs
