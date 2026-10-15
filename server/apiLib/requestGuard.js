@@ -60,7 +60,13 @@ function getSourceOrigin(request) {
   // A supplied Origin is authoritative even if malformed or "null".
   // Do not fall back to Referer and accidentally accept conflicting headers.
   if (rawOrigin) {
-    return normalizeOrigin(rawOrigin);
+    const origin = normalizeOrigin(rawOrigin);
+    // Origin must be a single serialized origin, not an arbitrary URL.
+    // Reject paths, credentials, query strings and origin lists.
+    if (!origin || rawOrigin !== origin) {
+      return null;
+    }
+    return origin;
   }
 
   const referer = getHeader(request, "referer");
