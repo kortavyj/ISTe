@@ -14,6 +14,7 @@ import { readJsonBody } from "../../server/apiLib/requestBody.js";
 import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
 import {
   enforceMfaRateLimit,
+  enforceNewsTranslationRateLimit,
   recordAuthSecurityEvent,
   resetAuthRateLimitBucket,
 } from "../../server/lib/authSecurity.js";
@@ -530,6 +531,7 @@ function readPublicNewsLocalizationInput(
 }
 
 async function handlePublicNewsLocalization(
+  request,
   response,
   body,
 ) {
@@ -548,6 +550,17 @@ async function handlePublicNewsLocalization(
   }
 
   try {
+    const quota = await enforceNewsTranslationRateLimit(request);
+    if (!quota.allowed) {
+      response.setHeader("Retry-After", String(Math.max(1, quota.retryAfterSeconds)));
+      return sendError(
+        response,
+        429,
+        "NEWS_TRANSLATION_RATE_LIMITED",
+        "Translation request limit reached. Please try again later.",
+      );
+    }
+
     const entries = [];
 
     for (const post of input.posts) {
@@ -577,8 +590,8 @@ async function handlePublicNewsLocalization(
 
     return sendError(
       response,
-      502,
-      "NEWS_TRANSLATION_FAILED",
+      503,
+      "NEWS_TRANSLATION_UNAVAILABLE",
       "Could not translate news.",
     );
   }
@@ -2981,6 +2994,7 @@ if (
   "news-localize-public"
 ) {
   return handlePublicNewsLocalization(
+    request,
     response,
     body,
   );
