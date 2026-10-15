@@ -182,8 +182,64 @@ END
 $bracket$;
 `;
 
+
+const series = `
+-- BO3: two wins, including an overtime map, must end the series.
+INSERT INTO public.iste_tournaments (id,capacity,status)
+VALUES ('99999999-9999-4999-8999-999999999993',2,'live'),
+       ('99999999-9999-4999-8999-999999999995',2,'live');
+INSERT INTO public.iste_tournament_teams (id,tournament_id)
+VALUES ('99999999-9999-4999-8999-999999999931','99999999-9999-4999-8999-999999999993'),
+       ('99999999-9999-4999-8999-999999999932','99999999-9999-4999-8999-999999999993'),
+       ('99999999-9999-4999-8999-999999999951','99999999-9999-4999-8999-999999999995'),
+       ('99999999-9999-4999-8999-999999999952','99999999-9999-4999-8999-999999999995');
+INSERT INTO public.iste_tournament_matches
+(id,tournament_id,round_index,match_index,team_a_id,team_b_id,best_of,status)
+VALUES
+('99999999-9999-4999-8999-999999999930','99999999-9999-4999-8999-999999999993',0,0,
+ '99999999-9999-4999-8999-999999999931','99999999-9999-4999-8999-999999999932',3,'ready'),
+('99999999-9999-4999-8999-999999999950','99999999-9999-4999-8999-999999999995',0,0,
+ '99999999-9999-4999-8999-999999999951','99999999-9999-4999-8999-999999999952',5,'ready');
+
+DO $series$
+DECLARE r jsonb;
+BEGIN
+  r := public.iste_owner_confirm_match(
+    '99999999-9999-4999-8999-999999999930',0,
+    '{"bestOf":3,"maps":[{"name":"Mirage","scoreA":13,"scoreB":9},{"name":"Nuke","scoreA":16,"scoreB":14}]}'::jsonb);
+  IF r->>'winnerTeamId' <> '99999999-9999-4999-8999-999999999931' THEN
+    RAISE EXCEPTION 'BO3 winner mismatch';
+  END IF;
+  IF (SELECT count(*) FROM public.iste_tournament_maps WHERE match_id='99999999-9999-4999-8999-999999999930')<>2 THEN
+    RAISE EXCEPTION 'BO3 map count mismatch';
+  END IF;
+
+  -- BO5 has to survive a full five-map series with a comeback.
+  r := public.iste_owner_confirm_match(
+    '99999999-9999-4999-8999-999999999950',0,
+    '{"bestOf":5,"maps":[{"name":"Ancient","scoreA":13,"scoreB":7},{"name":"Inferno","scoreA":13,"scoreB":11},{"name":"Mirage","scoreA":8,"scoreB":13},{"name":"Nuke","scoreA":10,"scoreB":13},{"name":"Train","scoreA":13,"scoreB":11}]}'::jsonb);
+  IF r->>'winnerTeamId' <> '99999999-9999-4999-8999-999999999951' THEN
+    RAISE EXCEPTION 'BO5 winner mismatch';
+  END IF;
+  IF (SELECT count(*) FROM public.iste_tournament_maps WHERE match_id='99999999-9999-4999-8999-999999999950')<>5 THEN
+    RAISE EXCEPTION 'BO5 map count mismatch';
+  END IF;
+
+  -- A decided BO3 cannot contain additional maps.
+  BEGIN
+    PERFORM public.iste_owner_confirm_match(
+      '99999999-9999-4999-8999-999999999930',0,
+      '{"bestOf":3,"maps":[{"name":"Mirage","scoreA":13,"scoreB":9},{"name":"Nuke","scoreA":13,"scoreB":9},{"name":"Inferno","scoreA":13,"scoreB":9}]}'::jsonb);
+    RAISE EXCEPTION 'BO3 replay was accepted';
+  EXCEPTION WHEN sqlstate '40001' THEN
+    IF SQLERRM <> 'STALE_OR_FINISHED_MATCH' THEN RAISE; END IF;
+  END;
+END
+$series$;
+`;
+
 const result = spawnSync("psql", ["-X", "-v", "ON_ERROR_STOP=1", "-q"], {
-  input: setup + migration + "\n" + seed + assertions.replace("ROLLBACK;", "") + bracket + "ROLLBACK;\n",
+  input: setup + migration + "\n" + seed + assertions.replace("ROLLBACK;", "") + bracket + series + "ROLLBACK;\n",
   encoding: "utf8",
   env: process.env,
 });
