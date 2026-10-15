@@ -379,6 +379,40 @@ BEGIN
   IF SQLERRM <> 'ROSTER_FULL' THEN RAISE; END IF;
  END;
 END $full_replacement$;
+-- Expired registration window blocks replacement even while team remains pending.
+INSERT INTO public.iste_tournaments(id,status,capacity,title,registration_end)
+VALUES ('20000000-0000-4000-8000-000000000006','registration',2,'Expired Window Cup',now()-interval '1 minute');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000006',
+ '20000000-0000-4000-8000-000000000006','Expired Squad','pending',
+ '10000000-0000-4000-8000-000000000020');
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $expired_replacement$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000006',
+   '10000000-0000-4000-8000-000000000027');
+  RAISE EXCEPTION 'expired registration accepted replacement';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+END $expired_replacement$;
+-- Pre-registration window likewise blocks invitations.
+UPDATE public.iste_tournaments SET registration_end=null,
+ registration_start=now()+interval '1 hour'
+WHERE id='20000000-0000-4000-8000-000000000006';
+DO $early_replacement$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000006',
+   '10000000-0000-4000-8000-000000000027');
+  RAISE EXCEPTION 'future registration accepted replacement';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+END $early_replacement$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
