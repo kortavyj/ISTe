@@ -1,3 +1,4 @@
+import { guardRequest } from "../server/apiLib/requestGuard.js";
 import { createHmac, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
@@ -313,6 +314,20 @@ export default async function handler(request, response) {
       ok: false,
       error: "METHOD_NOT_ALLOWED",
       message: "Method not allowed.",
+    });
+  }
+
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 16 * 1024,
+  });
+  if (!guard.ok) {
+    return send(response, guard.status, {
+      ok: false,
+      error: guard.error,
+      message: "Request rejected.",
     });
   }
 
