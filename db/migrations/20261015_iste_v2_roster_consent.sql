@@ -192,3 +192,58 @@ end;
 $function$;
 revoke all on function public.iste_v2_my_roster_invitations() from public,anon;
 grant execute on function public.iste_v2_my_roster_invitations() to authenticated;
+
+
+-- Captain may replace a declined (deleted) member while application is pending.
+-- Total roster may never exceed seven and cannot be edited after review.
+create or replace function public.iste_v2_invite_replacement(
+ p_team_id uuid, p_user_id uuid
+) returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare
+ v_actor uuid := auth.uid();
+ v_team public.iste_tournament_teams%rowtype;
+ v_tournament public.iste_tournaments%rowtype;
+ v_count integer;
+ v_member_id uuid;
+begin
+ if auth.role() is distinct from 'authenticated' or v_actor is null then
+  raise exception 'AUTH_REQUIRED' using errcode='42501'; end if;
+ if p_team_id is null or p_user_id is null then
+  raise exception 'INVALID_REQUEST' using errcode='22023'; end if;
+ select * into v_team from public.iste_tournament_teams where id=p_team_id;
+ if not found or v_team.captain_user_id is distinct from v_actor then
+  raise exception 'TEAM_NOT_FOUND' using errcode='42501'; end if;
+ select * into v_tournament from public.iste_tournaments
+ where id=v_team.tournament_id for update;
+ select * into v_team from public.iste_tournament_teams
+ where id=p_team_id for update;
+ if v_team.captain_user_id is distinct from v_actor
+   or v_team.status<>'pending' or v_tournament.status<>'registration'
+   or (v_tournament.registration_end is not null and now()>=v_tournament.registration_end)
+   or (v_tournament.registration_start is not null and now()<v_tournament.registration_start) then
+  raise exception 'ROSTER_CLOSED' using errcode='22023'; end if;
+ if exists(select 1 from public.user_roles where user_id=v_actor and is_blocked)
+    or exists(select 1 from public.user_roles where user_id=p_user_id and is_blocked) then
+  raise exception 'ACCOUNT_BLOCKED' using errcode='42501'; end if;
+ if p_user_id=v_actor then raise exception 'DUPLICATE_MEMBER' using errcode='23505'; end if;
+ select count(*) into v_count from public.iste_tournament_members
+ where team_id=p_team_id;
+ if v_count>=7 then raise exception 'ROSTER_FULL' using errcode='22023'; end if;
+ if exists (
+  select 1 from public.iste_tournament_members m
+   join public.iste_tournament_teams t on t.id=m.team_id
+  where t.tournament_id=v_tournament.id and t.status in ('pending','approved','checked_in')
+    and m.user_id=p_user_id
+ ) then raise exception 'PLAYER_ALREADY_REGISTERED' using errcode='23505'; end if;
+ insert into public.iste_tournament_members(team_id,user_id,is_captain)
+ values(p_team_id,p_user_id,false) returning id into v_member_id;
+ insert into public.iste_tournament_audit_log
+  (tournament_id,actor_id,entity_type,entity_id,action,new_data)
+ values(v_tournament.id,v_actor,'member',v_member_id,'member_invited',
+  jsonb_build_object('teamId',p_team_id));
+ return jsonb_build_object('memberId',v_member_id,'teamId',p_team_id);
+end;
+$function$;
+revoke all on function public.iste_v2_invite_replacement(uuid,uuid) from public,anon;
+grant execute on function public.iste_v2_invite_replacement(uuid,uuid) to authenticated;
