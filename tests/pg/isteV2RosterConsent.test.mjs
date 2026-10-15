@@ -317,6 +317,33 @@ BEGIN
    RAISE EXCEPTION 'captain team missing from own replacement list';
  END IF;
 END $captain_teams$;
+-- Full repair flow: real application -> player declines -> captain replacement -> consent -> approval.
+INSERT INTO public.iste_tournaments(id,status,capacity,title) VALUES ('20000000-0000-4000-8000-000000000004','registration',2,'Repair Cup');
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+SELECT public.iste_apply_tournament_team(jsonb_build_object('tournamentId','20000000-0000-4000-8000-000000000004','name','Repair Test','members',jsonb_build_array(jsonb_build_object('userId','10000000-0000-4000-8000-000000000020'),jsonb_build_object('userId','10000000-0000-4000-8000-000000000021'),jsonb_build_object('userId','10000000-0000-4000-8000-000000000022'),jsonb_build_object('userId','10000000-0000-4000-8000-000000000023'),jsonb_build_object('userId','10000000-0000-4000-8000-000000000024'))));
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000024';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000024'),false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+SELECT public.iste_v2_invite_replacement((SELECT id FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000004'),'10000000-0000-4000-8000-000000000025');
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000020'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000021';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000021'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000022';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000022'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000023';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000023'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000025';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000025'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+SELECT public.iste_owner_review_team((SELECT id FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000004'),'pending','approve');
+DO $replacement_flow$ BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.accepted_at IS NOT NULL)<>5 OR
+ (SELECT count(*) FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000004' AND status='approved')<>1 OR
+ (SELECT count(*) FROM public.iste_tournament_audit_log WHERE tournament_id='20000000-0000-4000-8000-000000000004' AND action='member_invited')<>1
+ THEN RAISE EXCEPTION 'replacement-to-approval flow failed'; END IF;
+END $replacement_flow$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
