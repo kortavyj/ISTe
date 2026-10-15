@@ -48,6 +48,15 @@ BEGIN
   IF NOT EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000001' AND accepted_at IS NOT NULL) THEN
     RAISE EXCEPTION 'self-confirmation not saved';
   END IF;
+  BEGIN
+    PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000001',true);
+    RAISE EXCEPTION 'duplicate acceptance allowed';
+  EXCEPTION WHEN SQLSTATE '40001' THEN
+    IF SQLERRM <> 'MEMBERSHIP_ALREADY_CONFIRMED' THEN RAISE; END IF;
+  END;
+  IF (SELECT count(*) FROM public.iste_tournament_audit_log WHERE action='member_accepted') <> 1 THEN
+    RAISE EXCEPTION 'duplicate consent created extra audit events';
+  END IF;
 END
 $test$;
 SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
