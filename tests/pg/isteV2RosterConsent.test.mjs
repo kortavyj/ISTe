@@ -469,6 +469,14 @@ BEGIN
   IF SQLERRM <> 'ROSTER_INCOMPLETE' THEN RAISE; END IF;
  END;
 END $coach_guard$;
+-- Captain's replacement selector must not list teams when registration is closed.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $closed_captain_team_list$
+BEGIN
+ IF EXISTS (SELECT 1 FROM public.iste_v2_my_pending_captain_teams()
+  WHERE team_id='30000000-0000-4000-8000-000000000006')
+ THEN RAISE EXCEPTION 'closed tournament offered replacement form'; END IF;
+END $closed_captain_team_list$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
