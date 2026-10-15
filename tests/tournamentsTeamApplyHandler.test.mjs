@@ -29,7 +29,7 @@ test("captain application uses account-only roster and authenticated captain",as
 });
 test("FACEIT-only applicant is rejected before database mutation",async()=>{
  const {handler,rpcCalls}=fixture(),out=response();
- await handler(request([{faceitPlayerId:"faceit123"},...members.slice(1)]),out);
+ await handler(request([members[0],{faceitPlayerId:"faceit123"},...members.slice(2)]),out);
  assert.equal(out.statusCode,400,JSON.stringify(out.body));
  assert.equal(out.body.error,"ROSTER_ACCOUNT_REQUIRED");
  assert.equal(rpcCalls.length,0);
