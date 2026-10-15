@@ -6,6 +6,7 @@ on:
       - "db/migrations/20261015_iste_v2_roster_consent.sql"
       - "tests/pg/isteV2RosterConsent.test.mjs"
       - "tests/tournamentsTeamReviewError.test.mjs"
+      - "tests/tournamentsPlayerRoutes.test.mjs"
       - "server/tournamentRoutes/tournaments-team-review.js"
       - "server/tournamentRoutes/tournaments-my-invitations.js"
       - "server/tournamentRoutes/tournaments-roster-response.js"
@@ -55,6 +56,8 @@ jobs:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder-not-a-real-key
         run: npm run build
+      - name: Test player invitation route invariants
+        run: node --test tests/tournamentsPlayerRoutes.test.mjs
       - name: Test API review error mapping
         run: node --test tests/tournamentsTeamReviewError.test.mjs
       - name: Test roster consent and approval
