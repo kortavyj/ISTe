@@ -75,6 +75,15 @@ BEGIN
   END IF;
 END
 $test$;
+DO $audit$
+BEGIN
+  IF (SELECT count(*) FROM public.iste_tournament_audit_log
+      WHERE action='member_accepted' AND actor_id='10000000-0000-4000-8000-000000000002')<>1
+    OR (SELECT count(*) FROM public.iste_tournament_audit_log
+      WHERE action='member_declined' AND actor_id='10000000-0000-4000-8000-000000000003')<>1
+  THEN RAISE EXCEPTION 'consent audit events missing'; END IF;
+END
+$audit$;
 -- A blocked member must not be able to accept another pending membership.
 UPDATE public.user_roles SET is_blocked=true WHERE user_id='10000000-0000-4000-8000-000000000003';
 INSERT INTO public.iste_tournament_members (id,team_id,user_id,is_captain)
