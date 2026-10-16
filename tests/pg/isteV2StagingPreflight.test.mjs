@@ -92,7 +92,9 @@ const restoreAccount=sql(`INSERT INTO auth.users(id)
 assert.equal(restoreAccount.status,0,restoreAccount.stderr||restoreAccount.stdout);
 assert.match(restoreAccount.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
 // Eight roster entries must also prevent staging readiness.
-const oversized=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
+const oversized=sql(`INSERT INTO auth.users(id)
+SELECT ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid FROM generate_series(6,8) n;
+INSERT INTO public.iste_tournament_members(id,team_id,user_id)
 SELECT ('40000000-0000-4000-8000-'||lpad((n+100)::text,12,'0'))::uuid,
  '30000000-0000-4000-8000-000000000001'::uuid,
  ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid
