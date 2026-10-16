@@ -92,9 +92,11 @@ WHERE t.status IN ('pending','approved','checked_in');
 -- Even valid Auth identities cannot make an underfilled or oversized team ready.
 -- This is a diagnostic gate, not approval to migrate or enable writes.
 WITH active_rosters AS (
- SELECT t.id,t.status,count(DISTINCT m.user_id) FILTER (WHERE m.role IN ('player','substitute')) AS member_count
+ SELECT t.id,t.status,count(DISTINCT m.user_id) FILTER (WHERE m.role IN ('player','substitute') AND au.id IS NOT NULL AND ur.is_blocked IS NOT TRUE) AS member_count
  FROM public.iste_tournament_teams t
  LEFT JOIN public.iste_tournament_members m ON m.team_id=t.id
+ LEFT JOIN auth.users au ON au.id=m.user_id
+ LEFT JOIN public.user_roles ur ON ur.user_id=m.user_id
  WHERE t.status IN ('pending','approved','checked_in')
  GROUP BY t.id,t.status
 )
