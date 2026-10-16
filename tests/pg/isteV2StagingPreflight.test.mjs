@@ -124,6 +124,18 @@ const reactivated=sql(`UPDATE public.iste_tournament_teams
  WHERE id='30000000-0000-4000-8000-000000000098';\n`+preflight);
 assert.equal(reactivated.status,0,reactivated.stderr||reactivated.stdout);
 assert.match(reactivated.stdout,/CROSS_TEAM_RECONCILIATION_REQUIRED/);
+// A duplicated account within a single active team must be reported separately.
+const sameTeam=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
+ VALUES ('40000000-0000-4000-8000-000000000399',
+ '30000000-0000-4000-8000-000000000001',
+ '10000000-0000-4000-8000-000000000001');\n`+preflight);
+assert.equal(sameTeam.status,0,sameTeam.stderr||sameTeam.stdout);
+assert.match(sameTeam.stdout,/INTRA_TEAM_RECONCILIATION_REQUIRED/);
+// A single record per account should not trigger this specific warning.
+const oneRecord=sql(`DELETE FROM public.iste_tournament_members
+ WHERE id='40000000-0000-4000-8000-000000000399';\n`+preflight);
+assert.equal(oneRecord.status,0,oneRecord.stderr||oneRecord.stdout);
+assert.match(oneRecord.stdout,/NO_INTRA_TEAM_DUPLICATES/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
