@@ -85,6 +85,16 @@ const noApprovals=sql(`UPDATE public.iste_tournament_teams SET status='pending'
  WHERE id='30000000-0000-4000-8000-000000000099';\n`+preflight);
 assert.equal(noApprovals.status,0,noApprovals.stderr||noApprovals.stdout);
 assert.match(noApprovals.stdout,/NO_PREAPPROVED_LEGACY_TEAMS/);
+// The same account on two active teams in one tournament must block rollout.
+const duplicate=sql(`INSERT INTO public.iste_tournament_teams(id,tournament_id,status)
+ VALUES ('30000000-0000-4000-8000-000000000098',
+ '20000000-0000-4000-8000-000000000001','pending');
+ INSERT INTO public.iste_tournament_members(id,team_id,user_id)
+ VALUES ('40000000-0000-4000-8000-000000000298',
+ '30000000-0000-4000-8000-000000000098',
+ '10000000-0000-4000-8000-000000000001');\n`+preflight);
+assert.equal(duplicate.status,0,duplicate.stderr||duplicate.stdout);
+assert.match(duplicate.stdout,/CROSS_TEAM_RECONCILIATION_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
