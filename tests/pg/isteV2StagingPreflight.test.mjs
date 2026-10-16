@@ -217,6 +217,14 @@ assert.match(exposed.stdout,/ANON_TOURNAMENT_WRITE_REVIEW_REQUIRED/);
 const revoked=sql(`REVOKE INSERT ON public.iste_tournament_members FROM anon;\n`+preflight);
 assert.equal(revoked.status,0,revoked.stderr||revoked.stdout);
 assert.match(revoked.stdout,/NO_ANON_TOURNAMENT_WRITES/);
+// Authenticated direct writes can bypass the protected membership RPCs.
+assert.match(baseline.stdout,/NO_DIRECT_AUTHENTICATED_TOURNAMENT_WRITES/);
+const authExposed=sql(`GRANT UPDATE ON public.iste_tournament_members TO authenticated;\n`+preflight);
+assert.equal(authExposed.status,0,authExposed.stderr||authExposed.stdout);
+assert.match(authExposed.stdout,/AUTHENTICATED_TOURNAMENT_WRITE_REVIEW_REQUIRED/);
+const authRevoked=sql(`REVOKE UPDATE ON public.iste_tournament_members FROM authenticated;\n`+preflight);
+assert.equal(authRevoked.status,0,authRevoked.stderr||authRevoked.stdout);
+assert.match(authRevoked.stdout,/NO_DIRECT_AUTHENTICATED_TOURNAMENT_WRITES/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
