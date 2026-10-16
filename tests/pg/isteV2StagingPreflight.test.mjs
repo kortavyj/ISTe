@@ -63,6 +63,12 @@ SELECT ('40000000-0000-4000-8000-'||lpad((n+100)::text,12,'0'))::uuid,
 FROM generate_series(6,8) n;\n`+preflight);
 assert.equal(oversized.status,0,oversized.stderr||oversized.stdout);
 assert.match(oversized.stdout,/ROSTER_SIZE_RECONCILIATION_REQUIRED/);
+// An empty legacy roster inventory must not claim player consent is pending.
+const empty=sql(`DELETE FROM public.iste_tournament_members;
+DELETE FROM public.iste_tournament_teams;\n`+preflight);
+assert.equal(empty.status,0,empty.stderr||empty.stdout);
+assert.match(empty.stdout,/NO_ACTIVE_LEGACY_ROSTERS/);
+assert.doesNotMatch(empty.stdout,/CONSENT_REVIEW_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
