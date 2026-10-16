@@ -158,6 +158,18 @@ SELECT count(*) AS duplicate_member_pairs,
             ELSE 'INTRA_TEAM_RECONCILIATION_REQUIRED' END AS intra_team_gate
 FROM duplicate_members;
 
+-- RLS must be enabled on every tournament table before authenticated writes.
+-- A table with RLS disabled is a launch blocker regardless of green CI.
+WITH unprotected AS (
+ SELECT tablename FROM pg_tables
+ WHERE schemaname='public' AND tablename LIKE 'iste_tournament%'
+   AND rowsecurity IS NOT TRUE
+)
+SELECT count(*) AS tables_without_rls,
+       CASE WHEN count(*)=0 THEN 'TOURNAMENT_RLS_ENABLED'
+         ELSE 'TOURNAMENT_RLS_REVIEW_REQUIRED' END AS rls_gate
+FROM unprotected;
+
 -- Human release gate, intentionally not inferable from SQL:
 -- [ ] recoverable staging backup verified
 -- [ ] restore drill succeeded
