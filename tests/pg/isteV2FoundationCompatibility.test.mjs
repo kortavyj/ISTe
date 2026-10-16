@@ -14,6 +14,9 @@ const matchResult=migration("../../supabase/migrations/20261014_iste_tournament_
 const sql=`
 BEGIN;
 CREATE SCHEMA auth;
+CREATE TABLE auth.users(id uuid primary key);
+INSERT INTO auth.users(id)
+SELECT ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid FROM generate_series(1,100) n;
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
 CREATE TABLE public.user_roles(user_id uuid primary key,role text,is_blocked boolean not null default false);
