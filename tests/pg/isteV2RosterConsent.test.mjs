@@ -340,6 +340,26 @@ BEGIN
     WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003')<>v_invites
  THEN RAISE EXCEPTION 'duplicate invitation mutated roster or audit'; END IF;
 END $same_team_duplicate$;
+-- Captain cannot invite themselves as a second roster entry.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $captain_self_invite$
+DECLARE before_members bigint;
+BEGIN
+ SELECT count(*) INTO before_members FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003';
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003',
+   '10000000-0000-4000-8000-000000000010');
+  RAISE EXCEPTION 'captain invited self as second player';
+ EXCEPTION WHEN SQLSTATE '23505' THEN
+  IF SQLERRM <> 'DUPLICATE_MEMBER' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003')<>before_members THEN
+  RAISE EXCEPTION 'self-invite changed roster';
+ END IF;
+END $captain_self_invite$;
 -- An existing member of another active team in the same cup cannot be invited again.
 INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
 VALUES ('30000000-0000-4000-8000-000000000063',
