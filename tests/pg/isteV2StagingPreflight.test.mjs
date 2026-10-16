@@ -39,6 +39,12 @@ const blocked=sql(`INSERT INTO public.user_roles(user_id,is_blocked)
 assert.equal(blocked.status,0,blocked.stderr||blocked.stdout);
 assert.match(blocked.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"blocked account must stop rollout");
 assert.doesNotMatch(blocked.stdout,/NO_KNOWN_ROSTER_BLOCKERS/);
+// An active roster with a FACEIT-only slot cannot satisfy Auth consent.
+const faceitOnly=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
+ VALUES ('40000000-0000-4000-8000-000000000002',
+         '30000000-0000-4000-8000-000000000001',NULL);\n`+preflight);
+assert.equal(faceitOnly.status,0,faceitOnly.stderr||faceitOnly.stdout);
+assert.match(faceitOnly.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"FACEIT-only member must stop rollout");
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
