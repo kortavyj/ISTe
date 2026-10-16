@@ -477,6 +477,28 @@ BEGIN
   WHERE team_id='30000000-0000-4000-8000-000000000006')
  THEN RAISE EXCEPTION 'closed tournament offered replacement form'; END IF;
 END $closed_captain_team_list$;
+-- Invitation list must agree with consent RPC registration-window restrictions.
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain)
+VALUES ('30000000-0000-4000-8000-000000000006',
+ '10000000-0000-4000-8000-000000000030',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000030';
+DO $invite_window$
+BEGIN
+ IF EXISTS (SELECT 1 FROM public.iste_v2_my_roster_invitations()
+  WHERE team_id='30000000-0000-4000-8000-000000000006')
+ THEN RAISE EXCEPTION 'expired registration exposed impossible-to-accept invitation'; END IF;
+ UPDATE public.iste_tournaments SET registration_end=NULL,
+  registration_start=now()+interval '1 hour'
+ WHERE id='20000000-0000-4000-8000-000000000006';
+ IF EXISTS (SELECT 1 FROM public.iste_v2_my_roster_invitations()
+  WHERE team_id='30000000-0000-4000-8000-000000000006')
+ THEN RAISE EXCEPTION 'future registration exposed impossible-to-accept invitation'; END IF;
+ UPDATE public.iste_tournaments SET registration_start=NULL
+ WHERE id='20000000-0000-4000-8000-000000000006';
+ IF NOT EXISTS (SELECT 1 FROM public.iste_v2_my_roster_invitations()
+  WHERE team_id='30000000-0000-4000-8000-000000000006')
+ THEN RAISE EXCEPTION 'open registration hid actionable invitation'; END IF;
+END $invite_window$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
