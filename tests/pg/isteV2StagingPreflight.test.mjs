@@ -86,7 +86,12 @@ const noApprovals=sql(`UPDATE public.iste_tournament_teams SET status='pending'
 assert.equal(noApprovals.status,0,noApprovals.stderr||noApprovals.stdout);
 assert.match(noApprovals.stdout,/NO_PREAPPROVED_LEGACY_TEAMS/);
 // The same account on two active teams in one tournament must block rollout.
-const duplicate=sql(`INSERT INTO public.iste_tournament_teams(id,tournament_id,status)
+// Recreate the original roster after the empty-inventory fixture.
+const duplicate=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
+ VALUES ('40000000-0000-4000-8000-000000000001',
+ '30000000-0000-4000-8000-000000000001',
+ '10000000-0000-4000-8000-000000000001');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,status)
  VALUES ('30000000-0000-4000-8000-000000000098',
  '20000000-0000-4000-8000-000000000001','pending');
  INSERT INTO public.iste_tournament_members(id,team_id,user_id)
