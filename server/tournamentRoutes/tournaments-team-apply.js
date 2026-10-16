@@ -82,6 +82,8 @@ export function createTeamApplyHandler({ getClient = getSupabaseServerClient, wr
     if (error) {
       if (["PGRST202","42883"].includes(error.code))
         return response.status(503).json({ok:false,error:"TEAM_APPLICATION_RPC_NOT_INSTALLED"});
+      if (error.code==="22023" && error.message==="PLAYER_ACCOUNT_NOT_FOUND")
+        return response.status(400).json({ok:false,error:"PLAYER_ACCOUNT_NOT_FOUND",message:"Один из игроков не зарегистрирован на ISTe. Проверьте аккаунты состава."});
       return response.status(409).json({ok:false,error:"TEAM_APPLICATION_REJECTED",
         message:"Заявку не удалось принять. Проверьте турнир и состав."});
     }
