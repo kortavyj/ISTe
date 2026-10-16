@@ -310,21 +310,44 @@ BEGIN
   RAISE EXCEPTION 'replayed result mutated finalized match';
  END IF;
 END $result_integrity$;
--- Validate malformed score before locking/writing any match.
-DO $result_payload_validation$
-DECLARE v_match uuid;
+-- Invalid map scores on a READY match must fail without persisting any data.
+INSERT INTO public.iste_tournaments(id,slug,title,capacity,best_of,status,published_at)
+VALUES ('20000000-0000-4000-8000-000000000003','ci-invalid-score-cup',
+ 'CI Invalid Score Cup',2,1,'live',now());
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status)
+VALUES
+ ('30000000-0000-4000-8000-000000000031','20000000-0000-4000-8000-000000000003','Invalid Score Alpha','approved'),
+ ('30000000-0000-4000-8000-000000000032','20000000-0000-4000-8000-000000000003','Invalid Score Bravo','approved');
+INSERT INTO public.iste_tournament_matches(id,tournament_id,round_index,match_index,
+ team_a_id,team_b_id,best_of,status)
+VALUES ('40000000-0000-4000-8000-000000000031',
+ '20000000-0000-4000-8000-000000000003',0,0,
+ '30000000-0000-4000-8000-000000000031',
+ '30000000-0000-4000-8000-000000000032',1,'ready');
+DO $invalid_score_guard$
+DECLARE v_id uuid := '40000000-0000-4000-8000-000000000031';
 BEGIN
- SELECT id INTO STRICT v_match FROM public.iste_tournament_matches
-  WHERE tournament_id='20000000-0000-4000-8000-000000000002'
-   AND round_index=1 AND match_index=0;
  BEGIN
-  PERFORM public.iste_owner_confirm_match(v_match,0,
-    '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":-1,"scoreB":13}]}'::jsonb);
-  RAISE EXCEPTION 'malformed map result accepted';
- EXCEPTION WHEN SQLSTATE '40001' THEN
-  IF SQLERRM <> 'STALE_OR_FINISHED_MATCH' THEN RAISE; END IF;
+  PERFORM public.iste_owner_confirm_match(v_id,0,
+   '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":-1,"scoreB":13}]}'::jsonb);
+  RAISE EXCEPTION 'negative score accepted';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'INVALID_SCORE' THEN RAISE; END IF;
  END;
-END $result_payload_validation$;
+ BEGIN
+  PERFORM public.iste_owner_confirm_match(v_id,0,
+   '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":13,"scoreB":13}]}'::jsonb);
+  RAISE EXCEPTION 'draw score accepted';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'SERIES_INVALID_OR_DECIDED' THEN RAISE; END IF;
+ END;
+ IF (SELECT status FROM public.iste_tournament_matches WHERE id=v_id)<>'ready'
+ OR (SELECT version FROM public.iste_tournament_matches WHERE id=v_id)<>0
+ OR EXISTS(SELECT 1 FROM public.iste_tournament_maps WHERE match_id=v_id)
+ OR EXISTS(SELECT 1 FROM public.iste_tournament_audit_log
+  WHERE tournament_id='20000000-0000-4000-8000-000000000003' AND action='confirm_result')
+ THEN RAISE EXCEPTION 'invalid score modified match or audit'; END IF;
+END $invalid_score_guard$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
