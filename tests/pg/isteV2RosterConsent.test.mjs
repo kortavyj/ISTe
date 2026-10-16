@@ -382,6 +382,30 @@ BEGIN
   WHERE team_id='30000000-0000-4000-8000-000000000003')<>v_before
  THEN RAISE EXCEPTION 'nonexistent account consumed roster slot'; END IF;
 END $ghost_account$;
+-- An initial captain application cannot register a fictional Auth user.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000008','registration',2,'Identity Guard Cup');
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $initial_ghost$
+BEGIN
+ BEGIN
+  PERFORM public.iste_apply_tournament_team(jsonb_build_object(
+   'tournamentId','20000000-0000-4000-8000-000000000008','name','Ghost Squad',
+   'members',jsonb_build_array(
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000020'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000021'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000022'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000023'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000999')));
+  RAISE EXCEPTION 'initial team application accepted nonexistent Auth member';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'PLAYER_ACCOUNT_NOT_FOUND' THEN RAISE; END IF;
+ END;
+ IF EXISTS (SELECT 1 FROM public.iste_tournament_teams
+  WHERE tournament_id='20000000-0000-4000-8000-000000000008')
+ THEN RAISE EXCEPTION 'invalid team was created'; END IF;
+END $initial_ghost$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
 -- An existing member of another active team in the same cup cannot be invited again.
 INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
 VALUES ('30000000-0000-4000-8000-000000000063',
