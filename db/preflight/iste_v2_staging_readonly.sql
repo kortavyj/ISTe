@@ -185,6 +185,21 @@ SELECT count(*) AS anon_writable_tournament_tables,
             ELSE 'ANON_TOURNAMENT_WRITE_REVIEW_REQUIRED' END AS anon_write_gate
 FROM anonymous_writes;
 
+-- Authenticated users must not bypass consent and approval RPCs through
+-- direct table mutation. Keep write grants limited to SECURITY DEFINER RPCs.
+WITH authenticated_writes AS (
+ SELECT tablename
+ FROM pg_tables
+ WHERE schemaname='public' AND tablename LIKE 'iste_tournament%'
+   AND (has_table_privilege('authenticated',format('public.%I',tablename),'INSERT')
+     OR has_table_privilege('authenticated',format('public.%I',tablename),'UPDATE')
+     OR has_table_privilege('authenticated',format('public.%I',tablename),'DELETE'))
+)
+SELECT count(*) AS authenticated_writable_tournament_tables,
+       CASE WHEN count(*)=0 THEN 'NO_DIRECT_AUTHENTICATED_TOURNAMENT_WRITES'
+            ELSE 'AUTHENTICATED_TOURNAMENT_WRITE_REVIEW_REQUIRED' END AS authenticated_write_gate
+FROM authenticated_writes;
+
 -- Human release gate, intentionally not inferable from SQL:
 -- [ ] recoverable staging backup verified
 -- [ ] restore drill succeeded
