@@ -91,6 +91,16 @@ const restoreAccount=sql(`INSERT INTO auth.users(id)
  VALUES ('10000000-0000-4000-8000-000000000001');\n`+preflight);
 assert.equal(restoreAccount.status,0,restoreAccount.stderr||restoreAccount.stdout);
 assert.match(restoreAccount.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
+// A blocked account cannot count as the fifth eligible player.
+const blockedSlot=sql(`INSERT INTO public.user_roles(user_id,is_blocked)
+ VALUES ('10000000-0000-4000-8000-000000000005',true);\n`+preflight);
+assert.equal(blockedSlot.status,0,blockedSlot.stderr||blockedSlot.stdout);
+assert.match(blockedSlot.stdout,/ROSTER_SIZE_RECONCILIATION_REQUIRED/);
+assert.match(blockedSlot.stdout,/ROSTER_RECONCILIATION_REQUIRED/);
+const unblockedSlot=sql(`UPDATE public.user_roles SET is_blocked=false
+ WHERE user_id='10000000-0000-4000-8000-000000000005';\n`+preflight);
+assert.equal(unblockedSlot.status,0,unblockedSlot.stderr||unblockedSlot.stdout);
+assert.match(unblockedSlot.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
 // Eight roster entries must also prevent staging readiness.
 const oversized=sql(`INSERT INTO auth.users(id)
 SELECT ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid FROM generate_series(6,8) n;
