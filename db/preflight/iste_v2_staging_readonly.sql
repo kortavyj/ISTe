@@ -87,11 +87,12 @@ LEFT JOIN auth.users au ON au.id=m.user_id
 LEFT JOIN public.user_roles ur ON ur.user_id=m.user_id
 WHERE t.status IN ('pending','approved','checked_in');
 
--- Check roster cardinality independently: even valid Auth identities cannot
--- make an underfilled or oversized active team ready for approval.
+-- Check eligible playing roster cardinality independently: coaches and other
+-- non-playing roles cannot satisfy the 5–7 player/substitute approval rule.
+-- Even valid Auth identities cannot make an underfilled or oversized team ready.
 -- This is a diagnostic gate, not approval to migrate or enable writes.
 WITH active_rosters AS (
- SELECT t.id,t.status,count(m.id) AS member_count
+ SELECT t.id,t.status,count(m.id) FILTER (WHERE m.role IN ('player','substitute')) AS member_count
  FROM public.iste_tournament_teams t
  LEFT JOIN public.iste_tournament_members m ON m.team_id=t.id
  WHERE t.status IN ('pending','approved','checked_in')
