@@ -673,6 +673,40 @@ BEGIN
    WHERE id='30000000-0000-4000-8000-000000000009')<>'pending'
  THEN RAISE EXCEPTION 'FACEIT-only review changed team status'; END IF;
 END $faceit_consent_guard$;
+-- A later migration rerun must not undo real consent or review state.
+CREATE TEMP TABLE snapshot_members AS
+ SELECT id,team_id,user_id,accepted_at FROM public.iste_tournament_members;
+CREATE TEMP TABLE snapshot_teams AS
+ SELECT id,status FROM public.iste_tournament_teams;
+CREATE TEMP TABLE snapshot_audit AS
+ SELECT tournament_id,actor_id,entity_type,entity_id,action,new_data
+ FROM public.iste_tournament_audit_log;
+${migration}
+DO $idempotent_data$
+BEGIN
+ IF EXISTS (
+   (SELECT id,team_id,user_id,accepted_at FROM public.iste_tournament_members
+    EXCEPT ALL SELECT * FROM snapshot_members)
+   UNION ALL
+   (SELECT * FROM snapshot_members
+    EXCEPT ALL SELECT id,team_id,user_id,accepted_at FROM public.iste_tournament_members)
+ ) THEN RAISE EXCEPTION 'migration rerun changed consent or membership'; END IF;
+ IF EXISTS (
+   (SELECT id,status FROM public.iste_tournament_teams
+    EXCEPT ALL SELECT * FROM snapshot_teams)
+   UNION ALL
+   (SELECT * FROM snapshot_teams
+    EXCEPT ALL SELECT id,status FROM public.iste_tournament_teams)
+ ) THEN RAISE EXCEPTION 'migration rerun changed team review'; END IF;
+ IF EXISTS (
+   (SELECT tournament_id,actor_id,entity_type,entity_id,action,new_data
+    FROM public.iste_tournament_audit_log EXCEPT ALL SELECT * FROM snapshot_audit)
+   UNION ALL
+   (SELECT * FROM snapshot_audit EXCEPT ALL
+    SELECT tournament_id,actor_id,entity_type,entity_id,action,new_data
+    FROM public.iste_tournament_audit_log)
+ ) THEN RAISE EXCEPTION 'migration rerun changed audit history'; END IF;
+END $idempotent_data$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
