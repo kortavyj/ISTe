@@ -41,7 +41,7 @@ assert.match(blocked.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"blocked account mu
 assert.doesNotMatch(blocked.stdout,/NO_KNOWN_ROSTER_BLOCKERS/);
 // An active roster with a FACEIT-only slot cannot satisfy Auth consent.
 const faceitOnly=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
- VALUES ('40000000-0000-4000-8000-000000000002',
+ VALUES ('40000000-0000-4000-8000-000000000202',
          '30000000-0000-4000-8000-000000000001',NULL);\n`+preflight);
 assert.equal(faceitOnly.status,0,faceitOnly.stderr||faceitOnly.stdout);
 assert.match(faceitOnly.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"FACEIT-only member must stop rollout");
