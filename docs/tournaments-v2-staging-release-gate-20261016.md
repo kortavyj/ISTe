@@ -42,8 +42,10 @@ Immediate gate: secure and verify an independent recoverable staging copy, then 
 ## Budget decision
 The owner declined creation of a paid Supabase development branch. Do not create one or incur new hosting charges. Continue existing GitHub Actions PostgreSQL 17 CI and read-only inspection of existing Supabase projects; do not apply candidate DDL to existing projects without verified recovery capability.
 
-## Free CI milestone (16 October)
-- Isolated PostgreSQL 17 CI now includes actual foundation, captain application, consent, bracket generation and match result SQL migrations.
-- Two-team bracket, BO1 final, stale-result rejection already passed at commit `30b91c2`.
-- Four-team bracket with two semifinals, final advancement, three result audit records is added in `eea55bd`; **do not mark verified until that commit's roster-consent workflow succeeds**.
-- This is an isolated SQL integration test, not real Supabase Auth, staging backup/restore, or production authorization approval.
+## Free CI milestone (16 October, verified at `912eb1576959d15457de86d283b3f1e29804df1b`)
+- GitHub Actions runs for this exact commit completed successfully: **Tournament V2 roster consent**, **Verify Tournament V2 Team Application SQL**, **Verify Tournament V2 Full SQL Stack**, **Verify Tournament V2 Owner RPC**, both **Verify Tournament V2 Registration to Champion** runs, **Validate Website PR**, and **Verify Vercel Hobby Serverless Budget**.
+- The generic **ISTe Tournaments CI** workflow was **skipped**; it is not a success signal.
+- Isolated PostgreSQL 17 tests exercise foundation, captain application, consent, owner review, bracket generation and match-result SQL. Tests now model `auth.users`, rejecting nonexistent or blocked members in initial applications, and rejecting nonexistent users in captain replacement invitations.
+- The acceptance gate rejects FACEIT-only players who lack account-level consent. Captains cannot self-invite twice or duplicate an active player's roster membership in the same tournament.
+- These are synthetic Auth/JWT fixtures in disposable PostgreSQL, **not** an installed consent migration, production readiness, recoverable staging backup, or a test with actual Supabase Auth user sessions.
+- **NO-GO remains:** obtain backup-and-restore proof on an independently recoverable staging environment, rehearse migration/rollback there, then test real users and owner AAL2 before considering public registration. The owner declined any paid Supabase branch; do not create one.
