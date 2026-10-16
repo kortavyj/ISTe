@@ -406,6 +406,30 @@ BEGIN
  THEN RAISE EXCEPTION 'invalid team was created'; END IF;
 END $initial_ghost$;
 SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+-- An existing but blocked account cannot be included in an initial roster.
+INSERT INTO public.user_roles(user_id,role,is_blocked)
+VALUES ('10000000-0000-4000-8000-000000000099','user',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $blocked_initial_member$
+BEGIN
+ BEGIN
+  PERFORM public.iste_apply_tournament_team(jsonb_build_object(
+   'tournamentId','20000000-0000-4000-8000-000000000008','name','Blocked Squad',
+   'members',jsonb_build_array(
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000020'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000021'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000022'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000023'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000099'))));
+  RAISE EXCEPTION 'blocked roster player admitted';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'ACCOUNT_BLOCKED' THEN RAISE; END IF;
+ END;
+ IF EXISTS (SELECT 1 FROM public.iste_tournament_teams
+  WHERE tournament_id='20000000-0000-4000-8000-000000000008')
+ THEN RAISE EXCEPTION 'blocked member created team'; END IF;
+END $blocked_initial_member$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
 -- An existing member of another active team in the same cup cannot be invited again.
 INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
 VALUES ('30000000-0000-4000-8000-000000000063',
