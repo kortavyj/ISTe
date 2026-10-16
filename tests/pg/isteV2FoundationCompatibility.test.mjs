@@ -181,6 +181,51 @@ BEGIN
  END;
 END $match_identity$;
 RESET ROLE;
+-- End-to-end tournament lifecycle on the real V2 foundation: two approved
+-- teams -> seeded bracket -> live final -> completed BO1 result and audit.
+INSERT INTO public.user_roles(user_id,role,is_blocked) VALUES
+ ('10000000-0000-4000-8000-000000000001','owner',false);
+INSERT INTO public.iste_tournaments(id,slug,title,capacity,best_of,status,published_at)
+VALUES ('20000000-0000-4000-8000-000000000001','ci-two-team-cup',
+ 'CI Two Team Cup',2,1,'checkin',now());
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status) VALUES
+ ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Alpha','approved'),
+ ('30000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000001','Bravo','approved');
+SELECT set_config('request.jwt.claim.role','authenticated',true);
+SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
+SELECT set_config('request.jwt.claims','{"aal":"aal2"}',true);
+DO $full_bracket_flow$
+DECLARE v_match_id uuid; v_result jsonb;
+BEGIN
+ PERFORM public.iste_owner_generate_bracket('20000000-0000-4000-8000-000000000001');
+ IF (SELECT count(*) FROM public.iste_tournament_matches
+     WHERE tournament_id='20000000-0000-4000-8000-000000000001')<>1 THEN
+  RAISE EXCEPTION 'two-team bracket did not generate exactly one final';
+ END IF;
+ SELECT id INTO STRICT v_match_id FROM public.iste_tournament_matches
+  WHERE tournament_id='20000000-0000-4000-8000-000000000001'
+    AND round_index=0 AND match_index=0 AND status='ready'
+    AND team_a_id IS NOT NULL AND team_b_id IS NOT NULL;
+ UPDATE public.iste_tournaments SET status='live'
+  WHERE id='20000000-0000-4000-8000-000000000001';
+ v_result:=public.iste_owner_confirm_match(v_match_id,0,
+   '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":13,"scoreB":9}]}'::jsonb);
+ IF (v_result->>'winnerTeamId') IS NULL
+    OR (SELECT status FROM public.iste_tournament_matches WHERE id=v_match_id)<>'finished'
+    OR (SELECT count(*) FROM public.iste_tournament_maps WHERE match_id=v_match_id)<>1
+    OR (SELECT count(*) FROM public.iste_tournament_audit_log
+        WHERE tournament_id='20000000-0000-4000-8000-000000000001'
+         AND action='confirm_result')<>1 THEN
+  RAISE EXCEPTION 'final result/map/audit not persisted';
+ END IF;
+ BEGIN
+  PERFORM public.iste_owner_confirm_match(v_match_id,0,
+    '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":13,"scoreB":9}]}'::jsonb);
+  RAISE EXCEPTION 'stale duplicate confirmation accepted';
+ EXCEPTION WHEN SQLSTATE '40001' THEN
+  IF SQLERRM <> 'STALE_OR_FINISHED_MATCH' THEN RAISE; END IF;
+ END;
+END $full_bracket_flow$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
