@@ -94,18 +94,18 @@
     {
       "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
       "nickname": "sssoo",
-      "avatar": "https://distribution.faceit-cdn.net/images/aaa97d1d-0931-4cd9-a257-314a142210ae.jpg",
+      "avatar": "https://distribution.faceit-cdn.net/images/43939218-bd1e-42c4-beb1-5e8143016bad.jpg",
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2323,
+      "elo": 2322,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.3
+      "kd": 1.29
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -3477,5 +3477,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-16T18:56:39.562Z"
+  "updatedAt": "2026-10-16T21:52:58.927Z"
 }
