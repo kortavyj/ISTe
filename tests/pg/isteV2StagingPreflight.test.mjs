@@ -45,6 +45,15 @@ const faceitOnly=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user
          '30000000-0000-4000-8000-000000000001',NULL);\n`+preflight);
 assert.equal(faceitOnly.status,0,faceitOnly.stderr||faceitOnly.stdout);
 assert.match(faceitOnly.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"FACEIT-only member must stop rollout");
+// Identity validity does not compensate for an incomplete five-player squad.
+assert.match(baseline.stdout,/ROSTER_SIZE_RECONCILIATION_REQUIRED/);
+const filled=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
+SELECT ('40000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
+ '30000000-0000-4000-8000-000000000001'::uuid,
+ ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid
+FROM generate_series(2,5) n;\n`+preflight);
+assert.equal(filled.status,0,filled.stderr||filled.stdout);
+assert.match(filled.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
