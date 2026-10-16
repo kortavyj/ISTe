@@ -139,6 +139,22 @@ SELECT count(*) AS duplicated_players,
          ELSE 'CROSS_TEAM_RECONCILIATION_REQUIRED' END AS cross_team_gate
 FROM repeated_players;
 
+-- Historical imports may contain duplicate entries for one Auth account
+-- within the same team; count only affected team/player pairs, never IDs.
+WITH duplicate_members AS (
+ SELECT m.team_id,m.user_id
+ FROM public.iste_tournament_members m
+ JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.status IN ('pending','approved','checked_in')
+   AND m.user_id IS NOT NULL
+ GROUP BY m.team_id,m.user_id
+ HAVING count(*)>1
+)
+SELECT count(*) AS duplicate_member_pairs,
+       CASE WHEN count(*)=0 THEN 'NO_INTRA_TEAM_DUPLICATES'
+            ELSE 'INTRA_TEAM_RECONCILIATION_REQUIRED' END AS intra_team_gate
+FROM duplicate_members;
+
 -- Human release gate, intentionally not inferable from SQL:
 -- [ ] recoverable staging backup verified
 -- [ ] restore drill succeeded
