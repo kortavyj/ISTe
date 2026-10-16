@@ -71,6 +71,22 @@ LEFT JOIN public.user_roles ur ON ur.user_id=m.user_id
 GROUP BY t.status
 ORDER BY t.status;
 
+-- Explicit data-quality gate. A non-zero result means roster reconciliation
+-- is required before rollout; SQL preflight alone never authorizes migration.
+SELECT count(*) FILTER (WHERE m.user_id IS NULL) AS faceit_only_entries,
+       count(*) FILTER (WHERE m.user_id IS NOT NULL AND au.id IS NULL) AS unknown_auth_accounts,
+       count(*) FILTER (WHERE ur.is_blocked IS TRUE) AS blocked_accounts,
+       CASE WHEN count(*) FILTER (
+         WHERE m.user_id IS NULL OR (m.user_id IS NOT NULL AND au.id IS NULL)
+            OR ur.is_blocked IS TRUE
+       )=0 THEN 'NO_KNOWN_ROSTER_BLOCKERS'
+       ELSE 'ROSTER_RECONCILIATION_REQUIRED' END AS roster_gate
+FROM public.iste_tournament_teams t
+JOIN public.iste_tournament_members m ON m.team_id=t.id
+LEFT JOIN auth.users au ON au.id=m.user_id
+LEFT JOIN public.user_roles ur ON ur.user_id=m.user_id
+WHERE t.status IN ('pending','approved','checked_in');
+
 -- Only once consent column exists: count pending confirmations per active team.
 -- Avoid referencing accepted_at here because this pre-migration script must
 -- remain runnable on environments where the column is absent.
