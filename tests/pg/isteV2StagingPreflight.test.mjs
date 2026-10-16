@@ -77,6 +77,17 @@ const restoredSlot=sql(`UPDATE public.iste_tournament_members
  WHERE id='40000000-0000-4000-8000-000000000005';\n`+preflight);
 assert.equal(restoredSlot.status,0,restoredSlot.stderr||restoredSlot.stdout);
 assert.match(restoredSlot.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
+// Five distinct accounts are not sufficient if one is missing in Auth.
+const missingAccount=sql(`DELETE FROM auth.users
+ WHERE id='10000000-0000-4000-8000-000000000001';\n`+preflight);
+assert.equal(missingAccount.status,0,missingAccount.stderr||missingAccount.stdout);
+assert.match(missingAccount.stdout,/ROSTER_SIZE_RECONCILIATION_REQUIRED/);
+assert.match(missingAccount.stdout,/ROSTER_RECONCILIATION_REQUIRED/);
+// Restore the Auth account so later size tests remain independent.
+const restoreAccount=sql(`INSERT INTO auth.users(id)
+ VALUES ('10000000-0000-4000-8000-000000000001');\n`+preflight);
+assert.equal(restoreAccount.status,0,restoreAccount.stderr||restoreAccount.stdout);
+assert.match(restoreAccount.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
 // Eight roster entries must also prevent staging readiness.
 const oversized=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
 SELECT ('40000000-0000-4000-8000-'||lpad((n+100)::text,12,'0'))::uuid,
