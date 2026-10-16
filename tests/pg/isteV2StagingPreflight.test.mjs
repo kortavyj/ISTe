@@ -33,6 +33,12 @@ const clean=sql(`INSERT INTO auth.users(id) VALUES ('10000000-0000-4000-8000-000
 assert.equal(clean.status,0,clean.stderr||clean.stdout);
 assert.match(clean.stdout,/NO_KNOWN_ROSTER_BLOCKERS/);
 assert.doesNotMatch(clean.stdout,/ROSTER_RECONCILIATION_REQUIRED/);
+// A real Auth account is still ineligible if the account has been blocked.
+const blocked=sql(`INSERT INTO public.user_roles(user_id,is_blocked)
+ VALUES ('10000000-0000-4000-8000-000000000001',true);\n`+preflight);
+assert.equal(blocked.status,0,blocked.stderr||blocked.stdout);
+assert.match(blocked.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"blocked account must stop rollout");
+assert.doesNotMatch(blocked.stdout,/NO_KNOWN_ROSTER_BLOCKERS/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
