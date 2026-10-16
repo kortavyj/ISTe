@@ -5,6 +5,8 @@ on:
     paths:
       - "db/migrations/20261015_iste_v2_roster_consent.sql"
       - "tests/pg/isteV2RosterConsent.test.mjs"
+      - "tests/pg/isteV2StagingPreflight.test.mjs"
+      - "db/preflight/iste_v2_staging_readonly.sql"
       - "tests/pg/isteV2FoundationCompatibility.test.mjs"
       - "tests/tournamentsTeamReviewError.test.mjs"
       - "tests/tournamentsPlayerRoutes.test.mjs"
@@ -81,3 +83,5 @@ jobs:
         run: node tests/pg/isteV2FoundationCompatibility.test.mjs
       - name: Test roster consent and approval
         run: node tests/pg/isteV2RosterConsent.test.mjs
+      - name: Verify read-only staging preflight
+        run: node tests/pg/isteV2StagingPreflight.test.mjs
