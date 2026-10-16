@@ -11,7 +11,7 @@ CREATE ROLE authenticated NOLOGIN;
 CREATE TABLE public.user_roles(user_id uuid primary key,is_blocked boolean not null default false);
 CREATE TABLE public.iste_tournaments(id uuid primary key);
 CREATE TABLE public.iste_tournament_teams(id uuid primary key,tournament_id uuid,status text);
-CREATE TABLE public.iste_tournament_members(id uuid primary key,team_id uuid,user_id uuid);
+CREATE TABLE public.iste_tournament_members(id uuid primary key,team_id uuid,user_id uuid,role text not null default 'player');
 CREATE TABLE public.iste_tournament_matches(id uuid primary key);
 CREATE TABLE public.iste_tournament_maps(id uuid primary key);
 CREATE TABLE public.iste_tournament_audit_log(id uuid primary key);
@@ -55,6 +55,15 @@ SELECT ('40000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
 FROM generate_series(2,5) n;\n`+preflight);
 assert.equal(filled.status,0,filled.stderr||filled.stdout);
 assert.match(filled.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
+// A coach with a valid account does not count as a fifth eligible player.
+const coachSlot=sql(`UPDATE public.iste_tournament_members SET role='coach'
+ WHERE id='40000000-0000-4000-8000-000000000005';\n`+preflight);
+assert.equal(coachSlot.status,0,coachSlot.stderr||coachSlot.stdout);
+assert.match(coachSlot.stdout,/ROSTER_SIZE_RECONCILIATION_REQUIRED/);
+const restoredPlayer=sql(`UPDATE public.iste_tournament_members SET role='substitute'
+ WHERE id='40000000-0000-4000-8000-000000000005';\n`+preflight);
+assert.equal(restoredPlayer.status,0,restoredPlayer.stderr||restoredPlayer.stdout);
+assert.match(restoredPlayer.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
 // Eight roster entries must also prevent staging readiness.
 const oversized=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
 SELECT ('40000000-0000-4000-8000-'||lpad((n+100)::text,12,'0'))::uuid,
