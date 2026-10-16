@@ -291,3 +291,10 @@ revoke insert, update, delete, truncate, references, trigger on table
  public.iste_tournaments,
  public.iste_tournament_matches,
  public.iste_tournament_maps from anon, authenticated;
+
+-- RLS already limits these tables to published tournament data. Explicit
+-- SELECT grants are required on clean foundation installs; existing staging
+-- might have inherited broader default grants instead.
+grant select on table public.iste_tournaments,
+ public.iste_tournament_matches,
+ public.iste_tournament_maps to anon, authenticated;
