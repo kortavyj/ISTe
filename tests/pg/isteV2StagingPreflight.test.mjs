@@ -27,6 +27,12 @@ const baseline=sql(fixture+preflight);
 assert.equal(baseline.status,0,baseline.stderr||baseline.stdout);
 assert.match(baseline.stdout,/pending\|1\|1\|0\|1\|0/);
 assert.match(baseline.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"missing Auth user must block rollout");
+// Valid accounts must clear the data-quality gate; a clean roster is not
+// itself authorization to apply a migration.
+const clean=sql(fixture+`INSERT INTO auth.users(id) VALUES ('10000000-0000-4000-8000-000000000001');\n`+preflight);
+assert.equal(clean.status,0,clean.stderr||clean.stdout);
+assert.match(clean.stdout,/NO_KNOWN_ROSTER_BLOCKERS/);
+assert.doesNotMatch(clean.stdout,/ROSTER_RECONCILIATION_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
