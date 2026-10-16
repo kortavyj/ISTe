@@ -1,6 +1,10 @@
 -- ISTe V2 — read-only staging preflight, safe to execute before a migration.
 -- Run against the intended STAGING project and save output with the release evidence.
 -- This script NEVER creates, alters, deletes, or updates database objects/data.
+-- Fail closed: all queries below execute inside a read-only transaction.
+-- A write accidentally introduced into this preflight will be rejected by PostgreSQL.
+BEGIN TRANSACTION READ ONLY;
+
 WITH required_relations(name) AS (
   VALUES ('iste_tournaments'),('iste_tournament_teams'),('iste_tournament_members'),
          ('iste_tournament_matches'),('iste_tournament_maps'),('iste_tournament_audit_log'),
@@ -78,3 +82,5 @@ FROM public.iste_tournament_teams;
 -- [ ] restore drill succeeded
 -- [ ] staged website write feature flag confirmed OFF
 -- [ ] separate authenticated player and MFA organizer sessions available
+
+COMMIT;
