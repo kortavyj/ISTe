@@ -110,7 +110,9 @@ FROM active_rosters;
 -- with valid accounts remains UNVERIFIED until each player explicitly accepts.
 SELECT count(*) FILTER (WHERE status IN ('pending','approved','checked_in'))
          AS active_teams_requiring_consent_review,
-       'CONSENT_REVIEW_REQUIRED' AS consent_gate
+       CASE WHEN count(*) FILTER (WHERE status IN ('pending','approved','checked_in'))=0
+         THEN 'NO_ACTIVE_LEGACY_ROSTERS'
+         ELSE 'CONSENT_REVIEW_REQUIRED' END AS consent_gate
 FROM public.iste_tournament_teams;
 
 -- Human release gate, intentionally not inferable from SQL:
