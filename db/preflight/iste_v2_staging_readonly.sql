@@ -87,6 +87,24 @@ LEFT JOIN auth.users au ON au.id=m.user_id
 LEFT JOIN public.user_roles ur ON ur.user_id=m.user_id
 WHERE t.status IN ('pending','approved','checked_in');
 
+-- Check roster cardinality independently: even valid Auth identities cannot
+-- make an underfilled or oversized active team ready for approval.
+-- This is a diagnostic gate, not approval to migrate or enable writes.
+WITH active_rosters AS (
+ SELECT t.id,t.status,count(m.id) AS member_count
+ FROM public.iste_tournament_teams t
+ LEFT JOIN public.iste_tournament_members m ON m.team_id=t.id
+ WHERE t.status IN ('pending','approved','checked_in')
+ GROUP BY t.id,t.status
+)
+SELECT count(*) AS active_teams,
+       count(*) FILTER (WHERE member_count<5) AS underfilled_teams,
+       count(*) FILTER (WHERE member_count>7) AS oversized_teams,
+       CASE WHEN count(*) FILTER (WHERE member_count NOT BETWEEN 5 AND 7)=0
+         THEN 'NO_KNOWN_ROSTER_SIZE_BLOCKERS'
+         ELSE 'ROSTER_SIZE_RECONCILIATION_REQUIRED' END AS roster_size_gate
+FROM active_rosters;
+
 -- Only once consent column exists: count pending confirmations per active team.
 -- Avoid referencing accepted_at here because this pre-migration script must
 -- remain runnable on environments where the column is absent.
