@@ -103,6 +103,13 @@ INSERT INTO public.iste_tournament_teams(id,tournament_id,status)
  '10000000-0000-4000-8000-000000000001');\n`+preflight);
 assert.equal(duplicate.status,0,duplicate.stderr||duplicate.stdout);
 assert.match(duplicate.stdout,/CROSS_TEAM_RECONCILIATION_REQUIRED/);
+// Playing in a different tournament is not a cross-team registration conflict.
+const otherCup=sql(`UPDATE public.iste_tournament_teams
+ SET tournament_id='20000000-0000-4000-8000-000000000002'
+ WHERE id='30000000-0000-4000-8000-000000000098';\n`+preflight);
+assert.equal(otherCup.status,0,otherCup.stderr||otherCup.stdout);
+assert.match(otherCup.stdout,/NO_CROSS_TEAM_DUPLICATES/);
+assert.doesNotMatch(otherCup.stdout,/CROSS_TEAM_RECONCILIATION_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
