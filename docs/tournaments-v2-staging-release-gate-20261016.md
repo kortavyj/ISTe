@@ -41,3 +41,9 @@ Immediate gate: secure and verify an independent recoverable staging copy, then 
 
 ## Budget decision
 The owner declined creation of a paid Supabase development branch. Do not create one or incur new hosting charges. Continue existing GitHub Actions PostgreSQL 17 CI and read-only inspection of existing Supabase projects; do not apply candidate DDL to existing projects without verified recovery capability.
+
+## Free CI milestone (16 October)
+- Isolated PostgreSQL 17 CI now includes actual foundation, captain application, consent, bracket generation and match result SQL migrations.
+- Two-team bracket, BO1 final, stale-result rejection already passed at commit `30b91c2`.
+- Four-team bracket with two semifinals, final advancement, three result audit records is added in `eea55bd`; **do not mark verified until that commit's roster-consent workflow succeeds**.
+- This is an isolated SQL integration test, not real Supabase Auth, staging backup/restore, or production authorization approval.
