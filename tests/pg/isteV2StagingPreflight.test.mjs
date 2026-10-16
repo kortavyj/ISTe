@@ -26,6 +26,7 @@ function sql(input){
 const baseline=sql(fixture+preflight);
 assert.equal(baseline.status,0,baseline.stderr||baseline.stdout);
 assert.match(baseline.stdout,/pending\|1\|1\|0\|1\|0/);
+assert.match(baseline.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"missing Auth user must block rollout");
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
