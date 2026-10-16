@@ -226,6 +226,49 @@ BEGIN
   IF SQLERRM <> 'STALE_OR_FINISHED_MATCH' THEN RAISE; END IF;
  END;
 END $full_bracket_flow$;
+-- Four-team single elimination: two semi-finals must populate and unlock the final.
+INSERT INTO public.iste_tournaments(id,slug,title,capacity,best_of,status,published_at)
+VALUES ('20000000-0000-4000-8000-000000000002','ci-four-team-cup',
+ 'CI Four Team Cup',4,1,'checkin',now());
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status)
+SELECT ('30000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
+ '20000000-0000-4000-8000-000000000002'::uuid,'Team '||n,'approved'
+FROM generate_series(11,14) n;
+DO $four_team_flow$
+DECLARE m record; final_match record; count_finished integer;
+BEGIN
+ PERFORM public.iste_owner_generate_bracket('20000000-0000-4000-8000-000000000002');
+ IF (SELECT count(*) FROM public.iste_tournament_matches
+    WHERE tournament_id='20000000-0000-4000-8000-000000000002')<>3 THEN
+   RAISE EXCEPTION 'four-team bracket must contain three matches';
+ END IF;
+ UPDATE public.iste_tournaments SET status='live'
+  WHERE id='20000000-0000-4000-8000-000000000002';
+ FOR m IN SELECT id,version FROM public.iste_tournament_matches
+    WHERE tournament_id='20000000-0000-4000-8000-000000000002'
+      AND round_index=0 ORDER BY match_index LOOP
+   PERFORM public.iste_owner_confirm_match(m.id,m.version,
+    '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":13,"scoreB":8}]}'::jsonb);
+ END LOOP;
+ SELECT * INTO STRICT final_match FROM public.iste_tournament_matches
+  WHERE tournament_id='20000000-0000-4000-8000-000000000002'
+    AND round_index=1 AND match_index=0;
+ IF final_match.team_a_id IS NULL OR final_match.team_b_id IS NULL
+   OR final_match.team_a_id=final_match.team_b_id OR final_match.status<>'ready' THEN
+   RAISE EXCEPTION 'semi-final winners did not unlock final';
+ END IF;
+ PERFORM public.iste_owner_confirm_match(final_match.id,final_match.version,
+   '{"bestOf":1,"maps":[{"name":"Nuke","scoreA":13,"scoreB":10}]}'::jsonb);
+ SELECT count(*) INTO count_finished FROM public.iste_tournament_matches
+  WHERE tournament_id='20000000-0000-4000-8000-000000000002'
+    AND status='finished' AND winner_team_id IS NOT NULL;
+ IF count_finished<>3 THEN RAISE EXCEPTION 'four-team elimination not complete'; END IF;
+ IF (SELECT count(*) FROM public.iste_tournament_audit_log
+    WHERE tournament_id='20000000-0000-4000-8000-000000000002'
+      AND action='confirm_result')<>3 THEN
+   RAISE EXCEPTION 'four-team result audit incomplete';
+ END IF;
+END $four_team_flow$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
