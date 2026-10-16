@@ -34,3 +34,19 @@ test("FACEIT-only applicant is rejected before database mutation",async()=>{
  assert.equal(out.body.error,"ROSTER_ACCOUNT_REQUIRED");
  assert.equal(rpcCalls.length,0);
 });
+
+test("missing ISTe roster account returns actionable error without SQL leakage",async()=>{
+ const rpcCalls=[];
+ const client={
+  auth:{setSession:async()=>({data:{user:{id:captain},session:{access_token:"test",refresh_token:"test"}},error:null})},
+  from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{is_blocked:false},error:null})})})}),
+  rpc:async(name,args)=>{rpcCalls.push({name,args});return {data:null,error:{code:"22023",message:"PLAYER_ACCOUNT_NOT_FOUND"}};}
+ };
+ const handler=createTeamApplyHandler({getClient:()=>client,writesEnabled:()=>true});
+ const out=response();
+ await handler(request(),out);
+ assert.equal(out.statusCode,400);
+ assert.equal(out.body.error,"PLAYER_ACCOUNT_NOT_FOUND");
+ assert.match(out.body.message,/не зарегистрирован/);
+ assert.equal(rpcCalls.length,1);
+});
