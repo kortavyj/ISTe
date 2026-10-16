@@ -619,6 +619,34 @@ BEGIN
   WHERE team_id='30000000-0000-4000-8000-000000000006')
  THEN RAISE EXCEPTION 'open registration hid actionable invitation'; END IF;
 END $invite_window$;
+-- FACEIT-only member cannot provide authenticated consent: never approve such a roster.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000009','registration',2,'FACEIT Consent Guard');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000009',
+ '20000000-0000-4000-8000-000000000009','Unverified Squad','pending',
+ '10000000-0000-4000-8000-000000000040');
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain,accepted_at)
+SELECT '30000000-0000-4000-8000-000000000009'::uuid,
+ ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
+ n=40,now() FROM generate_series(40,43) n;
+INSERT INTO public.iste_tournament_members(team_id,faceit_player_id,is_captain)
+VALUES ('30000000-0000-4000-8000-000000000009','faceit-only-44',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+DO $faceit_consent_guard$
+BEGIN
+ BEGIN
+  PERFORM public.iste_owner_review_team(
+   '30000000-0000-4000-8000-000000000009','pending','approve');
+  RAISE EXCEPTION 'owner approved FACEIT-only member without Auth consent';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_NOT_CONFIRMED' THEN RAISE; END IF;
+ END;
+ IF (SELECT status FROM public.iste_tournament_teams
+   WHERE id='30000000-0000-4000-8000-000000000009')<>'pending'
+ THEN RAISE EXCEPTION 'FACEIT-only review changed team status'; END IF;
+END $faceit_consent_guard$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
