@@ -124,6 +124,21 @@ SELECT count(*) FILTER (WHERE status='approved') AS approved_legacy_teams,
          ELSE 'LEGACY_APPROVAL_REVIEW_REQUIRED' END AS review_gate
 FROM public.iste_tournament_teams;
 
+-- A player must not occupy slots in multiple active teams of one tournament.
+-- Only aggregate counts are returned; player identifiers stay private.
+WITH repeated_players AS (
+ SELECT t.tournament_id,m.user_id,count(DISTINCT t.id) AS team_count
+ FROM public.iste_tournament_members m
+ JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.status IN ('pending','approved','checked_in') AND m.user_id IS NOT NULL
+ GROUP BY t.tournament_id,m.user_id
+ HAVING count(DISTINCT t.id)>1
+)
+SELECT count(*) AS duplicated_players,
+       CASE WHEN count(*)=0 THEN 'NO_CROSS_TEAM_DUPLICATES'
+         ELSE 'CROSS_TEAM_RECONCILIATION_REQUIRED' END AS cross_team_gate
+FROM repeated_players;
+
 -- Human release gate, intentionally not inferable from SQL:
 -- [ ] recoverable staging backup verified
 -- [ ] restore drill succeeded
