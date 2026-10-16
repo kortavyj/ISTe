@@ -118,6 +118,12 @@ const rejectedTeam=sql(`UPDATE public.iste_tournament_teams
 assert.equal(rejectedTeam.status,0,rejectedTeam.stderr||rejectedTeam.stdout);
 assert.match(rejectedTeam.stdout,/NO_CROSS_TEAM_DUPLICATES/);
 assert.doesNotMatch(rejectedTeam.stdout,/CROSS_TEAM_RECONCILIATION_REQUIRED/);
+// A previously rejected application becoming active must re-trigger the gate.
+const reactivated=sql(`UPDATE public.iste_tournament_teams
+ SET status='approved'
+ WHERE id='30000000-0000-4000-8000-000000000098';\n`+preflight);
+assert.equal(reactivated.status,0,reactivated.stderr||reactivated.stdout);
+assert.match(reactivated.stdout,/CROSS_TEAM_RECONCILIATION_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
