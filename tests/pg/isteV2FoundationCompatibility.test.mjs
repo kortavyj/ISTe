@@ -9,6 +9,8 @@ function migration(path) {
 const foundation=migration("../../supabase/migrations/20261014_iste_tournaments_v2_foundation.sql");
 const apply=migration("../../supabase/migrations/20261014_iste_tournament_team_apply_rpc.sql");
 const consent=migration("../../db/migrations/20261015_iste_v2_roster_consent.sql");
+const bracket=migration("../../supabase/migrations/20261014_iste_tournament_generate_bracket_rpc.sql");
+const matchResult=migration("../../supabase/migrations/20261014_iste_tournament_confirm_match_rpc.sql");
 const sql=`
 BEGIN;
 CREATE SCHEMA auth;
@@ -21,6 +23,8 @@ CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS 'select coalesce
 ${foundation}
 ${apply}
 ${consent}
+${bracket}
+${matchResult}
 DO $verify$
 BEGIN
  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
@@ -43,7 +47,9 @@ BEGIN
   'public.iste_v2_respond_roster_membership(uuid,boolean)',
   'public.iste_v2_invite_replacement(uuid,uuid)',
   'public.iste_v2_my_roster_invitations()',
-  'public.iste_v2_my_pending_captain_teams()'
+  'public.iste_v2_my_pending_captain_teams()',
+  'public.iste_owner_generate_bracket(uuid)',
+  'public.iste_owner_confirm_match(uuid,integer,jsonb)'
  ] LOOP
   IF has_function_privilege('anon',signature,'EXECUTE') THEN
    RAISE EXCEPTION 'anonymous EXECUTE permission remains on %',signature;
@@ -156,6 +162,25 @@ BEGIN
    END IF;
  END LOOP;
 END $public_read_boundary$;
+-- Match lifecycle RPCs must never admit unidentified callers.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.role','authenticated',true);
+DO $match_identity$
+BEGIN
+ BEGIN
+  PERFORM public.iste_owner_generate_bracket(NULL::uuid);
+  RAISE EXCEPTION 'bracket RPC admitted unidentified caller';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'AUTH_REQUIRED' THEN RAISE; END IF;
+ END;
+ BEGIN
+  PERFORM public.iste_owner_confirm_match(NULL::uuid,0,'{}'::jsonb);
+  RAISE EXCEPTION 'result RPC admitted unidentified caller';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'AUTH_REQUIRED' THEN RAISE; END IF;
+ END;
+END $match_identity$;
+RESET ROLE;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
