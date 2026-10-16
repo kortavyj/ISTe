@@ -115,6 +115,15 @@ SELECT count(*) FILTER (WHERE status IN ('pending','approved','checked_in'))
          ELSE 'CONSENT_REVIEW_REQUIRED' END AS consent_gate
 FROM public.iste_tournament_teams;
 
+-- Preexisting approved or checked-in teams require individual consent review
+-- before the new approval policy can be considered valid for legacy data.
+SELECT count(*) FILTER (WHERE status='approved') AS approved_legacy_teams,
+       count(*) FILTER (WHERE status='checked_in') AS checked_in_legacy_teams,
+       CASE WHEN count(*) FILTER (WHERE status IN ('approved','checked_in'))=0
+         THEN 'NO_PREAPPROVED_LEGACY_TEAMS'
+         ELSE 'LEGACY_APPROVAL_REVIEW_REQUIRED' END AS review_gate
+FROM public.iste_tournament_teams;
+
 -- Human release gate, intentionally not inferable from SQL:
 -- [ ] recoverable staging backup verified
 -- [ ] restore drill succeeded
