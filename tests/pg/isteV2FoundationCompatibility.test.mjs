@@ -125,6 +125,21 @@ BEGIN
   END LOOP;
  END LOOP;
 END $private_grants$;
+-- Published tournament objects keep readable SELECT policies, but client writes
+-- must be rejected independent of any future policy change.
+DO $public_read_only$
+DECLARE tab text; role_name text; operation text;
+BEGIN
+ FOREACH tab IN ARRAY ARRAY['iste_tournaments','iste_tournament_matches','iste_tournament_maps'] LOOP
+  FOREACH role_name IN ARRAY ARRAY['anon','authenticated'] LOOP
+   FOREACH operation IN ARRAY ARRAY['INSERT','UPDATE','DELETE'] LOOP
+    IF has_table_privilege(role_name,format('public.%I',tab),operation) THEN
+     RAISE EXCEPTION 'direct % grant for % on published V2 table %',operation,role_name,tab;
+    END IF;
+   END LOOP;
+  END LOOP;
+ END LOOP;
+END $public_read_only$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
