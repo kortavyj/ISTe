@@ -170,6 +170,21 @@ SELECT count(*) AS tables_without_rls,
          ELSE 'TOURNAMENT_RLS_REVIEW_REQUIRED' END AS rls_gate
 FROM unprotected;
 
+-- An anonymous database role must not have direct write privileges on
+-- tournament tables, irrespective of any RLS policy configuration.
+WITH anonymous_writes AS (
+ SELECT tablename
+ FROM pg_tables
+ WHERE schemaname='public' AND tablename LIKE 'iste_tournament%'
+   AND (has_table_privilege('anon',format('public.%I',tablename),'INSERT')
+     OR has_table_privilege('anon',format('public.%I',tablename),'UPDATE')
+     OR has_table_privilege('anon',format('public.%I',tablename),'DELETE'))
+)
+SELECT count(*) AS anon_writable_tournament_tables,
+       CASE WHEN count(*)=0 THEN 'NO_ANON_TOURNAMENT_WRITES'
+            ELSE 'ANON_TOURNAMENT_WRITE_REVIEW_REQUIRED' END AS anon_write_gate
+FROM anonymous_writes;
+
 -- Human release gate, intentionally not inferable from SQL:
 -- [ ] recoverable staging backup verified
 -- [ ] restore drill succeeded
