@@ -363,6 +363,25 @@ BEGIN
   RAISE EXCEPTION 'self-invite changed roster';
  END IF;
 END $captain_self_invite$;
+-- Unknown Auth UUID must not consume any playing slot.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $ghost_account$
+DECLARE v_before bigint;
+BEGIN
+ SELECT count(*) INTO v_before FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003';
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003',
+   '10000000-0000-4000-8000-000000000999');
+  RAISE EXCEPTION 'nonexistent Auth user invited';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'PLAYER_ACCOUNT_NOT_FOUND' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000003')<>v_before
+ THEN RAISE EXCEPTION 'nonexistent account consumed roster slot'; END IF;
+END $ghost_account$;
 -- An existing member of another active team in the same cup cannot be invited again.
 INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
 VALUES ('30000000-0000-4000-8000-000000000063',
