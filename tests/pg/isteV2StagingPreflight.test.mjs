@@ -75,6 +75,16 @@ VALUES ('30000000-0000-4000-8000-000000000099',
 '20000000-0000-4000-8000-000000000001','approved');\n`+preflight);
 assert.equal(preapproved.status,0,preapproved.stderr||preapproved.stdout);
 assert.match(preapproved.stdout,/LEGACY_APPROVAL_REVIEW_REQUIRED/);
+// Existing checked-in teams also require explicit legacy approval review.
+const checkedIn=sql(`UPDATE public.iste_tournament_teams SET status='checked_in'
+ WHERE id='30000000-0000-4000-8000-000000000099';\n`+preflight);
+assert.equal(checkedIn.status,0,checkedIn.stderr||checkedIn.stdout);
+assert.match(checkedIn.stdout,/LEGACY_APPROVAL_REVIEW_REQUIRED/);
+// With no previously approved/checked-in teams, there is no approval-specific warning.
+const noApprovals=sql(`UPDATE public.iste_tournament_teams SET status='pending'
+ WHERE id='30000000-0000-4000-8000-000000000099';\n`+preflight);
+assert.equal(noApprovals.status,0,noApprovals.stderr||noApprovals.stdout);
+assert.match(noApprovals.stdout,/NO_PREAPPROVED_LEGACY_TEAMS/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
