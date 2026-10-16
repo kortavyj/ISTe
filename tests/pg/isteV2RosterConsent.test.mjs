@@ -317,6 +317,37 @@ BEGIN
    RAISE EXCEPTION 'captain team missing from own replacement list';
  END IF;
 END $captain_teams$;
+-- An existing member of another active team in the same cup cannot be invited again.
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000063',
+ '20000000-0000-4000-8000-000000000003','Other Active Squad','approved',
+ '10000000-0000-4000-8000-000000000060');
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain)
+VALUES ('30000000-0000-4000-8000-000000000063',
+ '10000000-0000-4000-8000-000000000061',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $cross_team_duplicate$
+DECLARE before_members bigint; before_audits bigint;
+BEGIN
+ SELECT count(*) INTO before_members FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000003';
+ SELECT count(*) INTO before_audits FROM public.iste_tournament_audit_log
+  WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003';
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003',
+   '10000000-0000-4000-8000-000000000061');
+  RAISE EXCEPTION 'registered player invited to another active team';
+ EXCEPTION WHEN SQLSTATE '23505' THEN
+  IF SQLERRM <> 'PLAYER_ALREADY_REGISTERED' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_members
+    WHERE team_id='30000000-0000-4000-8000-000000000003')<>before_members
+ OR (SELECT count(*) FROM public.iste_tournament_audit_log
+    WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003')<>before_audits THEN
+   RAISE EXCEPTION 'cross-team duplicate changed roster or audit';
+ END IF;
+END $cross_team_duplicate$;
 -- Full repair flow: real application -> player declines -> captain replacement -> consent -> approval.
 INSERT INTO public.iste_tournaments(id,status,capacity,title) VALUES ('20000000-0000-4000-8000-000000000004','registration',2,'Repair Cup');
 SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
