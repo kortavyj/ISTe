@@ -22,6 +22,8 @@ CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS 'select coalesce
 CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
 ${migration}
 ${teamApply}
+-- Reapplying this candidate must be safe in an isolated, disposable PG17 database.
+${migration}
 INSERT INTO public.user_roles VALUES
  ('10000000-0000-4000-8000-000000000001','owner',false),
  ('10000000-0000-4000-8000-000000000002','user',false),
