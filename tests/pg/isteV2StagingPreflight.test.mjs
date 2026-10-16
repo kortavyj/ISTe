@@ -209,6 +209,14 @@ ALTER TABLE public.iste_tournament_maps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.iste_tournament_audit_log ENABLE ROW LEVEL SECURITY;\n`+preflight);
 assert.equal(secured.status,0,secured.stderr||secured.stdout);
 assert.match(secured.stdout,/TOURNAMENT_RLS_ENABLED/);
+// Anonymous table write grants are a separate release blocker from RLS.
+assert.match(baseline.stdout,/NO_ANON_TOURNAMENT_WRITES/);
+const exposed=sql(`GRANT INSERT ON public.iste_tournament_members TO anon;\n`+preflight);
+assert.equal(exposed.status,0,exposed.stderr||exposed.stdout);
+assert.match(exposed.stdout,/ANON_TOURNAMENT_WRITE_REVIEW_REQUIRED/);
+const revoked=sql(`REVOKE INSERT ON public.iste_tournament_members FROM anon;\n`+preflight);
+assert.equal(revoked.status,0,revoked.stderr||revoked.stdout);
+assert.match(revoked.stdout,/NO_ANON_TOURNAMENT_WRITES/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
