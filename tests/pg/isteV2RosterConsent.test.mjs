@@ -317,6 +317,29 @@ BEGIN
    RAISE EXCEPTION 'captain team missing from own replacement list';
  END IF;
 END $captain_teams$;
+-- Reinviting an already pending player to the same squad is forbidden.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $same_team_duplicate$
+DECLARE v_members bigint; v_invites bigint;
+BEGIN
+ SELECT count(*) INTO v_members FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000003';
+ SELECT count(*) INTO v_invites FROM public.iste_tournament_audit_log
+  WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003';
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003',
+   '10000000-0000-4000-8000-000000000012');
+  RAISE EXCEPTION 'duplicate pending invitation accepted';
+ EXCEPTION WHEN SQLSTATE '23505' THEN
+  IF SQLERRM <> 'PLAYER_ALREADY_REGISTERED' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_members
+    WHERE team_id='30000000-0000-4000-8000-000000000003')<>v_members
+  OR (SELECT count(*) FROM public.iste_tournament_audit_log
+    WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003')<>v_invites
+ THEN RAISE EXCEPTION 'duplicate invitation mutated roster or audit'; END IF;
+END $same_team_duplicate$;
 -- An existing member of another active team in the same cup cannot be invited again.
 INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
 VALUES ('30000000-0000-4000-8000-000000000063',
