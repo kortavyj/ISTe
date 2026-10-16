@@ -136,6 +136,14 @@ const oneRecord=sql(`DELETE FROM public.iste_tournament_members
  WHERE id='40000000-0000-4000-8000-000000000399';\n`+preflight);
 assert.equal(oneRecord.status,0,oneRecord.stderr||oneRecord.stdout);
 assert.match(oneRecord.stdout,/NO_INTRA_TEAM_DUPLICATES/);
+// Duplicate historical rows in a rejected team must not block active rosters.
+const rejectedDuplicates=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
+ VALUES ('40000000-0000-4000-8000-000000000399',
+ '30000000-0000-4000-8000-000000000098',
+ '10000000-0000-4000-8000-000000000001');\n`+preflight);
+assert.equal(rejectedDuplicates.status,0,rejectedDuplicates.stderr||rejectedDuplicates.stdout);
+assert.match(rejectedDuplicates.stdout,/NO_INTRA_TEAM_DUPLICATES/);
+assert.doesNotMatch(rejectedDuplicates.stdout,/INTRA_TEAM_RECONCILIATION_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
