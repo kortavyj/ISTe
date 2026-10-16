@@ -269,6 +269,23 @@ BEGIN
    RAISE EXCEPTION 'four-team result audit incomplete';
  END IF;
 END $four_team_flow$;
+-- Bracket generation is one-time only; repeating it must not create duplicates.
+DO $bracket_idempotency$
+DECLARE v_before bigint;
+BEGIN
+ SELECT count(*) INTO v_before FROM public.iste_tournament_matches
+  WHERE tournament_id='20000000-0000-4000-8000-000000000002';
+ BEGIN
+  PERFORM public.iste_owner_generate_bracket('20000000-0000-4000-8000-000000000002');
+  RAISE EXCEPTION 'duplicate bracket generation succeeded';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'TOURNAMENT_NOT_READY_FOR_BRACKET' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_matches
+    WHERE tournament_id='20000000-0000-4000-8000-000000000002')<>v_before THEN
+  RAISE EXCEPTION 'duplicate bracket generation changed match count';
+ END IF;
+END $bracket_idempotency$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
