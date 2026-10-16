@@ -199,6 +199,16 @@ const restoredDuplicateTeam=sql(`UPDATE public.iste_tournament_teams
  WHERE id='30000000-0000-4000-8000-000000000098';\n`+preflight);
 assert.equal(restoredDuplicateTeam.status,0,restoredDuplicateTeam.stderr||restoredDuplicateTeam.stdout);
 assert.match(restoredDuplicateTeam.stdout,/INTRA_TEAM_RECONCILIATION_REQUIRED/);
+// Staging must report missing RLS before any write-enabled rollout.
+assert.match(baseline.stdout,/TOURNAMENT_RLS_REVIEW_REQUIRED/);
+const secured=sql(`ALTER TABLE public.iste_tournaments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.iste_tournament_teams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.iste_tournament_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.iste_tournament_matches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.iste_tournament_maps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.iste_tournament_audit_log ENABLE ROW LEVEL SECURITY;\n`+preflight);
+assert.equal(secured.status,0,secured.stderr||secured.stdout);
+assert.match(secured.stdout,/TOURNAMENT_RLS_ENABLED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
