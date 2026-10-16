@@ -396,7 +396,7 @@ BEGIN
     jsonb_build_object('userId','10000000-0000-4000-8000-000000000021'),
     jsonb_build_object('userId','10000000-0000-4000-8000-000000000022'),
     jsonb_build_object('userId','10000000-0000-4000-8000-000000000023'),
-    jsonb_build_object('userId','10000000-0000-4000-8000-000000000999')));
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000999'))));
   RAISE EXCEPTION 'initial team application accepted nonexistent Auth member';
  EXCEPTION WHEN SQLSTATE '22023' THEN
   IF SQLERRM <> 'PLAYER_ACCOUNT_NOT_FOUND' THEN RAISE; END IF;
