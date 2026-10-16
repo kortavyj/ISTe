@@ -39,6 +39,8 @@ export function createReplacementInviteHandler({getClient=getSupabaseServerClien
      return response.status(503).json({ok:false,error:"REPLACEMENT_RPC_NOT_READY"});
     if(error.code==="42501" && error.message==="TEAM_NOT_FOUND")
      return response.status(403).json({ok:false,error:"CAPTAIN_REQUIRED"});
+    if(error.code==="22023" && error.message==="PLAYER_ACCOUNT_NOT_FOUND")
+     return response.status(400).json({ok:false,error:"PLAYER_ACCOUNT_NOT_FOUND"});
     if(error.code==="42501" && error.message==="ACCOUNT_BLOCKED")
      return response.status(403).json({ok:false,error:"ACCOUNT_BLOCKED"});
     return response.status(409).json({ok:false,error:"REPLACEMENT_REJECTED"});
