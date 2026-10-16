@@ -69,6 +69,12 @@ DELETE FROM public.iste_tournament_teams;\n`+preflight);
 assert.equal(empty.status,0,empty.stderr||empty.stdout);
 assert.match(empty.stdout,/NO_ACTIVE_LEGACY_ROSTERS/);
 assert.doesNotMatch(empty.stdout,/CONSENT_REVIEW_REQUIRED/);
+// Legacy approval cannot imply that individual player consent was collected.
+const preapproved=sql(`INSERT INTO public.iste_tournament_teams(id,tournament_id,status)
+VALUES ('30000000-0000-4000-8000-000000000099',
+'20000000-0000-4000-8000-000000000001','approved');\n`+preflight);
+assert.equal(preapproved.status,0,preapproved.stderr||preapproved.stdout);
+assert.match(preapproved.stdout,/LEGACY_APPROVAL_REVIEW_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
