@@ -145,6 +145,12 @@ INSERT INTO public.iste_tournament_members(id,team_id,user_id)
 assert.equal(rejectedDuplicates.status,0,rejectedDuplicates.stderr||rejectedDuplicates.stdout);
 assert.match(rejectedDuplicates.stdout,/NO_INTRA_TEAM_DUPLICATES/);
 assert.doesNotMatch(rejectedDuplicates.stdout,/INTRA_TEAM_RECONCILIATION_REQUIRED/);
+// Restoring a rejected team to active status must expose its duplicate rows.
+const restoredDuplicateTeam=sql(`UPDATE public.iste_tournament_teams
+ SET status='pending'
+ WHERE id='30000000-0000-4000-8000-000000000098';\n`+preflight);
+assert.equal(restoredDuplicateTeam.status,0,restoredDuplicateTeam.stderr||restoredDuplicateTeam.stdout);
+assert.match(restoredDuplicateTeam.stdout,/INTRA_TEAM_RECONCILIATION_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
