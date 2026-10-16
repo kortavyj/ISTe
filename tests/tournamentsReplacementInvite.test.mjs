@@ -11,3 +11,5 @@ test("reject invalid replacement request",async()=>{const {handler,calls}=create
 test("respect global write flag",async()=>{const {handler,calls}=create({writes:false}),out=response();await handler(request(),out);assert.equal(out.statusCode,503);assert.equal(calls.length,0);});
 test("authenticated player invokes identity-scoped RPC",async()=>{const {handler,calls}=create(),out=response();await handler(request(),out);assert.equal(out.statusCode,201);assert.deepEqual(calls,[{n:"iste_v2_invite_replacement",a:{p_team_id:teamId,p_user_id:userId}}]);});
 test("hide database error details",async()=>{const {handler}=create({error:{code:"22023",message:"private SQL"}}),out=response();await handler(request(),out);assert.equal(out.statusCode,409);assert.deepEqual(out.body,{ok:false,error:"REPLACEMENT_REJECTED"});});
+
+test("explain missing ISTe account without database details",async()=>{const {handler}=create({error:{code:"22023",message:"PLAYER_ACCOUNT_NOT_FOUND"}}),out=response();await handler(request(),out);assert.equal(out.statusCode,400);assert.deepEqual(out.body,{ok:false,error:"PLAYER_ACCOUNT_NOT_FOUND"});});
