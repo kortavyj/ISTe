@@ -105,10 +105,12 @@ SELECT count(*) AS active_teams,
          ELSE 'ROSTER_SIZE_RECONCILIATION_REQUIRED' END AS roster_size_gate
 FROM active_rosters;
 
--- Only once consent column exists: count pending confirmations per active team.
--- Avoid referencing accepted_at here because this pre-migration script must
--- remain runnable on environments where the column is absent.
-SELECT count(*) AS existing_team_records
+-- This script intentionally does not infer consent from old memberships.
+-- accepted_at may be absent before the candidate migration; even a full roster
+-- with valid accounts remains UNVERIFIED until each player explicitly accepts.
+SELECT count(*) FILTER (WHERE status IN ('pending','approved','checked_in'))
+         AS active_teams_requiring_consent_review,
+       'CONSENT_REVIEW_REQUIRED' AS consent_gate
 FROM public.iste_tournament_teams;
 
 -- Human release gate, intentionally not inferable from SQL:
