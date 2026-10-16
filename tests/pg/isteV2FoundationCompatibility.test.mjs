@@ -371,6 +371,31 @@ BEGIN
  THEN RAISE EXCEPTION 'AAL1 operation mutated match'; END IF;
  PERFORM set_config('request.jwt.claims','{"aal":"aal2"}',true);
 END $owner_mfa_guard$;
+-- AAL2 alone does not grant organizer privileges to an ordinary player.
+INSERT INTO public.user_roles(user_id,role,is_blocked)
+VALUES ('10000000-0000-4000-8000-000000000099','user',false);
+DO $ordinary_user_guard$
+DECLARE v_id uuid := '40000000-0000-4000-8000-000000000031';
+BEGIN
+ PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000099',true);
+ PERFORM set_config('request.jwt.claims','{"aal":"aal2"}',true);
+ BEGIN
+  PERFORM public.iste_owner_generate_bracket('20000000-0000-4000-8000-000000000003');
+  RAISE EXCEPTION 'ordinary user generated bracket';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'OWNER_REQUIRED' THEN RAISE; END IF;
+ END;
+ BEGIN
+  PERFORM public.iste_owner_confirm_match(v_id,0,
+   '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":13,"scoreB":8}]}'::jsonb);
+  RAISE EXCEPTION 'ordinary user confirmed result';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'OWNER_REQUIRED' THEN RAISE; END IF;
+ END;
+ IF (SELECT version FROM public.iste_tournament_matches WHERE id=v_id)<>0
+ THEN RAISE EXCEPTION 'non-owner mutated match'; END IF;
+ PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
+END $ordinary_user_guard$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
