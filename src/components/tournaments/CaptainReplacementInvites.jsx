@@ -33,7 +33,7 @@ export default function CaptainReplacementInvites(){
    });
    const payload=await response.json();
    if(!response.ok||payload?.ok!==true){
-    const known={TOURNAMENT_WRITES_DISABLED:"Приглашения временно отключены.",CAPTAIN_REQUIRED:"Приглашать может только капитан команды.",REPLACEMENT_REJECTED:"Приглашение отклонено: проверьте состав и статус регистрации."};
+    const known={TOURNAMENT_WRITES_DISABLED:"Приглашения временно отключены.",CAPTAIN_REQUIRED:"Приглашать может только капитан команды.",PLAYER_ACCOUNT_NOT_FOUND:"Аккаунт ISTe с таким UUID не найден. Проверьте ID игрока и убедитесь, что он зарегистрирован на ISTe.",REPLACEMENT_REJECTED:"Приглашение отклонено: проверьте состав и статус регистрации."};
     throw new Error(known[payload?.error]||"Не удалось отправить приглашение.");
    }
    setNotice("Приглашение создано. Игрок должен подтвердить его в своём кабинете.");
