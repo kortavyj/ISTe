@@ -48,7 +48,8 @@ assert.equal(faceitOnly.status,0,faceitOnly.stderr||faceitOnly.stdout);
 assert.match(faceitOnly.stdout,/ROSTER_RECONCILIATION_REQUIRED/,"FACEIT-only member must stop rollout");
 // Identity validity does not compensate for an incomplete five-player squad.
 assert.match(baseline.stdout,/ROSTER_SIZE_RECONCILIATION_REQUIRED/);
-const filled=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
+const filled=sql(`DELETE FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000202';
+INSERT INTO public.iste_tournament_members(id,team_id,user_id)
 SELECT ('40000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
  '30000000-0000-4000-8000-000000000001'::uuid,
  ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid
