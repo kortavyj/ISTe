@@ -51,6 +51,28 @@ FROM pg_tables
 WHERE schemaname='public' AND tablename LIKE 'iste_tournament%'
 ORDER BY tablename;
 
+-- Existing roster inventory for consent rollout. Aggregated counts only: no PII.
+-- Run only if all required V2 relations above exist.
+SELECT t.status AS team_status,
+       count(DISTINCT t.id) AS teams,
+       count(m.id) AS roster_entries,
+       count(m.id) FILTER (WHERE m.user_id IS NULL) AS faceit_only_entries,
+       count(m.id) FILTER (WHERE m.user_id IS NOT NULL
+         AND au.id IS NULL) AS unknown_auth_accounts,
+       count(m.id) FILTER (WHERE ur.is_blocked IS TRUE) AS blocked_accounts
+FROM public.iste_tournament_teams t
+LEFT JOIN public.iste_tournament_members m ON m.team_id=t.id
+LEFT JOIN auth.users au ON au.id=m.user_id
+LEFT JOIN public.user_roles ur ON ur.user_id=m.user_id
+GROUP BY t.status
+ORDER BY t.status;
+
+-- Only once consent column exists: count pending confirmations per active team.
+-- Avoid referencing accepted_at here because this pre-migration script must
+-- remain runnable on environments where the column is absent.
+SELECT count(*) AS existing_team_records
+FROM public.iste_tournament_teams;
+
 -- Human release gate, intentionally not inferable from SQL:
 -- [ ] recoverable staging backup verified
 -- [ ] restore drill succeeded
