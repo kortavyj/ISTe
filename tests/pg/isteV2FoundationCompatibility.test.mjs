@@ -286,6 +286,45 @@ BEGIN
   RAISE EXCEPTION 'duplicate bracket generation changed match count';
  END IF;
 END $bracket_idempotency$;
+-- Invalid result payload and stale replay must not alter a finished match.
+DO $result_integrity$
+DECLARE v_match record; v_maps bigint; v_audits bigint;
+BEGIN
+ SELECT * INTO STRICT v_match FROM public.iste_tournament_matches
+ WHERE tournament_id='20000000-0000-4000-8000-000000000002'
+   AND round_index=1 AND match_index=0;
+ SELECT count(*) INTO v_maps FROM public.iste_tournament_maps WHERE match_id=v_match.id;
+ SELECT count(*) INTO v_audits FROM public.iste_tournament_audit_log
+   WHERE tournament_id=v_match.tournament_id AND action='confirm_result';
+ BEGIN
+  PERFORM public.iste_owner_confirm_match(v_match.id,v_match.version,
+   '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":13,"scoreB":13}]}'::jsonb);
+  RAISE EXCEPTION 'replay on finished match accepted';
+ EXCEPTION WHEN SQLSTATE '40001' THEN
+  IF SQLERRM <> 'STALE_OR_FINISHED_MATCH' THEN RAISE; END IF;
+ END;
+ IF (SELECT version FROM public.iste_tournament_matches WHERE id=v_match.id)<>v_match.version
+   OR (SELECT count(*) FROM public.iste_tournament_maps WHERE match_id=v_match.id)<>v_maps
+   OR (SELECT count(*) FROM public.iste_tournament_audit_log
+     WHERE tournament_id=v_match.tournament_id AND action='confirm_result')<>v_audits THEN
+  RAISE EXCEPTION 'replayed result mutated finalized match';
+ END IF;
+END $result_integrity$;
+-- Validate malformed score before locking/writing any match.
+DO $result_payload_validation$
+DECLARE v_match uuid;
+BEGIN
+ SELECT id INTO STRICT v_match FROM public.iste_tournament_matches
+  WHERE tournament_id='20000000-0000-4000-8000-000000000002'
+   AND round_index=1 AND match_index=0;
+ BEGIN
+  PERFORM public.iste_owner_confirm_match(v_match,0,
+    '{"bestOf":1,"maps":[{"name":"Mirage","scoreA":-1,"scoreB":13}]}'::jsonb);
+  RAISE EXCEPTION 'malformed map result accepted';
+ EXCEPTION WHEN SQLSTATE '40001' THEN
+  IF SQLERRM <> 'STALE_OR_FINISHED_MATCH' THEN RAISE; END IF;
+ END;
+END $result_payload_validation$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
