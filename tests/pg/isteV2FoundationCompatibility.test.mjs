@@ -140,6 +140,22 @@ BEGIN
   END LOOP;
  END LOOP;
 END $public_read_only$;
+-- Published V2 resources must preserve intentional anonymous SELECT grants and
+-- SELECT-only RLS policies after client write permissions are removed.
+DO $public_read_boundary$
+DECLARE tab text; op text;
+BEGIN
+ FOREACH tab IN ARRAY ARRAY['iste_tournaments','iste_tournament_matches','iste_tournament_maps'] LOOP
+   IF NOT has_table_privilege('anon',format('public.%I',tab),'SELECT') THEN
+     RAISE EXCEPTION 'published V2 table lost anon SELECT grant: %',tab;
+   END IF;
+   IF NOT EXISTS (SELECT 1 FROM pg_policies
+      WHERE schemaname='public' AND tablename=tab AND cmd='SELECT'
+        AND ('anon'=ANY(roles) OR 'public'=ANY(roles))) THEN
+     RAISE EXCEPTION 'published V2 table lacks anonymous SELECT policy: %',tab;
+   END IF;
+ END LOOP;
+END $public_read_boundary$;
 ROLLBACK;
 `;
 const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
