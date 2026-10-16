@@ -284,3 +284,10 @@ grant execute on function public.iste_v2_my_pending_captain_teams() to authentic
 revoke all on table public.iste_tournament_teams,
  public.iste_tournament_members,
  public.iste_tournament_audit_log from anon, authenticated;
+
+-- Public tournament, match and map read policies remain available. Direct client
+-- writes are forbidden; privileged, identity-checked RPCs own all mutations.
+revoke insert, update, delete, truncate, references, trigger on table
+ public.iste_tournaments,
+ public.iste_tournament_matches,
+ public.iste_tournament_maps from anon, authenticated;
