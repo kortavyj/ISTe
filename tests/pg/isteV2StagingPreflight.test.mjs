@@ -110,6 +110,14 @@ const otherCup=sql(`UPDATE public.iste_tournament_teams
 assert.equal(otherCup.status,0,otherCup.stderr||otherCup.stdout);
 assert.match(otherCup.stdout,/NO_CROSS_TEAM_DUPLICATES/);
 assert.doesNotMatch(otherCup.stdout,/CROSS_TEAM_RECONCILIATION_REQUIRED/);
+// A rejected legacy team must not block a player's active registration.
+const rejectedTeam=sql(`UPDATE public.iste_tournament_teams
+ SET tournament_id='20000000-0000-4000-8000-000000000001',
+     status='rejected'
+ WHERE id='30000000-0000-4000-8000-000000000098';\n`+preflight);
+assert.equal(rejectedTeam.status,0,rejectedTeam.stderr||rejectedTeam.stdout);
+assert.match(rejectedTeam.stdout,/NO_CROSS_TEAM_DUPLICATES/);
+assert.doesNotMatch(rejectedTeam.stdout,/CROSS_TEAM_RECONCILIATION_REQUIRED/);
 const unsafe=preflight.replace(/COMMIT;\s*$/, "UPDATE public.iste_tournament_teams SET status='approved';\nCOMMIT;\n");
 assert.notEqual(unsafe,preflight,"preflight COMMIT must be found");
 const rejection=sql(unsafe);
