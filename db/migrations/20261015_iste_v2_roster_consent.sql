@@ -190,6 +190,8 @@ begin
     join public.iste_tournaments ev on ev.id=t.tournament_id
     where m.user_id=auth.uid() and m.accepted_at is null
       and t.status='pending' and ev.status='registration'
+      and (ev.registration_start is null or now()>=ev.registration_start)
+      and (ev.registration_end is null or now()<ev.registration_end)
     order by m.created_at, m.id;
 end;
 $function$;
