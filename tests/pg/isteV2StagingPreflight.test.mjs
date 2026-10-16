@@ -65,6 +65,18 @@ const restoredPlayer=sql(`UPDATE public.iste_tournament_members SET role='substi
  WHERE id='40000000-0000-4000-8000-000000000005';\n`+preflight);
 assert.equal(restoredPlayer.status,0,restoredPlayer.stderr||restoredPlayer.stdout);
 assert.match(restoredPlayer.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
+// Five rows with only four distinct eligible accounts cannot fill a squad.
+const duplicatedSlot=sql(`UPDATE public.iste_tournament_members
+ SET user_id='10000000-0000-4000-8000-000000000004'
+ WHERE id='40000000-0000-4000-8000-000000000005';\n`+preflight);
+assert.equal(duplicatedSlot.status,0,duplicatedSlot.stderr||duplicatedSlot.stdout);
+assert.match(duplicatedSlot.stdout,/ROSTER_SIZE_RECONCILIATION_REQUIRED/);
+assert.match(duplicatedSlot.stdout,/INTRA_TEAM_RECONCILIATION_REQUIRED/);
+const restoredSlot=sql(`UPDATE public.iste_tournament_members
+ SET user_id='10000000-0000-4000-8000-000000000005'
+ WHERE id='40000000-0000-4000-8000-000000000005';\n`+preflight);
+assert.equal(restoredSlot.status,0,restoredSlot.stderr||restoredSlot.stdout);
+assert.match(restoredSlot.stdout,/NO_KNOWN_ROSTER_SIZE_BLOCKERS/);
 // Eight roster entries must also prevent staging readiness.
 const oversized=sql(`INSERT INTO public.iste_tournament_members(id,team_id,user_id)
 SELECT ('40000000-0000-4000-8000-'||lpad((n+100)::text,12,'0'))::uuid,
