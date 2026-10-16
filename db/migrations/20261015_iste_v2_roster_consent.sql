@@ -232,6 +232,12 @@ begin
     or exists(select 1 from public.user_roles where user_id=p_user_id and is_blocked) then
   raise exception 'ACCOUNT_BLOCKED' using errcode='42501'; end if;
  if p_user_id=v_actor then raise exception 'DUPLICATE_MEMBER' using errcode='23505'; end if;
+ -- A random UUID must not reserve a roster slot unless an actual Auth account
+ -- can receive and accept the invitation. SECURITY DEFINER allows this lookup.
+ if not exists (select 1 from auth.users where id=p_user_id) then
+  raise exception 'PLAYER_ACCOUNT_NOT_FOUND' using errcode='22023';
+ end if;
+
  select count(*) into v_count from public.iste_tournament_members
  where team_id=p_team_id;
  if v_count>=7 then raise exception 'ROSTER_FULL' using errcode='22023'; end if;
