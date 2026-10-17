@@ -126,3 +126,40 @@ test("accepts a canonical same-origin header", () => {
   }), { requireOrigin: true });
   assert.equal(result.ok, true);
 });
+
+test("rejects an explicitly empty Origin instead of trusting Referer", () => {
+  const result = guardRequest(request({ action: "save" }, {
+    origin: "",
+    referer: "https://www.istesport.com/support",
+    host: "www.istesport.com",
+    "sec-fetch-site": "same-origin",
+  }), { requireOrigin: true });
+  assert.equal(result.status, 403);
+  assert.equal(result.error, "ORIGIN_MISSING");
+});
+
+test("rejects duplicate Origin values even if the first is trusted", () => {
+  for (const origin of [
+    ["https://www.istesport.com", "https://evil.example"],
+    ["https://www.istesport.com", "https://www.istesport.com"],
+    [],
+  ]) {
+    const result = guardRequest(request({ action: "save" }, {
+      origin,
+      referer: "https://www.istesport.com/support",
+      host: "www.istesport.com",
+      "sec-fetch-site": "same-origin",
+    }), { requireOrigin: true });
+    assert.equal(result.status, 403);
+    assert.equal(result.error, "ORIGIN_MISSING");
+  }
+});
+
+test("accepts a single canonical Origin supplied as a one-element array", () => {
+  const result = guardRequest(request({ action: "save" }, {
+    origin: ["https://www.istesport.com"],
+    host: "www.istesport.com",
+    "sec-fetch-site": "same-origin",
+  }), { requireOrigin: true });
+  assert.equal(result.ok, true);
+});
