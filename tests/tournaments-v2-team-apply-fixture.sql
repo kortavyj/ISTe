@@ -1,3 +1,6 @@
+-- Mirror Supabase Auth user existence in this disposable test database.
+CREATE TABLE IF NOT EXISTS auth.users(id uuid primary key);
+INSERT INTO auth.users(id) VALUES ('22222222-2222-4222-8222-222222222222') ON CONFLICT DO NOTHING;
 -- Isolated PostgreSQL 17 fixture, not a production migration.
 insert into public.iste_tournaments(id,slug,title,capacity,status) values
 ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','apply-test','Application Test',2,'registration');
