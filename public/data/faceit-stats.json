@@ -44,20 +44,20 @@
       "kd": 1.26
     },
     {
-      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
-      "nickname": "Manocivnyk",
-      "avatar": null,
+      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
+      "nickname": "sssoo",
+      "avatar": "https://distribution.faceit-cdn.net/images/3e21fd6c-a05c-4619-b072-8541080ccad6.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2413,
+      "elo": 2353,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.11
+      "winRate": 49,
+      "kd": 1.26
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -92,22 +92,6 @@
       "kd": 0.98
     },
     {
-      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
-      "nickname": "sssoo",
-      "avatar": "https://distribution.faceit-cdn.net/images/3e21fd6c-a05c-4619-b072-8541080ccad6.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
-      "level": 10,
-      "elo": 2329,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.28
-    },
-    {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
       "nickname": "Droni452",
       "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
@@ -116,12 +100,28 @@
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
       "elo": 2517,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.06
+    },
+    {
+      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
+      "nickname": "Manocivnyk",
+      "avatar": null,
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "level": 10,
+      "elo": 2413,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.06
+      "winRate": 51,
+      "kd": 1.11
     }
   ],
   "teamMatches": [
@@ -3477,5 +3477,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-18T19:28:52.924Z"
+  "updatedAt": "2026-10-18T21:40:37.230Z"
 }
