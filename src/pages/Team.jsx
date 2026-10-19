@@ -791,9 +791,9 @@ function ProfilesSkeleton({ copy }) {
   );
 }
 
-export default function Team() {
+export default function Team({ initialRoster = "main" }) {
   const { language, t } = useLanguage();
-  const [activeRoster,setActiveRoster] = useState("main");
+  const [activeRoster,setActiveRoster] = useState(initialRoster);
   const { stats, loading, error, reload } = useOfficialRoster();
   const copy = PAGE_COPY[language] || PAGE_COPY.uk;
 
