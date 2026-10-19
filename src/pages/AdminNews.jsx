@@ -821,7 +821,7 @@ export default function AdminNews() {
       uploadedPath =
         uploadedCover.path;
 
-      await apiRequest({
+      const saveResult = await apiRequest({
         action: "news-save",
         postId: editingId,
         title,
@@ -841,9 +841,10 @@ export default function AdminNews() {
       });
 
       setSuccessMessage(
-        editingId
-          ? "Новость обновлена. Версии UK и EN синхронизированы."
-          : "Новость создана. Версии UK и EN подготовлены автоматически.",
+        saveResult.warning ||
+          (editingId
+            ? "Новость обновлена. Версии UK и EN синхронизированы."
+            : "Новость создана. Версии UK и EN подготовлены автоматически."),
       );
 
       setEditorOpen(false);
