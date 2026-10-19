@@ -33,6 +33,8 @@ export function createTeamReviewHandler({ authorize = requireOwner, writesEnable
     if (error) {
       if (["PGRST202","42883"].includes(error.code))
         return response.status(503).json({ok:false,error:"TEAM_REVIEW_RPC_NOT_INSTALLED"});
+      if (error.code === "22023" && error.message === "ROSTER_NOT_CONFIRMED")
+        return response.status(409).json({ok:false,error:"ROSTER_NOT_CONFIRMED"});
       return response.status(409).json({ok:false,error:"TEAM_REVIEW_REJECTED",
         message:"Заявка уже рассмотрена или не соответствует условиям турнира."});
     }

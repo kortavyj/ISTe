@@ -66,6 +66,12 @@ begin
      or (v_member->>'userId') !~* '^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' then
      raise exception 'INVALID_MEMBER_ID' using errcode='22023'; end if;
    v_uid := (v_member->>'userId')::uuid;
+   if not exists (select 1 from auth.users where id=v_uid) then
+    raise exception 'PLAYER_ACCOUNT_NOT_FOUND' using errcode='22023';
+   end if;
+   if exists (select 1 from public.user_roles where user_id=v_uid and is_blocked) then
+    raise exception 'ACCOUNT_BLOCKED' using errcode='42501';
+   end if;
   end if;
   if v_member->'faceitPlayerId' is not null and v_member->'faceitPlayerId'<>'null'::jsonb then
    if jsonb_typeof(v_member->'faceitPlayerId')<>'string'

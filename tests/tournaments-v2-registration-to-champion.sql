@@ -1,3 +1,8 @@
+-- Mirror four real Auth captains in this disposable test database.
+CREATE TABLE IF NOT EXISTS auth.users(id uuid primary key);
+INSERT INTO auth.users(id)
+SELECT ('00000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid
+FROM generate_series(1,4) n ON CONFLICT DO NOTHING;
 -- Disposable PostgreSQL 17 E2E. Status changes here are privileged test setup:
 -- no tournament-status transition RPC exists yet.
 insert into public.iste_tournaments(id,slug,title,capacity,status,best_of)

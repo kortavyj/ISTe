@@ -6,7 +6,8 @@ import { validateTournamentTeamApplication } from "../apiLib/tournamentTeamRegis
 
 // Team applications use the authenticated account as captain, not an owner
 // session. Server remains fail-closed until an audited DB RPC is deployed.
-export default async function handler(request, response) {
+export function createTeamApplyHandler({ getClient = getSupabaseServerClient, writesEnabled = () => process.env.ISTE_TOURNAMENT_WRITES_ENABLED === "true" } = {}) {
+ return async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store, private");
   response.setHeader("X-Content-Type-Options", "nosniff");
 
@@ -26,7 +27,7 @@ export default async function handler(request, response) {
   let supabase;
   let userId;
   try {
-    supabase = getSupabaseServerClient();
+    supabase = getClient();
     const { data, error } = await supabase.auth.setSession({
       access_token: accessToken, refresh_token: refreshToken,
     });
@@ -49,7 +50,7 @@ export default async function handler(request, response) {
   }
 
   // Even the valid applicant has no write access before migration review.
-  if (process.env.ISTE_TOURNAMENT_WRITES_ENABLED !== "true") {
+  if (!writesEnabled()) {
     return response.status(503).json({ ok:false,error:"TOURNAMENT_WRITES_DISABLED",
       message:"Заявки команд пока не принимаются." });
   }
@@ -63,6 +64,10 @@ export default async function handler(request, response) {
     ...input, captainUserId: userId,
   });
   if (!validated.ok) return response.status(400).json({ ok:false,error:validated.error });
+  // V2 owner approval requires explicit consent from every ISTe account.
+  // FACEIT-only roster entries cannot confirm until identity linking exists.
+  if (validated.value.members.some(member => !member.userId))
+    return response.status(400).json({ok:false,error:"ROSTER_ACCOUNT_REQUIRED"});
 
   try {
     // RPC must independently require auth.uid() as captain and validate
@@ -77,6 +82,8 @@ export default async function handler(request, response) {
     if (error) {
       if (["PGRST202","42883"].includes(error.code))
         return response.status(503).json({ok:false,error:"TEAM_APPLICATION_RPC_NOT_INSTALLED"});
+      if (error.code==="22023" && error.message==="PLAYER_ACCOUNT_NOT_FOUND")
+        return response.status(400).json({ok:false,error:"PLAYER_ACCOUNT_NOT_FOUND",message:"Один из игроков не зарегистрирован на ISTe. Проверьте аккаунты состава."});
       return response.status(409).json({ok:false,error:"TEAM_APPLICATION_REJECTED",
         message:"Заявку не удалось принять. Проверьте турнир и состав."});
     }
@@ -84,4 +91,7 @@ export default async function handler(request, response) {
   } catch {
     return response.status(500).json({ok:false,error:"TEAM_APPLICATION_FAILED"});
   }
+ };
 }
+
+export default createTeamApplyHandler();

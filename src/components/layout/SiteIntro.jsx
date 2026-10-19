@@ -105,7 +105,7 @@ export default function SiteIntro({ onFinish }) {
         </div>
 
         <div className="site-intro-copy">
-          <p className="site-intro-title" aria-hidden="true">
+          <p className="site-intro-title" aria-hidden="true" data-no-auto-translate>
             PLAY <span>•</span> COMPETE <span>•</span> WIN
           </p>
           <p className="site-intro-status">INITIALIZING TEAM SYSTEM</p>

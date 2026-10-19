@@ -58,6 +58,18 @@
       "destination": "/api/tournaments?route=team-list"
     },
     {
+      "source": "/api/tournaments-my-invitations",
+      "destination": "/api/tournaments?route=my-invitations"
+    },
+    {
+      "source": "/api/tournaments-roster-response",
+      "destination": "/api/tournaments?route=roster-response"
+    },
+    {
+      "source": "/api/tournaments-replacement-invite",
+      "destination": "/api/tournaments?route=replacement-invite"
+    },
+    {
       "source": "/api/tournaments-bracket-generate",
       "destination": "/api/tournaments?route=bracket-generate"
     },
@@ -92,6 +104,10 @@
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
+    },
+    {
+      "source": "/api/tournaments-my-captain-teams",
+      "destination": "/api/tournaments?route=my-captain-teams"
     }
   ],
   "ignoreCommand": "bash scripts/vercel-ignore-build.sh"

@@ -1,0 +1,714 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+
+const migration = readFileSync(new URL("../../db/migrations/20261015_iste_v2_roster_consent.sql", import.meta.url), "utf8");
+const teamApply = readFileSync(new URL("../../supabase/migrations/20261014_iste_tournament_team_apply_rpc.sql", import.meta.url), "utf8").replace(/^begin;\s*/im, "").replace(/\s*commit;\s*$/im, "");
+const sql = `
+BEGIN;
+CREATE SCHEMA auth;
+CREATE TABLE auth.users(id uuid primary key);
+INSERT INTO auth.users(id)
+SELECT ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid FROM generate_series(1,100) n;
+CREATE ROLE anon NOLOGIN;
+CREATE ROLE authenticated NOLOGIN;
+CREATE TABLE public.user_roles(user_id uuid primary key,role text,is_blocked boolean not null default false);
+CREATE TABLE public.iste_tournaments(id uuid primary key,status text,capacity integer,title text,registration_start timestamptz,registration_end timestamptz);
+CREATE TABLE public.iste_tournament_teams(id uuid primary key default gen_random_uuid(),tournament_id uuid,name text,status text,captain_user_id uuid,updated_at timestamptz default now());
+CREATE TABLE public.iste_tournament_members(id uuid primary key default gen_random_uuid(),team_id uuid,user_id uuid,faceit_player_id text,role text not null default 'player' check (role in ('player','substitute','coach')),is_captain boolean,created_at timestamptz default now());
+-- The candidate permission hardening also touches published match/map tables.\nCREATE TABLE public.iste_tournament_matches(id uuid primary key);\nCREATE TABLE public.iste_tournament_maps(id uuid primary key);\nCREATE TABLE public.iste_tournament_audit_log(tournament_id uuid,actor_id uuid,entity_type text,entity_id uuid,action text,previous_data jsonb,new_data jsonb);
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
+CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS 'select coalesce(nullif(current_setting(''request.jwt.claim.role'',true),''''),''anon'')';
+CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
+${migration}
+${teamApply}
+-- Reapplying this candidate must be safe in an isolated, disposable PG17 database.
+${migration}
+INSERT INTO public.user_roles VALUES
+ ('10000000-0000-4000-8000-000000000001','owner',false),
+ ('10000000-0000-4000-8000-000000000002','user',false),
+ ('10000000-0000-4000-8000-000000000003','user',false);
+INSERT INTO public.iste_tournaments(id,status,capacity,title) VALUES ('20000000-0000-4000-8000-000000000001','registration',2,'Test Cup');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id) VALUES
+ ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Alpha','pending','10000000-0000-4000-8000-000000000002');
+INSERT INTO public.iste_tournament_members (id,team_id,user_id,is_captain) VALUES
+ ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000002',true),
+ ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000003',false),
+ ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000004',false),
+ ('40000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000005',false),
+ ('40000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000006',false);
+
+SET LOCAL request.jwt.claim.role='authenticated';
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000002',true);
+    RAISE EXCEPTION 'cross-user consent allowed';
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    IF SQLERRM <> 'MEMBER_NOT_FOUND' THEN RAISE; END IF;
+  END;
+  IF EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000002' AND accepted_at IS NOT NULL) THEN
+    RAISE EXCEPTION 'cross-user membership mutated';
+  END IF;
+  PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000001',true);
+  IF NOT EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000001' AND accepted_at IS NOT NULL) THEN
+    RAISE EXCEPTION 'self-confirmation not saved';
+  END IF;
+  BEGIN
+    PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000001',true);
+    RAISE EXCEPTION 'duplicate acceptance allowed';
+  EXCEPTION WHEN SQLSTATE '40001' THEN
+    IF SQLERRM <> 'MEMBERSHIP_ALREADY_CONFIRMED' THEN RAISE; END IF;
+  END;
+  IF (SELECT count(*) FROM public.iste_tournament_audit_log WHERE action='member_accepted') <> 1 THEN
+    RAISE EXCEPTION 'duplicate consent created extra audit events';
+  END IF;
+END
+$test$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.iste_owner_review_team('30000000-0000-4000-8000-000000000001','pending','approve');
+    RAISE EXCEPTION 'unconfirmed roster approved';
+  EXCEPTION WHEN SQLSTATE '22023' THEN
+    IF SQLERRM <> 'ROSTER_NOT_CONFIRMED' THEN RAISE; END IF;
+  END;
+  IF (SELECT status FROM public.iste_tournament_teams WHERE id='30000000-0000-4000-8000-000000000001') <> 'pending' THEN
+    RAISE EXCEPTION 'review changed status unexpectedly';
+  END IF;
+END
+$test$;
+-- Only the caller's outstanding invitation must be visible.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
+DO $mine$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_v2_my_roster_invitations())<>1 THEN
+   RAISE EXCEPTION 'own pending invitations not filtered';
+ END IF;
+ IF NOT EXISTS (
+   SELECT 1 FROM public.iste_v2_my_roster_invitations()
+   WHERE member_id='40000000-0000-4000-8000-000000000002'
+     AND team_name='Alpha' AND tournament_title='Test Cup'
+ ) THEN RAISE EXCEPTION 'expected invitation missing'; END IF;
+END
+$mine$;
+-- A different player can refuse their own invitation, which removes their slot.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
+DO $test$
+BEGIN
+  PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000002',false);
+  IF EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000002') THEN
+    RAISE EXCEPTION 'declined invitation still present';
+  END IF;
+END
+$test$;
+DO $audit$
+BEGIN
+  IF (SELECT count(*) FROM public.iste_tournament_audit_log
+      WHERE action='member_accepted' AND actor_id='10000000-0000-4000-8000-000000000002')<>1
+    OR (SELECT count(*) FROM public.iste_tournament_audit_log
+      WHERE action='member_declined' AND actor_id='10000000-0000-4000-8000-000000000003')<>1
+  THEN RAISE EXCEPTION 'consent audit events missing'; END IF;
+END
+$audit$;
+-- A blocked member must not be able to accept another pending membership.
+UPDATE public.user_roles SET is_blocked=true WHERE user_id='10000000-0000-4000-8000-000000000003';
+INSERT INTO public.iste_tournament_members (id,team_id,user_id,is_captain)
+VALUES ('40000000-0000-4000-8000-000000000006','30000000-0000-4000-8000-000000000001',
+'10000000-0000-4000-8000-000000000003',false);
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000006',true);
+    RAISE EXCEPTION 'blocked player accepted';
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    IF SQLERRM <> 'ACCOUNT_BLOCKED' THEN RAISE; END IF;
+  END;
+  IF EXISTS(SELECT 1 FROM public.iste_tournament_members WHERE id='40000000-0000-4000-8000-000000000006' AND accepted_at IS NOT NULL) THEN
+    RAISE EXCEPTION 'blocked player mutated acceptance';
+  END IF;
+END
+$test$;
+-- A captain cannot decline their own required position.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000001',false);
+    RAISE EXCEPTION 'captain declined their own position';
+  EXCEPTION WHEN SQLSTATE '22023' THEN
+    IF SQLERRM <> 'CAPTAIN_CANNOT_DECLINE' THEN RAISE; END IF;
+  END;
+END
+$test$;
+-- End-to-end SQL path: captain and four players confirm, then owner approves.
+DELETE FROM public.iste_tournament_members
+ WHERE id='40000000-0000-4000-8000-000000000006';
+UPDATE public.user_roles SET is_blocked=false
+ WHERE user_id='10000000-0000-4000-8000-000000000003';
+INSERT INTO public.iste_tournament_members(id,team_id,user_id,is_captain)
+VALUES ('40000000-0000-4000-8000-000000000007',
+ '30000000-0000-4000-8000-000000000001',
+ '10000000-0000-4000-8000-000000000003',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
+SELECT public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000007',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000004';
+SELECT public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000003',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000005';
+SELECT public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000004',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000006';
+SELECT public.iste_v2_respond_roster_membership('40000000-0000-4000-8000-000000000005',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+DO $full_team$
+DECLARE outcome jsonb;
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members
+    WHERE team_id='30000000-0000-4000-8000-000000000001'
+      AND accepted_at IS NOT NULL)<>5 THEN
+   RAISE EXCEPTION 'five explicit confirmations missing';
+ END IF;
+ outcome:=public.iste_owner_review_team(
+  '30000000-0000-4000-8000-000000000001','pending','approve');
+ IF outcome->>'status'<>'approved' OR
+    (SELECT status FROM public.iste_tournament_teams
+      WHERE id='30000000-0000-4000-8000-000000000001')<>'approved' THEN
+   RAISE EXCEPTION 'confirmed roster was not approved';
+ END IF;
+ IF (SELECT count(*) FROM public.iste_tournament_audit_log
+     WHERE action='team_approved')<>1 THEN
+   RAISE EXCEPTION 'approval audit event missing';
+ END IF;
+END
+$full_team$;
+-- Integration: actual captain application RPC creates invitations, then five people consent and owner approves.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000002','registration',2,'Full Application Cup');
+SET LOCAL request.jwt.claim.role='authenticated';
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+SELECT public.iste_apply_tournament_team(
+ jsonb_build_object('tournamentId','20000000-0000-4000-8000-000000000002',
+ 'name','Full Flow Team','members',jsonb_build_array(
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000010'),
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000011'),
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000012'),
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000013'),
+ jsonb_build_object('userId','10000000-0000-4000-8000-000000000014'))));
+DO $registration$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members m
+      JOIN public.iste_tournament_teams t ON t.id=m.team_id
+      WHERE t.tournament_id='20000000-0000-4000-8000-000000000002'
+        AND m.accepted_at IS NULL)<>5 THEN
+   RAISE EXCEPTION 'application did not create five pending invitations';
+ END IF;
+END $registration$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000011';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000012';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000013';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000014';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id
+ WHERE t.tournament_id='20000000-0000-4000-8000-000000000002' AND m.user_id=auth.uid()),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+SELECT public.iste_owner_review_team(
+ (SELECT id FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000002'),
+ 'pending','approve');
+DO $full_flow$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_teams
+     WHERE tournament_id='20000000-0000-4000-8000-000000000002' AND status='approved')<>1
+ OR (SELECT count(*) FROM public.iste_tournament_audit_log
+     WHERE tournament_id='20000000-0000-4000-8000-000000000002' AND action='team_application')<>1
+ OR (SELECT count(*) FROM public.iste_tournament_audit_log
+     WHERE tournament_id='20000000-0000-4000-8000-000000000002' AND action='member_accepted')<>5
+ THEN RAISE EXCEPTION 'end-to-end application/consent/approval failed'; END IF;
+END $full_flow$;
+-- Approved teams must never reappear as pending invitations.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $closed_invitations$
+BEGIN
+ IF EXISTS (
+   SELECT 1 FROM public.iste_v2_my_roster_invitations()
+   WHERE tournament_id='20000000-0000-4000-8000-000000000002'
+ ) THEN RAISE EXCEPTION 'approved team surfaced as a pending invitation'; END IF;
+END $closed_invitations$;
+-- A blocked account cannot browse even its own pending invitations.
+UPDATE public.user_roles SET is_blocked=true WHERE user_id='10000000-0000-4000-8000-000000000003';
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000003';
+DO $blocked_listing$
+BEGIN
+ BEGIN
+   PERFORM * FROM public.iste_v2_my_roster_invitations();
+   RAISE EXCEPTION 'blocked account viewed roster invitations';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+   IF SQLERRM <> 'ACCOUNT_BLOCKED' THEN RAISE; END IF;
+ END;
+END $blocked_listing$;
+-- Captain repairs a declined roster slot; invitee must still confirm.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000003','registration',2,'Replacement Cup');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000003','20000000-0000-4000-8000-000000000003',
+ 'Replacement Squad','pending','10000000-0000-4000-8000-000000000010');
+INSERT INTO public.iste_tournament_members(id,team_id,user_id,is_captain)
+VALUES ('40000000-0000-4000-8000-000000000030','30000000-0000-4000-8000-000000000003',
+ '10000000-0000-4000-8000-000000000010',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000011';
+DO $not_captain$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000012');
+  RAISE EXCEPTION 'noncaptain invited a member';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'TEAM_NOT_FOUND' THEN RAISE; END IF;
+ END;
+END $not_captain$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+SELECT public.iste_v2_invite_replacement(
+ '30000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000012');
+DO $pending_replacement$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000003'
+    AND user_id='10000000-0000-4000-8000-000000000012'
+    AND accepted_at IS NULL)<>1
+ THEN RAISE EXCEPTION 'replacement invitation not pending'; END IF;
+END $pending_replacement$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000012';
+SELECT public.iste_v2_respond_roster_membership(
+ (SELECT id FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003'
+ AND user_id=auth.uid()),true);
+DO $accepted_replacement$
+BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003'
+ AND user_id=auth.uid() AND accepted_at IS NOT NULL)<>1
+ THEN RAISE EXCEPTION 'replacement confirmation missing'; END IF;
+END $accepted_replacement$;
+-- Only the captain sees their pending team in the replacement selector.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000011';
+DO $not_captain_teams$
+BEGIN
+ IF EXISTS (SELECT 1 FROM public.iste_v2_my_pending_captain_teams()
+   WHERE team_id='30000000-0000-4000-8000-000000000003') THEN
+   RAISE EXCEPTION 'noncaptain saw another captain team';
+ END IF;
+END $not_captain_teams$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $captain_teams$
+BEGIN
+ IF NOT EXISTS (SELECT 1 FROM public.iste_v2_my_pending_captain_teams()
+    WHERE team_id='30000000-0000-4000-8000-000000000003'
+      AND member_count=2) THEN
+   RAISE EXCEPTION 'captain team missing from own replacement list';
+ END IF;
+END $captain_teams$;
+-- Reinviting an already pending player to the same squad is forbidden.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $same_team_duplicate$
+DECLARE v_members bigint; v_invites bigint;
+BEGIN
+ SELECT count(*) INTO v_members FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000003';
+ SELECT count(*) INTO v_invites FROM public.iste_tournament_audit_log
+  WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003';
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003',
+   '10000000-0000-4000-8000-000000000012');
+  RAISE EXCEPTION 'duplicate pending invitation accepted';
+ EXCEPTION WHEN SQLSTATE '23505' THEN
+  IF SQLERRM <> 'PLAYER_ALREADY_REGISTERED' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_members
+    WHERE team_id='30000000-0000-4000-8000-000000000003')<>v_members
+  OR (SELECT count(*) FROM public.iste_tournament_audit_log
+    WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003')<>v_invites
+ THEN RAISE EXCEPTION 'duplicate invitation mutated roster or audit'; END IF;
+END $same_team_duplicate$;
+-- Captain cannot invite themselves as a second roster entry.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $captain_self_invite$
+DECLARE before_members bigint;
+BEGIN
+ SELECT count(*) INTO before_members FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003';
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003',
+   '10000000-0000-4000-8000-000000000010');
+  RAISE EXCEPTION 'captain invited self as second player';
+ EXCEPTION WHEN SQLSTATE '23505' THEN
+  IF SQLERRM <> 'DUPLICATE_MEMBER' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003')<>before_members THEN
+  RAISE EXCEPTION 'self-invite changed roster';
+ END IF;
+END $captain_self_invite$;
+-- Unknown Auth UUID must not consume any playing slot.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $ghost_account$
+DECLARE v_before bigint;
+BEGIN
+ SELECT count(*) INTO v_before FROM public.iste_tournament_members
+ WHERE team_id='30000000-0000-4000-8000-000000000003';
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003',
+   '10000000-0000-4000-8000-000000000999');
+  RAISE EXCEPTION 'nonexistent Auth user invited';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'PLAYER_ACCOUNT_NOT_FOUND' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000003')<>v_before
+ THEN RAISE EXCEPTION 'nonexistent account consumed roster slot'; END IF;
+END $ghost_account$;
+-- An initial captain application cannot register a fictional Auth user.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000008','registration',2,'Identity Guard Cup');
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $initial_ghost$
+BEGIN
+ BEGIN
+  PERFORM public.iste_apply_tournament_team(jsonb_build_object(
+   'tournamentId','20000000-0000-4000-8000-000000000008','name','Ghost Squad',
+   'members',jsonb_build_array(
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000020'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000021'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000022'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000023'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000999'))));
+  RAISE EXCEPTION 'initial team application accepted nonexistent Auth member';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'PLAYER_ACCOUNT_NOT_FOUND' THEN RAISE; END IF;
+ END;
+ IF EXISTS (SELECT 1 FROM public.iste_tournament_teams
+  WHERE tournament_id='20000000-0000-4000-8000-000000000008')
+ THEN RAISE EXCEPTION 'invalid team was created'; END IF;
+END $initial_ghost$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+-- An existing but blocked account cannot be included in an initial roster.
+INSERT INTO public.user_roles(user_id,role,is_blocked)
+VALUES ('10000000-0000-4000-8000-000000000099','user',true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $blocked_initial_member$
+BEGIN
+ BEGIN
+  PERFORM public.iste_apply_tournament_team(jsonb_build_object(
+   'tournamentId','20000000-0000-4000-8000-000000000008','name','Blocked Squad',
+   'members',jsonb_build_array(
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000020'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000021'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000022'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000023'),
+    jsonb_build_object('userId','10000000-0000-4000-8000-000000000099'))));
+  RAISE EXCEPTION 'blocked roster player admitted';
+ EXCEPTION WHEN SQLSTATE '42501' THEN
+  IF SQLERRM <> 'ACCOUNT_BLOCKED' THEN RAISE; END IF;
+ END;
+ IF EXISTS (SELECT 1 FROM public.iste_tournament_teams
+  WHERE tournament_id='20000000-0000-4000-8000-000000000008')
+ THEN RAISE EXCEPTION 'blocked member created team'; END IF;
+END $blocked_initial_member$;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+-- An existing member of another active team in the same cup cannot be invited again.
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000063',
+ '20000000-0000-4000-8000-000000000003','Other Active Squad','approved',
+ '10000000-0000-4000-8000-000000000060');
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain)
+VALUES ('30000000-0000-4000-8000-000000000063',
+ '10000000-0000-4000-8000-000000000061',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000010';
+DO $cross_team_duplicate$
+DECLARE before_members bigint; before_audits bigint;
+BEGIN
+ SELECT count(*) INTO before_members FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000003';
+ SELECT count(*) INTO before_audits FROM public.iste_tournament_audit_log
+  WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003';
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000003',
+   '10000000-0000-4000-8000-000000000061');
+  RAISE EXCEPTION 'registered player invited to another active team';
+ EXCEPTION WHEN SQLSTATE '23505' THEN
+  IF SQLERRM <> 'PLAYER_ALREADY_REGISTERED' THEN RAISE; END IF;
+ END;
+ IF (SELECT count(*) FROM public.iste_tournament_members
+    WHERE team_id='30000000-0000-4000-8000-000000000003')<>before_members
+ OR (SELECT count(*) FROM public.iste_tournament_audit_log
+    WHERE action='member_invited' AND tournament_id='20000000-0000-4000-8000-000000000003')<>before_audits THEN
+   RAISE EXCEPTION 'cross-team duplicate changed roster or audit';
+ END IF;
+END $cross_team_duplicate$;
+-- Full repair flow: real application -> player declines -> captain replacement -> consent -> approval.
+INSERT INTO public.iste_tournaments(id,status,capacity,title) VALUES ('20000000-0000-4000-8000-000000000004','registration',2,'Repair Cup');
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+SELECT public.iste_apply_tournament_team(jsonb_build_object('tournamentId','20000000-0000-4000-8000-000000000004','name','Repair Test','members',jsonb_build_array(jsonb_build_object('userId','10000000-0000-4000-8000-000000000020'),jsonb_build_object('userId','10000000-0000-4000-8000-000000000021'),jsonb_build_object('userId','10000000-0000-4000-8000-000000000022'),jsonb_build_object('userId','10000000-0000-4000-8000-000000000023'),jsonb_build_object('userId','10000000-0000-4000-8000-000000000024'))));
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000024';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000024'),false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+SELECT public.iste_v2_invite_replacement((SELECT id FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000004'),'10000000-0000-4000-8000-000000000025');
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000020'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000021';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000021'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000022';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000022'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000023';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000023'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000025';
+SELECT public.iste_v2_respond_roster_membership((SELECT m.id FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.user_id='10000000-0000-4000-8000-000000000025'),true);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+SELECT public.iste_owner_review_team((SELECT id FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000004'),'pending','approve');
+DO $replacement_flow$ BEGIN
+ IF (SELECT count(*) FROM public.iste_tournament_members m JOIN public.iste_tournament_teams t ON t.id=m.team_id WHERE t.tournament_id='20000000-0000-4000-8000-000000000004' AND m.accepted_at IS NOT NULL)<>5 OR
+ (SELECT count(*) FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000004' AND status='approved')<>1 OR
+ (SELECT count(*) FROM public.iste_tournament_audit_log WHERE tournament_id='20000000-0000-4000-8000-000000000004' AND action='member_invited')<>1
+ THEN RAISE EXCEPTION 'replacement-to-approval flow failed'; END IF;
+END $replacement_flow$;
+-- Review-closed teams cannot be edited even by the original captain.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $closed_replacement$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   (SELECT id FROM public.iste_tournament_teams WHERE tournament_id='20000000-0000-4000-8000-000000000004'),
+   '10000000-0000-4000-8000-000000000026');
+  RAISE EXCEPTION 'approved team accepted another invitation';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+END $closed_replacement$;
+-- A seven-player pending roster cannot invite an eighth player.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000005','registration',2,'Capacity Cup');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000005',
+ '20000000-0000-4000-8000-000000000005','Capacity Squad','pending',
+ '10000000-0000-4000-8000-000000000020');
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain)
+SELECT '30000000-0000-4000-8000-000000000005'::uuid,
+ ('10000000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
+ n=20 FROM generate_series(20,26) n;
+DO $full_replacement$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+    '30000000-0000-4000-8000-000000000005',
+    '10000000-0000-4000-8000-000000000027');
+  RAISE EXCEPTION 'full roster accepted eighth invite';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_FULL' THEN RAISE; END IF;
+ END;
+END $full_replacement$;
+-- Expired registration window blocks replacement even while team remains pending.
+INSERT INTO public.iste_tournaments(id,status,capacity,title,registration_end)
+VALUES ('20000000-0000-4000-8000-000000000006','registration',2,'Expired Window Cup',now()-interval '1 minute');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000006',
+ '20000000-0000-4000-8000-000000000006','Expired Squad','pending',
+ '10000000-0000-4000-8000-000000000020');
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $expired_replacement$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000006',
+   '10000000-0000-4000-8000-000000000027');
+  RAISE EXCEPTION 'expired registration accepted replacement';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+END $expired_replacement$;
+-- Pre-registration window likewise blocks invitations.
+UPDATE public.iste_tournaments SET registration_end=null,
+ registration_start=now()+interval '1 hour'
+WHERE id='20000000-0000-4000-8000-000000000006';
+DO $early_replacement$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_invite_replacement(
+   '30000000-0000-4000-8000-000000000006',
+   '10000000-0000-4000-8000-000000000027');
+  RAISE EXCEPTION 'future registration accepted replacement';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+END $early_replacement$;
+-- Roster responses must honor the registration window, not only tournament status.
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain)
+VALUES ('30000000-0000-4000-8000-000000000006',
+ '10000000-0000-4000-8000-000000000021',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000021';
+DO $future_consent$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_respond_roster_membership(
+   (SELECT id FROM public.iste_tournament_members
+     WHERE team_id='30000000-0000-4000-8000-000000000006' AND user_id=auth.uid()),true);
+  RAISE EXCEPTION 'future registration accepted consent';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+END $future_consent$;
+UPDATE public.iste_tournaments SET registration_start=null,
+ registration_end=now()-interval '1 minute'
+WHERE id='20000000-0000-4000-8000-000000000006';
+DO $expired_consent$
+BEGIN
+ BEGIN
+  PERFORM public.iste_v2_respond_roster_membership(
+   (SELECT id FROM public.iste_tournament_members
+     WHERE team_id='30000000-0000-4000-8000-000000000006' AND user_id=auth.uid()),true);
+  RAISE EXCEPTION 'expired registration accepted consent';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_CLOSED' THEN RAISE; END IF;
+ END;
+ IF EXISTS(SELECT 1 FROM public.iste_tournament_members
+  WHERE team_id='30000000-0000-4000-8000-000000000006' AND accepted_at IS NOT NULL)
+ THEN RAISE EXCEPTION 'closed registration mutated consent'; END IF;
+END $expired_consent$;
+-- A coach cannot be counted as the fifth playing-roster member.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000007','registration',2,'Coaches Are Not Players');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000007','20000000-0000-4000-8000-000000000007',
+ 'Coach Squad','pending','10000000-0000-4000-8000-000000000020');
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain,role,accepted_at)
+SELECT '30000000-0000-4000-8000-000000000007'::uuid,
+ ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
+ n=20,CASE WHEN n=24 THEN 'coach' ELSE 'player' END,now()
+FROM generate_series(20,24) n;
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+DO $coach_guard$
+BEGIN
+ BEGIN
+  PERFORM public.iste_owner_review_team('30000000-0000-4000-8000-000000000007',
+   'pending','approve');
+  RAISE EXCEPTION 'coach counted as fifth player';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_INCOMPLETE' THEN RAISE; END IF;
+ END;
+END $coach_guard$;
+-- Captain's replacement selector must not list teams when registration is closed.
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000020';
+DO $closed_captain_team_list$
+BEGIN
+ IF EXISTS (SELECT 1 FROM public.iste_v2_my_pending_captain_teams()
+  WHERE team_id='30000000-0000-4000-8000-000000000006')
+ THEN RAISE EXCEPTION 'closed tournament offered replacement form'; END IF;
+END $closed_captain_team_list$;
+-- Invitation list must agree with consent RPC registration-window restrictions.
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain)
+VALUES ('30000000-0000-4000-8000-000000000006',
+ '10000000-0000-4000-8000-000000000030',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000030';
+DO $invite_window$
+BEGIN
+ IF EXISTS (SELECT 1 FROM public.iste_v2_my_roster_invitations()
+  WHERE team_id='30000000-0000-4000-8000-000000000006')
+ THEN RAISE EXCEPTION 'expired registration exposed impossible-to-accept invitation'; END IF;
+ UPDATE public.iste_tournaments SET registration_end=NULL,
+  registration_start=now()+interval '1 hour'
+ WHERE id='20000000-0000-4000-8000-000000000006';
+ IF EXISTS (SELECT 1 FROM public.iste_v2_my_roster_invitations()
+  WHERE team_id='30000000-0000-4000-8000-000000000006')
+ THEN RAISE EXCEPTION 'future registration exposed impossible-to-accept invitation'; END IF;
+ UPDATE public.iste_tournaments SET registration_start=NULL
+ WHERE id='20000000-0000-4000-8000-000000000006';
+ IF NOT EXISTS (SELECT 1 FROM public.iste_v2_my_roster_invitations()
+  WHERE team_id='30000000-0000-4000-8000-000000000006')
+ THEN RAISE EXCEPTION 'open registration hid actionable invitation'; END IF;
+END $invite_window$;
+-- FACEIT-only member cannot provide authenticated consent: never approve such a roster.
+INSERT INTO public.iste_tournaments(id,status,capacity,title)
+VALUES ('20000000-0000-4000-8000-000000000009','registration',2,'FACEIT Consent Guard');
+INSERT INTO public.iste_tournament_teams(id,tournament_id,name,status,captain_user_id)
+VALUES ('30000000-0000-4000-8000-000000000009',
+ '20000000-0000-4000-8000-000000000009','Unverified Squad','pending',
+ '10000000-0000-4000-8000-000000000040');
+INSERT INTO public.iste_tournament_members(team_id,user_id,is_captain,accepted_at)
+SELECT '30000000-0000-4000-8000-000000000009'::uuid,
+ ('10000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
+ n=40,now() FROM generate_series(40,43) n;
+INSERT INTO public.iste_tournament_members(team_id,faceit_player_id,is_captain)
+VALUES ('30000000-0000-4000-8000-000000000009','faceit-only-44',false);
+SET LOCAL request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"aal":"aal2"}';
+DO $faceit_consent_guard$
+BEGIN
+ BEGIN
+  PERFORM public.iste_owner_review_team(
+   '30000000-0000-4000-8000-000000000009','pending','approve');
+  RAISE EXCEPTION 'owner approved FACEIT-only member without Auth consent';
+ EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'ROSTER_NOT_CONFIRMED' THEN RAISE; END IF;
+ END;
+ IF (SELECT status FROM public.iste_tournament_teams
+   WHERE id='30000000-0000-4000-8000-000000000009')<>'pending'
+ THEN RAISE EXCEPTION 'FACEIT-only review changed team status'; END IF;
+END $faceit_consent_guard$;
+-- A later migration rerun must not undo real consent or review state.
+CREATE TEMP TABLE snapshot_members AS
+ SELECT id,team_id,user_id,accepted_at FROM public.iste_tournament_members;
+CREATE TEMP TABLE snapshot_teams AS
+ SELECT id,status FROM public.iste_tournament_teams;
+CREATE TEMP TABLE snapshot_audit AS
+ SELECT tournament_id,actor_id,entity_type,entity_id,action,new_data
+ FROM public.iste_tournament_audit_log;
+${migration}
+DO $idempotent_data$
+BEGIN
+ IF EXISTS (
+   (SELECT id,team_id,user_id,accepted_at FROM public.iste_tournament_members
+    EXCEPT ALL SELECT * FROM snapshot_members)
+   UNION ALL
+   (SELECT * FROM snapshot_members
+    EXCEPT ALL SELECT id,team_id,user_id,accepted_at FROM public.iste_tournament_members)
+ ) THEN RAISE EXCEPTION 'migration rerun changed consent or membership'; END IF;
+ IF EXISTS (
+   (SELECT id,status FROM public.iste_tournament_teams
+    EXCEPT ALL SELECT * FROM snapshot_teams)
+   UNION ALL
+   (SELECT * FROM snapshot_teams
+    EXCEPT ALL SELECT id,status FROM public.iste_tournament_teams)
+ ) THEN RAISE EXCEPTION 'migration rerun changed team review'; END IF;
+ IF EXISTS (
+   (SELECT tournament_id,actor_id,entity_type,entity_id,action,new_data
+    FROM public.iste_tournament_audit_log EXCEPT ALL SELECT * FROM snapshot_audit)
+   UNION ALL
+   (SELECT * FROM snapshot_audit EXCEPT ALL
+    SELECT tournament_id,actor_id,entity_type,entity_id,action,new_data
+    FROM public.iste_tournament_audit_log)
+ ) THEN RAISE EXCEPTION 'migration rerun changed audit history'; END IF;
+END $idempotent_data$;
+ROLLBACK;
+`;
+const result=spawnSync("psql",["-X","-v","ON_ERROR_STOP=1","-q"],{input:sql,encoding:"utf8"});
+assert.equal(result.status,0,result.stderr||result.stdout||"psql failed");
+console.log("V2 roster consent RPC and approval guard passed in isolated PostgreSQL");
