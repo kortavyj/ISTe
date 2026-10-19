@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 const key = process.env.FACEIT_API_KEY?.trim();
 if (!key) throw new Error("FACEIT_API_KEY missing from GitHub Actions secrets");
-const names = ["E34-M50B25", "S1Zapooo", "DETT3N", "SaDaMXynBceM", "syro_S"];
+const playersToSync = [{ nickname: "E34-M50B25", faceitNickname: "ivan1love" }, ...["S1Zapooo", "DETT3N", "SaDaMXynBceM", "syro_S"].map(nickname => ({ nickname, faceitNickname: nickname }))];
 const base = "https://open.faceit.com/data/v4";
 const asNumber = (v) => v === null || v === undefined || v === "" ? null : Number.isFinite(Number(String(v).replace("%", "").replace(",", "."))) ? Number(String(v).replace("%", "").replace(",", ".")) : null;
 async function get(path) {
@@ -10,10 +10,10 @@ async function get(path) {
   return res.json();
 }
 const players = [];
-for (const nickname of names) {
+for (const { nickname, faceitNickname } of playersToSync) {
   try {
-    const user = await get(`/players?nickname=${encodeURIComponent(nickname)}&game=cs2`);
-    if (!user.player_id || user.nickname?.toLowerCase() !== nickname.toLowerCase()) throw new Error("Player nickname mismatch");
+    const user = await get(`/players?nickname=${encodeURIComponent(faceitNickname)}&game=cs2`);
+    if (!user.player_id || user.nickname?.toLowerCase() !== faceitNickname.toLowerCase()) throw new Error("Player nickname mismatch");
     let lifetime = {};
     try { lifetime = (await get(`/players/${encodeURIComponent(user.player_id)}/stats/cs2`)).lifetime || {}; }
     catch (e) { console.warn("FACEIT lifetime unavailable", nickname, e.message); }
@@ -25,7 +25,7 @@ for (const nickname of names) {
       kd: asNumber(lifetime["Average K/D Ratio"] ?? lifetime["K/D Ratio"]),
       winRate: asNumber(lifetime["Win Rate %"] ?? lifetime["Win Rate"]),
       matches: asNumber(lifetime.Matches),
-      faceitUrl: `https://www.faceit.com/ru/players/${encodeURIComponent(nickname)}`,
+      faceitUrl: `https://www.faceit.com/ru/players/${encodeURIComponent(faceitNickname)}`,
     });
   } catch (e) {
     console.warn("Academy player unavailable", nickname, e.message);
