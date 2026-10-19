@@ -9,7 +9,7 @@ export default function useAcademyRoster(enabled = true) {
     let disposed = false;
     const load = async () => {
       try {
-        const response = await fetch("/api/academy-stats", { headers: { Accept: "application/json" } });
+        const response = await fetch(`${import.meta.env.BASE_URL}data/academy-faceit-stats.json?time=${Date.now()}`, { cache: "no-store", headers: { Accept: "application/json" } });
         if (!response.ok) throw new Error("FACEIT unavailable");
         const data = await response.json();
         if (!disposed) { setLive(Array.isArray(data.players) ? data.players : []); setError(false); }
