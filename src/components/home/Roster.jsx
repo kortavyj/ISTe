@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ACADEMY_PLAYERS, centerCaptain } from "../../data/academyRoster.js";
+import { centerCaptain } from "../../data/academyRoster.js";
+import useAcademyRoster from "../../hooks/useAcademyRoster.js";
 import useOfficialRoster from "../../hooks/useOfficialRoster.js";
 import { useLanguage } from "../../i18n/LanguageContext.jsx";
 import sharedPlayerPortrait from "../../assets/players/team-player.webp";
@@ -354,6 +355,7 @@ export default function Roster() {
   const { t, language } =
     useLanguage();
   const [activeRoster,setActiveRoster] = useState("main");
+  const { players: academyPlayers, error: academyStatsError } = useAcademyRoster(activeRoster === "academy");
 
   const {
     stats,
@@ -453,7 +455,7 @@ export default function Roster() {
       </header>
 
       <nav className="iste-roster-tabs" aria-label="ISTe rosters"><button type="button" aria-pressed={activeRoster==="main"} onClick={()=>setActiveRoster("main")}>ISTe MAIN</button><button type="button" aria-pressed={activeRoster==="academy"} onClick={()=>setActiveRoster("academy")}>ISTe ACADEMY</button></nav>
-      {activeRoster==="academy" ? <><div className="roster-grid">{ACADEMY_PLAYERS.map(player=><PlayerCard player={player} key={player.playerId}/>)}</div></> : <>
+      {activeRoster==="academy" ? <>{academyStatsError ? <p role="status">{language === "en" ? "FACEIT statistics temporarily unavailable" : "Статистика FACEIT тимчасово недоступна"}</p> : null}<div className="roster-grid">{academyPlayers.map(player=><PlayerCard player={player} key={player.playerId}/>)}</div></> : <>
       {loading &&
       mainRoster.length === 0 ? (
         <RosterSkeleton />
