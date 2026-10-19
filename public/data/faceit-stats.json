@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 43,
-  "matches": 89,
-  "wins": 72,
+  "matches": 90,
+  "wins": 73,
   "winRate": 81,
   "players": 7,
   "roster": [
@@ -44,20 +44,20 @@
       "kd": 1.26
     },
     {
-      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
-      "nickname": "sssoo",
-      "avatar": "https://distribution.faceit-cdn.net/images/3e21fd6c-a05c-4619-b072-8541080ccad6.jpg",
+      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
+      "nickname": "Droni452",
+      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
+      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
-      "elo": 2346,
+      "elo": 2517,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.23
+      "winRate": 50,
+      "kd": 1.06
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -76,22 +76,6 @@
       "kd": 1.09
     },
     {
-      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
-      "nickname": "Droni452",
-      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
-      "level": 10,
-      "elo": 2517,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.06
-    },
-    {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
       "nickname": "1sagi",
       "avatar": "https://distribution.faceit-cdn.net/images/5a978f90-6757-4e26-b1ce-fb267a90f8d4.jpg",
@@ -108,6 +92,22 @@
       "kd": 0.98
     },
     {
+      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
+      "nickname": "sssoo",
+      "avatar": "https://distribution.faceit-cdn.net/images/960916bd-6cbd-438a-8dbd-7ad09d5e46a1.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
+      "level": 10,
+      "elo": 2346,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 49,
+      "kd": 1.23
+    },
+    {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
       "nickname": "Manocivnyk",
       "avatar": null,
@@ -121,10 +121,34 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.11
+      "kd": 1.12
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-c0f06efe-9ec0-4fc7-a7a6-84d4b5651a04",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-c0f06efe-9ec0-4fc7-a7a6-84d4b5651a04",
+      "tournamentId": "3b1873c0-4401-4a4e-8aef-111138b9a3c4",
+      "competitionName": "S59 EU Open10 B - Regular Season",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-10-19T20:04:10.000Z",
+      "startedAt": "2026-10-19T20:04:10.000Z",
+      "finishedAt": "2026-10-19T20:44:24.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "G-Romero",
+        "avatar": "https://distribution.faceit-cdn.net/images/558444e7-de72-48b0-a98e-2f10d12b34e7.jpg",
+        "score": 7
+      }
+    },
     {
       "matchId": "1-0054525c-ebdb-406c-a7d2-4908e1e80493",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-0054525c-ebdb-406c-a7d2-4908e1e80493",
@@ -3462,14 +3486,14 @@
       }
     }
   ],
-  "teamMatchCount": 139,
+  "teamMatchCount": 140,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 8,
-    "historyMatchesFound": 9,
+    "historyMatchesFound": 10,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3477,5 +3501,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-19T14:01:24.047Z"
+  "updatedAt": "2026-10-19T22:02:27.837Z"
 }
