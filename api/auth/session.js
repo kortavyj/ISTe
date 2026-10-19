@@ -2397,27 +2397,6 @@ async function handleNewsSave(
         account.access.role,
       );
 
-    let translations;
-
-    try {
-      translations =
-        await buildNewsTranslations(
-          input,
-        );
-    } catch (error) {
-      console.error(
-        "News translation error:",
-        error?.cause || error,
-      );
-
-      return sendError(
-        response,
-        502,
-        "NEWS_TRANSLATION_FAILED",
-        "Не удалось подготовить украинскую и английскую версии новости.",
-      );
-    }
-
     const payload = {
       title: input.title,
       slug: input.slug,
@@ -2553,13 +2532,25 @@ async function handleNewsSave(
       );
     }
 
+    // Saving the source article must not depend on an external translator.
+    // A failed localization can be retried by saving the article again.
+    let translations = null;
+    let translationWarning = null;
+
+    try {
+      translations = await buildNewsTranslations(input);
+    } catch (error) {
+      console.error("News translation error after save:", error?.cause || error);
+      translationWarning = "Новость сохранена, но автоматический перевод не удался. Повторите сохранение позже.";
+    }
+
     /*
      * translations is optional at database level.
      * If the localization migration is present we persist both languages.
      * If it is not present yet, the public News page still receives
      * automatic runtime localization through news-localize-public.
      */
-    try {
+    if (translations) try {
       const {
         error:
           translationSaveError,
@@ -2582,19 +2573,22 @@ async function handleNewsSave(
           translationSaveError.message ||
             translationSaveError,
         );
+        translationWarning = "Новость сохранена, но переводы не удалось записать. Повторите сохранение позже.";
       }
     } catch (error) {
       console.warn(
         "News translations persistence skipped:",
         error?.message || error,
       );
+      translationWarning = "Новость сохранена, но переводы не удалось записать. Повторите сохранение позже.";
     }
 
     return response.status(200).json({
       ok: true,
+      warning: translationWarning,
       post: {
         ...result.data,
-        translations,
+        ...(translations ? { translations } : {}),
       },
     });
   } catch (error) {
