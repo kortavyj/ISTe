@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 const key = process.env.FACEIT_API_KEY?.trim();
 if (!key) throw new Error("FACEIT_API_KEY missing from GitHub Actions secrets");
-const playersToSync = [{ nickname: "E34-M50B25", faceitNickname: "ivan1love" }, ...["S1Zapooo", "DETT3N", "SaDaMXynBceM", "syro_S"].map(nickname => ({ nickname, faceitNickname: nickname }))];
+const playersToSync = [{ nickname: "ivan1love", faceitNickname: "ivan1love" }, ...["S1Zapooo", "DETT3N", "SaDaMXynBceM", "syro_S"].map(nickname => ({ nickname, faceitNickname: nickname }))];
 const base = "https://open.faceit.com/data/v4";
 const asNumber = (v) => v === null || v === undefined || v === "" ? null : Number.isFinite(Number(String(v).replace("%", "").replace(",", "."))) ? Number(String(v).replace("%", "").replace(",", ".")) : null;
 async function get(path) {
