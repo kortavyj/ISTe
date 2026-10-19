@@ -49,11 +49,16 @@ jobs:
           FACEIT_FULL_SYNC: ${{ github.event_name == 'workflow_dispatch' && inputs.full_match_sync && '1' || '0' }}
         run: node scripts/update-faceit-stats.mjs
 
+      - name: Load Academy FACEIT data
+        env:
+          FACEIT_API_KEY: ${{ secrets.FACEIT_API_KEY }}
+        run: node scripts/update-academy-faceit-stats.mjs
+
       - name: Commit changed statistics
         id: commit
         shell: bash
         run: |
-          if git diff --quiet -- public/data/faceit-stats.json; then
+          if git diff --quiet -- public/data/faceit-stats.json public/data/academy-faceit-stats.json && [ -z "$(git ls-files --others --exclude-standard public/data/academy-faceit-stats.json)" ]; then
             echo "FACEIT statistics have not changed."
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
@@ -61,7 +66,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/faceit-stats.json
+          git add public/data/faceit-stats.json public/data/academy-faceit-stats.json
           git commit -m "Update FACEIT statistics and team matches"
           git push
           echo "changed=true" >> "$GITHUB_OUTPUT"
