@@ -138,6 +138,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/team" element={<Team />} />
+          <Route path="/team/academy" element={<Team initialRoster="academy" />} />
           <Route path="/matches" element={<Matches />} />
           <Route path="/tournaments" element={<TournamentsShowcase />} />
           <Route path="/tournaments/share" element={<TournamentSharedBracket />} />
