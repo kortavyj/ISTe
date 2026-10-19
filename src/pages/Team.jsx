@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { ACADEMY_PLAYERS, centerCaptain } from "../data/academyRoster.js";
+import useAcademyRoster from "../hooks/useAcademyRoster.js";
 import useOfficialRoster from "../hooks/useOfficialRoster.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import sharedPlayerPortrait from "../assets/players/team-player.webp";
@@ -794,40 +795,7 @@ function ProfilesSkeleton({ copy }) {
 export default function Team({ initialRoster = "main" }) {
   const { language, t } = useLanguage();
   const [activeRoster,setActiveRoster] = useState(initialRoster);
-  const [academyLive, setAcademyLive] = useState([]);
-  const [academyStatsError, setAcademyStatsError] = useState(false);
-
-  useEffect(() => {
-    if (activeRoster !== "academy") return undefined;
-    let canceled = false;
-    const load = async () => {
-      try {
-        const response = await fetch("/api/academy-stats", { headers: { Accept: "application/json" } });
-        if (!response.ok) throw new Error("FACEIT statistics unavailable");
-        const body = await response.json();
-        if (!canceled) {
-          setAcademyLive(Array.isArray(body.players) ? body.players : []);
-          setAcademyStatsError(false);
-        }
-      } catch {
-        if (!canceled) setAcademyStatsError(true);
-      }
-    };
-    void load();
-    const timer = window.setInterval(load, 300000);
-    return () => { canceled = true; window.clearInterval(timer); };
-  }, [activeRoster]);
-
-  const academyPlayers = useMemo(() => {
-    const statsByNick = new Map(academyLive.map((player) => [String(player.nickname).toLowerCase(), player]));
-    return ACADEMY_PLAYERS.map((player) => ({
-      ...player,
-      ...(statsByNick.get(player.nickname.toLowerCase()) || {}),
-      rosterStatus: "academy",
-      officialRoster: true,
-    }));
-  }, [academyLive]);
-
+  const { players: academyPlayers, error: academyStatsError } = useAcademyRoster(activeRoster === "academy");
   const { stats, loading, error, reload } = useOfficialRoster();
   const copy = PAGE_COPY[language] || PAGE_COPY.uk;
 
