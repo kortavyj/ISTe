@@ -1,7 +1,7 @@
 export const ACADEMY_FACEIT_TEAM = "https://www.faceit.com/ru/teams/32334a69-a46c-496a-a029-060b30a89b13/overview";
 // Membership confirmed by team screenshot. Individual ratings/roles are not verified.
 export const ACADEMY_PLAYERS = [
-  {nickname:"E34-M50B25"},
+  {nickname:"ivan1love"},
   {nickname:"S1Zapooo"},
   {nickname:"DETT3N",isCaptain:true,role:"IGL"},
   {nickname:"SaDaMXynBceM"},
