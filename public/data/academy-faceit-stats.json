@@ -16,7 +16,7 @@
       "nickname": "S1Zapooo",
       "playerId": "694129f4-7908-4b4d-b7fb-cbb8201cbc79",
       "country": "ua",
-      "avatar": "https://distribution.faceit-cdn.net/images/7f96b934-42c1-4f3b-a883-e853fb331cf9.jpg",
+      "avatar": null,
       "level": 10,
       "elo": 2121,
       "kd": 1.33,
@@ -30,10 +30,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/b1cdce43-4629-4739-af8f-1e4dbfb2107b.jpg",
       "level": 4,
-      "elo": 1014,
+      "elo": 1039,
       "kd": 0.96,
       "winRate": 49,
-      "matches": 544,
+      "matches": 545,
       "faceitUrl": "https://www.faceit.com/ru/players/DETT3N"
     },
     {
