@@ -31,17 +31,17 @@
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
       "nickname": "VaLaF",
       "avatar": "https://distribution.faceit-cdn.net/images/7d48da5a-ccec-4ab8-aec8-990fc655f9df.jpg",
-      "country": "ua",
+      "country": "pt",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/VaLaF",
       "level": 10,
-      "elo": 2446,
+      "elo": 2421,
       "role": "AWP",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 50,
-      "kd": 1.26
+      "kd": 1.27
     },
     {
       "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
@@ -67,13 +67,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
-      "elo": 2619,
+      "elo": 2594,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.09
+      "kd": 1.1
     },
     {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
@@ -83,29 +83,29 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
-      "elo": 2577,
+      "elo": 2552,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.07
+      "kd": 1.06
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
       "nickname": "1sagi",
       "avatar": "https://distribution.faceit-cdn.net/images/5a978f90-6757-4e26-b1ce-fb267a90f8d4.jpg",
-      "country": "ua",
+      "country": "cn",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
       "level": 10,
-      "elo": 2467,
+      "elo": 2442,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 0.98
+      "kd": 0.97
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -3501,5 +3501,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-20T16:54:36.303Z"
+  "updatedAt": "2026-10-20T20:12:23.457Z"
 }
