@@ -59,6 +59,7 @@ const guildRuntimeConfigCache = new Map();
 
 const PRIVATE_CATEGORY_NAME = "🔒 ПРИВАТНІ КІМНАТИ";
 const PRIVATE_LOBBY_NAME = "➕ Створити приватний";
+const PRIVATE_ENTRY_CATEGORIES = ["CYBERION Kalynova", "CYBERION Zavodskaya"];
 const PRIVATE_ROOM_PREFIX = "🔒・";
 const PRIVATE_DELETE_DELAY_MS = 3_000;
 
@@ -2151,7 +2152,7 @@ function isPrivateManagedRoom(channel, config) {
       config &&
       channel.type === ChannelType.GuildVoice &&
       channel.parentId === config.categoryId &&
-      channel.id !== config.lobbyId &&
+      !config.lobbyIds.includes(channel.id) &&
       channel.name.startsWith(PRIVATE_ROOM_PREFIX),
   );
 }
@@ -2160,51 +2161,49 @@ async function ensurePrivateVoiceSetup(guild) {
   await guild.channels.fetch();
 
   let category = guild.channels.cache.find(
-    (channel) =>
-      channel.type === ChannelType.GuildCategory &&
+    (channel) => channel.type === ChannelType.GuildCategory &&
       channel.name === PRIVATE_CATEGORY_NAME,
   );
-
   if (!category) {
     category = await guild.channels.create({
       name: PRIVATE_CATEGORY_NAME,
       type: ChannelType.GuildCategory,
-      reason: "ISTesport private voice system setup",
+      reason: "ISTe private voice rooms destination",
     });
-
-    log("private_voice_category_created", {
-      guildId: guild.id,
-      categoryId: category.id,
-    });
+    log("private_voice_category_created", { guildId: guild.id, categoryId: category.id });
   }
 
-  let lobby = guild.channels.cache.find(
-    (channel) =>
-      channel.type === ChannelType.GuildVoice &&
-      channel.parentId === category.id &&
-      channel.name === PRIVATE_LOBBY_NAME,
-  );
-
-  if (!lobby) {
-    lobby = await guild.channels.create({
-      name: PRIVATE_LOBBY_NAME,
-      type: ChannelType.GuildVoice,
-      parent: category.id,
-      userLimit: 0,
-      reason: "ISTesport private voice join to create lobby",
-    });
-
-    log("private_voice_lobby_created", {
-      guildId: guild.id,
-      lobbyId: lobby.id,
-    });
+  const lobbyIds = [];
+  for (const entryName of PRIVATE_ENTRY_CATEGORIES) {
+    const source = guild.channels.cache.find(
+      (channel) => channel.type === ChannelType.GuildCategory &&
+        channel.name.trim().toLowerCase() === entryName.toLowerCase(),
+    );
+    if (!source) {
+      log("private_voice_source_missing", { guildId: guild.id, categoryName: entryName });
+      continue;
+    }
+    let lobby = guild.channels.cache.find(
+      (channel) => channel.type === ChannelType.GuildVoice &&
+        channel.parentId === source.id &&
+        channel.name === PRIVATE_LOBBY_NAME,
+    );
+    if (!lobby) {
+      lobby = await guild.channels.create({
+        name: PRIVATE_LOBBY_NAME,
+        type: ChannelType.GuildVoice,
+        parent: source.id,
+        userLimit: 0,
+        reason: "ISTe private room creation entry",
+      });
+      log("private_voice_lobby_created", { guildId: guild.id, lobbyId: lobby.id, categoryId: source.id });
+    }
+    lobbyIds.push(lobby.id);
   }
 
-  const config = {
-    categoryId: category.id,
-    lobbyId: lobby.id,
-  };
-
+  // The former private-category lobby is deliberately not deleted automatically:
+  // do not destroy/move an existing Discord channel without a reviewed migration.
+  const config = { categoryId: category.id, lobbyIds };
   privateVoiceState.set(guild.id, config);
   return config;
 }
@@ -2499,7 +2498,7 @@ async function initializePrivateVoice() {
       log("private_voice_ready", {
         guildId: guild.id,
         categoryId: config.categoryId,
-        lobbyId: config.lobbyId,
+        lobbyIds: config.lobbyIds,
       });
     } catch (error) {
       privateVoiceLastError =
@@ -2538,7 +2537,7 @@ async function handlePrivateVoiceState(oldState, newState) {
     (await ensurePrivateVoiceSetup(guild));
 
   if (
-    newState.channelId === config.lobbyId &&
+    config.lobbyIds.includes(newState.channelId) &&
     !newState.member?.user?.bot
   ) {
     await createPrivateRoomFor(newState, config);
@@ -2546,7 +2545,7 @@ async function handlePrivateVoiceState(oldState, newState) {
 
   if (
     newState.channelId &&
-    newState.channelId !== config.lobbyId &&
+    !config.lobbyIds.includes(newState.channelId) &&
     isPrivateManagedRoom(newState.channel, config)
   ) {
     cancelPrivateDelete(newState.channelId);
@@ -3761,6 +3760,54 @@ client.on(
     );
   },
 );
+
+client.on(Events.InteractionCreate, (interaction) => {
+  if (!interaction.isButton() || !interaction.customId.startsWith("pv:")) return;
+  void (async () => {
+    try {
+      const [prefix, action, channelId, ownerId] = interaction.customId.split(":");
+      if (prefix !== "pv" || !["lock", "hide"].includes(action)) return;
+      if (!interaction.inGuild() || interaction.user.id !== ownerId) {
+        await interaction.reply({ content: "Тільки власник кімнати може змінювати доступ.", ephemeral: true });
+        return;
+      }
+      const runtime = await fetchGuildRuntimeConfig(interaction.guildId);
+      if (!runtime.active || !runtime.settings?.privateVoiceEnabled) {
+        await interaction.reply({ content: "Приватні кімнати вимкнено.", ephemeral: true });
+        return;
+      }
+      const config = privateVoiceState.get(interaction.guildId) ||
+        await ensurePrivateVoiceSetup(interaction.guild);
+      const room = await interaction.guild.channels.fetch(channelId).catch(() => null);
+      if (!isPrivateManagedRoom(room, config) || ownerIdFromRoom(room) !== ownerId) {
+        await interaction.reply({ content: "Ця кімната більше не доступна.", ephemeral: true });
+        return;
+      }
+      await interaction.deferUpdate();
+      const everyoneId = interaction.guild.roles.everyone.id;
+      const everyone = room.permissionOverwrites.cache.get(everyoneId);
+      const permission = action === "lock" ? PermissionFlagsBits.Connect : PermissionFlagsBits.ViewChannel;
+      const denied = everyone?.deny?.has(permission) ?? false;
+      await room.permissionOverwrites.edit(everyoneId, { [action === "lock" ? "Connect" : "ViewChannel"]: denied ? null : false },
+        { reason: `Private voice ${action} toggled by room owner ${ownerId}` });
+      const updated = room.permissionOverwrites.cache.get(everyoneId);
+      await interaction.message.edit(buildPrivateRoomPanelData(room.id, ownerId, {
+        locked: updated?.deny?.has(PermissionFlagsBits.Connect) ?? false,
+        hidden: updated?.deny?.has(PermissionFlagsBits.ViewChannel) ?? false,
+        userLimit: room.userLimit || 0,
+        rtcRegion: room.rtcRegion || null,
+      }));
+      log("private_voice_access_updated", { guildId: room.guild.id, roomId: room.id, ownerId, action });
+    } catch (error) {
+      log("private_voice_access_failed", { message: error instanceof Error ? error.message : String(error) });
+      if (interaction.deferred || interaction.replied) {
+        await interaction.followUp({ content: "Не вдалося змінити доступ. Перевірте права бота.", ephemeral: true }).catch(() => null);
+      } else {
+        await interaction.reply({ content: "Не вдалося змінити доступ.", ephemeral: true }).catch(() => null);
+      }
+    }
+  })();
+});
 
 client.on(
   Events.VoiceStateUpdate,
