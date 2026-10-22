@@ -1657,7 +1657,7 @@ async function handleVoiceSession(body: any) {
   if (!isSnowflake(guildId) || !isSnowflake(userId) ||
     (channelId && !isSnowflake(channelId)) ||
     (categoryId && !isSnowflake(categoryId)) ||
-    Boolean(channelId) !== Boolean(categoryId)) {
+    (!channelId && Boolean(categoryId))) {
     return { status: 400, payload: { ok: false, error: "INVALID_VOICE_SESSION" } };
   }
   const table = db!.from("discord_voice_sessions");
