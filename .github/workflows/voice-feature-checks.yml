@@ -56,3 +56,80 @@ jobs:
         run: |
           deno check supabase/functions/discord-worker-runtime/index.ts
           deno check supabase/functions/discord-interactions/index.ts
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: iste_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iste_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: iste_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Supabase API roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c 'create role anon; create role authenticated; create role service_role;'
+      - name: Execute SQL migration in PostgreSQL
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261022_discord_voice_activity_reports_statuses.sql
+      - name: Test report cooldown, voice transitions, restart and leaderboard
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          do $$
+          declare
+            id1 bigint;
+            leaderboard_seconds bigint;
+            reconciliation jsonb;
+          begin
+            id1 := public.discord_submit_member_report(
+              '123456789012345678','123456789012345679',
+              '123456789012345680','A valid example complaint',null
+            );
+            if id1 is null then raise exception 'report insert failed'; end if;
+            begin
+              perform public.discord_submit_member_report(
+                '123456789012345678','123456789012345679',
+                '123456789012345680','Another valid complaint',null
+              );
+              raise exception 'report cooldown was bypassed';
+            exception when sqlstate 'P0001' then
+              if sqlerrm <> 'REPORT_COOLDOWN' then raise; end if;
+            end;
+            perform public.discord_apply_voice_session(
+              '123456789012345678','123456789012345679',
+              '123456789012345681',''
+            );
+            perform public.discord_apply_voice_session(
+              '123456789012345678','123456789012345679',
+              '123456789012345682',''
+            );
+            if (select count(*) from public.discord_voice_sessions
+                where left_at is null) <> 1 then
+              raise exception 'voice transition produced multiple active rows';
+            end if;
+            reconciliation := public.discord_reconcile_voice_sessions(
+              '123456789012345678',
+              '[{"userId":"123456789012345679","channelId":"123456789012345682","categoryId":""}]'::jsonb
+            );
+            if reconciliation->>'opened' <> '1' then
+              raise exception 'reconciliation failed: %', reconciliation;
+            end if;
+            select coalesce(max(seconds),0) into leaderboard_seconds
+              from public.discord_voice_leaderboard('123456789012345678');
+            if leaderboard_seconds < 0 then raise exception 'negative ranking'; end if;
+          end $$;
+          SQL
