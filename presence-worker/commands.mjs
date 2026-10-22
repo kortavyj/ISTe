@@ -165,6 +165,37 @@ const subcommand = ({
 
 export const ISTE_COMMANDS = [
   command({
+    name: "complaint",
+    description: "Privately report a server member to moderators",
+    ruName: "жалоба",
+    ukName: "скарга",
+    ruDescription: "Приватно отправить жалобу модераторам",
+    ukDescription: "Приватно надіслати скаргу модераторам",
+    options: [
+      userOption({
+        name: "member", description: "Member you are reporting",
+        ruName: "участник", ukName: "учасник",
+        ruDescription: "На кого жалоба", ukDescription: "На кого скарга",
+        required: true,
+      }),
+      stringOption({
+        name: "reason", description: "Reason for the report",
+        ruName: "причина", ukName: "причина",
+        ruDescription: "Опиши ситуацию (10–2000 символов)",
+        ukDescription: "Опиши ситуацію (10–2000 символів)",
+        required: true, minLength: 10, maxLength: 2000,
+      }),
+      stringOption({
+        name: "evidence", description: "Optional evidence URL",
+        ruName: "доказательства", ukName: "докази",
+        ruDescription: "Ссылка на доказательства",
+        ukDescription: "Посилання на докази",
+        maxLength: 500,
+      }),
+    ],
+  }),
+
+  command({
     name: "voice-top",
     description: "Show the server voice activity leaderboard",
     ruName: "войс-топ",
