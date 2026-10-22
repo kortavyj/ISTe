@@ -4020,13 +4020,22 @@ async function recordVoiceTransition(oldState, newState) {
   ]).then(async () => {
     // Resolve the *current* state after any delayed queue or recovery.
     // Otherwise an old queued event could overwrite a newer channel.
-    const current = newState.guild.voiceStates.cache.get(userId);
-    const location = trackedVoiceLocation(current?.channel);
     if (!voiceReconciledGuilds.has(guildId)) return;
-    await workerRuntimeApi("voice-session", {
-      guildId, userId, channelId: location?.channelId || "",
-      categoryId: location?.categoryId || "",
-    });
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      // Re-read the cache for every attempt to avoid replaying a stale move.
+      const current = newState.guild.voiceStates.cache.get(userId);
+      const location = trackedVoiceLocation(current?.channel);
+      try {
+        await workerRuntimeApi("voice-session", {
+          guildId, userId, channelId: location?.channelId || "",
+          categoryId: location?.categoryId || "",
+        });
+        return;
+      } catch (error) {
+        if (attempt === 3) throw error;
+        await new Promise((resolve) => setTimeout(resolve, attempt * 750));
+      }
+    }
   });
   voiceSessionQueues.set(key, task);
   try {
