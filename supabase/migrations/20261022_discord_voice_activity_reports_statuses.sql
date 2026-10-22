@@ -67,3 +67,39 @@ comment on table public.discord_member_reports is
   'Private member reports, visible only to approved moderators via a server-side service role.';
 comment on table public.discord_voice_room_statuses is
   'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  select s.user_id,
+    sum(greatest(0, floor(extract(epoch from (
+      least(coalesce(s.left_at, now()), now())
+      - greatest(s.joined_at, coalesce(p_since, s.joined_at))
+    )))::bigint))::bigint as seconds
+  from public.discord_voice_sessions s
+  where s.guild_id = p_guild_id
+    and (p_category_id is null or s.category_id = p_category_id)
+    and (p_since is null or coalesce(s.left_at, now()) > p_since)
+  group by s.user_id
+  having sum(greatest(0, floor(extract(epoch from (
+    least(coalesce(s.left_at, now()), now())
+    - greatest(s.joined_at, coalesce(p_since, s.joined_at))
+  )))::bigint)) > 0
+  order by seconds desc, s.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
