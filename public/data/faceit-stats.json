@@ -99,13 +99,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
       "level": 10,
-      "elo": 2212,
+      "elo": 2159,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.18
+      "kd": 1.17
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -3525,5 +3525,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-22T06:37:55.253Z"
+  "updatedAt": "2026-10-22T17:20:33.714Z"
 }
