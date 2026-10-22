@@ -3612,7 +3612,7 @@ async function handleSubscriptionGuildComponent(
       .map(
         (guildId) =>
           eligibleMap.get(
-            guildId,
+            String(guildId),
           ),
       )
       .filter(
@@ -5530,7 +5530,7 @@ async function serverCommand(interaction: any, lang: Language) {
         .maybeSingle();
 
       memberCount = Number.isFinite(data?.member_count)
-        ? data.member_count
+        ? Number(data?.member_count)
         : null;
     } catch {
       memberCount = null;
