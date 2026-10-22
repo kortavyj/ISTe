@@ -3518,6 +3518,7 @@ client.once(Events.ClientReady, async (readyClient) => {
     voiceStartupBarriers.set(guild.id, task);
     try {
       await task;
+      voiceReconciledGuilds.add(guild.id);
     } catch (error) {
       log("voice_activity_reconcile_failed", {
         guildId: guild.id,
@@ -3990,6 +3991,7 @@ client.on(Events.InteractionCreate, (interaction) => {
 
 const voiceSessionQueues = new Map();
 const voiceStartupBarriers = new Map();
+const voiceReconciledGuilds = new Set();
 function trackedVoiceLocation(channel) {
   if (!channel || ![
     ChannelType.GuildVoice,
@@ -4031,6 +4033,25 @@ let voiceHeartbeatTimer = null;
 
 async function sendVoiceHeartbeats() {
   for (const guild of client.guilds.cache.values()) {
+    if (!voiceReconciledGuilds.has(guild.id)) {
+      const existingBarrier = voiceStartupBarriers.get(guild.id);
+      const task = existingBarrier || reconcileGuildVoiceSessions(guild);
+      if (!existingBarrier) voiceStartupBarriers.set(guild.id, task);
+      try {
+        await task;
+        voiceReconciledGuilds.add(guild.id);
+      } catch (error) {
+        log("voice_activity_reconcile_retry_failed", {
+          guildId: guild.id,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        continue;
+      } finally {
+        if (voiceStartupBarriers.get(guild.id) === task) {
+          voiceStartupBarriers.delete(guild.id);
+        }
+      }
+    }
     try {
       await workerRuntimeApi("voice-heartbeat", { guildId: guild.id });
     } catch (error) {
