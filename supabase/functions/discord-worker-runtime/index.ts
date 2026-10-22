@@ -1687,24 +1687,23 @@ async function handleVoiceReconcile(body: any) {
     .select("last_seen_at")
     .eq("guild_id", guildId).maybeSingle();
   if (heartbeatError) throw heartbeatError;
+  // Reconciliation is a restart boundary, not only a membership diff.
+  // Even a user who stayed connected must not receive offline worker time.
+  // Close every old segment at the last heartbeat, then start fresh
+  // segments for all currently observed voice members.
   let closed = 0;
   for (const session of existing || []) {
-    const location = members.get(String(session.user_id));
-    if (!location || location.channelId !== session.channel_id ||
-        location.categoryId !== session.category_id) {
-      // After downtime the departure time is unknown. Cap the stale session
-      // at the last confirmed worker heartbeat, never at reconnect time.
-      const closedAt = heartbeat?.last_seen_at &&
-        Date.parse(heartbeat.last_seen_at) >= Date.parse(session.joined_at)
-          ? heartbeat.last_seen_at : session.joined_at;
-      const result = await db!.from("discord_voice_sessions")
-        .update({ left_at: closedAt })
-        .eq("id", session.id).is("left_at", null);
-      if (result.error) throw result.error;
-      closed++;
-    } else {
-      members.delete(String(session.user_id));
-    }
+    const lastSeen = heartbeat?.last_seen_at
+      ? Date.parse(heartbeat.last_seen_at) : Number.NaN;
+    const joined = Date.parse(session.joined_at);
+    const closedAt = Number.isFinite(lastSeen) && lastSeen >= joined
+      ? new Date(Math.min(Date.now(), lastSeen)).toISOString()
+      : session.joined_at;
+    const result = await db!.from("discord_voice_sessions")
+      .update({ left_at: closedAt })
+      .eq("id", session.id).is("left_at", null);
+    if (result.error) throw result.error;
+    closed++;
   }
   let opened = 0;
   for (const [userId, location] of members) {
