@@ -1730,32 +1730,14 @@ async function handleVoiceSession(body: any) {
     (!channelId && Boolean(categoryId))) {
     return { status: 400, payload: { ok: false, error: "INVALID_VOICE_SESSION" } };
   }
-  const table = db!.from("discord_voice_sessions");
-  const { data: active, error: readError } = await table
-    .select("id,channel_id,category_id")
-    .eq("guild_id", guildId).eq("user_id", userId)
-    .is("left_at", null).maybeSingle();
-  if (readError) throw readError;
-  if (active && active.channel_id === channelId &&
-      active.category_id === categoryId) {
-    return { status: 200, payload: { ok: true, unchanged: true } };
-  }
-  if (active) {
-    const { error } = await db!.from("discord_voice_sessions")
-      .update({ left_at: new Date().toISOString() })
-      .eq("id", active.id).is("left_at", null);
-    if (error) throw error;
-  }
-  if (channelId) {
-    const { error } = await db!.from("discord_voice_sessions").insert({
-      guild_id: guildId, user_id: userId,
-      channel_id: channelId, category_id: categoryId,
-      joined_at: new Date().toISOString(),
-    });
-    // A unique active-session constraint protects the ledger against repeated joins.
-    if (error && error.code !== "23505") throw error;
-  }
-  return { status: 200, payload: { ok: true } };
+  const { data, error } = await db!.rpc("discord_apply_voice_session", {
+    p_guild_id: guildId,
+    p_user_id: userId,
+    p_channel_id: channelId,
+    p_category_id: categoryId,
+  });
+  if (error) throw error;
+  return { status: 200, payload: { ok: true, unchanged: data?.unchanged === true } };
 }
 
 Deno.serve(
