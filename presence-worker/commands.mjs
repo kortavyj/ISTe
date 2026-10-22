@@ -165,6 +165,15 @@ const subcommand = ({
 
 export const ISTE_COMMANDS = [
   command({
+    name: "reports",
+    description: "Review pending member reports (moderators only)",
+    ruName: "жалобы",
+    ukName: "скарги",
+    ruDescription: "Просмотр жалоб для модераторов",
+    ukDescription: "Перегляд скарг для модераторів",
+  }),
+
+  command({
     name: "report",
     description: "Privately report a server member to moderators",
     ruName: "жалоба",
