@@ -50,6 +50,8 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      - name: Install Supabase package
+        run: npm install --no-save --no-package-lock @supabase/supabase-js
       - name: Check Supabase Edge Function TypeScript
         run: |
           deno check supabase/functions/discord-worker-runtime/index.ts
