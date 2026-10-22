@@ -6570,6 +6570,55 @@ async function handleCommand(
     return privateRoomResponse;
   }
 
+  if (command === "complaint") {
+    const guildId = String(interaction.guild_id || "");
+    const actorId = String(getActor(interaction)?.id || "");
+    const options = getOptions(interaction);
+    const targetId = String(options.member || "");
+    const reason = String(options.reason || "").trim();
+    const evidence = String(options.evidence || "").trim();
+    if (!guildId || !actorId) return ephemeralText("Команда доступна лише на сервері.");
+    if (!/^[0-9]{17,20}$/.test(targetId) || actorId === targetId) {
+      return ephemeralText("Виберіть іншого учасника серверу.");
+    }
+    if (reason.length < 10 || reason.length > 2000) {
+      return ephemeralText("Причина має містити від 10 до 2000 символів.");
+    }
+    if (evidence) {
+      try {
+        const url = new URL(evidence);
+        if (url.protocol !== "https:" || evidence.length > 500 ||
+          url.username || url.password) throw Error("invalid evidence");
+      } catch {
+        return ephemeralText("Посилання на докази має починатися з https://");
+      }
+    }
+    if (!adminDb) return ephemeralText("Система скарг тимчасово недоступна.");
+    const minuteAgo = new Date(Date.now() - 60_000).toISOString();
+    const { count, error: rateError } = await adminDb
+      .from("discord_member_reports")
+      .select("id", { count: "exact", head: true })
+      .eq("guild_id", guildId).eq("reporter_user_id", actorId)
+      .gte("created_at", minuteAgo);
+    if (rateError) {
+      console.error("complaint rate limit failed", rateError.message);
+      return ephemeralText("Не вдалося надіслати скаргу.");
+    }
+    if ((count || 0) >= 1) return ephemeralText("Повторіть спробу через хвилину.");
+    const { error } = await adminDb.from("discord_member_reports").insert({
+      guild_id: guildId,
+      reporter_user_id: actorId,
+      target_user_id: targetId,
+      reason,
+      evidence_url: evidence || null,
+    });
+    if (error) {
+      console.error("complaint create failed", error.message);
+      return ephemeralText("Не вдалося зберегти скаргу.");
+    }
+    return ephemeralText("✅ Скаргу прийнято. Її переглянуть модератори.");
+  }
+
   if (command === "voice-top") {
     if (!interaction.guild_id) return ephemeralText("Команда доступна лише на сервері.");
     if (!adminDb) return ephemeralText("Рейтинг тимчасово недоступний.");
