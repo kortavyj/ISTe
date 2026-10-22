@@ -11,6 +11,7 @@ import {
 
 import {
   syncDiscordCommands,
+  syncDiscordGuildFeatureCommands,
   syncDiscordGuildSubscriptionCommands,
 } from "./commands.mjs";
 import { createMatchAnnouncer } from "./matchAnnouncer.mjs";
@@ -3549,6 +3550,17 @@ client.once(Events.ClientReady, async (readyClient) => {
         fallbackMatchAnnouncementChannelId,
       ),
   });
+
+  try {
+    const immediate = await syncDiscordGuildFeatureCommands(
+      token, readyClient.user.id, [...readyClient.guilds.cache.keys()],
+    );
+    log("discord_feature_commands_synced", immediate);
+  } catch (error) {
+    log("discord_feature_commands_sync_failed", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
 
   try {
     const result = await syncDiscordCommands(
