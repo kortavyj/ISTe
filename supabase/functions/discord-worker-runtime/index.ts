@@ -1649,6 +1649,31 @@ async function handleResult(
   };
 }
 
+async function handleVoiceLeaderboard(body: any) {
+  const guildId = String(body.guildId || "");
+  const categoryId = String(body.categoryId || "");
+  const period = String(body.period || "week");
+  if (!isSnowflake(guildId) || (categoryId && !isSnowflake(categoryId)) ||
+    !["day", "week", "month", "all"].includes(period)) {
+    return { status: 400, payload: { ok: false, error: "INVALID_LEADERBOARD_REQUEST" } };
+  }
+  const now = new Date();
+  const since = period === "all" ? null : new Date(
+    now.getTime() - ({ day: 1, week: 7, month: 30 } as Record<string, number>)[period] * 86_400_000
+  ).toISOString();
+  const { data, error } = await db!.rpc("discord_voice_leaderboard", {
+    p_guild_id: guildId, p_since: since,
+    p_category_id: categoryId || null, p_limit: 10,
+  });
+  if (error) throw error;
+  return { status: 200, payload: {
+    ok: true, period, categoryId: categoryId || null,
+    leaders: (data || []).map((row: any) => ({
+      userId: String(row.user_id), seconds: Math.max(0, Number(row.seconds) || 0),
+    })),
+  } };
+}
+
 async function handleVoiceSession(body: any) {
   const guildId = String(body.guildId || "");
   const userId = String(body.userId || "");
@@ -1769,7 +1794,9 @@ Deno.serve(
 
     try {
       const result =
-        action === "voice-session"
+        action === "voice-leaderboard"
+          ? await handleVoiceLeaderboard(body)
+          : action === "voice-session"
           ? await handleVoiceSession(body)
           : action === "config"
           ? await handleConfig(
