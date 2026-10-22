@@ -93,6 +93,1252 @@ comment on table public.discord_member_reports is
 comment on table public.discord_voice_room_statuses is
   'Persistent per-room status selection, removed when the temporary room is deleted.';
 
+
+-- Restart reconciliation is one transaction: never partially close and reopen
+-- voice sessions if a database statement fails.
+create or replace function public.discord_reconcile_voice_sessions(
+  p_guild_id text,
+  p_members jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = public
+as $
+declare
+  v_last_seen timestamptz;
+  v_cutoff timestamptz;
+  v_closed integer := 0;
+  v_opened integer := 0;
+  v_member jsonb;
+begin
+  if p_guild_id !~ '^[0-9]{17,20}, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_reporter_user_id !~ '^[0-9]{17,20}
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_target_user_id !~ '^[0-9]{17,20}
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_reporter_user_id = p_target_user_id
+    or length(btrim(p_reason)) not between 10 and 2000 then
+    raise exception 'INVALID_REPORT' using errcode = '22023';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtextextended(p_guild_id || ':' || p_reporter_user_id, 0)
+  );
+
+  if exists (
+    select 1 from public.discord_member_reports
+    where guild_id = p_guild_id
+      and reporter_user_id = p_reporter_user_id
+      and created_at > now() - interval '1 minute'
+  ) then
+    raise exception 'REPORT_COOLDOWN' using errcode = 'P0001';
+  end if;
+
+  insert into public.discord_member_reports
+    (guild_id, reporter_user_id, target_user_id, reason, evidence_url)
+  values (p_guild_id, p_reporter_user_id, p_target_user_id,
+    btrim(p_reason), nullif(btrim(p_evidence_url), ''))
+  returning id into v_id;
+  return v_id;
+end;
+$;
+revoke all on function public.discord_submit_member_report(text,text,text,text,text)
+  from public, anon, authenticated;
+grant execute on function public.discord_submit_member_report(text,text,text,text,text)
+  to service_role;
+
+create index if not exists discord_member_reports_guild_status_created
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or jsonb_typeof(p_members) is distinct from 'array'
+    or jsonb_array_length(p_members) > 10000 then
+    raise exception 'INVALID_RECONCILIATION' using errcode = '22023';
+  end if;
+
+  -- Only one restart reconciliation per guild can run at a time.
+  perform pg_advisory_xact_lock(hashtextextended('voice:' || p_guild_id, 0));
+
+  if exists (
+    select 1 from jsonb_array_elements(p_members) m
+    where coalesce(m->>'userId','') !~ '^[0-9]{17,20}, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_reporter_user_id !~ '^[0-9]{17,20}
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_target_user_id !~ '^[0-9]{17,20}
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_reporter_user_id = p_target_user_id
+    or length(btrim(p_reason)) not between 10 and 2000 then
+    raise exception 'INVALID_REPORT' using errcode = '22023';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtextextended(p_guild_id || ':' || p_reporter_user_id, 0)
+  );
+
+  if exists (
+    select 1 from public.discord_member_reports
+    where guild_id = p_guild_id
+      and reporter_user_id = p_reporter_user_id
+      and created_at > now() - interval '1 minute'
+  ) then
+    raise exception 'REPORT_COOLDOWN' using errcode = 'P0001';
+  end if;
+
+  insert into public.discord_member_reports
+    (guild_id, reporter_user_id, target_user_id, reason, evidence_url)
+  values (p_guild_id, p_reporter_user_id, p_target_user_id,
+    btrim(p_reason), nullif(btrim(p_evidence_url), ''))
+  returning id into v_id;
+  return v_id;
+end;
+$;
+revoke all on function public.discord_submit_member_report(text,text,text,text,text)
+  from public, anon, authenticated;
+grant execute on function public.discord_submit_member_report(text,text,text,text,text)
+  to service_role;
+
+create index if not exists discord_member_reports_guild_status_created
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+       or coalesce(m->>'channelId','') !~ '^[0-9]{17,20}, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_reporter_user_id !~ '^[0-9]{17,20}
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_target_user_id !~ '^[0-9]{17,20}
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_reporter_user_id = p_target_user_id
+    or length(btrim(p_reason)) not between 10 and 2000 then
+    raise exception 'INVALID_REPORT' using errcode = '22023';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtextextended(p_guild_id || ':' || p_reporter_user_id, 0)
+  );
+
+  if exists (
+    select 1 from public.discord_member_reports
+    where guild_id = p_guild_id
+      and reporter_user_id = p_reporter_user_id
+      and created_at > now() - interval '1 minute'
+  ) then
+    raise exception 'REPORT_COOLDOWN' using errcode = 'P0001';
+  end if;
+
+  insert into public.discord_member_reports
+    (guild_id, reporter_user_id, target_user_id, reason, evidence_url)
+  values (p_guild_id, p_reporter_user_id, p_target_user_id,
+    btrim(p_reason), nullif(btrim(p_evidence_url), ''))
+  returning id into v_id;
+  return v_id;
+end;
+$;
+revoke all on function public.discord_submit_member_report(text,text,text,text,text)
+  from public, anon, authenticated;
+grant execute on function public.discord_submit_member_report(text,text,text,text,text)
+  to service_role;
+
+create index if not exists discord_member_reports_guild_status_created
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+       or (coalesce(m->>'categoryId','') <> ''
+           and m->>'categoryId' !~ '^[0-9]{17,20}, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_reporter_user_id !~ '^[0-9]{17,20}
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_target_user_id !~ '^[0-9]{17,20}
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+
+    or p_reporter_user_id = p_target_user_id
+    or length(btrim(p_reason)) not between 10 and 2000 then
+    raise exception 'INVALID_REPORT' using errcode = '22023';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtextextended(p_guild_id || ':' || p_reporter_user_id, 0)
+  );
+
+  if exists (
+    select 1 from public.discord_member_reports
+    where guild_id = p_guild_id
+      and reporter_user_id = p_reporter_user_id
+      and created_at > now() - interval '1 minute'
+  ) then
+    raise exception 'REPORT_COOLDOWN' using errcode = 'P0001';
+  end if;
+
+  insert into public.discord_member_reports
+    (guild_id, reporter_user_id, target_user_id, reason, evidence_url)
+  values (p_guild_id, p_reporter_user_id, p_target_user_id,
+    btrim(p_reason), nullif(btrim(p_evidence_url), ''))
+  returning id into v_id;
+  return v_id;
+end;
+$;
+revoke all on function public.discord_submit_member_report(text,text,text,text,text)
+  from public, anon, authenticated;
+grant execute on function public.discord_submit_member_report(text,text,text,text,text)
+  to service_role;
+
+create index if not exists discord_member_reports_guild_status_created
+  on public.discord_member_reports (guild_id, status, created_at desc);
+create index if not exists discord_member_reports_target
+  on public.discord_member_reports (guild_id, target_user_id, created_at desc);
+
+create table if not exists public.discord_voice_room_statuses (
+  channel_id text primary key,
+  guild_id text not null,
+  category_id text not null,
+  owner_user_id text not null,
+  status_key text not null default 'none'
+    check (status_key in ('none', 'faceit', 'looking_one', 'training', 'do_not_disturb', 'chill')),
+  updated_at timestamptz not null default now()
+);
+create index if not exists discord_voice_room_statuses_guild_owner
+  on public.discord_voice_room_statuses (guild_id, owner_user_id);
+
+alter table public.discord_voice_sessions enable row level security;
+alter table public.discord_member_reports enable row level security;
+alter table public.discord_voice_room_statuses enable row level security;
+
+comment on table public.discord_voice_sessions is
+  'Voice session ledger; server writes only. Recover dangling sessions after reconnect or restart.';
+comment on table public.discord_member_reports is
+  'Private member reports, visible only to approved moderators via a server-side service role.';
+comment on table public.discord_voice_room_statuses is
+  'Persistent per-room status selection, removed when the temporary room is deleted.';
+
+-- Aggregate completed and currently active sessions, splitting each at period start.
+-- Executed by the server-only runtime with service role credentials.
+create or replace function public.discord_voice_leaderboard(
+  p_guild_id text,
+  p_since timestamptz default null,
+  p_category_id text default null,
+  p_limit integer default 10
+)
+returns table(user_id text, seconds bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
+  limit least(greatest(coalesce(p_limit, 10), 1), 25);
+$$;
+revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  from public, anon, authenticated;
+grant execute on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
+  to service_role;
+)
+  ) then
+    raise exception 'INVALID_VOICE_MEMBER' using errcode = '22023';
+  end if;
+
+  select last_seen_at into v_last_seen
+  from public.discord_voice_worker_heartbeats
+  where guild_id = p_guild_id;
+
+  update public.discord_voice_sessions s
+  set left_at = case
+    when v_last_seen is not null and v_last_seen >= s.joined_at
+      then least(now(), v_last_seen)
+    else s.joined_at
+  end
+  where s.guild_id = p_guild_id and s.left_at is null;
+  get diagnostics v_closed = row_count;
+
+  insert into public.discord_voice_sessions
+    (guild_id, user_id, channel_id, category_id, joined_at)
+  select p_guild_id, m->>'userId', m->>'channelId',
+    coalesce(m->>'categoryId',''), now()
+  from (
+    select distinct on (m->>'userId') m
+    from jsonb_array_elements(p_members) m
+    order by m->>'userId'
+  ) unique_members;
+  get diagnostics v_opened = row_count;
+
+  return jsonb_build_object('closed', v_closed, 'opened', v_opened);
+end;
+$;
+revoke all on function public.discord_reconcile_voice_sessions(text,jsonb)
+  from public, anon, authenticated;
+grant execute on function public.discord_reconcile_voice_sessions(text,jsonb)
+  to service_role;
+
 -- Aggregate completed and currently active sessions, splitting each at period start.
 -- Executed by the server-only runtime with service role credentials.
 create or replace function public.discord_voice_leaderboard(
