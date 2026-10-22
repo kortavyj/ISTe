@@ -1649,6 +1649,54 @@ async function handleResult(
   };
 }
 
+async function handleVoiceReconcile(body: any) {
+  const guildId = String(body.guildId || "");
+  const raw = body.members;
+  if (!isSnowflake(guildId) || !Array.isArray(raw) || raw.length > 10000) {
+    return { status: 400, payload: { ok: false, error: "INVALID_VOICE_RECONCILIATION" } };
+  }
+  const members = new Map<string, { channelId: string; categoryId: string }>();
+  for (const entry of raw) {
+    const userId = String(entry?.userId || "");
+    const channelId = String(entry?.channelId || "");
+    const categoryId = String(entry?.categoryId || "");
+    if (!isSnowflake(userId) || !isSnowflake(channelId) ||
+        (categoryId && !isSnowflake(categoryId))) {
+      return { status: 400, payload: { ok: false, error: "INVALID_VOICE_MEMBER" } };
+    }
+    members.set(userId, { channelId, categoryId });
+  }
+  const { data: existing, error } = await db!.from("discord_voice_sessions")
+    .select("id,user_id,channel_id,category_id")
+    .eq("guild_id", guildId).is("left_at", null);
+  if (error) throw error;
+  let closed = 0;
+  for (const session of existing || []) {
+    const location = members.get(String(session.user_id));
+    if (!location || location.channelId !== session.channel_id ||
+        location.categoryId !== session.category_id) {
+      const result = await db!.from("discord_voice_sessions")
+        .update({ left_at: new Date().toISOString() })
+        .eq("id", session.id).is("left_at", null);
+      if (result.error) throw result.error;
+      closed++;
+    } else {
+      members.delete(String(session.user_id));
+    }
+  }
+  let opened = 0;
+  for (const [userId, location] of members) {
+    const result = await db!.from("discord_voice_sessions").insert({
+      guild_id: guildId, user_id: userId,
+      channel_id: location.channelId, category_id: location.categoryId,
+      joined_at: new Date().toISOString(),
+    });
+    if (result.error && result.error.code !== "23505") throw result.error;
+    if (!result.error) opened++;
+  }
+  return { status: 200, payload: { ok: true, closed, opened } };
+}
+
 async function handleVoiceLeaderboard(body: any) {
   const guildId = String(body.guildId || "");
   const categoryId = String(body.categoryId || "");
@@ -1794,7 +1842,9 @@ Deno.serve(
 
     try {
       const result =
-        action === "voice-leaderboard"
+        action === "voice-reconcile"
+          ? await handleVoiceReconcile(body)
+          : action === "voice-leaderboard"
           ? await handleVoiceLeaderboard(body)
           : action === "voice-session"
           ? await handleVoiceSession(body)
