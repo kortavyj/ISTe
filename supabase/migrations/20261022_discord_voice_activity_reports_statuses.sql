@@ -6,7 +6,7 @@ create table if not exists public.discord_voice_sessions (
   guild_id text not null,
   user_id text not null,
   channel_id text not null,
-  category_id text not null,
+  category_id text not null default '',
   joined_at timestamptz not null,
   left_at timestamptz,
   duration_seconds bigint generated always as (
