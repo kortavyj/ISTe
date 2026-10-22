@@ -4018,9 +4018,14 @@ async function recordVoiceTransition(oldState, newState) {
     preceding.catch(() => {}),
     startupBarrier.catch(() => {}),
   ]).then(async () => {
+    // Resolve the *current* state after any delayed queue or recovery.
+    // Otherwise an old queued event could overwrite a newer channel.
+    const current = newState.guild.voiceStates.cache.get(userId);
+    const location = trackedVoiceLocation(current?.channel);
+    if (!voiceReconciledGuilds.has(guildId)) return;
     await workerRuntimeApi("voice-session", {
-      guildId, userId, channelId: after?.channelId || "",
-      categoryId: after?.categoryId || "",
+      guildId, userId, channelId: location?.channelId || "",
+      categoryId: location?.categoryId || "",
     });
   });
   voiceSessionQueues.set(key, task);
