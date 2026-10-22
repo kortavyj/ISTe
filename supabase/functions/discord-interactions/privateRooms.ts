@@ -2,8 +2,28 @@ const DISCORD_API = "https://discord.com/api/v10";
 const DISCORD_BOT_TOKEN = Deno.env.get("DISCORD_BOT_TOKEN") || "";
 
 const CATEGORY_NAME = "🔒 ПРИВАТНІ КІМНАТИ";
+const MANAGED_CATEGORY_NAMES = new Set([
+  CATEGORY_NAME,
+  "CYBERION Kalynova",
+  "CYBERION Zavodskaya",
+]);
 const LOBBY_NAME = "➕ Створити приватний";
 const ROOM_PREFIX = "🔒・";
+const OPEN_ROOM_PREFIX = "🔓・";
+
+function isRoomName(name: unknown) {
+  const value = String(name || "");
+  return value.startsWith(ROOM_PREFIX) || value.startsWith(OPEN_ROOM_PREFIX);
+}
+
+function roomDisplayName(name: unknown) {
+  const value = String(name || "");
+  return isRoomName(value) ? value.slice(ROOM_PREFIX.length) : value;
+}
+
+function roomNameForState(name: unknown, locked: boolean) {
+  return `${locked ? ROOM_PREFIX : OPEN_ROOM_PREFIX}${roomDisplayName(name)}`.slice(0, 100);
+}
 
 const PERMISSIONS = {
   ADMINISTRATOR: 1n << 3n,
@@ -303,25 +323,25 @@ function panelData(channel: any, ownerId: string) {
         components: [
           {
             type: 2,
-            style: 2,
+            style: 1,
             label: "✏️ Название",
             custom_id: `pv:rename:${channel.id}:${ownerId}`,
           },
           {
             type: 2,
-            style: 2,
+            style: 1,
             label: "👥 Лимит",
             custom_id: `pv:limit:${channel.id}:${ownerId}`,
           },
           {
             type: 2,
-            style: state.locked ? 3 : 2,
+            style: state.locked ? 3 : 1,
             label: state.locked ? "🔓 Открыть" : "🔒 Закрыть",
             custom_id: `pv:lock:${channel.id}:${ownerId}`,
           },
           {
             type: 2,
-            style: state.hidden ? 3 : 2,
+            style: state.hidden ? 3 : 1,
             label: state.hidden ? "👁️ Показать" : "🙈 Скрыть",
             custom_id: `pv:hide:${channel.id}:${ownerId}`,
           },
@@ -513,7 +533,17 @@ async function assertOwner(
 
   const channel = await discordApi(`/channels/${channelId}`);
 
-  if (!getOwnerOverwrite(channel, ownerId)) {
+  const guildId = String(interaction?.guild_id || "");
+  const channels = await loadGuildChannels(guildId);
+  const parent = channels.find((item: any) =>
+    String(item?.id || "") === String(channel?.parent_id || "") &&
+    Number(item?.type) === 4 &&
+    MANAGED_CATEGORY_NAMES.has(String(item?.name || ""))
+  );
+
+  if (!parent || Number(channel?.type) !== 2 ||
+      !isRoomName(channel?.name) ||
+      !getOwnerOverwrite(channel, ownerId)) {
     return {
       ok: false,
       response: ephemeral(
@@ -579,7 +609,7 @@ function findOwnedRoom(
     if (
       Number(channel?.type) !== 2 ||
       String(channel?.parent_id || "") !== categoryId ||
-      !String(channel?.name || "").startsWith(ROOM_PREFIX)
+      !isRoomName(channel?.name)
     ) {
       return false;
     }
@@ -645,11 +675,24 @@ async function ownedRoom(interaction: any) {
   if (!guildId || !ownerId) return null;
 
   const channels = await loadGuildChannels(guildId);
-  const category = findCategory(channels);
-
-  if (!category) return null;
-
-  return findOwnedRoom(channels, String(category.id), ownerId);
+  const categories = channels.filter((channel: any) =>
+    Number(channel?.type) === 4 &&
+    MANAGED_CATEGORY_NAMES.has(String(channel?.name || ""))
+  );
+  const currentChannelId = String(interaction?.channel_id || "");
+  const currentChannel = channels.find((channel: any) =>
+    String(channel?.id || "") === currentChannelId
+  );
+  const preferredCategoryId = String(currentChannel?.parent_id || "");
+  const ordered = [...categories].sort((a: any, b: any) =>
+    Number(String(b.id) === preferredCategoryId) -
+    Number(String(a.id) === preferredCategoryId)
+  );
+  for (const category of ordered) {
+    const room = findOwnedRoom(channels, String(category.id), ownerId);
+    if (room) return room;
+  }
+  return null;
 }
 
 export async function handlePrivateRoomCommand(
@@ -708,7 +751,7 @@ export async function handlePrivateRoomCommand(
 
       await discordApi(`/channels/${room.id}`, {
         method: "PATCH",
-        body: { name: `${ROOM_PREFIX}${name}`.slice(0, 100) },
+        body: { name: roomNameForState(name, roomState(room).locked) },
       });
       await patchPanelMessage(String(room.id), ownerId);
       return ephemeral(t.renameDone);
@@ -811,7 +854,7 @@ export async function handlePrivateRoomComponent(interaction: any) {
         `pvmodal:rename:${parsed.channelId}:${parsed.ownerId}`,
         "Изменить название",
         "Новое название",
-        String(channel?.name || "").replace(ROOM_PREFIX, ""),
+        roomDisplayName(channel?.name),
       );
     }
 
@@ -831,6 +874,11 @@ export async function handlePrivateRoomComponent(interaction: any) {
         PERMISSIONS.CONNECT,
         !state.locked,
       );
+      await discordApi(`/channels/${parsed.channelId}`, {
+        method: "PATCH",
+        body: { name: roomNameForState(channel.name, !state.locked) },
+        reason: "Update private room lock icon",
+      });
       const fresh = await discordApi(`/channels/${parsed.channelId}`);
       return updateMessage(panelData(fresh, parsed.ownerId));
     }
@@ -1025,7 +1073,7 @@ export async function handlePrivateRoomModal(interaction: any) {
       await discordApi(`/channels/${channelId}`, {
         method: "PATCH",
         body: {
-          name: `${ROOM_PREFIX}${clean}`.slice(0, 100),
+          name: roomNameForState(clean, roomState(guard.channel).locked),
         },
       });
 
