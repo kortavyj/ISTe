@@ -1,0 +1,36 @@
+name: Voice feature checks
+
+on:
+  pull_request:
+    paths:
+      - 'presence-worker/**'
+      - 'supabase/functions/discord-interactions/**'
+      - 'supabase/functions/discord-worker-runtime/**'
+      - 'supabase/migrations/20261022_discord_voice_activity_reports_statuses.sql'
+      - '.github/workflows/voice-feature-checks.yml'
+  workflow_dispatch:
+
+jobs:
+  worker-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check worker JavaScript syntax
+        run: |
+          node --check presence-worker/index.mjs
+          node --check presence-worker/commands.mjs
+
+  edge-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Parse Edge Function TypeScript
+        run: |
+          deno fmt --check supabase/functions/discord-worker-runtime/index.ts
+          deno check --no-remote supabase/functions/discord-interactions/privateRooms.ts
