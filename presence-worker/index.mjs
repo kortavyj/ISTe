@@ -76,6 +76,10 @@ function privateRoomNameWithLock(name, locked) {
   return `${locked ? PRIVATE_ROOM_PREFIX : PRIVATE_OPEN_PREFIX}${display}`.slice(0, 100);
 }
 const VOICE_STATUS_OPTIONS = Object.freeze({
+  cs2: { label: "🔫 CS2", suffix: " 🔫 CS2" },
+  dota2: { label: "⚔️ Dota 2", suffix: " ⚔️ Dota 2" },
+  pubg: { label: "🪖 PUBG", suffix: " 🪖 PUBG" },
+  minecraft: { label: "⛏️ Minecraft", suffix: " ⛏️ Minecraft" },
   faceit: { label: "🎮 Играем FACEIT", suffix: " 🎮 FACEIT" },
   looking_one: { label: "🔎 Ищем +1", suffix: " 🔎 +1" },
   training: { label: "🎯 Тренировка", suffix: " 🎯 Тренировка" },
