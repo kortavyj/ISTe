@@ -1682,6 +1682,11 @@ async function handleVoiceReconcile(body: any) {
     .select("id,user_id,channel_id,category_id,joined_at")
     .eq("guild_id", guildId).is("left_at", null);
   if (error) throw error;
+  const { data: heartbeat, error: heartbeatError } = await db!
+    .from("discord_voice_worker_heartbeats")
+    .select("last_seen_at")
+    .eq("guild_id", guildId).maybeSingle();
+  if (heartbeatError) throw heartbeatError;
   let closed = 0;
   for (const session of existing || []) {
     const location = members.get(String(session.user_id));
@@ -1689,11 +1694,6 @@ async function handleVoiceReconcile(body: any) {
         location.categoryId !== session.category_id) {
       // After downtime the departure time is unknown. Cap the stale session
       // at the last confirmed worker heartbeat, never at reconnect time.
-      const { data: heartbeat, error: heartbeatError } = await db!
-        .from("discord_voice_worker_heartbeats")
-        .select("last_seen_at")
-        .eq("guild_id", guildId).maybeSingle();
-      if (heartbeatError) throw heartbeatError;
       const closedAt = heartbeat?.last_seen_at &&
         Date.parse(heartbeat.last_seen_at) >= Date.parse(session.joined_at)
           ? heartbeat.last_seen_at : session.joined_at;
