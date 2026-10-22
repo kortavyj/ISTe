@@ -3923,13 +3923,15 @@ client.on(Events.InteractionCreate, (interaction) => {
 });
 
 const voiceSessionQueues = new Map();
-const ACTIVITY_CATEGORIES = new Set(PRIVATE_ENTRY_CATEGORIES.map((value) => value.toLowerCase()));
-
 function trackedVoiceLocation(channel) {
-  if (!channel || channel.type !== ChannelType.GuildVoice) return null;
-  const name = channel.parent?.name?.trim().toLowerCase();
-  if (!ACTIVITY_CATEGORIES.has(name)) return null;
-  return { channelId: channel.id, categoryId: channel.parentId };
+  if (!channel || ![
+    ChannelType.GuildVoice,
+    ChannelType.GuildStageVoice,
+  ].includes(channel.type)) return null;
+  return {
+    channelId: channel.id,
+    categoryId: channel.parentId || "",
+  };
 }
 
 async function recordVoiceTransition(oldState, newState) {
