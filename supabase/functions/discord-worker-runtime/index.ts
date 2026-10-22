@@ -1649,6 +1649,45 @@ async function handleResult(
   };
 }
 
+async function handleVoiceSession(body: any) {
+  const guildId = String(body.guildId || "");
+  const userId = String(body.userId || "");
+  const channelId = String(body.channelId || "");
+  const categoryId = String(body.categoryId || "");
+  if (!isSnowflake(guildId) || !isSnowflake(userId) ||
+    (channelId && !isSnowflake(channelId)) ||
+    (categoryId && !isSnowflake(categoryId)) ||
+    Boolean(channelId) !== Boolean(categoryId)) {
+    return { status: 400, payload: { ok: false, error: "INVALID_VOICE_SESSION" } };
+  }
+  const table = db!.from("discord_voice_sessions");
+  const { data: active, error: readError } = await table
+    .select("id,channel_id,category_id")
+    .eq("guild_id", guildId).eq("user_id", userId)
+    .is("left_at", null).maybeSingle();
+  if (readError) throw readError;
+  if (active && active.channel_id === channelId &&
+      active.category_id === categoryId) {
+    return { status: 200, payload: { ok: true, unchanged: true } };
+  }
+  if (active) {
+    const { error } = await db!.from("discord_voice_sessions")
+      .update({ left_at: new Date().toISOString() })
+      .eq("id", active.id).is("left_at", null);
+    if (error) throw error;
+  }
+  if (channelId) {
+    const { error } = await db!.from("discord_voice_sessions").insert({
+      guild_id: guildId, user_id: userId,
+      channel_id: channelId, category_id: categoryId,
+      joined_at: new Date().toISOString(),
+    });
+    // A unique active-session constraint protects the ledger against repeated joins.
+    if (error && error.code !== "23505") throw error;
+  }
+  return { status: 200, payload: { ok: true } };
+}
+
 Deno.serve(
   async (
     request: Request,
@@ -1730,7 +1769,9 @@ Deno.serve(
 
     try {
       const result =
-        action === "config"
+        action === "voice-session"
+          ? await handleVoiceSession(body)
+          : action === "config"
           ? await handleConfig(
               body,
             )
