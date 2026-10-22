@@ -3512,6 +3512,14 @@ function telemetryHealth() {
 }
 
 client.once(Events.ClientReady, async (readyClient) => {
+  for (const guild of readyClient.guilds.cache.values()) {
+    void reconcileGuildVoiceSessions(guild).catch((error) =>
+      log("voice_activity_reconcile_failed", {
+        guildId: guild.id,
+        message: error instanceof Error ? error.message : String(error),
+      })
+    );
+  }
   log("discord_ready", {
     bot: readyClient.user.tag,
     userId: readyClient.user.id,
@@ -4000,6 +4008,27 @@ async function recordVoiceTransition(oldState, newState) {
   } finally {
     if (voiceSessionQueues.get(key) === task) voiceSessionQueues.delete(key);
   }
+}
+
+async function reconcileGuildVoiceSessions(guild) {
+  // Wait for the full guild voice-state cache before treating absent members as disconnected.
+  await guild.voiceStates.fetch();
+  await guild.channels.fetch();
+  const members = [];
+  for (const state of guild.voiceStates.cache.values()) {
+    if (state.member?.user?.bot) continue;
+    const location = trackedVoiceLocation(state.channel);
+    if (!location) continue;
+    members.push({
+      userId: state.id,
+      channelId: location.channelId,
+      categoryId: location.categoryId,
+    });
+  }
+  const result = await workerRuntimeApi("voice-reconcile", { guildId: guild.id, members });
+  log("voice_activity_reconciled", {
+    guildId: guild.id, closed: result.closed, opened: result.opened,
+  });
 }
 
 client.on(
