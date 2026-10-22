@@ -2151,7 +2151,7 @@ function isPrivateManagedRoom(channel, config) {
     channel &&
       config &&
       channel.type === ChannelType.GuildVoice &&
-      channel.parentId === config.categoryId &&
+      config.categoryIds.includes(channel.parentId) &&
       !config.lobbyIds.includes(channel.id) &&
       channel.name.startsWith(PRIVATE_ROOM_PREFIX),
   );
@@ -2174,6 +2174,7 @@ async function ensurePrivateVoiceSetup(guild) {
   }
 
   const lobbyIds = [];
+  const lobbyCategoryIds = {};
   for (const entryName of PRIVATE_ENTRY_CATEGORIES) {
     const source = guild.channels.cache.find(
       (channel) => channel.type === ChannelType.GuildCategory &&
@@ -2199,11 +2200,17 @@ async function ensurePrivateVoiceSetup(guild) {
       log("private_voice_lobby_created", { guildId: guild.id, lobbyId: lobby.id, categoryId: source.id });
     }
     lobbyIds.push(lobby.id);
+    lobbyCategoryIds[lobby.id] = source.id;
   }
 
   // The former private-category lobby is deliberately not deleted automatically:
   // do not destroy/move an existing Discord channel without a reviewed migration.
-  const config = { categoryId: category.id, lobbyIds };
+  const config = {
+    categoryId: category.id,
+    categoryIds: [...new Set([category.id, ...Object.values(lobbyCategoryIds)])],
+    lobbyIds,
+    lobbyCategoryIds,
+  };
   privateVoiceState.set(guild.id, config);
   return config;
 }
@@ -2281,11 +2288,12 @@ function schedulePrivateDelete(channel) {
   privateDeleteTimers.set(channel.id, timer);
 }
 
-function findOwnedPrivateRoom(guild, config, ownerId) {
+function findOwnedPrivateRoom(guild, config, ownerId, categoryId) {
   return (
     guild.channels.cache.find(
       (channel) =>
         isPrivateManagedRoom(channel, config) &&
+        channel.parentId === categoryId &&
         ownerIdFromRoom(channel) === ownerId,
     ) || null
   );
@@ -2298,7 +2306,10 @@ async function createPrivateRoomFor(state, config) {
     return;
   }
 
-  const lockKey = `${state.guild.id}:${member.id}`;
+  const destinationCategoryId = config.lobbyCategoryIds[state.channelId];
+  if (!destinationCategoryId) return;
+
+  const lockKey = `${state.guild.id}:${destinationCategoryId}:${member.id}`;
 
   if (privateCreateLocks.has(lockKey)) {
     return;
@@ -2313,6 +2324,7 @@ async function createPrivateRoomFor(state, config) {
       state.guild,
       config,
       member.id,
+      destinationCategoryId,
     );
 
     if (existing) {
@@ -2352,7 +2364,7 @@ async function createPrivateRoomFor(state, config) {
     const room = await state.guild.channels.create({
       name: privateRoomName(member),
       type: ChannelType.GuildVoice,
-      parent: config.categoryId,
+      parent: destinationCategoryId,
       reason: `ISTesport private room for ${member.user.username}`,
       permissionOverwrites: [
         {
