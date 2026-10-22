@@ -4030,8 +4030,14 @@ async function recordVoiceTransition(oldState, newState) {
 
 const VOICE_HEARTBEAT_INTERVAL_MS = 60_000;
 let voiceHeartbeatTimer = null;
+let voiceHeartbeatInFlight = false;
 
 async function sendVoiceHeartbeats() {
+  // A slow API call may outlast the timer interval. Never overlap sweeps,
+  // particularly while retrying a failed startup reconciliation.
+  if (voiceHeartbeatInFlight) return;
+  voiceHeartbeatInFlight = true;
+  try {
   for (const guild of client.guilds.cache.values()) {
     if (!voiceReconciledGuilds.has(guild.id)) {
       const existingBarrier = voiceStartupBarriers.get(guild.id);
@@ -4060,6 +4066,9 @@ async function sendVoiceHeartbeats() {
         message: error instanceof Error ? error.message : String(error),
       });
     }
+  }
+  } finally {
+    voiceHeartbeatInFlight = false;
   }
 }
 
