@@ -61,6 +61,20 @@ const PRIVATE_CATEGORY_NAME = "🔒 ПРИВАТНІ КІМНАТИ";
 const PRIVATE_LOBBY_NAME = "➕ Створити приватний";
 const PRIVATE_ENTRY_CATEGORIES = ["CYBERION Kalynova", "CYBERION Zavodskaya"];
 const PRIVATE_ROOM_PREFIX = "🔒・";
+const PRIVATE_OPEN_PREFIX = "🔓・";
+
+function isPrivateRoomName(name) {
+  return String(name || "").startsWith(PRIVATE_ROOM_PREFIX) ||
+    String(name || "").startsWith(PRIVATE_OPEN_PREFIX);
+}
+
+function privateRoomNameWithLock(name, locked) {
+  const current = String(name || "");
+  const display = isPrivateRoomName(current)
+    ? current.slice(PRIVATE_ROOM_PREFIX.length)
+    : current;
+  return `${locked ? PRIVATE_ROOM_PREFIX : PRIVATE_OPEN_PREFIX}${display}`.slice(0, 100);
+}
 const PRIVATE_DELETE_DELAY_MS = 3_000;
 
 function requiredEnv(name) {
@@ -1970,25 +1984,25 @@ function buildPrivateRoomPanelData(channelId, ownerId, {
         components: [
           {
             type: 2,
-            style: 2,
+            style: 1,
             label: "✏️ Название",
             custom_id: `pv:rename:${channelId}:${ownerId}`,
           },
           {
             type: 2,
-            style: 2,
+            style: 1,
             label: "👥 Лимит",
             custom_id: `pv:limit:${channelId}:${ownerId}`,
           },
           {
             type: 2,
-            style: locked ? 3 : 2,
+            style: locked ? 3 : 1,
             label: lockLabel,
             custom_id: `pv:lock:${channelId}:${ownerId}`,
           },
           {
             type: 2,
-            style: hidden ? 3 : 2,
+            style: hidden ? 3 : 1,
             label: visibilityLabel,
             custom_id: `pv:hide:${channelId}:${ownerId}`,
           },
@@ -2153,7 +2167,7 @@ function isPrivateManagedRoom(channel, config) {
       channel.type === ChannelType.GuildVoice &&
       config.categoryIds.includes(channel.parentId) &&
       !config.lobbyIds.includes(channel.id) &&
-      channel.name.startsWith(PRIVATE_ROOM_PREFIX),
+      isPrivateRoomName(channel.name),
   );
 }
 
@@ -3803,6 +3817,10 @@ client.on(Events.InteractionCreate, (interaction) => {
       await room.permissionOverwrites.edit(everyoneId, { [action === "lock" ? "Connect" : "ViewChannel"]: denied ? null : false },
         { reason: `Private voice ${action} toggled by room owner ${ownerId}` });
       const updated = room.permissionOverwrites.cache.get(everyoneId);
+      if (action === "lock") {
+        const nowLocked = updated?.deny?.has(PermissionFlagsBits.Connect) ?? false;
+        await room.setName(privateRoomNameWithLock(room.name, nowLocked), "Private voice lock icon sync");
+      }
       await interaction.message.edit(buildPrivateRoomPanelData(room.id, ownerId, {
         locked: updated?.deny?.has(PermissionFlagsBits.Connect) ?? false,
         hidden: updated?.deny?.has(PermissionFlagsBits.ViewChannel) ?? false,
