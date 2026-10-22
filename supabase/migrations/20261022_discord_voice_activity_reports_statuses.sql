@@ -122,8 +122,10 @@ begin
  where s.guild_id=p_guild_id and s.left_at is null;
  get diagnostics v_closed=row_count;
  insert into public.discord_voice_sessions(guild_id,user_id,channel_id,category_id,joined_at)
- select p_guild_id,m->>'userId',m->>'channelId',coalesce(m->>'categoryId',''),v_now
- from(select distinct on(m->>'userId') m from jsonb_array_elements(p_members) m
+ select p_guild_id,t.member->>'userId',t.member->>'channelId',
+ coalesce(t.member->>'categoryId',''),v_now
+ from(select distinct on(m->>'userId') m as member
+ from jsonb_array_elements(p_members) m
  order by m->>'userId') t;
  get diagnostics v_opened=row_count;
  return jsonb_build_object('closed',v_closed,'opened',v_opened);
