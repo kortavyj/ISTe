@@ -52,9 +52,9 @@
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
       "elo": 2612,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
       "kd": 1.07
@@ -3525,5 +3525,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-22T01:47:01.617Z"
+  "updatedAt": "2026-10-22T06:37:55.253Z"
 }
