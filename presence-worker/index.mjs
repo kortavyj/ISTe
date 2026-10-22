@@ -3513,7 +3513,7 @@ function telemetryHealth() {
 
 client.once(Events.ClientReady, async (readyClient) => {
   // Reconcile against the *previous* worker heartbeat before recording a new one.
-  await Promise.all([...readyClient.guilds.cache.values()].map(async (guild) => {
+  const voiceStartupReconciliation = Promise.all([...readyClient.guilds.cache.values()].map(async (guild) => {
     const task = reconcileGuildVoiceSessions(guild);
     voiceStartupBarriers.set(guild.id, task);
     try {
@@ -3640,6 +3640,9 @@ client.once(Events.ClientReady, async (readyClient) => {
         commandSyncLastError,
     });
   }
+
+  // Command registration must not wait for Supabase voice reconciliation.
+  await voiceStartupReconciliation;
 
   await ensureShopSubscriptionPanel();
   await initializePrivateVoice();
