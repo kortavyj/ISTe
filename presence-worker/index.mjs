@@ -3992,6 +3992,23 @@ client.on(Events.InteractionCreate, (interaction) => {
 const voiceSessionQueues = new Map();
 const voiceStartupBarriers = new Map();
 const voiceReconciledGuilds = new Set();
+const disconnectedVoiceShards = new Set();
+
+client.on(Events.ShardDisconnect, (_event, shardId) => {
+  disconnectedVoiceShards.add(shardId);
+  for (const guild of client.guilds.cache.values()) {
+    if (guild.shardId === shardId) voiceReconciledGuilds.delete(guild.id);
+  }
+  log("voice_activity_gateway_disconnected", { shardId });
+});
+client.on(Events.ShardResume, (shardId) => {
+  disconnectedVoiceShards.delete(shardId);
+  log("voice_activity_gateway_resumed", { shardId });
+});
+client.on(Events.ShardReady, (shardId) => {
+  disconnectedVoiceShards.delete(shardId);
+});
+
 function trackedVoiceLocation(channel) {
   if (!channel || ![
     ChannelType.GuildVoice,
@@ -4056,6 +4073,7 @@ async function sendVoiceHeartbeats() {
   voiceHeartbeatInFlight = true;
   try {
   for (const guild of client.guilds.cache.values()) {
+    if (!client.isReady() || disconnectedVoiceShards.has(guild.shardId)) continue;
     if (!voiceReconciledGuilds.has(guild.id)) {
       const existingBarrier = voiceStartupBarriers.get(guild.id);
       const task = existingBarrier || reconcileGuildVoiceSessions(guild);
