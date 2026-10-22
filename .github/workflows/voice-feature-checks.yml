@@ -89,7 +89,7 @@ jobs:
       - name: Verify RLS and server-only RPC permissions
         run: |
           psql -v ON_ERROR_STOP=1 <<'SQL'
-          do $
+          do $security$
           declare
             tbl text;
             fn text;
@@ -118,7 +118,7 @@ jobs:
                 raise exception 'RPC permission mismatch on %', fn;
               end if;
             end loop;
-          end $;
+          end $security$;
           SQL
       - name: Test report cooldown, voice transitions, restart and leaderboard
         run: |
