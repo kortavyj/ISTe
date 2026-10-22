@@ -4012,7 +4012,6 @@ async function recordVoiceTransition(oldState, newState) {
 
 async function reconcileGuildVoiceSessions(guild) {
   // Wait for the full guild voice-state cache before treating absent members as disconnected.
-  await guild.voiceStates.fetch();
   await guild.channels.fetch();
   const members = [];
   for (const state of guild.voiceStates.cache.values()) {
