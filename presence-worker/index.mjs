@@ -75,6 +75,31 @@ function privateRoomNameWithLock(name, locked) {
     : current;
   return `${locked ? PRIVATE_ROOM_PREFIX : PRIVATE_OPEN_PREFIX}${display}`.slice(0, 100);
 }
+const VOICE_STATUS_OPTIONS = Object.freeze({
+  faceit: { label: "🎮 Играем FACEIT", suffix: " 🎮 FACEIT" },
+  looking_one: { label: "🔎 Ищем +1", suffix: " 🔎 +1" },
+  training: { label: "🎯 Тренировка", suffix: " 🎯 Тренировка" },
+  do_not_disturb: { label: "🔕 Не беспокоить", suffix: " 🔕 Не беспокоить" },
+  chill: { label: "☕ Отдыхаем", suffix: " ☕ Отдыхаем" },
+  none: { label: "❌ Очистить статус", suffix: "" },
+});
+
+function voiceRoomWithStatus(name, status) {
+  const selected = VOICE_STATUS_OPTIONS[status];
+  if (!selected) throw new Error("Unknown voice status");
+  const full = String(name || "");
+  const locked = full.startsWith(PRIVATE_ROOM_PREFIX);
+  const prefix = locked ? PRIVATE_ROOM_PREFIX : PRIVATE_OPEN_PREFIX;
+  let base = isPrivateRoomName(full) ? full.slice(PRIVATE_ROOM_PREFIX.length) : full;
+  for (const entry of Object.values(VOICE_STATUS_OPTIONS)) {
+    if (entry.suffix && base.endsWith(entry.suffix)) {
+      base = base.slice(0, -entry.suffix.length);
+      break;
+    }
+  }
+  return `${prefix}${base.slice(0, 100 - prefix.length - selected.suffix.length)}${selected.suffix}`;
+}
+
 const PRIVATE_DELETE_DELAY_MS = 3_000;
 
 function requiredEnv(name) {
@@ -2074,6 +2099,20 @@ function buildPrivateRoomPanelData(channelId, ownerId, {
           },
         ],
       },
+      {
+        type: 1,
+        components: [{
+          type: 3,
+          custom_id: `pvs:${channelId}:${ownerId}`,
+          placeholder: "✨ Статус голосовой комнаты",
+          min_values: 1,
+          max_values: 1,
+          options: Object.entries(VOICE_STATUS_OPTIONS).map(([value, option]) => ({
+            label: option.label,
+            value,
+          })),
+        }],
+      },
     ],
     allowedMentions: {
       parse: [],
@@ -3834,6 +3873,46 @@ client.on(Events.InteractionCreate, (interaction) => {
         await interaction.followUp({ content: "Не вдалося змінити доступ. Перевірте права бота.", ephemeral: true }).catch(() => null);
       } else {
         await interaction.reply({ content: "Не вдалося змінити доступ.", ephemeral: true }).catch(() => null);
+      }
+    }
+  })();
+});
+
+client.on(Events.InteractionCreate, (interaction) => {
+  if (!interaction.isStringSelectMenu() || !interaction.customId.startsWith("pvs:")) return;
+  void (async () => {
+    try {
+      const [prefix, channelId, ownerId] = interaction.customId.split(":");
+      if (prefix !== "pvs" || !interaction.inGuild() || interaction.user.id !== ownerId) {
+        await interaction.reply({ content: "Тільки власник кімнати може змінити статус.", ephemeral: true });
+        return;
+      }
+      const runtime = await fetchGuildRuntimeConfig(interaction.guildId);
+      if (!runtime.active || !runtime.settings?.privateVoiceEnabled) {
+        await interaction.reply({ content: "Приватні кімнати вимкнено.", ephemeral: true });
+        return;
+      }
+      const config = privateVoiceState.get(interaction.guildId) ||
+        await ensurePrivateVoiceSetup(interaction.guild);
+      const room = await interaction.guild.channels.fetch(channelId).catch(() => null);
+      if (!isPrivateManagedRoom(room, config) || ownerIdFromRoom(room) !== ownerId) {
+        await interaction.reply({ content: "Ця кімната більше не доступна.", ephemeral: true });
+        return;
+      }
+      const choice = interaction.values[0];
+      if (!Object.hasOwn(VOICE_STATUS_OPTIONS, choice)) {
+        await interaction.reply({ content: "Невідомий статус.", ephemeral: true });
+        return;
+      }
+      await interaction.deferReply({ ephemeral: true });
+      await room.setName(voiceRoomWithStatus(room.name, choice), "Private voice owner status update");
+      await interaction.editReply({ content: `Статус кімнати: ${VOICE_STATUS_OPTIONS[choice].label}` });
+    } catch (error) {
+      log("private_voice_status_failed", { message: error instanceof Error ? error.message : String(error) });
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: "Не вдалося змінити статус кімнати." }).catch(() => null);
+      } else {
+        await interaction.reply({ content: "Не вдалося змінити статус кімнати.", ephemeral: true }).catch(() => null);
       }
     }
   })();
