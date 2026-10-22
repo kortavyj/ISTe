@@ -26,6 +26,14 @@ create index if not exists discord_voice_sessions_guild_period
 create index if not exists discord_voice_sessions_category_period
   on public.discord_voice_sessions (guild_id, category_id, joined_at desc);
 
+create table if not exists public.discord_voice_worker_heartbeats (
+  guild_id text primary key,
+  last_seen_at timestamptz not null default now()
+);
+alter table public.discord_voice_worker_heartbeats enable row level security;
+comment on table public.discord_voice_worker_heartbeats is
+  'Last confirmed heartbeat for voice presence worker; service-role access only.';
+
 create table if not exists public.discord_member_reports (
   id bigint generated always as identity primary key,
   guild_id text not null,
