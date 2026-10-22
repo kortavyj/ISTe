@@ -6661,6 +6661,11 @@ async function handleCommand(
     if (!/^[0-9]{17,20}$/.test(targetId) || actorId === targetId) {
       return ephemeralText("Виберіть іншого учасника серверу.");
     }
+    // Discord returns resolved guild membership for user slash command options.
+    // Do not let reports target arbitrary external account IDs.
+    if (!interaction?.data?.resolved?.members?.[targetId]) {
+      return ephemeralText("На цього користувача не можна подати скаргу: він не є учасником серверу.");
+    }
     if (reason.length < 10 || reason.length > 2000) {
       return ephemeralText("Причина має містити від 10 до 2000 символів.");
     }
@@ -6696,7 +6701,7 @@ async function handleCommand(
       console.error("complaint create failed", error.message);
       return ephemeralText("Не вдалося зберегти скаргу.");
     }
-    return ephemeralText("✅ Скаргу прийнято. Її переглянуть модератори.");
+    return ephemeralText("✅ Скаргу збережено приватно. Модератори можуть переглянути її через /reports.");
   }
 
   if (command === "voice-top") {
