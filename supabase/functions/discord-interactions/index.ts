@@ -6570,6 +6570,39 @@ async function handleCommand(
     return privateRoomResponse;
   }
 
+  if (command === "voice-top") {
+    if (!interaction.guild_id) return ephemeralText("Команда доступна лише на сервері.");
+    if (!adminDb) return ephemeralText("Рейтинг тимчасово недоступний.");
+    const period = String(getOptions(interaction).period || "week");
+    const days: Record<string, number> = { day: 1, week: 7, month: 30 };
+    if (!["day", "week", "month", "all"].includes(period)) {
+      return ephemeralText("Невідомий період.");
+    }
+    const since = period === "all" ? null
+      : new Date(Date.now() - days[period] * 86_400_000).toISOString();
+    const { data, error } = await adminDb.rpc("discord_voice_leaderboard", {
+      p_guild_id: String(interaction.guild_id),
+      p_since: since, p_category_id: null, p_limit: 10,
+    });
+    if (error) {
+      console.error("voice-top query failed", error.message);
+      return ephemeralText("Не вдалося завантажити рейтинг.");
+    }
+    const description = (data || []).map((row: any, index: number) => {
+      const seconds = Math.max(0, Math.floor(Number(row.seconds) || 0));
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      return `${index + 1}. <@${row.user_id}>: **${hours} год ${minutes} хв**`;
+    }).join("\n") || "Поки немає даних.";
+    const names: Record<string, string> = {
+      day: "24 години", week: "7 днів", month: "30 днів", all: "Весь час",
+    };
+    return interactionMessage(
+      baseEmbed("🏆 Голосовий рейтинг • " + names[period],
+        description, "ISTe Bot • усі голосові канали сервера")
+    );
+  }
+
   if (command === "ping") {
     const elapsed = Math.max(
       0,
