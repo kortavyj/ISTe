@@ -165,6 +165,24 @@ const subcommand = ({
 
 export const ISTE_COMMANDS = [
   command({
+    name: "voice-top",
+    description: "Show the server voice activity leaderboard",
+    ruName: "войс-топ",
+    ukName: "войс-топ",
+    ruDescription: "Рейтинг времени в голосовых каналах сервера",
+    ukDescription: "Рейтинг часу в голосових каналах сервера",
+    options: [{
+      type: 3, name: "period", description: "Leaderboard period",
+      required: false,
+      choices: [
+        { name: "24 hours", value: "day" },
+        { name: "7 days", value: "week" },
+        { name: "30 days", value: "month" },
+        { name: "All time", value: "all" },
+      ],
+    }],
+  }),
+  command({
     name: "apply",
     description: "Submit an application to join ISTe",
     ruName: "заявка",
