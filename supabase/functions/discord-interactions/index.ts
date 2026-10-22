@@ -6535,6 +6535,42 @@ async function writeCommandUsage(
   }
 }
 
+async function handleReportReviewComponent(interaction: any) {
+  const customId = String(interaction?.data?.custom_id || "");
+  if (!customId.startsWith("report-review:")) return null;
+  const match = /^report-review:(take|resolve|dismiss):([1-9][0-9]*)$/.exec(customId);
+  if (!match || !interaction.guild_id || !adminDb) return ephemeralText("Некоректна дія.");
+  const [, action, rawId] = match;
+  const settings = await loadModerationSettings(String(interaction.guild_id));
+  if (!moderationActorAllowed(interaction, settings, PERMISSIONS.MANAGE_MESSAGES)) {
+    return ephemeralText("Ця дія доступна тільки модераторам.");
+  }
+  const actorId = String(getActor(interaction)?.id || "");
+  if (!actorId) return ephemeralText("Не вдалося визначити модератора.");
+  const { data: current, error: readError } = await adminDb.from("discord_member_reports")
+    .select("id,status").eq("guild_id", String(interaction.guild_id))
+    .eq("id", rawId).maybeSingle();
+  if (readError || !current) return ephemeralText("Скаргу не знайдено.");
+  if (current.status === "resolved" || current.status === "dismissed") {
+    return ephemeralText("Цю скаргу вже закрито.");
+  }
+  if (action === "take" && current.status !== "open") {
+    return ephemeralText("Цю скаргу вже взято на розгляд.");
+  }
+  const status = action === "take" ? "reviewing" : action === "resolve" ? "resolved" : "dismissed";
+  const update: Record<string, unknown> = { status, reviewed_by: actorId };
+  if (status !== "reviewing") update.reviewed_at = new Date().toISOString();
+  const { data: updated, error } = await adminDb.from("discord_member_reports")
+    .update(update).eq("id", rawId).eq("guild_id", String(interaction.guild_id))
+    .eq("status", current.status).select("id").maybeSingle();
+  if (error) {
+    console.error("report review update failed", error.message);
+    return ephemeralText("Не вдалося оновити скаргу.");
+  }
+  if (!updated) return ephemeralText("Стан скарги вже змінив інший модератор.");
+  return ephemeralText("✅ Статус скарги #" + rawId + ": " + status);
+}
+
 async function handleCommand(
   interaction: any,
   startedAt: number,
@@ -6568,6 +6604,50 @@ async function handleCommand(
 
   if (privateRoomResponse) {
     return privateRoomResponse;
+  }
+
+  if (command === "reports") {
+    if (!adminDb || !interaction.guild_id) return ephemeralText("Команда недоступна.");
+    const settings = await loadModerationSettings(String(interaction.guild_id));
+    if (!moderationActorAllowed(interaction, settings, PERMISSIONS.MANAGE_MESSAGES)) {
+      return ephemeralText("Перегляд скарг доступний лише модераторам.");
+    }
+    const { data, error } = await adminDb.from("discord_member_reports")
+      .select("id,reporter_user_id,target_user_id,reason,evidence_url,status,created_at")
+      .eq("guild_id", String(interaction.guild_id))
+      .in("status", ["open", "reviewing"])
+      .order("created_at", { ascending: false }).limit(5);
+    if (error) {
+      console.error("reports list failed", error.message);
+      return ephemeralText("Не вдалося завантажити скарги.");
+    }
+    if (!data?.length) return ephemeralText("Немає відкритих скарг.");
+    return {
+      type: 4,
+      data: {
+        flags: 64,
+        allowed_mentions: { parse: [] },
+        embeds: data.map((row: any) => ({
+          title: "🛡️ Скарга #" + row.id + " • " + (row.status === "open" ? "Відкрита" : "Розглядається"),
+          description: "**На кого:** <@" + row.target_user_id + ">\n**Автор:** <@" +
+            row.reporter_user_id + ">\n**Причина:** " +
+            String(row.reason || "").replace(/@/g, "@\u200b").slice(0, 1000) +
+            (row.evidence_url ? "\n**Докази:** " + String(row.evidence_url).slice(0, 500) : ""),
+          color: 0xe30613,
+        })),
+        components: data.slice(0, 5).map((row: any) => ({
+          type: 1,
+          components: [
+            { type: 2, style: 1, label: "#" + row.id + " Взяти",
+              custom_id: "report-review:take:" + row.id, disabled: row.status !== "open" },
+            { type: 2, style: 3, label: "Вирішити",
+              custom_id: "report-review:resolve:" + row.id },
+            { type: 2, style: 2, label: "Відхилити",
+              custom_id: "report-review:dismiss:" + row.id },
+          ],
+        })),
+      },
+    };
   }
 
   if (command === "report") {
@@ -7005,6 +7085,9 @@ Deno.serve(async (request) => {
       if (roleResponse) {
         return json(roleResponse);
       }
+
+      const reportReviewResponse = await handleReportReviewComponent(interaction);
+      if (reportReviewResponse) return json(reportReviewResponse);
 
       const ticketResponse =
         await handleTicketComponent(
