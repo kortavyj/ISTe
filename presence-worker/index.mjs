@@ -3922,10 +3922,50 @@ client.on(Events.InteractionCreate, (interaction) => {
   })();
 });
 
+const voiceSessionQueues = new Map();
+const ACTIVITY_CATEGORIES = new Set(PRIVATE_ENTRY_CATEGORIES.map((value) => value.toLowerCase()));
+
+function trackedVoiceLocation(channel) {
+  if (!channel || channel.type !== ChannelType.GuildVoice) return null;
+  const name = channel.parent?.name?.trim().toLowerCase();
+  if (!ACTIVITY_CATEGORIES.has(name)) return null;
+  return { channelId: channel.id, categoryId: channel.parentId };
+}
+
+async function recordVoiceTransition(oldState, newState) {
+  if (oldState.id === client.user?.id || newState.member?.user?.bot ||
+      oldState.member?.user?.bot) return;
+  const before = trackedVoiceLocation(oldState.channel);
+  const after = trackedVoiceLocation(newState.channel);
+  if (before?.channelId === after?.channelId) return;
+  const userId = newState.id || oldState.id;
+  const guildId = newState.guild.id;
+  const key = `${guildId}:${userId}`;
+  const preceding = voiceSessionQueues.get(key) || Promise.resolve();
+  const task = preceding.catch(() => {}).then(async () => {
+    await workerRuntimeApi("voice-session", {
+      guildId, userId, channelId: after?.channelId || "",
+      categoryId: after?.categoryId || "",
+    });
+  });
+  voiceSessionQueues.set(key, task);
+  try {
+    await task;
+  } finally {
+    if (voiceSessionQueues.get(key) === task) voiceSessionQueues.delete(key);
+  }
+}
+
 client.on(
   Events.VoiceStateUpdate,
   (oldState, newState) => {
     void handlePrivateVoiceState(oldState, newState);
+    void recordVoiceTransition(oldState, newState).catch((error) =>
+      log("voice_activity_write_failed", {
+        guildId: newState.guild?.id || oldState.guild?.id,
+        message: error instanceof Error ? error.message : String(error),
+      })
+    );
   },
 );
 
