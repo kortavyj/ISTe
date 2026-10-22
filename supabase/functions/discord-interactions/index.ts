@@ -6690,18 +6690,19 @@ async function handleCommand(
       return ephemeralText("Не вдалося надіслати скаргу.");
     }
     if ((count || 0) >= 1) return ephemeralText("Повторіть спробу через хвилину.");
-    const { error } = await adminDb.from("discord_member_reports").insert({
+    const { data: created, error } = await adminDb.from("discord_member_reports").insert({
       guild_id: guildId,
       reporter_user_id: actorId,
       target_user_id: targetId,
       reason,
       evidence_url: evidence || null,
-    });
-    if (error) {
-      console.error("complaint create failed", error.message);
+    }).select("id").single();
+    if (error || !created) {
+      console.error("complaint create failed", error?.message || "No report row returned");
       return ephemeralText("Не вдалося зберегти скаргу.");
     }
-    return ephemeralText("✅ Скаргу збережено приватно. Модератори можуть переглянути її через /reports.");
+    return ephemeralText("✅ Скаргу #" + created.id +
+      " збережено приватно. Модератори можуть переглянути її через /reports.");
   }
 
   if (command === "voice-top") {
