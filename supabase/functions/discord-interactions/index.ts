@@ -6570,7 +6570,7 @@ async function handleCommand(
     return privateRoomResponse;
   }
 
-  if (command === "complaint") {
+  if (command === "report") {
     const guildId = String(interaction.guild_id || "");
     const actorId = String(getActor(interaction)?.id || "");
     const options = getOptions(interaction);
