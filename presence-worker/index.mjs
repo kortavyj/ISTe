@@ -3512,14 +3512,17 @@ function telemetryHealth() {
 }
 
 client.once(Events.ClientReady, async (readyClient) => {
-  for (const guild of readyClient.guilds.cache.values()) {
-    void reconcileGuildVoiceSessions(guild).catch((error) =>
+  // Reconcile against the *previous* worker heartbeat before recording a new one.
+  await Promise.all([...readyClient.guilds.cache.values()].map(async (guild) => {
+    try {
+      await reconcileGuildVoiceSessions(guild);
+    } catch (error) {
       log("voice_activity_reconcile_failed", {
         guildId: guild.id,
         message: error instanceof Error ? error.message : String(error),
-      })
-    );
-  }
+      });
+    }
+  }));
   if (voiceHeartbeatTimer) clearInterval(voiceHeartbeatTimer);
   voiceHeartbeatTimer = setInterval(() => {
     void sendVoiceHeartbeats();
