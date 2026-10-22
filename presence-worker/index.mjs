@@ -3520,6 +3520,11 @@ client.once(Events.ClientReady, async (readyClient) => {
       })
     );
   }
+  if (voiceHeartbeatTimer) clearInterval(voiceHeartbeatTimer);
+  voiceHeartbeatTimer = setInterval(() => {
+    void sendVoiceHeartbeats();
+  }, VOICE_HEARTBEAT_INTERVAL_MS);
+  void sendVoiceHeartbeats();
   log("discord_ready", {
     bot: readyClient.user.tag,
     userId: readyClient.user.id,
@@ -4007,6 +4012,22 @@ async function recordVoiceTransition(oldState, newState) {
     await task;
   } finally {
     if (voiceSessionQueues.get(key) === task) voiceSessionQueues.delete(key);
+  }
+}
+
+const VOICE_HEARTBEAT_INTERVAL_MS = 60_000;
+let voiceHeartbeatTimer = null;
+
+async function sendVoiceHeartbeats() {
+  for (const guild of client.guilds.cache.values()) {
+    try {
+      await workerRuntimeApi("voice-heartbeat", { guildId: guild.id });
+    } catch (error) {
+      log("voice_activity_heartbeat_failed", {
+        guildId: guild.id,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 }
 
