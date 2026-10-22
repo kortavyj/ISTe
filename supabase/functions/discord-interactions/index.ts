@@ -3612,7 +3612,7 @@ async function handleSubscriptionGuildComponent(
       .map(
         (guildId) =>
           eligibleMap.get(
-            guildId,
+            String(guildId),
           ),
       )
       .filter(
@@ -5530,7 +5530,7 @@ async function serverCommand(interaction: any, lang: Language) {
         .maybeSingle();
 
       memberCount = Number.isFinite(data?.member_count)
-        ? data.member_count
+        ? Number(data?.member_count)
         : null;
     } catch {
       memberCount = null;
@@ -6535,6 +6535,42 @@ async function writeCommandUsage(
   }
 }
 
+async function handleReportReviewComponent(interaction: any) {
+  const customId = String(interaction?.data?.custom_id || "");
+  if (!customId.startsWith("report-review:")) return null;
+  const match = /^report-review:(take|resolve|dismiss):([1-9][0-9]*)$/.exec(customId);
+  if (!match || !interaction.guild_id || !adminDb) return ephemeralText("Некоректна дія.");
+  const [, action, rawId] = match;
+  const settings = await loadModerationSettings(String(interaction.guild_id));
+  if (!moderationActorAllowed(interaction, settings, PERMISSIONS.MANAGE_MESSAGES)) {
+    return ephemeralText("Ця дія доступна тільки модераторам.");
+  }
+  const actorId = String(getActor(interaction)?.id || "");
+  if (!actorId) return ephemeralText("Не вдалося визначити модератора.");
+  const { data: current, error: readError } = await adminDb.from("discord_member_reports")
+    .select("id,status").eq("guild_id", String(interaction.guild_id))
+    .eq("id", rawId).maybeSingle();
+  if (readError || !current) return ephemeralText("Скаргу не знайдено.");
+  if (current.status === "resolved" || current.status === "dismissed") {
+    return ephemeralText("Цю скаргу вже закрито.");
+  }
+  if (action === "take" && current.status !== "open") {
+    return ephemeralText("Цю скаргу вже взято на розгляд.");
+  }
+  const status = action === "take" ? "reviewing" : action === "resolve" ? "resolved" : "dismissed";
+  const update: Record<string, unknown> = { status, reviewed_by: actorId };
+  if (status !== "reviewing") update.reviewed_at = new Date().toISOString();
+  const { data: updated, error } = await adminDb.from("discord_member_reports")
+    .update(update).eq("id", rawId).eq("guild_id", String(interaction.guild_id))
+    .eq("status", current.status).select("id").maybeSingle();
+  if (error) {
+    console.error("report review update failed", error.message);
+    return ephemeralText("Не вдалося оновити скаргу.");
+  }
+  if (!updated) return ephemeralText("Стан скарги вже змінив інший модератор.");
+  return ephemeralText("✅ Статус скарги #" + rawId + ": " + status);
+}
+
 async function handleCommand(
   interaction: any,
   startedAt: number,
@@ -6568,6 +6604,131 @@ async function handleCommand(
 
   if (privateRoomResponse) {
     return privateRoomResponse;
+  }
+
+  if (command === "reports") {
+    if (!adminDb || !interaction.guild_id) return ephemeralText("Команда недоступна.");
+    const settings = await loadModerationSettings(String(interaction.guild_id));
+    if (!moderationActorAllowed(interaction, settings, PERMISSIONS.MANAGE_MESSAGES)) {
+      return ephemeralText("Перегляд скарг доступний лише модераторам.");
+    }
+    const { data, error } = await adminDb.from("discord_member_reports")
+      .select("id,reporter_user_id,target_user_id,reason,evidence_url,status,created_at")
+      .eq("guild_id", String(interaction.guild_id))
+      .in("status", ["open", "reviewing"])
+      .order("created_at", { ascending: false }).limit(5);
+    if (error) {
+      console.error("reports list failed", error.message);
+      return ephemeralText("Не вдалося завантажити скарги.");
+    }
+    if (!data?.length) return ephemeralText("Немає відкритих скарг.");
+    return {
+      type: 4,
+      data: {
+        flags: 64,
+        allowed_mentions: { parse: [] },
+        embeds: data.map((row: any) => ({
+          title: "🛡️ Скарга #" + row.id + " • " + (row.status === "open" ? "Відкрита" : "Розглядається"),
+          description: "**На кого:** <@" + row.target_user_id + ">\n**Автор:** <@" +
+            row.reporter_user_id + ">\n**Причина:** " +
+            String(row.reason || "").replace(/@/g, "@\u200b").slice(0, 1000) +
+            (row.evidence_url ? "\n**Докази:** " + String(row.evidence_url).slice(0, 500) : ""),
+          color: 0xe30613,
+        })),
+        components: data.slice(0, 5).map((row: any) => ({
+          type: 1,
+          components: [
+            { type: 2, style: 1, label: "#" + row.id + " Взяти",
+              custom_id: "report-review:take:" + row.id, disabled: row.status !== "open" },
+            { type: 2, style: 3, label: "Вирішити",
+              custom_id: "report-review:resolve:" + row.id },
+            { type: 2, style: 2, label: "Відхилити",
+              custom_id: "report-review:dismiss:" + row.id },
+          ],
+        })),
+      },
+    };
+  }
+
+  if (command === "report") {
+    const guildId = String(interaction.guild_id || "");
+    const actorId = String(getActor(interaction)?.id || "");
+    const options = getOptions(interaction);
+    const targetId = String(options.member || "");
+    const reason = String(options.reason || "").trim();
+    const evidence = String(options.evidence || "").trim();
+    if (!guildId || !actorId) return ephemeralText("Команда доступна лише на сервері.");
+    if (!/^[0-9]{17,20}$/.test(targetId) || actorId === targetId) {
+      return ephemeralText("Виберіть іншого учасника серверу.");
+    }
+    // Discord returns resolved guild membership for user slash command options.
+    // Do not let reports target arbitrary external account IDs.
+    if (!interaction?.data?.resolved?.members?.[targetId]) {
+      return ephemeralText("На цього користувача не можна подати скаргу: він не є учасником серверу.");
+    }
+    if (reason.length < 10 || reason.length > 2000) {
+      return ephemeralText("Причина має містити від 10 до 2000 символів.");
+    }
+    if (evidence) {
+      try {
+        const url = new URL(evidence);
+        if (url.protocol !== "https:" || evidence.length > 500 ||
+          url.username || url.password) throw Error("invalid evidence");
+      } catch {
+        return ephemeralText("Посилання на докази має починатися з https://");
+      }
+    }
+    if (!adminDb) return ephemeralText("Система скарг тимчасово недоступна.");
+    const { data: reportId, error } = await adminDb.rpc("discord_submit_member_report", {
+      p_guild_id: guildId,
+      p_reporter_user_id: actorId,
+      p_target_user_id: targetId,
+      p_reason: reason,
+      p_evidence_url: evidence || null,
+    });
+    if (error) {
+      if (error.message?.includes("REPORT_COOLDOWN")) {
+        return ephemeralText("Повторіть спробу через хвилину.");
+      }
+      console.error("report creation failed", error.code || "database error");
+      return ephemeralText("Не вдалося зберегти скаргу.");
+    }
+    if (!reportId) return ephemeralText("Не вдалося зберегти скаргу.");
+    return ephemeralText("✅ Скаргу #" + reportId +
+      " збережено приватно. Модератори можуть переглянути її через /reports.");
+  }
+
+  if (command === "voice-top") {
+    if (!interaction.guild_id) return ephemeralText("Команда доступна лише на сервері.");
+    if (!adminDb) return ephemeralText("Рейтинг тимчасово недоступний.");
+    const period = String(getOptions(interaction).period || "week");
+    const days: Record<string, number> = { day: 1, week: 7, month: 30 };
+    if (!["day", "week", "month", "all"].includes(period)) {
+      return ephemeralText("Невідомий період.");
+    }
+    const since = period === "all" ? null
+      : new Date(Date.now() - days[period] * 86_400_000).toISOString();
+    const { data, error } = await adminDb.rpc("discord_voice_leaderboard", {
+      p_guild_id: String(interaction.guild_id),
+      p_since: since, p_category_id: null, p_limit: 10,
+    });
+    if (error) {
+      console.error("voice-top query failed", error.message);
+      return ephemeralText("Не вдалося завантажити рейтинг.");
+    }
+    const description = (data || []).map((row: any, index: number) => {
+      const seconds = Math.max(0, Math.floor(Number(row.seconds) || 0));
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      return `${index + 1}. <@${row.user_id}>: **${hours} год ${minutes} хв**`;
+    }).join("\n") || "Поки немає даних.";
+    const names: Record<string, string> = {
+      day: "24 години", week: "7 днів", month: "30 днів", all: "Весь час",
+    };
+    return interactionMessage(
+      baseEmbed("🏆 Голосовий рейтинг • " + names[period],
+        description, "ISTe Bot • усі голосові канали сервера")
+    );
   }
 
   if (command === "ping") {
@@ -6923,6 +7084,9 @@ Deno.serve(async (request) => {
       if (roleResponse) {
         return json(roleResponse);
       }
+
+      const reportReviewResponse = await handleReportReviewComponent(interaction);
+      if (reportReviewResponse) return json(reportReviewResponse);
 
       const ticketResponse =
         await handleTicketComponent(

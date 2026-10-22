@@ -1649,6 +1649,97 @@ async function handleResult(
   };
 }
 
+async function handleVoiceHeartbeat(body: any) {
+  const guildId = String(body.guildId || "");
+  if (!isSnowflake(guildId)) {
+    return { status: 400, payload: { ok: false, error: "INVALID_VOICE_HEARTBEAT" } };
+  }
+  const { error } = await db!.from("discord_voice_worker_heartbeats")
+    .upsert({ guild_id: guildId, last_seen_at: new Date().toISOString() },
+      { onConflict: "guild_id" });
+  if (error) throw error;
+  return { status: 200, payload: { ok: true } };
+}
+
+async function handleVoiceReconcile(body: any) {
+  const guildId = String(body.guildId || "");
+  const raw = body.members;
+  if (!isSnowflake(guildId) || !Array.isArray(raw) || raw.length > 10000) {
+    return { status: 400, payload: { ok: false, error: "INVALID_VOICE_RECONCILIATION" } };
+  }
+  const members = new Map<string, { channelId: string; categoryId: string }>();
+  for (const entry of raw) {
+    const userId = String(entry?.userId || "");
+    const channelId = String(entry?.channelId || "");
+    const categoryId = String(entry?.categoryId || "");
+    if (!isSnowflake(userId) || !isSnowflake(channelId) ||
+        (categoryId && !isSnowflake(categoryId))) {
+      return { status: 400, payload: { ok: false, error: "INVALID_VOICE_MEMBER" } };
+    }
+    members.set(userId, { channelId, categoryId });
+  }
+  const { data, error } = await db!.rpc("discord_reconcile_voice_sessions", {
+    p_guild_id: guildId,
+    p_members: [...members].map(([userId, location]) => ({
+      userId,
+      channelId: location.channelId,
+      categoryId: location.categoryId,
+    })),
+  });
+  if (error) throw error;
+  return { status: 200, payload: {
+    ok: true,
+    closed: Number(data?.closed || 0),
+    opened: Number(data?.opened || 0),
+  } };
+}
+
+async function handleVoiceLeaderboard(body: any) {
+  const guildId = String(body.guildId || "");
+  const categoryId = String(body.categoryId || "");
+  const period = String(body.period || "week");
+  if (!isSnowflake(guildId) || (categoryId && !isSnowflake(categoryId)) ||
+    !["day", "week", "month", "all"].includes(period)) {
+    return { status: 400, payload: { ok: false, error: "INVALID_LEADERBOARD_REQUEST" } };
+  }
+  const now = new Date();
+  const since = period === "all" ? null : new Date(
+    now.getTime() - ({ day: 1, week: 7, month: 30 } as Record<string, number>)[period] * 86_400_000
+  ).toISOString();
+  const { data, error } = await db!.rpc("discord_voice_leaderboard", {
+    p_guild_id: guildId, p_since: since,
+    p_category_id: categoryId || null, p_limit: 10,
+  });
+  if (error) throw error;
+  return { status: 200, payload: {
+    ok: true, period, categoryId: categoryId || null,
+    leaders: (data || []).map((row: any) => ({
+      userId: String(row.user_id), seconds: Math.max(0, Number(row.seconds) || 0),
+    })),
+  } };
+}
+
+async function handleVoiceSession(body: any) {
+  const guildId = String(body.guildId || "");
+  const userId = String(body.userId || "");
+  const channelId = String(body.channelId || "");
+  const categoryId = String(body.categoryId || "");
+  if (!isSnowflake(guildId) || !isSnowflake(userId) ||
+    (channelId && !isSnowflake(channelId)) ||
+    (categoryId && !isSnowflake(categoryId)) ||
+    (!channelId && Boolean(categoryId))) {
+    return { status: 400, payload: { ok: false, error: "INVALID_VOICE_SESSION" } };
+  }
+  const { data, error } = await db!.rpc("discord_apply_voice_session", {
+    p_guild_id: guildId,
+    p_user_id: userId,
+    p_channel_id: channelId,
+    p_category_id: categoryId,
+  });
+  if (error) throw error;
+  return { status: 200, payload: { ok: true, unchanged: data?.unchanged === true } };
+}
+
 Deno.serve(
   async (
     request: Request,
@@ -1730,7 +1821,15 @@ Deno.serve(
 
     try {
       const result =
-        action === "config"
+        action === "voice-heartbeat"
+          ? await handleVoiceHeartbeat(body)
+          : action === "voice-reconcile"
+          ? await handleVoiceReconcile(body)
+          : action === "voice-leaderboard"
+          ? await handleVoiceLeaderboard(body)
+          : action === "voice-session"
+          ? await handleVoiceSession(body)
+          : action === "config"
           ? await handleConfig(
               body,
             )

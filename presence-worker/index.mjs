@@ -75,6 +75,35 @@ function privateRoomNameWithLock(name, locked) {
     : current;
   return `${locked ? PRIVATE_ROOM_PREFIX : PRIVATE_OPEN_PREFIX}${display}`.slice(0, 100);
 }
+const VOICE_STATUS_OPTIONS = Object.freeze({
+  cs2: { label: "🔫 CS2", suffix: " 🔫 CS2" },
+  dota2: { label: "⚔️ Dota 2", suffix: " ⚔️ Dota 2" },
+  pubg: { label: "🪖 PUBG", suffix: " 🪖 PUBG" },
+  minecraft: { label: "⛏️ Minecraft", suffix: " ⛏️ Minecraft" },
+  faceit: { label: "🎮 Играем FACEIT", suffix: " 🎮 FACEIT" },
+  looking_one: { label: "🔎 Ищем +1", suffix: " 🔎 +1" },
+  training: { label: "🎯 Тренировка", suffix: " 🎯 Тренировка" },
+  do_not_disturb: { label: "🔕 Не беспокоить", suffix: " 🔕 Не беспокоить" },
+  chill: { label: "☕ Отдыхаем", suffix: " ☕ Отдыхаем" },
+  none: { label: "❌ Очистить статус", suffix: "" },
+});
+
+function voiceRoomWithStatus(name, status) {
+  const selected = VOICE_STATUS_OPTIONS[status];
+  if (!selected) throw new Error("Unknown voice status");
+  const full = String(name || "");
+  const locked = full.startsWith(PRIVATE_ROOM_PREFIX);
+  const prefix = locked ? PRIVATE_ROOM_PREFIX : PRIVATE_OPEN_PREFIX;
+  let base = isPrivateRoomName(full) ? full.slice(PRIVATE_ROOM_PREFIX.length) : full;
+  for (const entry of Object.values(VOICE_STATUS_OPTIONS)) {
+    if (entry.suffix && base.endsWith(entry.suffix)) {
+      base = base.slice(0, -entry.suffix.length);
+      break;
+    }
+  }
+  return `${prefix}${base.slice(0, 100 - prefix.length - selected.suffix.length)}${selected.suffix}`;
+}
+
 const PRIVATE_DELETE_DELAY_MS = 3_000;
 
 function requiredEnv(name) {
@@ -2074,6 +2103,20 @@ function buildPrivateRoomPanelData(channelId, ownerId, {
           },
         ],
       },
+      {
+        type: 1,
+        components: [{
+          type: 3,
+          custom_id: `pvs:${channelId}:${ownerId}`,
+          placeholder: "✨ Статус голосовой комнаты",
+          min_values: 1,
+          max_values: 1,
+          options: Object.entries(VOICE_STATUS_OPTIONS).map(([value, option]) => ({
+            label: option.label,
+            value,
+          })),
+        }],
+      },
     ],
     allowedMentions: {
       parse: [],
@@ -3469,6 +3512,29 @@ function telemetryHealth() {
 }
 
 client.once(Events.ClientReady, async (readyClient) => {
+  // Reconcile against the *previous* worker heartbeat before recording a new one.
+  await Promise.all([...readyClient.guilds.cache.values()].map(async (guild) => {
+    const task = reconcileGuildVoiceSessions(guild);
+    voiceStartupBarriers.set(guild.id, task);
+    try {
+      await task;
+      voiceReconciledGuilds.add(guild.id);
+    } catch (error) {
+      log("voice_activity_reconcile_failed", {
+        guildId: guild.id,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      if (voiceStartupBarriers.get(guild.id) === task) {
+        voiceStartupBarriers.delete(guild.id);
+      }
+    }
+  }));
+  if (voiceHeartbeatTimer) clearInterval(voiceHeartbeatTimer);
+  voiceHeartbeatTimer = setInterval(() => {
+    void sendVoiceHeartbeats();
+  }, VOICE_HEARTBEAT_INTERVAL_MS);
+  void sendVoiceHeartbeats();
   log("discord_ready", {
     bot: readyClient.user.tag,
     userId: readyClient.user.id,
@@ -3839,10 +3905,238 @@ client.on(Events.InteractionCreate, (interaction) => {
   })();
 });
 
+client.on(Events.InteractionCreate, (interaction) => {
+  if (!interaction.isChatInputCommand() || interaction.commandName !== "voice-top") return;
+  void (async () => {
+    try {
+      if (!interaction.inGuild()) {
+        await interaction.reply({ content: "Команда доступна лише на сервері.", ephemeral: true });
+        return;
+      }
+      await interaction.deferReply();
+      const period = interaction.options.getString("period") || "week";
+      const result = await workerRuntimeApi("voice-leaderboard", {
+        guildId: interaction.guildId,
+        period,
+      });
+      const title = {day:"24 години",week:"7 днів",month:"30 днів",all:"Весь час"}[period] || period;
+      const lines = (result.leaders || []).slice(0, 10).map((entry, index) => {
+        const seconds = Math.max(0, Math.floor(entry.seconds || 0));
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        return `${index + 1}. <@${entry.userId}>: **${hours} год ${minutes} хв**`;
+      });
+      await interaction.editReply({
+        embeds: [{
+          title: `🏆 Голосовий рейтинг • ${title}`,
+          description: lines.length ? lines.join("\n") : "Поки немає даних.",
+          color: 0xe30613,
+          footer: { text: "ISTe Bot • усі голосові канали сервера" },
+        }],
+        allowedMentions: { parse: [] },
+      });
+    } catch (error) {
+      log("voice_leaderboard_failed", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+      const reply = { content: "Не вдалося отримати рейтинг голосової активності." };
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(reply).catch(() => null);
+      } else {
+        await interaction.reply({ ...reply, ephemeral: true }).catch(() => null);
+      }
+    }
+  })();
+});
+
+client.on(Events.InteractionCreate, (interaction) => {
+  if (!interaction.isStringSelectMenu() || !interaction.customId.startsWith("pvs:")) return;
+  void (async () => {
+    try {
+      const [prefix, channelId, ownerId] = interaction.customId.split(":");
+      if (prefix !== "pvs" || !interaction.inGuild() || interaction.user.id !== ownerId) {
+        await interaction.reply({ content: "Тільки власник кімнати може змінити статус.", ephemeral: true });
+        return;
+      }
+      const runtime = await fetchGuildRuntimeConfig(interaction.guildId);
+      if (!runtime.active || !runtime.settings?.privateVoiceEnabled) {
+        await interaction.reply({ content: "Приватні кімнати вимкнено.", ephemeral: true });
+        return;
+      }
+      const config = privateVoiceState.get(interaction.guildId) ||
+        await ensurePrivateVoiceSetup(interaction.guild);
+      const room = await interaction.guild.channels.fetch(channelId).catch(() => null);
+      if (!isPrivateManagedRoom(room, config) || ownerIdFromRoom(room) !== ownerId) {
+        await interaction.reply({ content: "Ця кімната більше не доступна.", ephemeral: true });
+        return;
+      }
+      const choice = interaction.values[0];
+      if (!Object.hasOwn(VOICE_STATUS_OPTIONS, choice)) {
+        await interaction.reply({ content: "Невідомий статус.", ephemeral: true });
+        return;
+      }
+      await interaction.deferReply({ ephemeral: true });
+      await room.setName(voiceRoomWithStatus(room.name, choice), "Private voice owner status update");
+      await interaction.editReply({ content: `Статус кімнати: ${VOICE_STATUS_OPTIONS[choice].label}` });
+    } catch (error) {
+      log("private_voice_status_failed", { message: error instanceof Error ? error.message : String(error) });
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: "Не вдалося змінити статус кімнати." }).catch(() => null);
+      } else {
+        await interaction.reply({ content: "Не вдалося змінити статус кімнати.", ephemeral: true }).catch(() => null);
+      }
+    }
+  })();
+});
+
+const voiceSessionQueues = new Map();
+const voiceStartupBarriers = new Map();
+const voiceReconciledGuilds = new Set();
+const disconnectedVoiceShards = new Set();
+
+client.on(Events.ShardDisconnect, (_event, shardId) => {
+  disconnectedVoiceShards.add(shardId);
+  for (const guild of client.guilds.cache.values()) {
+    if (guild.shardId === shardId) voiceReconciledGuilds.delete(guild.id);
+  }
+  log("voice_activity_gateway_disconnected", { shardId });
+});
+client.on(Events.ShardResume, (shardId) => {
+  disconnectedVoiceShards.delete(shardId);
+  log("voice_activity_gateway_resumed", { shardId });
+});
+client.on(Events.ShardReady, (shardId) => {
+  disconnectedVoiceShards.delete(shardId);
+});
+
+function trackedVoiceLocation(channel) {
+  if (!channel || ![
+    ChannelType.GuildVoice,
+    ChannelType.GuildStageVoice,
+  ].includes(channel.type)) return null;
+  return {
+    channelId: channel.id,
+    categoryId: channel.parentId || "",
+  };
+}
+
+async function recordVoiceTransition(oldState, newState) {
+  if (oldState.id === client.user?.id || newState.member?.user?.bot ||
+      oldState.member?.user?.bot) return;
+  const before = trackedVoiceLocation(oldState.channel);
+  const after = trackedVoiceLocation(newState.channel);
+  if (before?.channelId === after?.channelId) return;
+  const userId = newState.id || oldState.id;
+  const guildId = newState.guild.id;
+  const key = `${guildId}:${userId}`;
+  const preceding = voiceSessionQueues.get(key) || Promise.resolve();
+  const startupBarrier = voiceStartupBarriers.get(guildId) || Promise.resolve();
+  const task = Promise.all([
+    preceding.catch(() => {}),
+    startupBarrier.catch(() => {}),
+  ]).then(async () => {
+    // Resolve the *current* state after any delayed queue or recovery.
+    // Otherwise an old queued event could overwrite a newer channel.
+    if (!voiceReconciledGuilds.has(guildId)) return;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      // Re-read the cache for every attempt to avoid replaying a stale move.
+      const current = newState.guild.voiceStates.cache.get(userId);
+      const location = trackedVoiceLocation(current?.channel);
+      try {
+        await workerRuntimeApi("voice-session", {
+          guildId, userId, channelId: location?.channelId || "",
+          categoryId: location?.categoryId || "",
+        });
+        return;
+      } catch (error) {
+        if (attempt === 3) throw error;
+        await new Promise((resolve) => setTimeout(resolve, attempt * 750));
+      }
+    }
+  });
+  voiceSessionQueues.set(key, task);
+  try {
+    await task;
+  } finally {
+    if (voiceSessionQueues.get(key) === task) voiceSessionQueues.delete(key);
+  }
+}
+
+const VOICE_HEARTBEAT_INTERVAL_MS = 60_000;
+let voiceHeartbeatTimer = null;
+let voiceHeartbeatInFlight = false;
+
+async function sendVoiceHeartbeats() {
+  // A slow API call may outlast the timer interval. Never overlap sweeps,
+  // particularly while retrying a failed startup reconciliation.
+  if (voiceHeartbeatInFlight) return;
+  voiceHeartbeatInFlight = true;
+  try {
+  for (const guild of client.guilds.cache.values()) {
+    if (!client.isReady() || disconnectedVoiceShards.has(guild.shardId)) continue;
+    if (!voiceReconciledGuilds.has(guild.id)) {
+      const existingBarrier = voiceStartupBarriers.get(guild.id);
+      const task = existingBarrier || reconcileGuildVoiceSessions(guild);
+      if (!existingBarrier) voiceStartupBarriers.set(guild.id, task);
+      try {
+        await task;
+        voiceReconciledGuilds.add(guild.id);
+      } catch (error) {
+        log("voice_activity_reconcile_retry_failed", {
+          guildId: guild.id,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        continue;
+      } finally {
+        if (voiceStartupBarriers.get(guild.id) === task) {
+          voiceStartupBarriers.delete(guild.id);
+        }
+      }
+    }
+    try {
+      await workerRuntimeApi("voice-heartbeat", { guildId: guild.id });
+    } catch (error) {
+      log("voice_activity_heartbeat_failed", {
+        guildId: guild.id,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  } finally {
+    voiceHeartbeatInFlight = false;
+  }
+}
+
+async function reconcileGuildVoiceSessions(guild) {
+  // Wait for the full guild voice-state cache before treating absent members as disconnected.
+  await guild.channels.fetch();
+  const members = [];
+  for (const state of guild.voiceStates.cache.values()) {
+    if (state.member?.user?.bot) continue;
+    const location = trackedVoiceLocation(state.channel);
+    if (!location) continue;
+    members.push({
+      userId: state.id,
+      channelId: location.channelId,
+      categoryId: location.categoryId,
+    });
+  }
+  const result = await workerRuntimeApi("voice-reconcile", { guildId: guild.id, members });
+  log("voice_activity_reconciled", {
+    guildId: guild.id, closed: result.closed, opened: result.opened,
+  });
+}
+
 client.on(
   Events.VoiceStateUpdate,
   (oldState, newState) => {
     void handlePrivateVoiceState(oldState, newState);
+    void recordVoiceTransition(oldState, newState).catch((error) =>
+      log("voice_activity_write_failed", {
+        guildId: newState.guild?.id || oldState.guild?.id,
+        message: error instanceof Error ? error.message : String(error),
+      })
+    );
   },
 );
 

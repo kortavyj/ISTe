@@ -21,8 +21,26 @@ function roomDisplayName(name: unknown) {
   return isRoomName(value) ? value.slice(ROOM_PREFIX.length) : value;
 }
 
-function roomNameForState(name: unknown, locked: boolean) {
-  return `${locked ? ROOM_PREFIX : OPEN_ROOM_PREFIX}${roomDisplayName(name)}`.slice(0, 100);
+const ROOM_STATUS_SUFFIXES = [
+  " 🔫 CS2", " ⚔️ Dota 2", " 🪖 PUBG", " ⛏️ Minecraft",
+  " 🎮 FACEIT", " 🔎 +1", " 🎯 Тренировка",
+  " 🔕 Не беспокоить", " ☕ Отдыхаем",
+];
+
+function roomStatusSuffix(name: unknown) {
+  const display = roomDisplayName(name);
+  return ROOM_STATUS_SUFFIXES.find((suffix) => display.endsWith(suffix)) || "";
+}
+
+function roomNameForState(name: unknown, locked: boolean, previousName?: unknown) {
+  const prefix = locked ? ROOM_PREFIX : OPEN_ROOM_PREFIX;
+  // The owner can rename the room without losing their game/status selection.
+  const suffix = previousName === undefined
+    ? "" : roomStatusSuffix(previousName);
+  let display = roomDisplayName(name);
+  const existing = roomStatusSuffix(name);
+  if (existing) display = display.slice(0, -existing.length);
+  return `${prefix}${display.slice(0, 100 - prefix.length - suffix.length)}${suffix}`;
 }
 
 const PERMISSIONS = {
@@ -751,7 +769,7 @@ export async function handlePrivateRoomCommand(
 
       await discordApi(`/channels/${room.id}`, {
         method: "PATCH",
-        body: { name: roomNameForState(name, roomState(room).locked) },
+        body: { name: roomNameForState(name, roomState(room).locked, room.name) },
       });
       await patchPanelMessage(String(room.id), ownerId);
       return ephemeral(t.renameDone);
@@ -819,9 +837,58 @@ export async function handlePrivateRoomCommand(
   }
 }
 
+const PERSONAL_VOICE_STATUSES: Record<string, string> = {
+  cs2: " 🔫 CS2",
+  dota2: " ⚔️ Dota 2",
+  pubg: " 🪖 PUBG",
+  minecraft: " ⛏️ Minecraft",
+  faceit: " 🎮 FACEIT",
+  looking_one: " 🔎 +1",
+  training: " 🎯 Тренировка",
+  do_not_disturb: " 🔕 Не беспокоить",
+  chill: " ☕ Отдыхаем",
+  none: "",
+};
+
+async function handlePrivateRoomStatus(interaction: any, customId: string) {
+  const parts = customId.split(":");
+  if (parts.length !== 3 || !/^[0-9]{17,20}$/.test(parts[1]) ||
+      !/^[0-9]{17,20}$/.test(parts[2])) {
+    return ephemeral("Невірна кімната.");
+  }
+  const [, channelId, ownerId] = parts;
+  const key = String(interaction?.data?.values?.[0] || "");
+  if (!Object.hasOwn(PERSONAL_VOICE_STATUSES, key)) {
+    return ephemeral("Невідомий статус.");
+  }
+  const guard = await assertOwner(interaction, channelId, ownerId);
+  if (!guard.ok) return guard.response;
+  const channel = guard.channel;
+  const prefix = String(channel.name).startsWith(ROOM_PREFIX)
+    ? ROOM_PREFIX : OPEN_ROOM_PREFIX;
+  let name = roomDisplayName(channel.name);
+  const former = roomStatusSuffix(channel.name);
+  if (former) name = name.slice(0, -former.length);
+  const suffix = PERSONAL_VOICE_STATUSES[key];
+  const updated = prefix + name.slice(0, 100 - prefix.length - suffix.length) + suffix;
+  await discordApi(`/channels/${channelId}`, {
+    method: "PATCH", body: { name: updated },
+    reason: "Private room status selected by owner",
+  });
+  return ephemeral("✅ Статус голосової кімнати оновлено.");
+}
+
 export async function handlePrivateRoomComponent(interaction: any) {
   const customId = String(interaction?.data?.custom_id || "");
 
+  if (customId.startsWith("pvs:")) {
+    try {
+      return await handlePrivateRoomStatus(interaction, customId);
+    } catch (error) {
+      console.error("private room status update failed", error);
+      return ephemeral("Не вдалося змінити статус кімнати.");
+    }
+  }
   if (!customId.startsWith("pv:")) return null;
 
   const lang = localeFamily(interaction?.locale || interaction?.guild_locale);
@@ -876,7 +943,7 @@ export async function handlePrivateRoomComponent(interaction: any) {
       );
       await discordApi(`/channels/${parsed.channelId}`, {
         method: "PATCH",
-        body: { name: roomNameForState(channel.name, !state.locked) },
+        body: { name: roomNameForState(channel.name, !state.locked, channel.name) },
         reason: "Update private room lock icon",
       });
       const fresh = await discordApi(`/channels/${parsed.channelId}`);
@@ -1073,7 +1140,7 @@ export async function handlePrivateRoomModal(interaction: any) {
       await discordApi(`/channels/${channelId}`, {
         method: "PATCH",
         body: {
-          name: roomNameForState(clean, roomState(guard.channel).locked),
+          name: roomNameForState(clean, roomState(guard.channel).locked, guard.channel.name),
         },
       });
 

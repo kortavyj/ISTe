@@ -1,0 +1,189 @@
+name: Voice feature checks
+
+on:
+  pull_request:
+    paths:
+      - 'presence-worker/**'
+      - 'supabase/functions/discord-interactions/**'
+      - 'supabase/functions/discord-worker-runtime/**'
+      - 'supabase/migrations/20261022_discord_voice_activity_reports_statuses.sql'
+      - '.github/workflows/voice-feature-checks.yml'
+  workflow_dispatch:
+
+jobs:
+  worker-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check worker JavaScript syntax
+        run: |
+          node --check presence-worker/index.mjs
+          node --check presence-worker/commands.mjs
+
+  migration-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PostgreSQL syntax parser
+        run: python -m pip install pglast==7.21
+      - name: Parse voice migration SQL
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from pglast import parse_sql
+          source = Path('supabase/migrations/20261022_discord_voice_activity_reports_statuses.sql').read_text()
+          statements = parse_sql(source)
+          assert statements and len(statements) >= 15, 'SQL statements missing'
+          print(f'Parsed {len(statements)} statements')
+          PY
+
+  edge-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Install Supabase package
+        run: npm install --no-save --no-package-lock @supabase/supabase-js tweetnacl@1.0.3
+      - name: Check Supabase Edge Function TypeScript
+        run: |
+          deno check supabase/functions/discord-worker-runtime/index.ts
+          deno check supabase/functions/discord-interactions/index.ts
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: iste_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iste_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: iste_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Supabase API roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c 'create role anon; create role authenticated; create role service_role;'
+      - name: Execute SQL migration in PostgreSQL
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261022_discord_voice_activity_reports_statuses.sql
+      - name: Verify RLS and server-only RPC permissions
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          do $security$
+          declare
+            tbl text;
+            fn text;
+          begin
+            foreach tbl in array array[
+              'discord_voice_sessions',
+              'discord_voice_worker_heartbeats',
+              'discord_member_reports',
+              'discord_voice_room_statuses'
+            ] loop
+              if not (select relrowsecurity from pg_class
+                      where oid=('public.' || tbl)::regclass) then
+                raise exception 'RLS disabled on %', tbl;
+              end if;
+            end loop;
+            foreach fn in array array[
+              'discord_submit_member_report(text,text,text,text,text)',
+              'discord_apply_voice_session(text,text,text,text)',
+              'discord_reconcile_voice_sessions(text,jsonb)',
+              'discord_voice_leaderboard(text,timestamptz,text,integer)'
+            ] loop
+              if has_function_privilege('anon', 'public.' || fn, 'EXECUTE')
+                 or has_function_privilege('authenticated', 'public.' || fn, 'EXECUTE')
+                 or not has_function_privilege('service_role', 'public.' || fn, 'EXECUTE')
+              then
+                raise exception 'RPC permission mismatch on %', fn;
+              end if;
+            end loop;
+          end $security$;
+          SQL
+      - name: Test report cooldown, voice transitions, restart and leaderboard
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          do $$
+          declare
+            id1 bigint;
+            leaderboard_seconds bigint;
+            reconciliation jsonb;
+          begin
+            id1 := public.discord_submit_member_report(
+              '123456789012345678','123456789012345679',
+              '123456789012345680','A valid example complaint',null
+            );
+            if id1 is null then raise exception 'report insert failed'; end if;
+            begin
+              perform public.discord_submit_member_report(
+                '123456789012345678','123456789012345679',
+                '123456789012345680','Another valid complaint',null
+              );
+              raise exception 'report cooldown was bypassed';
+            exception when sqlstate 'P0001' then
+              if sqlerrm <> 'REPORT_COOLDOWN' then raise; end if;
+            end;
+            perform public.discord_apply_voice_session(
+              '123456789012345678','123456789012345679',
+              '123456789012345681',''
+            );
+            perform public.discord_apply_voice_session(
+              '123456789012345678','123456789012345679',
+              '123456789012345682',''
+            );
+            if (select count(*) from public.discord_voice_sessions
+                where left_at is null) <> 1 then
+              raise exception 'voice transition produced multiple active rows';
+            end if;
+            reconciliation := public.discord_reconcile_voice_sessions(
+              '123456789012345678',
+              '[{"userId":"123456789012345679","channelId":"123456789012345682","categoryId":""}]'::jsonb
+            );
+            if reconciliation->>'opened' <> '1' then
+              raise exception 'reconciliation failed: %', reconciliation;
+            end if;
+            -- Invalid snapshots must fail atomically without closing the active voice.
+            begin
+              perform public.discord_reconcile_voice_sessions(
+                '123456789012345678',
+                '[{"userId":"bad","channelId":"123456789012345682","categoryId":""}]'::jsonb
+              );
+              raise exception 'invalid snapshot was accepted';
+            exception when sqlstate '22023' then
+              if sqlerrm <> 'INVALID_VOICE_MEMBER' then raise; end if;
+            end;
+            if (select count(*) from public.discord_voice_sessions
+                where guild_id='123456789012345678' and left_at is null) <> 1 then
+              raise exception 'invalid snapshot modified active voice sessions';
+            end if;
+            if coalesce((public.discord_apply_voice_session(
+              '123456789012345678','123456789012345679',
+              '123456789012345682',''
+            )->>'unchanged')::boolean,false) is not true then
+              raise exception 'repeated voice location is not idempotent';
+            end if;
+            select coalesce(max(seconds),0) into leaderboard_seconds
+              from public.discord_voice_leaderboard('123456789012345678');
+            if leaderboard_seconds < 0 then raise exception 'negative ranking'; end if;
+          end $$;
+          SQL
