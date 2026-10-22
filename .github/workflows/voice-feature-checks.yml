@@ -51,7 +51,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Install Supabase package
-        run: npm install --no-save --no-package-lock @supabase/supabase-js
+        run: npm install --no-save --no-package-lock @supabase/supabase-js tweetnacl@1.0.3
       - name: Check Supabase Edge Function TypeScript
         run: |
           deno check supabase/functions/discord-worker-runtime/index.ts
