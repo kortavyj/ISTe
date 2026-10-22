@@ -3514,13 +3514,19 @@ function telemetryHealth() {
 client.once(Events.ClientReady, async (readyClient) => {
   // Reconcile against the *previous* worker heartbeat before recording a new one.
   await Promise.all([...readyClient.guilds.cache.values()].map(async (guild) => {
+    const task = reconcileGuildVoiceSessions(guild);
+    voiceStartupBarriers.set(guild.id, task);
     try {
-      await reconcileGuildVoiceSessions(guild);
+      await task;
     } catch (error) {
       log("voice_activity_reconcile_failed", {
         guildId: guild.id,
         message: error instanceof Error ? error.message : String(error),
       });
+    } finally {
+      if (voiceStartupBarriers.get(guild.id) === task) {
+        voiceStartupBarriers.delete(guild.id);
+      }
     }
   }));
   if (voiceHeartbeatTimer) clearInterval(voiceHeartbeatTimer);
@@ -3983,6 +3989,7 @@ client.on(Events.InteractionCreate, (interaction) => {
 });
 
 const voiceSessionQueues = new Map();
+const voiceStartupBarriers = new Map();
 function trackedVoiceLocation(channel) {
   if (!channel || ![
     ChannelType.GuildVoice,
@@ -4003,7 +4010,8 @@ async function recordVoiceTransition(oldState, newState) {
   const userId = newState.id || oldState.id;
   const guildId = newState.guild.id;
   const key = `${guildId}:${userId}`;
-  const preceding = voiceSessionQueues.get(key) || Promise.resolve();
+  const preceding = voiceSessionQueues.get(key) ||
+    voiceStartupBarriers.get(guildId) || Promise.resolve();
   const task = preceding.catch(() => {}).then(async () => {
     await workerRuntimeApi("voice-session", {
       guildId, userId, channelId: after?.channelId || "",
