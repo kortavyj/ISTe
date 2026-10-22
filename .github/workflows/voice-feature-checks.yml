@@ -86,6 +86,40 @@ jobs:
           psql -v ON_ERROR_STOP=1 -c 'create role anon; create role authenticated; create role service_role;'
       - name: Execute SQL migration in PostgreSQL
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261022_discord_voice_activity_reports_statuses.sql
+      - name: Verify RLS and server-only RPC permissions
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          do $
+          declare
+            tbl text;
+            fn text;
+          begin
+            foreach tbl in array array[
+              'discord_voice_sessions',
+              'discord_voice_worker_heartbeats',
+              'discord_member_reports',
+              'discord_voice_room_statuses'
+            ] loop
+              if not (select relrowsecurity from pg_class
+                      where oid=('public.' || tbl)::regclass) then
+                raise exception 'RLS disabled on %', tbl;
+              end if;
+            end loop;
+            foreach fn in array array[
+              'discord_submit_member_report(text,text,text,text,text)',
+              'discord_apply_voice_session(text,text,text,text)',
+              'discord_reconcile_voice_sessions(text,jsonb)',
+              'discord_voice_leaderboard(text,timestamptz,text,integer)'
+            ] loop
+              if has_function_privilege('anon', 'public.' || fn, 'EXECUTE')
+                 or has_function_privilege('authenticated', 'public.' || fn, 'EXECUTE')
+                 or not has_function_privilege('service_role', 'public.' || fn, 'EXECUTE')
+              then
+                raise exception 'RPC permission mismatch on %', fn;
+              end if;
+            end loop;
+          end $;
+          SQL
       - name: Test report cooldown, voice transitions, restart and leaderboard
         run: |
           psql -v ON_ERROR_STOP=1 <<'SQL'
