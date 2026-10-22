@@ -90,21 +90,30 @@ stable
 security invoker
 set search_path = public
 as $$
-  select s.user_id,
-    sum(greatest(0, floor(extract(epoch from (
-      least(coalesce(s.left_at, now()), now())
-      - greatest(s.joined_at, coalesce(p_since, s.joined_at))
-    )))::bigint))::bigint as seconds
-  from public.discord_voice_sessions s
-  where s.guild_id = p_guild_id
-    and (p_category_id is null or s.category_id = p_category_id)
-    and (p_since is null or coalesce(s.left_at, now()) > p_since)
-  group by s.user_id
-  having sum(greatest(0, floor(extract(epoch from (
-    least(coalesce(s.left_at, now()), now())
-    - greatest(s.joined_at, coalesce(p_since, s.joined_at))
-  )))::bigint)) > 0
-  order by seconds desc, s.user_id
+  with spans as (
+    select s.user_id,
+      greatest(s.joined_at, coalesce(p_since, s.joined_at)) as started,
+      case when s.left_at is not null then s.left_at
+        else least(
+          now(),
+          greatest(s.joined_at, coalesce(h.last_seen_at, s.joined_at))
+            + interval '90 seconds'
+        )
+      end as ended
+    from public.discord_voice_sessions s
+    left join public.discord_voice_worker_heartbeats h
+      on h.guild_id = s.guild_id
+    where s.guild_id = p_guild_id
+      and (p_category_id is null or s.category_id = p_category_id)
+  )
+  select spans.user_id,
+    sum(greatest(0, floor(extract(epoch from
+      (spans.ended - spans.started)))::bigint))::bigint as seconds
+  from spans
+  group by spans.user_id
+  having sum(greatest(0, floor(extract(epoch from
+    (spans.ended - spans.started)))::bigint)) > 0
+  order by seconds desc, spans.user_id
   limit least(greatest(coalesce(p_limit, 10), 1), 25);
 $$;
 revoke all on function public.discord_voice_leaderboard(text,timestamptz,text,integer)
