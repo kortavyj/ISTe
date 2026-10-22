@@ -3883,6 +3883,50 @@ client.on(Events.InteractionCreate, (interaction) => {
 });
 
 client.on(Events.InteractionCreate, (interaction) => {
+  if (!interaction.isChatInputCommand() || interaction.commandName !== "voice-top") return;
+  void (async () => {
+    try {
+      if (!interaction.inGuild()) {
+        await interaction.reply({ content: "Команда доступна лише на сервері.", ephemeral: true });
+        return;
+      }
+      await interaction.deferReply();
+      const period = interaction.options.getString("period") || "week";
+      const result = await workerRuntimeApi("voice-leaderboard", {
+        guildId: interaction.guildId,
+        period,
+      });
+      const title = {day:"24 години",week:"7 днів",month:"30 днів",all:"Весь час"}[period] || period;
+      const lines = (result.leaders || []).slice(0, 10).map((entry, index) => {
+        const seconds = Math.max(0, Math.floor(entry.seconds || 0));
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        return `${index + 1}. <@${entry.userId}>: **${hours} год ${minutes} хв**`;
+      });
+      await interaction.editReply({
+        embeds: [{
+          title: `🏆 Голосовий рейтинг • ${title}`,
+          description: lines.length ? lines.join("\n") : "Поки немає даних.",
+          color: 0xe30613,
+          footer: { text: "ISTe Bot • усі голосові канали сервера" },
+        }],
+        allowedMentions: { parse: [] },
+      });
+    } catch (error) {
+      log("voice_leaderboard_failed", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+      const reply = { content: "Не вдалося отримати рейтинг голосової активності." };
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(reply).catch(() => null);
+      } else {
+        await interaction.reply({ ...reply, ephemeral: true }).catch(() => null);
+      }
+    }
+  })();
+});
+
+client.on(Events.InteractionCreate, (interaction) => {
   if (!interaction.isStringSelectMenu() || !interaction.customId.startsWith("pvs:")) return;
   void (async () => {
     try {
