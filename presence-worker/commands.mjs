@@ -1158,3 +1158,17 @@ export async function syncDiscordCommands(token, applicationId) {
     commands: commands.map(compactCommandForLog),
   };
 }
+
+export async function syncDiscordGuildFeatureCommands(token, applicationId, guildIds) {
+  const features = ISTE_COMMANDS.filter((item) =>
+    ["report", "reports", "voice-top"].includes(item.name)
+  );
+  const synced = [];
+  for (const guildId of guildIds) {
+    for (const feature of features) {
+      const result = await upsertGuildCommand(token, applicationId, guildId, feature);
+      synced.push({ guildId, name: result?.name || feature.name });
+    }
+  }
+  return { count: synced.length, commands: synced };
+}
