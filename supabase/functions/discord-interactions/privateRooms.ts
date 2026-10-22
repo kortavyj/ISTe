@@ -837,9 +837,58 @@ export async function handlePrivateRoomCommand(
   }
 }
 
+const PERSONAL_VOICE_STATUSES: Record<string, string> = {
+  cs2: " 🔫 CS2",
+  dota2: " ⚔️ Dota 2",
+  pubg: " 🪖 PUBG",
+  minecraft: " ⛏️ Minecraft",
+  faceit: " 🎮 FACEIT",
+  looking_one: " 🔎 +1",
+  training: " 🎯 Тренировка",
+  do_not_disturb: " 🔕 Не беспокоить",
+  chill: " ☕ Отдыхаем",
+  none: "",
+};
+
+async function handlePrivateRoomStatus(interaction: any, customId: string) {
+  const parts = customId.split(":");
+  if (parts.length !== 3 || !/^[0-9]{17,20}$/.test(parts[1]) ||
+      !/^[0-9]{17,20}$/.test(parts[2])) {
+    return ephemeral("Невірна кімната.");
+  }
+  const [, channelId, ownerId] = parts;
+  const key = String(interaction?.data?.values?.[0] || "");
+  if (!Object.hasOwn(PERSONAL_VOICE_STATUSES, key)) {
+    return ephemeral("Невідомий статус.");
+  }
+  const guard = await assertOwner(interaction, channelId, ownerId);
+  if (!guard.ok) return guard.response;
+  const channel = guard.channel;
+  const prefix = String(channel.name).startsWith(ROOM_PREFIX)
+    ? ROOM_PREFIX : OPEN_ROOM_PREFIX;
+  let name = roomDisplayName(channel.name);
+  const former = roomStatusSuffix(channel.name);
+  if (former) name = name.slice(0, -former.length);
+  const suffix = PERSONAL_VOICE_STATUSES[key];
+  const updated = prefix + name.slice(0, 100 - prefix.length - suffix.length) + suffix;
+  await discordApi(`/channels/${channelId}`, {
+    method: "PATCH", body: { name: updated },
+    reason: "Private room status selected by owner",
+  });
+  return ephemeral("✅ Статус голосової кімнати оновлено.");
+}
+
 export async function handlePrivateRoomComponent(interaction: any) {
   const customId = String(interaction?.data?.custom_id || "");
 
+  if (customId.startsWith("pvs:")) {
+    try {
+      return await handlePrivateRoomStatus(interaction, customId);
+    } catch (error) {
+      console.error("private room status update failed", error);
+      return ephemeral("Не вдалося змінити статус кімнати.");
+    }
+  }
   if (!customId.startsWith("pv:")) return null;
 
   const lang = localeFamily(interaction?.locale || interaction?.guild_locale);
