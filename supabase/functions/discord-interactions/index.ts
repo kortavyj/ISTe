@@ -6679,29 +6679,22 @@ async function handleCommand(
       }
     }
     if (!adminDb) return ephemeralText("Система скарг тимчасово недоступна.");
-    const minuteAgo = new Date(Date.now() - 60_000).toISOString();
-    const { count, error: rateError } = await adminDb
-      .from("discord_member_reports")
-      .select("id", { count: "exact", head: true })
-      .eq("guild_id", guildId).eq("reporter_user_id", actorId)
-      .gte("created_at", minuteAgo);
-    if (rateError) {
-      console.error("complaint rate limit failed", rateError.message);
-      return ephemeralText("Не вдалося надіслати скаргу.");
-    }
-    if ((count || 0) >= 1) return ephemeralText("Повторіть спробу через хвилину.");
-    const { data: created, error } = await adminDb.from("discord_member_reports").insert({
-      guild_id: guildId,
-      reporter_user_id: actorId,
-      target_user_id: targetId,
-      reason,
-      evidence_url: evidence || null,
-    }).select("id").single();
-    if (error || !created) {
-      console.error("complaint create failed", error?.message || "No report row returned");
+    const { data: reportId, error } = await adminDb.rpc("discord_submit_member_report", {
+      p_guild_id: guildId,
+      p_reporter_user_id: actorId,
+      p_target_user_id: targetId,
+      p_reason: reason,
+      p_evidence_url: evidence || null,
+    });
+    if (error) {
+      if (error.message?.includes("REPORT_COOLDOWN")) {
+        return ephemeralText("Повторіть спробу через хвилину.");
+      }
+      console.error("report creation failed", error.code || "database error");
       return ephemeralText("Не вдалося зберегти скаргу.");
     }
-    return ephemeralText("✅ Скаргу #" + created.id +
+    if (!reportId) return ephemeralText("Не вдалося зберегти скаргу.");
+    return ephemeralText("✅ Скаргу #" + reportId +
       " збережено приватно. Модератори можуть переглянути її через /reports.");
   }
 
