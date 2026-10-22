@@ -165,7 +165,7 @@ const subcommand = ({
 
 export const ISTE_COMMANDS = [
   command({
-    name: "complaint",
+    name: "report",
     description: "Privately report a server member to moderators",
     ruName: "жалоба",
     ukName: "скарга",
