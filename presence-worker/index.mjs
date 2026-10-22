@@ -4012,9 +4012,12 @@ async function recordVoiceTransition(oldState, newState) {
   const userId = newState.id || oldState.id;
   const guildId = newState.guild.id;
   const key = `${guildId}:${userId}`;
-  const preceding = voiceSessionQueues.get(key) ||
-    voiceStartupBarriers.get(guildId) || Promise.resolve();
-  const task = preceding.catch(() => {}).then(async () => {
+  const preceding = voiceSessionQueues.get(key) || Promise.resolve();
+  const startupBarrier = voiceStartupBarriers.get(guildId) || Promise.resolve();
+  const task = Promise.all([
+    preceding.catch(() => {}),
+    startupBarrier.catch(() => {}),
+  ]).then(async () => {
     await workerRuntimeApi("voice-session", {
       guildId, userId, channelId: after?.channelId || "",
       categoryId: after?.categoryId || "",
