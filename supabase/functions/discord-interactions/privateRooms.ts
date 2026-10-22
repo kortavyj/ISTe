@@ -2,6 +2,11 @@ const DISCORD_API = "https://discord.com/api/v10";
 const DISCORD_BOT_TOKEN = Deno.env.get("DISCORD_BOT_TOKEN") || "";
 
 const CATEGORY_NAME = "🔒 ПРИВАТНІ КІМНАТИ";
+const MANAGED_CATEGORY_NAMES = new Set([
+  CATEGORY_NAME,
+  "CYBERION Kalynova",
+  "CYBERION Zavodskaya",
+]);
 const LOBBY_NAME = "➕ Створити приватний";
 const ROOM_PREFIX = "🔒・";
 
@@ -513,7 +518,17 @@ async function assertOwner(
 
   const channel = await discordApi(`/channels/${channelId}`);
 
-  if (!getOwnerOverwrite(channel, ownerId)) {
+  const guildId = String(interaction?.guild_id || "");
+  const channels = await loadGuildChannels(guildId);
+  const parent = channels.find((item: any) =>
+    String(item?.id || "") === String(channel?.parent_id || "") &&
+    Number(item?.type) === 4 &&
+    MANAGED_CATEGORY_NAMES.has(String(item?.name || ""))
+  );
+
+  if (!parent || Number(channel?.type) !== 2 ||
+      !String(channel?.name || "").startsWith(ROOM_PREFIX) ||
+      !getOwnerOverwrite(channel, ownerId)) {
     return {
       ok: false,
       response: ephemeral(
@@ -645,11 +660,24 @@ async function ownedRoom(interaction: any) {
   if (!guildId || !ownerId) return null;
 
   const channels = await loadGuildChannels(guildId);
-  const category = findCategory(channels);
-
-  if (!category) return null;
-
-  return findOwnedRoom(channels, String(category.id), ownerId);
+  const categories = channels.filter((channel: any) =>
+    Number(channel?.type) === 4 &&
+    MANAGED_CATEGORY_NAMES.has(String(channel?.name || ""))
+  );
+  const currentChannelId = String(interaction?.channel_id || "");
+  const currentChannel = channels.find((channel: any) =>
+    String(channel?.id || "") === currentChannelId
+  );
+  const preferredCategoryId = String(currentChannel?.parent_id || "");
+  const ordered = [...categories].sort((a: any, b: any) =>
+    Number(String(b.id) === preferredCategoryId) -
+    Number(String(a.id) === preferredCategoryId)
+  );
+  for (const category of ordered) {
+    const room = findOwnedRoom(channels, String(category.id), ownerId);
+    if (room) return room;
+  }
+  return null;
 }
 
 export async function handlePrivateRoomCommand(
