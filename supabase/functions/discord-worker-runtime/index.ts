@@ -1649,6 +1649,18 @@ async function handleResult(
   };
 }
 
+async function handleVoiceHeartbeat(body: any) {
+  const guildId = String(body.guildId || "");
+  if (!isSnowflake(guildId)) {
+    return { status: 400, payload: { ok: false, error: "INVALID_VOICE_HEARTBEAT" } };
+  }
+  const { error } = await db!.from("discord_voice_worker_heartbeats")
+    .upsert({ guild_id: guildId, last_seen_at: new Date().toISOString() },
+      { onConflict: "guild_id" });
+  if (error) throw error;
+  return { status: 200, payload: { ok: true } };
+}
+
 async function handleVoiceReconcile(body: any) {
   const guildId = String(body.guildId || "");
   const raw = body.members;
@@ -1667,7 +1679,7 @@ async function handleVoiceReconcile(body: any) {
     members.set(userId, { channelId, categoryId });
   }
   const { data: existing, error } = await db!.from("discord_voice_sessions")
-    .select("id,user_id,channel_id,category_id")
+    .select("id,user_id,channel_id,category_id,joined_at")
     .eq("guild_id", guildId).is("left_at", null);
   if (error) throw error;
   let closed = 0;
@@ -1675,8 +1687,18 @@ async function handleVoiceReconcile(body: any) {
     const location = members.get(String(session.user_id));
     if (!location || location.channelId !== session.channel_id ||
         location.categoryId !== session.category_id) {
+      // After downtime the departure time is unknown. Cap the stale session
+      // at the last confirmed worker heartbeat, never at reconnect time.
+      const { data: heartbeat, error: heartbeatError } = await db!
+        .from("discord_voice_worker_heartbeats")
+        .select("last_seen_at")
+        .eq("guild_id", guildId).maybeSingle();
+      if (heartbeatError) throw heartbeatError;
+      const closedAt = heartbeat?.last_seen_at &&
+        Date.parse(heartbeat.last_seen_at) >= Date.parse(session.joined_at)
+          ? heartbeat.last_seen_at : session.joined_at;
       const result = await db!.from("discord_voice_sessions")
-        .update({ left_at: new Date().toISOString() })
+        .update({ left_at: closedAt })
         .eq("id", session.id).is("left_at", null);
       if (result.error) throw result.error;
       closed++;
@@ -1842,7 +1864,9 @@ Deno.serve(
 
     try {
       const result =
-        action === "voice-reconcile"
+        action === "voice-heartbeat"
+          ? await handleVoiceHeartbeat(body)
+          : action === "voice-reconcile"
           ? await handleVoiceReconcile(body)
           : action === "voice-leaderboard"
           ? await handleVoiceLeaderboard(body)
