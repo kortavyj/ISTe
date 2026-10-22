@@ -1678,44 +1678,20 @@ async function handleVoiceReconcile(body: any) {
     }
     members.set(userId, { channelId, categoryId });
   }
-  const { data: existing, error } = await db!.from("discord_voice_sessions")
-    .select("id,user_id,channel_id,category_id,joined_at")
-    .eq("guild_id", guildId).is("left_at", null);
+  const { data, error } = await db!.rpc("discord_reconcile_voice_sessions", {
+    p_guild_id: guildId,
+    p_members: [...members].map(([userId, location]) => ({
+      userId,
+      channelId: location.channelId,
+      categoryId: location.categoryId,
+    })),
+  });
   if (error) throw error;
-  const { data: heartbeat, error: heartbeatError } = await db!
-    .from("discord_voice_worker_heartbeats")
-    .select("last_seen_at")
-    .eq("guild_id", guildId).maybeSingle();
-  if (heartbeatError) throw heartbeatError;
-  // Reconciliation is a restart boundary, not only a membership diff.
-  // Even a user who stayed connected must not receive offline worker time.
-  // Close every old segment at the last heartbeat, then start fresh
-  // segments for all currently observed voice members.
-  let closed = 0;
-  for (const session of existing || []) {
-    const lastSeen = heartbeat?.last_seen_at
-      ? Date.parse(heartbeat.last_seen_at) : Number.NaN;
-    const joined = Date.parse(session.joined_at);
-    const closedAt = Number.isFinite(lastSeen) && lastSeen >= joined
-      ? new Date(Math.min(Date.now(), lastSeen)).toISOString()
-      : session.joined_at;
-    const result = await db!.from("discord_voice_sessions")
-      .update({ left_at: closedAt })
-      .eq("id", session.id).is("left_at", null);
-    if (result.error) throw result.error;
-    closed++;
-  }
-  let opened = 0;
-  for (const [userId, location] of members) {
-    const result = await db!.from("discord_voice_sessions").insert({
-      guild_id: guildId, user_id: userId,
-      channel_id: location.channelId, category_id: location.categoryId,
-      joined_at: new Date().toISOString(),
-    });
-    if (result.error && result.error.code !== "23505") throw result.error;
-    if (!result.error) opened++;
-  }
-  return { status: 200, payload: { ok: true, closed, opened } };
+  return { status: 200, payload: {
+    ok: true,
+    closed: Number(data?.closed || 0),
+    opened: Number(data?.opened || 0),
+  } };
 }
 
 async function handleVoiceLeaderboard(body: any) {
