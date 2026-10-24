@@ -454,6 +454,12 @@ export default function Navbar() {
       role,
     );
 
+  const canSeeTournaments =
+    Boolean(user) &&
+    !loading &&
+    !isBlocked &&
+    !["user", "player"].includes(role);
+
   const isFounder = role === "owner";
   const isAdmin = role === "admin";
 
@@ -524,7 +530,9 @@ export default function Navbar() {
           className="navbar-links"
           aria-label={t("navigation.ariaLabel")}
         >
-          {navigation.map(({ to, labelKey, end, icon }) => (
+          {navigation
+            .filter(({ to }) => to !== "/tournaments" || canSeeTournaments)
+            .map(({ to, labelKey, end, icon }) => (
             <NavLink
               key={to}
               to={to}
