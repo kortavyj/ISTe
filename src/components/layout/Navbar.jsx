@@ -18,40 +18,13 @@ import "./NavbarLanguage.css";
 
 const NAVBAR_RELEASE = "2026-10-03-v4";
 
-const TACTICS_ACCESS_ROLES = new Set([
-  "player",
-  "game_manager",
-  "admin",
-  "owner",
-]);
+const TACTICS_ACCESS_ROLES = new Set(["player", "admin", "owner"]);
 
 const navigation = [
-  {
-    to: "/",
-    labelKey: "navigation.home",
-    end: true,
-    icon: "home",
-  },
-  {
-    to: "/team",
-    labelKey: "navigation.team",
-    icon: "team",
-  },
-  {
-    to: "/tournaments",
-    labelKey: "navigation.tournaments",
-    icon: "trophy",
-  },
-  {
-    to: "/news",
-    labelKey: "navigation.news",
-    icon: "news",
-  },
-  {
-    to: "/discord",
-    labelKey: "navigation.bot",
-    icon: "bot",
-  },
+  { to: "/", labelKey: "navigation.home", end: true, icon: "home" },
+  { to: "/team", labelKey: "navigation.team", icon: "team" },
+  { to: "/news", labelKey: "navigation.news", icon: "news" },
+  { to: "/partners", labelKey: "navigation.partners", icon: "partners" },
 ];
 
 const founderCopy = {
@@ -119,6 +92,7 @@ const adminCopy = {
 };
 
 const navigationIcons = {
+  partners: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 8 4-3 5 3 5-3 4 3-4 5-3-1-2 2-2-2-3 1-4-5Zm4 5 4 5a2 2 0 0 0 3 0l5-5M8 15l2 2M16 15l-2 2" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   trophy: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v7a5 5 0 0 1-10 0V4ZM7 7H3v3a5 5 0 0 0 5 5M17 7h4v3a5 5 0 0 1-5 5M12 16v3M8 21h8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   home: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -454,12 +428,6 @@ export default function Navbar() {
       role,
     );
 
-  const canSeeTournaments =
-    Boolean(user) &&
-    !loading &&
-    !isBlocked &&
-    !["user", "player"].includes(role);
-
   const isFounder = role === "owner";
   const isAdmin = role === "admin";
 
@@ -530,39 +498,23 @@ export default function Navbar() {
           className="navbar-links"
           aria-label={t("navigation.ariaLabel")}
         >
-          {navigation
-            .filter(({ to }) => to !== "/tournaments" || canSeeTournaments)
-            .map(({ to, labelKey, end, icon }) => (
+          {navigation.map(({ to, labelKey, end, icon }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `navbar-link${
-                  isActive ? " navbar-link-active" : ""
-                }`
-              }
-            >
-              <span className="navbar-link-icon">
-                {navigationIcons[icon]}
-              </span>
-              <span>{labelKey === "navigation.tournaments" ? ({uk:"Турніри",ru:"Турниры",en:"Tournaments"}[language] || "Tournaments") : t(labelKey)}</span>
-            </NavLink>
-          ))}
-
-          {canUseTactics ? (
-            <NavLink
-              to="/player/tactics"
-              className={({ isActive }) =>
                 `navbar-link${isActive ? " navbar-link-active" : ""}`
               }
             >
-              <span className="navbar-link-icon">
-                {navigationIcons.tactics}
+              <span className="navbar-link-icon">{navigationIcons[icon]}</span>
+              <span>
+                {labelKey === "navigation.partners"
+                  ? ({ uk: "Партнери", ru: "Партнёры", en: "Partners" }[language] || "Partners")
+                  : t(labelKey)}
               </span>
-              <span>{t("navigation.tactics")}</span>
             </NavLink>
-          ) : null}
+          ))}
         </nav>
 
         <div className="navbar-auth">
@@ -717,7 +669,7 @@ export default function Navbar() {
                   onClick={closeAccountMenu}
                 />
 
-                {canUseTactics && !isFounder && !isAdmin ? (
+                {canUseTactics ? (
                   <ProfileAction
                     to="/player/tactics"
                     icon={icons.users}
