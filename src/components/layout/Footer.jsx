@@ -19,7 +19,6 @@ const footerGroups = [
     titleKey: "footer.club",
     links: [
       { labelKey: "footer.history", to: "/history" },
-      { labelKey: "footer.partners", to: "/partners" },
       { labelKey: "footer.shop", to: "/shop" },
       { labelKey: "footer.contacts", to: "/contacts" },
     ],
