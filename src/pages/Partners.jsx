@@ -29,20 +29,20 @@ export default function Partners() {
   return (
     <section className="cyberion-partners">
       <style>{`
-        .cyberion-partners{color:#fff;min-height:85vh;background:radial-gradient(ellipse at 79% 10%,#4a060e 0%,transparent 43%),linear-gradient(125deg,#070608 0%,#100608 45%,#050506 100%);padding:54px max(24px,calc((100vw - 1320px)/2)) 72px;font-family:inherit}
-        .cyberion-partners *{box-sizing:border-box}.cyberion-partners a{color:inherit;text-decoration:none}
-        .cyberion-breadcrumb{color:#999;font-size:13px;margin-bottom:38px}.cyberion-breadcrumb b{color:#ff363e}
-        .cyberion-hero{position:relative;overflow:hidden;border:1px solid #47151c;border-radius:18px;padding:44px 44px 48px;background:linear-gradient(90deg,#070507 5%,rgba(7,5,7,.87) 60%,rgba(51,0,7,.34)),repeating-linear-gradient(120deg,transparent 0px,transparent 37px,rgba(255,40,45,.04) 38px,transparent 39px);box-shadow:0 20px 85px #0009}
+        .cyberion-partners{color:#fff;min-height:85vh;background:radial-gradient(ellipse at 79% 10%,#4a060e 0%,transparent 43%),linear-gradient(125deg,#070608 0%,#100608 45%,#050506 100%);padding:28px max(24px,calc((100vw - 1320px)/2)) 72px;font-family:inherit;position:relative;isolation:isolate}
+        .cyberion-partners:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(4,2,5,.92) 0%,rgba(4,2,5,.6) 51%,rgba(4,2,5,.26) 100%),linear-gradient(0deg,rgba(4,2,5,.87),transparent 52%),url("https://www.cyberion.ua/wp-content/themes/cyberion/assets/img/clubbg.jpg") center top / cover no-repeat;opacity:.96}.cyberion-partners *{box-sizing:border-box}.cyberion-partners a{color:inherit;text-decoration:none}
+        .cyberion-breadcrumb{color:#999;font-size:13px;margin-bottom:22px}.cyberion-breadcrumb b{color:#ff363e}
+        .cyberion-hero{position:relative;overflow:hidden;border:0;border-radius:0;padding:22px 12px 28px;background:transparent;box-shadow:none}
         .cyberion-kicker{font-size:12px;letter-spacing:.24em;color:#ff424b;font-weight:800;text-transform:uppercase;margin:0 0 24px}
         .cyberion-mark{display:inline-flex;position:relative;align-items:center;font-size:31px;letter-spacing:.04em;line-height:1;font-weight:500;padding-bottom:.58em;white-space:nowrap}
         .cyberion-on{border:3px solid #ffe300;border-radius:99px;display:inline-flex;align-items:center;gap:.14em;height:1.1em;padding:0 .14em .03em .12em;color:#fff}
         .cyberion-on i{display:inline-block;background:#ffe300;width:.63em;height:.63em;border-radius:50%;box-shadow:inset 0 -4px 2px #c1ad00}
         .cyberion-mark strong{position:absolute;color:#ffe500;top:.84em;left:21%;font-size:.64em;letter-spacing:-.015em;font-weight:800}
-        .cyberion-mark-large{font-size:clamp(36px,5vw,70px);margin-bottom:10px}
+        .cyberion-mark-large{font-size:clamp(36px,5vw,66px);margin-bottom:10px}
         .cyberion-hero h1{font-size:clamp(25px,3vw,40px);margin:20px 0 8px;max-width:800px}.cyberion-muted{color:#b7aeb1}.cyberion-hero p.cyberion-muted{max-width:700px;line-height:1.75;font-size:15px}
         .cyberion-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.cyberion-action{display:inline-flex;align-items:center;justify-content:center;border:1px solid #75232c;padding:13px 20px;border-radius:9px;font-size:14px;font-weight:700;background:#16090d}.cyberion-action-primary{background:#f51425;border-color:#f51425}.cyberion-action:focus-visible,.cyberion-social:focus-visible{outline:2px solid #fff}
-        .cyberion-grid{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:14px;margin-top:18px}
-        .cyberion-panel{border:1px solid #66131e;border-radius:14px;background:linear-gradient(140deg,rgba(28,6,10,.96),rgba(8,8,10,.97));padding:23px;min-width:0}
+        .cyberion-grid{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:14px;margin-top:0}
+        .cyberion-panel{border:1px solid #66131e;border-radius:14px;background:linear-gradient(140deg,rgba(28,6,10,.94),rgba(8,8,10,.9));backdrop-filter:blur(10px);padding:23px;min-width:0}
         .cyberion-panel h2{font-size:18px;margin:0 0 20px;display:flex;align-items:center;gap:11px}.cyberion-panel h2 span{color:#ff3145}
         .cyberion-detail{display:flex;gap:12px;align-items:flex-start;border:1px solid #282025;border-radius:7px;padding:12px;margin-top:8px;background:#100e10;font-size:13px;overflow-wrap:anywhere}.cyberion-detail i{color:#ff344b;font-style:normal;font-size:18px}
         .cyberion-spec{display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid #35252a;font-size:14px}.cyberion-spec:last-child{border:0}.cyberion-spec i{color:#ff344b;font-style:normal;font-size:20px;min-width:24px}
@@ -97,7 +97,7 @@ export default function Partners() {
           <a className="cyberion-social" href={official} target="_blank" rel="noopener noreferrer">Офіційний сайт <span>↗</span></a>
         </div>
       </div>
-      <p className="cyberion-note">Характеристики, адреса й телефон наведені за офіційною сторінкою CYBERION. Карта — схематична кнопка для переходу в Google Maps. Логотип оформлено як вебстилізацію, не як оригінальний графічний файл партнера.</p>
+      <p className="cyberion-note">Дані про оснащення та контакти: офіційна сторінка CYBERION. Фонове фото — з офіційного сайту мережі. Карта — посилання на Google Maps.</p>
     </section>
   );
 }
