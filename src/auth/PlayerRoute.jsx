@@ -6,12 +6,7 @@ import {
 import { useAuth } from "./AuthContext.jsx";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 
-const ACCESS_ROLES = new Set([
-  "player",
-  "game_manager",
-  "admin",
-  "owner",
-]);
+const ACCESS_ROLES = new Set(["player", "admin", "owner"]);
 
 const copy = {
   uk: "Перевіряємо доступ до тактичної дошки...",
