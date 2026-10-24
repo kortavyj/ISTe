@@ -6,10 +6,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/65d56713-c293-430e-9f59-2e4c6e9baf81.jpg",
       "level": 9,
-      "elo": 1895,
+      "elo": 1870,
       "kd": 1.27,
-      "winRate": 56,
-      "matches": 251,
+      "winRate": 55,
+      "matches": 253,
       "faceitUrl": "https://www.faceit.com/ru/players/ivan1love"
     },
     {
@@ -18,10 +18,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/0f89f47c-c2b3-43b2-8b64-e4363411db9e.jpg",
       "level": 10,
-      "elo": 2083,
+      "elo": 2068,
       "kd": 1.33,
       "winRate": 54,
-      "matches": 804,
+      "matches": 806,
       "faceitUrl": "https://www.faceit.com/ru/players/S1Zapooo"
     },
     {
@@ -29,11 +29,11 @@
       "playerId": "898b0d1f-e1fd-494a-9547-21507a4f0204",
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/b1cdce43-4629-4739-af8f-1e4dbfb2107b.jpg",
-      "level": 6,
-      "elo": 1211,
+      "level": 5,
+      "elo": 1189,
       "kd": 0.96,
       "winRate": 49,
-      "matches": 564,
+      "matches": 566,
       "faceitUrl": "https://www.faceit.com/ru/players/DETT3N"
     },
     {
@@ -41,11 +41,11 @@
       "playerId": "c70ca7e0-1e3a-45ab-9975-ff7632a97a5e",
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/2138965a-96b6-4af9-a5f4-16ba0b8aed6b.jpg",
-      "level": 8,
-      "elo": 1542,
-      "kd": 0.98,
+      "level": 7,
+      "elo": 1517,
+      "kd": 0.97,
       "winRate": 55,
-      "matches": 364,
+      "matches": 366,
       "faceitUrl": "https://www.faceit.com/ru/players/syro_S"
     }
   ]
