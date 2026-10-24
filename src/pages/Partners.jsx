@@ -84,7 +84,7 @@ export default function Partners() {
         @media(max-width:650px){.cyberion-grid{grid-template-columns:1fr;gap:14px}.cyberion-grid>.cyberion-panel:last-child{grid-column:auto}.cyberion-panel{padding:22px 17px}.cyberion-detail{padding:10px;font-size:13px}.cyberion-map{height:245px}}
 
         /* Compact layout matching the provided CYBERION partner mockup */
-        .cyberion-partners{padding-top:22px;padding-bottom:40px}
+        .cyberion-partners{padding-top:22px;padding-bottom:40px;min-height:calc(100vh - 64px);background-color:#080508}.cyberion-partners:before{position:fixed;inset:0;background-size:cover;background-position:center center;background-repeat:no-repeat}
         .cyberion-hero{padding:14px 12px 19px}
         .cyberion-kicker{margin-bottom:14px}
         .cyberion-mark-large{font-size:clamp(35px,4.5vw,65px);margin-bottom:0}
