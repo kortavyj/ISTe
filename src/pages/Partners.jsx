@@ -14,6 +14,17 @@ const specs = [
   ["♜", "Ігрові крісла Cougar Armor Elite"],
 ];
 
+const contactIcons = {
+  location: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.7" /></>,
+  phone: <><path d="M21 16.4v2.8a2 2 0 0 1-2.2 2 18.3 18.3 0 0 1-8-2.8 18 18 0 0 1-5.5-5.5 18.3 18.3 0 0 1-2.8-8A2 2 0 0 1 4.5 2.7h2.8a2 2 0 0 1 2 1.7l.5 3a2 2 0 0 1-.6 1.8l-1.5 1.5a14 14 0 0 0 5.6 5.6l1.5-1.5a2 2 0 0 1 1.8-.6l3 .5a2 2 0 0 1 1.4 2Z" /></>,
+  instagram: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.6 6.4h.01" strokeWidth="2.8" /></>,
+  telegram: <><path d="m21.5 3-3.3 17.2-5.7-4.3-3.2 3.2.7-5.4L21.5 3ZM21.5 3 2.5 10.7l6.8 3 12.2-10.7Z" /><path d="m9.3 13.7 8-6.7" /></>,
+  web: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3 4.5 6 4.5 9S15 18 12 21M12 3c-3 3-4.5 6-4.5 9S9 18 12 21" /></>,
+};
+function ContactIcon({ name }) {
+  return <span className="cyberion-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{contactIcons[name]}</svg></span>;
+}
+
 function Logo({ large = false }) {
   return (
     <div className={`cyberion-mark${large ? " cyberion-mark-large" : ""}`} aria-label="CYBERION KALYNOVA">
@@ -72,6 +83,10 @@ export default function Partners() {
         .cyberion-location-link:hover .cyberion-map{border-color:#ff4b6a}
         .cyberion-location-caption{display:grid;gap:9px;text-align:center;color:#c4b8bf;padding:8px 5px 0;font-size:14px}
         .cyberion-location-caption span:last-child{color:#a6a0aa}
+
+        .cyberion-detail-icon{color:#ff476a;display:grid;place-items:center;flex:0 0 53px;width:53px;height:49px;border:1px solid rgba(255,73,104,.47);border-radius:11px;background:radial-gradient(circle at 45% 83%,rgba(243,24,75,.35),rgba(38,10,23,.95));box-shadow:inset 0 0 15px rgba(255,39,82,.13),0 0 12px rgba(238,22,72,.08);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+        .cyberion-detail:has(a):hover .cyberion-detail-icon{transform:translateY(-1px) scale(1.04);border-color:#ff728c;box-shadow:0 0 20px rgba(255,42,88,.23),inset 0 0 18px rgba(255,55,97,.19)}
+        .cyberion-detail-icon svg{display:block;flex-shrink:0}
         @media(max-width:1050px){.cyberion-grid{grid-template-columns:1fr 1fr}.cyberion-grid>.cyberion-panel:last-child{grid-column:1/-1}}
         @media(max-width:650px){.cyberion-grid{grid-template-columns:1fr;gap:14px}.cyberion-grid>.cyberion-panel:last-child{grid-column:auto}.cyberion-panel{padding:22px 17px}.cyberion-detail{padding:10px;font-size:13px}.cyberion-map{height:245px}}
         @media(max-width:850px){.cyberion-grid{grid-template-columns:1fr}.cyberion-social-row{grid-template-columns:1fr}.cyberion-hero{padding:26px 18px}.cyberion-partners{padding:26px 16px 60px}.cyberion-mark-large{font-size:clamp(30px,8vw,56px)}}
@@ -91,11 +106,11 @@ export default function Partners() {
       <div className="cyberion-grid">
         <div className="cyberion-panel">
           <h2><span>⌖</span> Контактна інформація</h2>
-          <div className="cyberion-detail"><i>⌖</i><span>Дніпро, просп. Слобожанський, 89</span></div>
-          <div className="cyberion-detail"><i>☎</i><a href="tel:+380685551080">+38 (068) 555-10-80</a></div>
-          <div className="cyberion-detail"><i>◎</i><a href={insta} target="_blank" rel="noopener noreferrer">@cyberion_dnipro_kalynova ↗</a></div>
-          <div className="cyberion-detail"><i>➤</i><a href={telegram} target="_blank" rel="noopener noreferrer">@CyberionKalynova ↗</a></div>
-          <div className="cyberion-detail"><i>↗</i><a href={official} target="_blank" rel="noopener noreferrer">cyberion.ua / Дніпро Лівий берег ↗</a></div>
+          <div className="cyberion-detail"><ContactIcon name="location" /><span>Дніпро, просп. Слобожанський, 89</span></div>
+          <div className="cyberion-detail"><ContactIcon name="phone" /><a href="tel:+380685551080">+38 (068) 555-10-80</a></div>
+          <div className="cyberion-detail"><ContactIcon name="instagram" /><a href={insta} target="_blank" rel="noopener noreferrer">@cyberion_dnipro_kalynova ↗</a></div>
+          <div className="cyberion-detail"><ContactIcon name="telegram" /><a href={telegram} target="_blank" rel="noopener noreferrer">@CyberionKalynova ↗</a></div>
+          <div className="cyberion-detail"><ContactIcon name="web" /><a href={official} target="_blank" rel="noopener noreferrer">cyberion.ua / Дніпро Лівий берег ↗</a></div>
         </div>
         <div className="cyberion-panel">
           <h2><span>⚙</span> Що є в клубі</h2>
