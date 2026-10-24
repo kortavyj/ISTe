@@ -89,6 +89,40 @@ export default function Partners() {
         .cyberion-detail-icon svg{display:block;flex-shrink:0}
         @media(max-width:1050px){.cyberion-grid{grid-template-columns:1fr 1fr}.cyberion-grid>.cyberion-panel:last-child{grid-column:1/-1}}
         @media(max-width:650px){.cyberion-grid{grid-template-columns:1fr;gap:14px}.cyberion-grid>.cyberion-panel:last-child{grid-column:auto}.cyberion-panel{padding:22px 17px}.cyberion-detail{padding:10px;font-size:13px}.cyberion-map{height:245px}}
+
+        /* Compact layout matching the provided CYBERION partner mockup */
+        .cyberion-partners{padding-top:22px;padding-bottom:40px}
+        .cyberion-hero{padding:14px 12px 19px}
+        .cyberion-kicker{margin-bottom:14px}
+        .cyberion-mark-large{font-size:clamp(35px,4.5vw,65px);margin-bottom:0}
+        .cyberion-hero h1{font-size:clamp(24px,2.5vw,34px);margin:12px 0 3px}
+        .cyberion-hero p.cyberion-muted{font-size:14px;line-height:1.5;margin:6px 0}
+        .cyberion-actions{margin-top:20px}
+        .cyberion-grid{grid-template-columns:1.17fr .87fr 1.14fr;gap:11px}
+        .cyberion-panel{padding:17px 16px;border:1px solid rgba(224,27,56,.75);border-radius:12px;background:linear-gradient(145deg,rgba(32,5,10,.89),rgba(8,7,10,.89));box-shadow:0 12px 38px #0005}
+        .cyberion-panel h2{font-size:16px;gap:11px;margin:0 0 14px;letter-spacing:0}
+        .cyberion-panel h2:after{display:none}
+        .cyberion-panel h2 span{font-size:20px}
+        .cyberion-detail{margin-top:6px;min-height:37px;padding:5px 8px;gap:10px;border-radius:8px;border-color:#3f3035;font-size:12px;background:rgba(10,11,16,.95)}
+        .cyberion-detail-icon{height:28px;width:28px;flex:0 0 28px;border:0;background:transparent;box-shadow:none;color:#ff2047}
+        .cyberion-detail-icon svg{height:21px;width:21px}
+        .cyberion-detail:has(a):hover .cyberion-detail-icon{transform:none;box-shadow:none}
+        .cyberion-spec{min-height:41px;padding:6px 2px;gap:10px;font-size:12px;border-bottom-color:#3e262d}
+        .cyberion-spec i{font-size:18px;min-width:27px;flex:0 0 27px;height:27px;background:transparent;border:0;color:#ff1d45}
+        .cyberion-map{height:218px;margin:0;border-radius:9px;padding:14px;gap:8px;background:#15161c}
+        .cyberion-map strong{padding:9px 12px;font-size:13px}
+        .cyberion-map em{font-size:28px}
+        .cyberion-map:before{opacity:.85}
+        .cyberion-location-caption{font-size:12px;padding:10px 1px 0;gap:5px}
+        .cyberion-socials{display:flex;gap:24px;align-items:center;margin-top:12px;padding:15px 18px}
+        .cyberion-socials h2{margin:0;flex:0 0 185px;font-size:15px;white-space:nowrap}
+        .cyberion-social-row{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+        .cyberion-social{background:rgba(21,7,11,.9);border:1px solid #8a202d;border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+        .cyberion-social strong{display:block;font-size:12px}
+        .cyberion-social small{display:block;margin-top:3px;font-size:11px;font-weight:400;color:#bcb3b8}
+        .cyberion-social-symbol{font-size:19px;color:#ff3055}
+        @media(max-width:1050px){.cyberion-grid{grid-template-columns:1fr 1fr}.cyberion-grid>.cyberion-panel:last-child{grid-column:1/-1}.cyberion-socials{flex-direction:column;align-items:stretch;gap:10px}.cyberion-socials h2{flex:auto}}
+        @media(max-width:650px){.cyberion-grid{grid-template-columns:1fr}.cyberion-grid>.cyberion-panel:last-child{grid-column:auto}.cyberion-social-row{grid-template-columns:1fr}.cyberion-socials{padding:14px}}
         @media(max-width:850px){.cyberion-grid{grid-template-columns:1fr}.cyberion-social-row{grid-template-columns:1fr}.cyberion-hero{padding:26px 18px}.cyberion-partners{padding:26px 16px 60px}.cyberion-mark-large{font-size:clamp(30px,8vw,56px)}}
       `}</style>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
@@ -126,6 +160,14 @@ export default function Partners() {
             </div>
           </a>
           <div className="cyberion-location-caption"><span>📍 просп. Слобожанський, 89 · Дніпро</span><span>↗ Відкрити на Google Maps</span></div>
+        </div>
+      </div>
+      <div className="cyberion-panel cyberion-socials">
+        <h2><span>♧</span> Соцмережі партнера</h2>
+        <div className="cyberion-social-row">
+          <a className="cyberion-social" href={insta} target="_blank" rel="noopener noreferrer"><span className="cyberion-social-symbol">◎</span><span><strong>Instagram</strong><small>@cyberion_dnipro_kalynova</small></span><span>↗</span></a>
+          <a className="cyberion-social" href={telegram} target="_blank" rel="noopener noreferrer"><span className="cyberion-social-symbol">➤</span><span><strong>Telegram</strong><small>@CyberionKalynova</small></span><span>↗</span></a>
+          <a className="cyberion-social" href={official} target="_blank" rel="noopener noreferrer"><span className="cyberion-social-symbol">◎</span><span><strong>Сайт</strong><small>cyberion.ua/clubs/cyberion_dnipro_kalynova</small></span><span>↗</span></a>
         </div>
       </div>
     </section>
