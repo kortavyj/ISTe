@@ -25,14 +25,6 @@ function ContactIcon({ name }) {
   return <span className="cyberion-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{contactIcons[name]}</svg></span>;
 }
 
-function Logo({ large = false }) {
-  return (
-    <div className={`cyberion-mark${large ? " cyberion-mark-large" : ""}`} aria-label="CYBERION KALYNOVA">
-      <span>CYBERI</span><span className="cyberion-on"><i />N</span>
-      <strong>KALYNOVA</strong>
-    </div>
-  );
-}
 
 export default function Partners() {
   const { language } = useLanguage();
@@ -45,6 +37,7 @@ export default function Partners() {
         .cyberion-breadcrumb{color:#999;font-size:13px;margin-bottom:22px}.cyberion-breadcrumb b{color:#ff363e}
         .cyberion-hero{position:relative;overflow:hidden;border:0;border-radius:0;padding:22px 12px 28px;background:transparent;box-shadow:none}
         .cyberion-kicker{font-size:12px;letter-spacing:.24em;color:#ff424b;font-weight:800;text-transform:uppercase;margin:0 0 24px}
+        .cyberion-original-logo{display:block;max-width:min(100%,600px);width:600px;height:auto;object-fit:contain;object-position:left center;margin:0 0 8px;}
         .cyberion-mark{display:inline-flex;position:relative;align-items:center;font-size:31px;letter-spacing:.04em;line-height:1;font-weight:500;padding-bottom:.58em;white-space:nowrap}
         .cyberion-on{border:3px solid #ffe300;border-radius:99px;display:inline-flex;align-items:center;gap:.14em;height:1.1em;padding:0 .14em .03em .12em;color:#fff}
         .cyberion-on i{display:inline-block;background:#ffe300;width:.63em;height:.63em;border-radius:50%;box-shadow:inset 0 -4px 2px #c1ad00}
@@ -128,7 +121,7 @@ export default function Partners() {
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
         <p className="cyberion-kicker">{uk ? "Наш партнер" : "Our partner"}</p>
-        <Logo large />
+        <img className="cyberion-original-logo" src="/cyberion-kalynova-logo.svg" alt="CYBERION KALYNOVA" width="600" height="136" />
         <h1>Кіберклуб CYBERION Дніпро Лівий берег</h1>
         <p className="cyberion-muted">Мережа кіберклубів України · Дніпро, просп. Слобожанський, 89</p>
         <p className="cyberion-muted">Ігровий простір із 30 геймерськими ПК, сучасним обладнанням та можливістю забронювати місце через офіційні канали клубу.</p>
