@@ -127,7 +127,6 @@ export default function Partners() {
         <p className="cyberion-muted">Ігровий простір із 30 геймерськими ПК, сучасним обладнанням та можливістю забронювати місце через офіційні канали клубу.</p>
         <div className="cyberion-actions">
           <a className="cyberion-action cyberion-action-primary" href={telegram} target="_blank" rel="noopener noreferrer">↗ {uk ? "Забронювати місце" : "Book a place"}</a>
-          <a className="cyberion-action" href={official} target="_blank" rel="noopener noreferrer">↗ {uk ? "Офіційна сторінка клубу" : "Official club page"}</a>
         </div>
       </div>
       <div className="cyberion-grid">
