@@ -89,15 +89,6 @@ export default function Partners() {
           </a>
         </div>
       </div>
-      <div className="cyberion-panel cyberion-socials">
-        <h2><span>♧</span> Соцмережі партнера</h2>
-        <div className="cyberion-social-row">
-          <a className="cyberion-social" href={insta} target="_blank" rel="noopener noreferrer">Instagram <span>↗</span></a>
-          <a className="cyberion-social" href={telegram} target="_blank" rel="noopener noreferrer">Telegram <span>↗</span></a>
-          <a className="cyberion-social" href={official} target="_blank" rel="noopener noreferrer">Офіційний сайт <span>↗</span></a>
-        </div>
-      </div>
-      <p className="cyberion-note">Дані про оснащення та контакти: офіційна сторінка CYBERION. Фонове фото — з офіційного сайту мережі. Карта — посилання на Google Maps.</p>
     </section>
   );
 }
