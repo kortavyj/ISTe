@@ -162,14 +162,6 @@ export default function Partners() {
           <div className="cyberion-location-caption"><span>📍 просп. Слобожанський, 89 · Дніпро</span><span>↗ Відкрити на Google Maps</span></div>
         </div>
       </div>
-      <div className="cyberion-panel cyberion-socials">
-        <h2><span>♧</span> Соцмережі партнера</h2>
-        <div className="cyberion-social-row">
-          <a className="cyberion-social" href={insta} target="_blank" rel="noopener noreferrer"><span className="cyberion-social-symbol">◎</span><span><strong>Instagram</strong><small>@cyberion_dnipro_kalynova</small></span><span>↗</span></a>
-          <a className="cyberion-social" href={telegram} target="_blank" rel="noopener noreferrer"><span className="cyberion-social-symbol">➤</span><span><strong>Telegram</strong><small>@CyberionKalynova</small></span><span>↗</span></a>
-          <a className="cyberion-social" href={official} target="_blank" rel="noopener noreferrer"><span className="cyberion-social-symbol">◎</span><span><strong>Сайт</strong><small>cyberion.ua/clubs/cyberion_dnipro_kalynova</small></span><span>↗</span></a>
-        </div>
-      </div>
     </section>
   );
 }
