@@ -45,16 +45,17 @@ jobs:
         with:
           node-version: 22
 
-      - name: Load FACEIT data
-        env:
-          FACEIT_API_KEY: ${{ secrets.FACEIT_API_KEY }}
-          FACEIT_FULL_SYNC: ${{ github.event_name == 'workflow_dispatch' && inputs.full_match_sync && '1' || '0' }}
-        run: node scripts/update-faceit-stats.mjs
-
       - name: Load Academy FACEIT data
         env:
           FACEIT_API_KEY: ${{ secrets.FACEIT_API_KEY }}
         run: node scripts/update-academy-faceit-stats.mjs
+
+      - name: Load FACEIT data
+        continue-on-error: true
+        env:
+          FACEIT_API_KEY: ${{ secrets.FACEIT_API_KEY }}
+          FACEIT_FULL_SYNC: ${{ github.event_name == 'workflow_dispatch' && inputs.full_match_sync && '1' || '0' }}
+        run: node scripts/update-faceit-stats.mjs
 
       - name: Commit changed statistics
         id: commit
