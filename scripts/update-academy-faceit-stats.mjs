@@ -12,7 +12,7 @@ async function get(path) {
 const players = [];
 for (const { nickname, faceitNickname } of playersToSync) {
   try {
-    const user = await get(`/players?nickname=${encodeURIComponent(faceitNickname)}&game=cs2`);
+    const user = await get(`/players?nickname=${encodeURIComponent(faceitNickname)}`);
     if (!user.player_id || user.nickname?.toLowerCase() !== faceitNickname.toLowerCase()) throw new Error("Player nickname mismatch");
     let lifetime = {};
     try { lifetime = (await get(`/players/${encodeURIComponent(user.player_id)}/stats/cs2`)).lifetime || {}; }
