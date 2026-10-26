@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 43,
-  "matches": 90,
-  "wins": 73,
+  "matches": 91,
+  "wins": 74,
   "winRate": 81,
   "players": 7,
   "roster": [
@@ -31,7 +31,7 @@
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
       "nickname": "VaLaF",
       "avatar": "https://distribution.faceit-cdn.net/images/7d48da5a-ccec-4ab8-aec8-990fc655f9df.jpg",
-      "country": "pt",
+      "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/VaLaF",
       "level": 10,
@@ -41,23 +41,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.3
-    },
-    {
-      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
-      "nickname": "sssoo",
-      "avatar": null,
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
-      "level": 10,
-      "elo": 2119,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.16
+      "kd": 1.34
     },
     {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
@@ -89,7 +73,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.1
+      "kd": 1.11
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -105,7 +89,23 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 0.97
+      "kd": 0.98
+    },
+    {
+      "playerId": "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
+      "nickname": "sssoo",
+      "avatar": null,
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/sssoo",
+      "level": 10,
+      "elo": 2119,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 49,
+      "kd": 1.16
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-ae6ce6b4-a0f8-42d4-ac56-9575c3c716ee",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-ae6ce6b4-a0f8-42d4-ac56-9575c3c716ee",
+      "tournamentId": "3b1873c0-4401-4a4e-8aef-111138b9a3c4",
+      "competitionName": "S59 EU Open10 B - Regular Season",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-10-26T19:06:56.000Z",
+      "startedAt": "2026-10-26T19:06:56.000Z",
+      "finishedAt": "2026-10-26T19:37:30.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Aminake",
+        "avatar": "https://distribution.faceit-cdn.net/images/3288584f-3341-4994-b26d-535ea5da3ffa.jpg",
+        "score": 3
+      }
+    },
     {
       "matchId": "1-428365ac-1cac-49f6-b6c8-1da494c95207",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-428365ac-1cac-49f6-b6c8-1da494c95207",
@@ -3510,14 +3534,14 @@
       }
     }
   ],
-  "teamMatchCount": 141,
+  "teamMatchCount": 142,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 8,
-    "historyMatchesFound": 9,
+    "historyMatchesFound": 10,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3525,5 +3549,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-26T19:32:36.527Z"
+  "updatedAt": "2026-10-26T21:20:50.013Z"
 }
