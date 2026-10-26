@@ -723,7 +723,7 @@ function PlayerProfile({ player, index, language, copy }) {
   ];
 
   return (
-    <article className={`team-profile${isCutout ? " team-profile--cutout" : ""}`}>
+    <article className={`team-profile${isCutout ? " team-profile--cutout" : ""}${(isIvanAcademy || isDettenAcademy) ? " team-profile--academy-feature" : ""}`}>
       <div className={`team-profile__visual${isCutout ? " team-profile__visual--cutout" : ""}`}>
         <span className="team-profile__number" aria-hidden="true">
           {String(index + 1).padStart(2, "0")}
