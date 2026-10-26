@@ -573,12 +573,15 @@ function PlayerProfile({ player, index, language, copy }) {
   const savedProfile = PROFILE_BY_NICKNAME.get(normalizedNickname);
   const isAgregatAcademy = player.rosterStatus === "academy" && normalizedNickname === "agregat";
   const isDettenAcademy = player.rosterStatus === "academy" && normalizedNickname === "dett3n";
+  const isIvanAcademy = player.rosterStatus === "academy" && normalizedNickname === "ivan1love";
 
   const fallbackCopy = {
     uk: {
-      title: isDettenAcademy ? "Назар" : isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
+      title: isIvanAcademy ? "Іван" : isDettenAcademy ? "Назар" : isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
       description:
-        isDettenAcademy
+        isIvanAcademy
+          ? "Гравець ISTe Academy з гарячим темпераментом, який переносить свій запал на ігрову арену. Його неможливо не помітити — як і його вплив на результат. Створює постійний вогневий тиск, руйнуючи плани суперника. Можеш спробувати зупинити його запал — тільки не обпечися!"
+          : isDettenAcademy
           ? "Ігровий лідер ISTe Academy. Уважно читає гру суперника, допомагає команді зберігати впевненість у напружених раундах і швидко адаптує рішення до змін на карті. Поєднує тактичне мислення, емоційну стійкість та гнучкий підхід до командної гри."
           : isAgregatAcademy
           ? "Агресивний і напористий гравець, який не боїться брати ініціативу у свої руки, нав’язувати супернику дуелі та створювати простір для команди завдяки швидким рішенням і впевненій стрільбі."
@@ -593,9 +596,11 @@ function PlayerProfile({ player, index, language, copy }) {
           : ["Командна гра"],
     },
     en: {
-      title: isDettenAcademy ? "Nazar" : isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
+      title: isIvanAcademy ? "Ivan" : isDettenAcademy ? "Nazar" : isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
       description:
-        isDettenAcademy
+        isIvanAcademy
+          ? "A fiery ISTe Academy player who brings all his energy to the arena. His presence and impact on the result are impossible to miss. He keeps up relentless firepower and burns through the opponent’s plans. Try stopping his momentum — just don’t get burned!"
+          : isDettenAcademy
           ? "ISTe Academy in-game leader. Reads opponents carefully, keeps the team composed in difficult rounds, and adapts plans quickly as the match develops. Combines tactical awareness, emotional stability, and flexibility."
           : isAgregatAcademy
           ? "An aggressive, assertive rifler who confidently takes the initiative, challenges opponents to duels, and creates space for the team through quick decisions and precise shooting."
