@@ -4,7 +4,7 @@ export const ACADEMY_PLAYERS = [
   {nickname:"ivan1love"},
   {nickname:"S1Zapooo"},
   {nickname:"DETT3N",isCaptain:true,role:"IGL"},
-  {nickname:"SaDaMXynBceM"},
+  {nickname:"AGREGAT",faceitUrl:"https://www.faceit.com/en/players/AGREGAT"},
   {nickname:"syro_S"},
 ].map((player,index)=>({ ...player, playerId:"academy-"+index, rosterStatus:"academy", displayName:player.nickname, faceitUrl:"https://www.faceit.com/ru/players/"+encodeURIComponent(player.nickname), role:player.role||"PLAYER", officialRoster:true, sortOrder:index, strengths:[], socials:[] }));
 
