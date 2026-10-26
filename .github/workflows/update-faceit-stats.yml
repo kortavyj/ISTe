@@ -8,6 +8,8 @@ on:
       - main
     paths:
       - "src/components/home/Roster.jsx"
+      - "src/data/academyRoster.js"
+      - "scripts/update-academy-faceit-stats.mjs"
   workflow_dispatch:
     inputs:
       full_match_sync:
