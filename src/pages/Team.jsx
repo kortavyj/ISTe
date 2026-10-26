@@ -571,13 +571,16 @@ function PlayerPortrait({ player, profile, displayName }) {
 function PlayerProfile({ player, index, language, copy }) {
   const normalizedNickname = normalizeNickname(player.nickname);
   const savedProfile = PROFILE_BY_NICKNAME.get(normalizedNickname);
+  const isAgregatAcademy = player.rosterStatus === "academy" && normalizedNickname === "agregat";
 
   const fallbackCopy = {
     uk: {
-      title: player.realNameUk || player.realName || "Гравець ISTe",
+      title: isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
       description:
-        player.rosterStatus === "academy"
-          ? "Гравець складу ISTe Academy."
+        isAgregatAcademy
+          ? "Агресивний і напористий гравець, який не боїться брати ініціативу у свої руки, нав’язувати супернику дуелі та створювати простір для команди завдяки швидким рішенням і впевненій стрільбі."
+          : player.rosterStatus === "academy"
+            ? "Гравець складу ISTe Academy."
           : player.rosterStatus === "substitute"
             ? "Гравець заміни ISTe, готовий підключитися до складу за потреби."
             : "Гравець основного складу ISTe.",
@@ -587,10 +590,12 @@ function PlayerProfile({ player, index, language, copy }) {
           : ["Командна гра"],
     },
     en: {
-      title: player.realNameEn || player.realName || "ISTe player",
+      title: isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
       description:
-        player.rosterStatus === "academy"
-          ? "ISTe Academy roster player."
+        isAgregatAcademy
+          ? "An aggressive, assertive rifler who confidently takes the initiative, challenges opponents to duels, and creates space for the team through quick decisions and precise shooting."
+          : player.rosterStatus === "academy"
+            ? "ISTe Academy roster player."
           : player.rosterStatus === "substitute"
             ? "ISTe substitute player, ready to join the lineup when needed."
             : "ISTe main roster player.",
@@ -607,8 +612,7 @@ function PlayerProfile({ player, index, language, copy }) {
         player.displayName ||
         player.nickname,
       roleLabel:
-        player.role ||
-        "RIFLER",
+        isAgregatAcademy ? "RIFLER" : (player.role || "RIFLER"),
       copy: fallbackCopy,
       portrait:
         sharedPlayerPortrait,
