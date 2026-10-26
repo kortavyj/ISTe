@@ -735,3 +735,47 @@
 .iste-academy-info{text-align:center;margin:28px auto 12px}
 .iste-academy-info a{color:#ff6b6b;text-decoration:none;font-weight:800;letter-spacing:.06em}
 .iste-academy-info a:hover{text-decoration:underline}
+
+
+/* Ivan and Nazar: full-bleed esports portraits, matching the approved reference. */
+.team-profile--academy-feature {
+  grid-template-columns: minmax(340px, 42%) minmax(0, 1fr);
+  min-height: 440px;
+}
+.team-profile--academy-feature .team-profile__visual {
+  min-height: 440px;
+  background: linear-gradient(135deg,#250305,#060607 84%);
+}
+.team-profile--academy-feature .team-profile__visual::before,
+.team-profile--academy-feature .team-profile__visual::after { display:none; }
+.team-profile--academy-feature .team-profile__portrait {
+  position:absolute;
+  inset:0;
+  z-index:1;
+  width:100%;
+  height:100%;
+  aspect-ratio:auto;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  background:transparent;
+}
+.team-profile--academy-feature .team-profile__portrait img {
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 28%;
+  filter:none;
+}
+.team-profile--academy-feature .team-profile__number { z-index:3; }
+.team-profile--academy-feature .team-profile__content {
+  padding:clamp(28px,4vw,58px);
+}
+@media(max-width:980px) {
+  .team-profile--academy-feature {grid-template-columns:1fr;}
+  .team-profile--academy-feature .team-profile__visual {min-height:440px;}
+}
+@media(max-width:640px) {
+  .team-profile--academy-feature .team-profile__visual {min-height:340px;}
+}
