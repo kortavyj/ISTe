@@ -572,12 +572,15 @@ function PlayerProfile({ player, index, language, copy }) {
   const normalizedNickname = normalizeNickname(player.nickname);
   const savedProfile = PROFILE_BY_NICKNAME.get(normalizedNickname);
   const isAgregatAcademy = player.rosterStatus === "academy" && normalizedNickname === "agregat";
+  const isDettenAcademy = player.rosterStatus === "academy" && normalizedNickname === "dett3n";
 
   const fallbackCopy = {
     uk: {
-      title: isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
+      title: isDettenAcademy ? "Назар" : isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
       description:
-        isAgregatAcademy
+        isDettenAcademy
+          ? "Ігровий лідер ISTe Academy. Уважно читає гру суперника, допомагає команді зберігати впевненість у напружених раундах і швидко адаптує рішення до змін на карті. Поєднує тактичне мислення, емоційну стійкість та гнучкий підхід до командної гри."
+          : isAgregatAcademy
           ? "Агресивний і напористий гравець, який не боїться брати ініціативу у свої руки, нав’язувати супернику дуелі та створювати простір для команди завдяки швидким рішенням і впевненій стрільбі."
           : player.rosterStatus === "academy"
             ? "Гравець складу ISTe Academy."
@@ -590,9 +593,11 @@ function PlayerProfile({ player, index, language, copy }) {
           : ["Командна гра"],
     },
     en: {
-      title: isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
+      title: isDettenAcademy ? "Nazar" : isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
       description:
-        isAgregatAcademy
+        isDettenAcademy
+          ? "ISTe Academy in-game leader. Reads opponents carefully, keeps the team composed in difficult rounds, and adapts plans quickly as the match develops. Combines tactical awareness, emotional stability, and flexibility."
+          : isAgregatAcademy
           ? "An aggressive, assertive rifler who confidently takes the initiative, challenges opponents to duels, and creates space for the team through quick decisions and precise shooting."
           : player.rosterStatus === "academy"
             ? "ISTe Academy roster player."
