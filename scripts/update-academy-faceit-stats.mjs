@@ -32,6 +32,9 @@ for (const { nickname, faceitNickname } of playersToSync) {
   }
 }
 if (!players.length) throw new Error("No academy FACEIT profiles were verified; preserving previous data");
+if (!players.some(p => p.nickname === "AGREGAT" && (p.elo !== null || p.level !== null))) {
+  throw new Error("AGREGAT FACEIT profile/CS2 rating could not be resolved; Academy statistics were not overwritten. Check FACEIT_API_KEY and workflow logs.");
+}
 const output = "public/data/academy-faceit-stats.json";
 await mkdir("public/data", { recursive: true });
 await writeFile(output, JSON.stringify({ players }, null, 2) + "\n");
