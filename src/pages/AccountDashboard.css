@@ -78,3 +78,67 @@
 .iste-account-quick__grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:750px){.iste-account-quick__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.iste-account-welcome{padding:26px;min-height:210px}.iste-account-quick__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.iste-account-quick__item{min-height:100px;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:13px}.iste-account-quick__item b{top:14px;right:14px}}
+
+/* Account visual polish: final design pass */
+.iste-account-page {
+  background: radial-gradient(ellipse 65% 25% at 50% 3%,rgba(90,0,18,.22),transparent 75%),linear-gradient(180deg,#0b0609,#050506 60%);
+}
+.iste-account-page::before {
+  content:"";position:absolute;pointer-events:none;left:0;right:0;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,#de2340 45%,transparent);
+}
+.iste-account-page .auth-shell-wide {width:min(1250px,100%)}
+.iste-account-heading {padding-top:5px;margin-bottom:31px}
+.iste-account-heading__eyebrow {display:block;font-size:.76rem;letter-spacing:.24em}
+.iste-account-heading .auth-kicker {margin-top:13px;color:#a6a0aa;font-size:.72rem;letter-spacing:.24em}
+.iste-account-heading h1 {font-size:clamp(2.8rem,5.2vw,5.6rem);line-height:1.04;letter-spacing:-.056em}
+.iste-account-heading p:last-child {max-width:670px;font-size:1rem;margin-top:13px}
+.iste-account-page .account-grid {grid-template-columns:minmax(300px,.82fr) minmax(0,1.75fr);gap:22px}
+.iste-account-page .auth-card {background:linear-gradient(140deg,rgba(255,255,255,.032),transparent 55%),#0b0b0e;border-color:rgba(255,255,255,.12)}
+.iste-account-page .account-summary {border-color:rgba(225,35,63,.48);padding:30px}
+.iste-account-tabs {margin-bottom:22px}
+.iste-account-page .account-avatar {width:105px;border-radius:23px}
+.iste-account-page .account-summary h2 {font-size:1.55rem}
+.iste-account-page .account-details {gap:16px}
+.iste-account-page .account-detail {padding:0 0 15px}
+.iste-account-page .account-detail dt {color:#96939b}
+.iste-account-page .account-detail dd {font-size:.95rem}
+.iste-account-page .account-summary-actions .auth-button {min-height:48px}
+.iste-account-welcome {min-height:245px;padding:37px 42px;background:radial-gradient(ellipse at 76% 62%,rgba(174,7,39,.39),transparent 62%),linear-gradient(118deg,#171015,#0b0b0e);border-color:rgba(236,35,67,.65)}
+.iste-account-welcome::after {content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(132deg,transparent 0,transparent 65px,rgba(248,40,68,.045) 66px,transparent 67px);mask-image:linear-gradient(90deg,transparent 45%,black)}
+.iste-account-welcome h2 {max-width:540px;font-size:clamp(2rem,3.2vw,3.5rem);margin:15px 0}
+.iste-account-welcome p {max-width:470px;font-size:.93rem}
+.iste-account-welcome>strong {right:5px;top:85px;font-size:clamp(5.3rem,11vw,11rem)}
+.iste-account-quick {padding:25px 28px 30px}
+.iste-account-quick__grid {margin-top:16px;gap:12px}
+.iste-account-quick__item {min-height:125px;border-radius:14px;font-size:.82rem;line-height:1.35;background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.008));padding:17px 16px}
+.iste-account-quick__item>span {width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(226,23,52,.1);font-size:1.45rem}
+.iste-account-quick__item b {font-size:1.08rem;font-weight:500}
+.iste-account-preview {min-height:0;border-color:rgba(238,36,66,.38)!important;padding:29px 32px}
+.iste-account-preview__heading {margin-bottom:23px}
+.iste-account-preview__identity h2 {font-size:clamp(1.5rem,2.5vw,2.3rem)}
+.iste-account-preview__bio {margin:20px 0;padding:16px 0}
+.iste-account-preview__avatar {width:80px;height:80px}
+.iste-account-main-column {gap:17px}
+.iste-avatar-upload {margin-top:3px}
+.iste-avatar-edit-icon {box-shadow:0 4px 20px rgba(240,35,60,.4)}
+@media(max-width:900px) {
+ .iste-account-page .account-grid {grid-template-columns:1fr}
+ .iste-account-page .account-summary {position:static}
+ .iste-account-welcome {min-height:215px}
+}
+@media(max-width:640px) {
+ .iste-account-page {padding-inline:15px}
+ .iste-account-heading h1 {font-size:clamp(2.4rem,10vw,3.8rem)}
+ .iste-account-page .account-summary {padding:23px}
+ .iste-account-welcome {padding:27px;min-height:220px}
+ .iste-account-welcome h2 {font-size:clamp(1.9rem,7vw,2.7rem)}
+ .iste-account-quick {padding:22px}
+ .iste-account-quick__grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .iste-account-preview {padding:24px}
+ .iste-account-quick__item {min-height:108px}
+}
+@media(max-width:360px) {
+ .iste-account-quick__grid {grid-template-columns:1fr}
+ .iste-account-quick__item {min-height:65px}
+}
