@@ -354,18 +354,21 @@ export default function Account() {
             <div className="iste-account-welcome"><span>{language === "uk" ? "ПРИВІТ, " : language === "en" ? "HELLO, " : "ПРИВЕТ, "}{(profile?.display_name || profile?.username || "ISTe").toUpperCase()}!</span><h2>{language === "uk" ? "Ласкаво просимо до " : language === "en" ? "Welcome to " : "Добро пожаловать в "}<em>ISTe!</em></h2><p>{ui.subtitle}</p><strong aria-hidden="true">ISTe</strong></div>
             <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span aria-hidden="true">◈</span>{ui.explore}<b aria-hidden="true">↗</b></Link><Link to="/news" className="iste-account-quick__item"><span aria-hidden="true">✦</span>{ui.news}<b aria-hidden="true">↗</b></Link><Link to="/shop" className="iste-account-quick__item"><span aria-hidden="true">▢</span>{language === "uk" ? "Магазин" : language === "en" ? "Shop" : "Магазин"}<b aria-hidden="true">↗</b></Link><Link to="/users" className="iste-account-quick__item"><span aria-hidden="true">◎</span>{t("accountPage.findUser")}<b aria-hidden="true">↗</b></Link></div></div>
             <div className="auth-card iste-account-preview">
-              <div className="iste-account-preview__heading"><span className="iste-account-section-label">{ui.view}</span><span className="iste-account-preview__star">✦ ISTe</span></div>
+              <div className="iste-account-preview__heading"><span className="iste-account-section-label">{language === "uk" ? "ІНФОРМАЦІЯ ПРО ТЕБЕ" : language === "en" ? "ABOUT YOU" : "ИНФОРМАЦИЯ О ТЕБЕ"}</span><span className="iste-account-preview__star">✦ ISTe</span></div>
               <div className="iste-account-preview__identity"><div className="iste-account-preview__avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}</div><div><h2>{profile?.display_name || t("accountPage.memberFallback")}</h2><p>@{profile?.username || "iste"}</p><span className="account-role">{KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}</span></div></div>
               <p className="iste-account-preview__bio">{profile?.bio || ui.bioEmpty}</p>
               <button type="button" className="iste-account-outline-button" onClick={() => setActiveTab("edit")}>{ui.edit} <span aria-hidden="true">↗</span></button>
             </div>
+            <section className="auth-card iste-account-activity" aria-label={language === "uk" ? "Інформація про активність" : "Account activity"}>
+              <span className="iste-account-section-label">◷ {language === "uk" ? "АКТИВНІСТЬ ПРОФІЛЮ" : language === "en" ? "PROFILE ACTIVITY" : "АКТИВНОСТЬ ПРОФИЛЯ"}</span>
+              <div className="iste-account-activity__row"><span className="iste-account-activity__icon" aria-hidden="true">◎</span><div><strong>{language === "uk" ? "Реєстрація в ISTe" : language === "en" ? "Joined ISTe" : "Регистрация в ISTe"}</strong><small>{formatDate(profile?.created_at, language, t("accountPage.notSpecified"))}</small></div><span className="iste-account-activity__indicator">{language === "uk" ? "Підтверджено" : language === "en" ? "Confirmed" : "Подтверждено"}</span></div>
+              {profile?.updated_at ? <div className="iste-account-activity__row"><span className="iste-account-activity__icon" aria-hidden="true">✎</span><div><strong>{language === "uk" ? "Оновлення профілю" : language === "en" ? "Profile updated" : "Обновление профиля"}</strong><small>{formatDate(profile.updated_at, language, t("accountPage.notSpecified"))}</small></div><span className="iste-account-activity__indicator">✓</span></div> : null}
+            </section>
             </>
           ) : null}
           <div className={`auth-card account-editor ${activeTab === "profile" ? "iste-account-editor-hidden" : ""}`}>
             <div className="iste-account-editor-head"><div><span className="iste-account-section-label">{ui.profile}</span><h2>{t("accountPage.editProfile")}</h2></div><button type="button" className="iste-account-back" onClick={() => setActiveTab("profile")}>{ui.back}</button></div>
             {isDirty ? <p className="iste-account-unsaved">{ui.unsaved}</p> : null}
-            <h2>{t("accountPage.editProfile")}</h2>
-
             <form className="auth-form" onSubmit={handleSave}>
               {(errorMessage || accountError) && (
                 <div className="auth-message auth-message-error">
