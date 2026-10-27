@@ -5,7 +5,7 @@ import "./History.css";
 
 const COPY = {
   uk: {
-    eyebrow: "ІСТОРІЯ ISTe",
+    eyebrow: "ЗАСНОВНИК ISTe",
     titleName: "Євгеній,",
     titleAccent: " творець і засновник ISTe",
     lead:
@@ -31,7 +31,7 @@ const COPY = {
       "Євгеній створив ISTe, щоб перетворити особисте захоплення іграми та медіа на повноцінну компанію і простір для розвитку інших гравців.",
   },
   ru: {
-    eyebrow: "ИСТОРИЯ ISTe",
+    eyebrow: "ОСНОВАТЕЛЬ ISTe",
     titleName: "Евгений,",
     titleAccent: " создатель и основатель ISTe",
     lead:
@@ -57,7 +57,7 @@ const COPY = {
       "Евгений создал ISTe, чтобы превратить личное увлечение играми и медиа в полноценную компанию и пространство для развития других игроков.",
   },
   en: {
-    eyebrow: "ISTe HISTORY",
+    eyebrow: "FOUNDER OF ISTe",
     titleName: "Yevhenii,",
     titleAccent: " creator and founder of ISTe",
     lead:
