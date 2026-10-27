@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useLanguage } from "../i18n/LanguageContext.jsx";
+import AcademyPortraitManager from "./AcademyPortraitManager.jsx";
 
 import "./OwnerRoster.css";
 
@@ -1070,6 +1071,8 @@ export default function OwnerRoster() {
             </button>
           </div>
         </header>
+
+        <AcademyPortraitManager />
 
         {setupRequired ? (
           <div className="owner-roster-setup">
