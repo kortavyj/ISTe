@@ -22,7 +22,11 @@ function optimize(file, position) {
           canvas.width = width; canvas.height = height;
           const ctx = canvas.getContext("2d");
           if (!ctx) throw new Error("Не вдалося підготувати фото на цьому пристрої.");
-          const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+          // Contain the entire portrait instead of enlarging and cutting off the head.
+          // Fill unused canvas space with a dark tone matching ISTe player cards.
+          ctx.fillStyle = "#100405";
+          ctx.fillRect(0, 0, width, height);
+          const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
           const scaledWidth = image.naturalWidth * scale;
           const scaledHeight = image.naturalHeight * scale;
           const offsetX = (width - scaledWidth) / 2;
@@ -102,7 +106,7 @@ export default function AcademyPortraitManager() {
           <label>Вертикальне кадрування: {position}%
             <input type="range" min="0" max="100" value={position} onChange={event => setPosition(Number(event.target.value))} disabled={!file} />
           </label>
-          <p>Фото автоматично підганяється під 1000 × 1250 пікселів. Перевірте, щоб обличчя та груди були видимі.</p>
+          <p>Фото автоматично вписується в рамку 1000 × 1250 без обрізання голови чи плечей.</p>
           <button type="button" className="owner-roster-button" disabled={!file || busy || !preview} onClick={save}>{busy ? "Завантаження..." : "Зберегти фото гравця"}</button>
           {message && <p role="status">{message}</p>}
         </div>
