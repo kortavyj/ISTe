@@ -5,7 +5,7 @@ export const ACADEMY_PLAYERS = [
   {nickname:"S1Zapooo",realNameUk:"Олександр",realNameEn:"Oleksandr",role:"RIFLER",strengths:["Стрільба","Комунікація","Позитив"]},
   {nickname:"DETT3N",displayName:"D3TTEN",realNameUk:"Назар",realNameEn:"Nazar",isCaptain:true,role:"IGL",strengths:["Читання гри","Емоційний настрій","Адаптивність"],socials:[{type:"instagram",url:"https://instagram.com/pelmenoo"}],portraitUrl:"/assets/academy-nazar.svg?v=2"},
   {nickname:"AGREGAT",role:"RIFLER",strengths:["Агресія","Дуелі","Швидкі рішення"],faceitUrl:"https://www.faceit.com/en/players/AGREGAT"},
-  {nickname:"syro_S",strengths:["Команда ISTe","Змагальний CS2","FACEIT"]},
+  {nickname:"syro_S",strengths:["Команда ISTe","Змагальний CS2","FACEIT"],socials:[{type:"telegram",url:"https://t.me/yaros_av"},{type:"instagram",url:"https://www.instagram.com/_yaros.lav/?hl=uk"}]},
 ].map((player,index)=>({ ...player, playerId:"academy-"+index, rosterStatus:"academy", displayName:player.displayName||player.nickname, faceitUrl:player.faceitUrl||"https://www.faceit.com/ru/players/"+encodeURIComponent(player.nickname), role:player.role||"PLAYER", officialRoster:true, sortOrder:index, strengths:player.strengths||[], socials:player.socials||[] }));
 
 export function centerCaptain(players){
