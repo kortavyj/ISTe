@@ -929,6 +929,44 @@ async function handleUploadPhoto(
   }
 }
 
+const ACADEMY_NICKS = new Set(["ivan1love", "s1zapooo", "dett3n", "agregat", "syro_s"]);
+
+async function handleAcademyPhoto(request, response) {
+  const guard = guardRequest(request, {
+    methods: ["POST"], requireJson: true, requireOrigin: true, maxBodyBytes: 3_000_000,
+  });
+  if (!guard.ok) return sendGuardError(response, guard);
+  const access = await getRosterAccess(request, response);
+  if (!access) return;
+  const body = readJsonBody(request);
+  const nickname = String(body?.nickname || "").trim().toLowerCase();
+  if (!ACADEMY_NICKS.has(nickname) || body?.mimeType !== "image/jpeg" ||
+      typeof body?.data !== "string" || body.data.length > 2_800_000 ||
+      !/^[A-Za-z0-9+/]+={0,2}$/.test(body.data)) {
+    return sendError(response, 400, "INVALID_ACADEMY_PHOTO", "Invalid player or image.");
+  }
+  const bytes = Buffer.from(body.data, "base64");
+  if (bytes.length < 1024 || bytes.length > 2_000_000 ||
+      bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff ||
+      bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) {
+    return sendError(response, 400, "INVALID_IMAGE_BYTES", "Invalid JPEG image (max 2 MB).");
+  }
+  const path = `academy/${nickname}-${Date.now()}-${randomBytes(5).toString("hex")}.jpg`;
+  try {
+    const storage = getSupabaseAdminClient().storage.from("iste-roster");
+    const { error } = await storage.upload(path, bytes, {
+      contentType: "image/jpeg", cacheControl: "31536000", upsert: false,
+    });
+    if (error) throw error;
+    return response.status(200).json({
+      ok: true, portraitUrl: storage.getPublicUrl(path).data.publicUrl,
+    });
+  } catch (error) {
+    console.error("Academy photo upload failed:", error);
+    return sendError(response, 500, "ACADEMY_UPLOAD_FAILED", "Failed to upload portrait.");
+  }
+}
+
 export default async function rosterHandler(request, response) {
   response.setHeader("Cache-Control", "no-store, private");
 
@@ -952,6 +990,8 @@ export default async function rosterHandler(request, response) {
   if (action === "import-faceit") {
     return handleImportFaceit(request, response);
   }
+
+  if (action === "academy-photo") return handleAcademyPhoto(request, response);
 
   if (action === "upload-photo") {
     return handleUploadPhoto(
