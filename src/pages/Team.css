@@ -833,3 +833,18 @@
   .team-profile--academy-feature .team-profile__portrait{width:100%}
   .team-profile__content{padding:28px 22px}
 }
+
+/* Academy feature portraits: chest-up framing, keep crossed arms outside the card. */
+.team-profile--academy-feature .team-profile__portrait img{
+  object-fit:cover;
+  object-position:center top;
+  transform:scale(1.13);
+  transform-origin:50% 0%;
+}
+@media(max-width:980px){
+  .team-profile--academy-feature .team-profile__portrait img{
+    object-position:center top;
+    transform:scale(1.08);
+    transform-origin:50% 0%;
+  }
+}
