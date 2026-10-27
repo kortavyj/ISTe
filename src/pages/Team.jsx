@@ -575,12 +575,15 @@ function PlayerProfile({ player, index, language, copy }) {
   const isDettenAcademy = player.rosterStatus === "academy" && normalizedNickname === "dett3n";
   const isIvanAcademy = player.rosterStatus === "academy" && normalizedNickname === "ivan1love";
   const isS1ZapoooAcademy = player.rosterStatus === "academy" && normalizedNickname === "s1zapooo";
+  const isSyroAcademy = player.rosterStatus === "academy" && normalizedNickname === "syro_s";
 
   const fallbackCopy = {
     uk: {
-      title: isS1ZapoooAcademy ? "Олександр" : isIvanAcademy ? "Іван" : isDettenAcademy ? "Назар" : isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
+      title: isSyroAcademy ? "Ярослав" : isS1ZapoooAcademy ? "Олександр" : isIvanAcademy ? "Іван" : isDettenAcademy ? "Назар" : isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
       description:
-        isS1ZapoooAcademy
+        isSyroAcademy
+          ? "Чудова опора відкритих плентів ISTe Academy. Майстерно виконує роль сапорта та завжди готовий прикрити тіммейтів у найвідповідальніший момент. Грамотно використовує гранати, створює комфортні умови для виходу команди на плент і допомагає реалізовувати навіть найскладніші раунди. Вміє вчасно підстрахувати, розміняти союзника та забезпечити надійний трейд. Не женеться за особистою статистикою, адже розуміє: перемогу здобуває команда. Помітний герой раунду, без якого жоден вихід не буде таким комфортним."
+          : isS1ZapoooAcademy
           ? "Рифлер ISTe Academy зі швидкою реакцією на будь-які дії суперника. АК-47 — продовження його руки: він упевнено виграє дуелі навіть у складних ситуаціях. Його головна мета — командна перемога. Завжди готовий підтримати та прикрити напарників у вирішальний момент. Надійний союзник і потужна бойова одиниця."
           : isIvanAcademy
           ? "Гравець ISTe Academy з гарячим темпераментом, який переносить свій запал на ігрову арену. Його неможливо не помітити — як і його вплив на результат. Створює постійний вогневий тиск, руйнуючи плани суперника. Можеш спробувати зупинити його запал — тільки не обпечися!"
@@ -599,9 +602,11 @@ function PlayerProfile({ player, index, language, copy }) {
           : ["Командна гра"],
     },
     en: {
-      title: isS1ZapoooAcademy ? "Oleksandr" : isIvanAcademy ? "Ivan" : isDettenAcademy ? "Nazar" : isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
+      title: isSyroAcademy ? "Yaroslav" : isS1ZapoooAcademy ? "Oleksandr" : isIvanAcademy ? "Ivan" : isDettenAcademy ? "Nazar" : isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
       description:
-        isS1ZapoooAcademy
+        isSyroAcademy
+          ? "A reliable ISTe Academy support player who covers teammates in the most decisive moments. Uses utility intelligently, sets up comfortable site executes, and helps the team convert difficult rounds. Always ready to trade, back up an ally, and put the team victory ahead of personal statistics."
+          : isS1ZapoooAcademy
           ? "ISTe Academy rifler with lightning-fast reactions. His AK-47 feels like an extension of his arm, helping him win duels even when left alone. Focused on team victories, he always supports and covers his teammates in decisive moments. A reliable partner and powerful presence on the server."
           : isIvanAcademy
           ? "A fiery ISTe Academy player who brings all his energy to the arena. His presence and impact on the result are impossible to miss. He keeps up relentless firepower and burns through the opponent’s plans. Try stopping his momentum — just don’t get burned!"
