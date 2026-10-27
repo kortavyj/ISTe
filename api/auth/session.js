@@ -2927,63 +2927,6 @@ async function handleNewsRemoveUpload(
   }
 }
 
-, "i").test(path)) {
-      return sendError(response,400,"INVALID_AVATAR_PATH","Некорректный адрес аватара.");
-    }
-    const filename = path.split("/").pop();
-    const folder = `avatars/${account.user.id}`;
-    const { data: files, error: listError } = await account.supabase.storage.from(AVATAR_BUCKET).list(folder,{search:filename,limit:5});
-    if (listError || !files?.some((file) => file.name === filename && file.metadata?.mimetype === "image/jpeg" && file.metadata?.size <= AVATAR_MAX_BYTES)) {
-      return sendError(response,400,"AVATAR_NOT_UPLOADED","Загруженный аватар не найден или имеет неверный формат.");
-    }
-    const { data: publicData } = account.supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
-    if (!publicData?.publicUrl) return sendError(response,502,"AVATAR_URL_ERROR","Не удалось получить ссылку на аватар.");
-    const {error: updateError} = await account.supabase.from("profiles").update({avatar_url:publicData.publicUrl}).eq("id",account.user.id);
-    if(updateError) {
-      console.error("Avatar profile update error:",updateError);
-      return sendError(response,502,"AVATAR_SAVE_FAILED","Не удалось сохранить аватар в профиле.");
-    }
-    return response.status(200).json({ok:true,avatarUrl:publicData.publicUrl});
-  } catch(error) {
-    console.error("Avatar confirm error:",error);
-    return sendError(response,500,"AVATAR_ERROR","Не удалось сохранить аватар.");
-  }
-}
-
-const AVATAR_BUCKET = "iste-roster";
-const AVATAR_MAX_BYTES = 650000;
-
-async function handleAvatarCreateUpload(request, response, body) {
-  const fileSize = Number(body?.fileSize);
-  if (!Number.isInteger(fileSize) || fileSize <= 0 || fileSize > AVATAR_MAX_BYTES || body?.fileType !== "image/jpeg") return sendError(response,400,"INVALID_AVATAR","Нужен JPEG до 650 КБ.");
-  try {
-    const account = await requireAccount(request,response);
-    if(!account.ok) return sendAccountError(response,account);
-    const path = "avatars/" + account.user.id + "/" + randomUUID() + ".jpg";
-    const {data,error} = await account.supabase.storage.from(AVATAR_BUCKET).createSignedUploadUrl(path);
-    if(error || !data?.token) { console.error("Avatar upload token:",error); return sendError(response,502,"AVATAR_UPLOAD_UNAVAILABLE","Не удалось подготовить загрузку."); }
-    return response.status(200).json({ok:true,path,token:data.token});
-  } catch(error) { console.error("Avatar create:",error); return sendError(response,500,"AVATAR_ERROR","Ошибка загрузки аватара."); }
-}
-
-async function handleAvatarConfirm(request,response,body) {
-  try {
-    const account = await requireAccount(request,response);
-    if(!account.ok) return sendAccountError(response,account);
-    const path = typeof body?.path === "string" ? body.path : "";
-    const prefix = "avatars/" + account.user.id + "/";
-    const filename = path.startsWith(prefix) ? path.slice(prefix.length) : "";
-    if(!/^[0-9a-f-]{36}[.]jpg$/i.test(filename)) return sendError(response,400,"INVALID_AVATAR_PATH","Некорректный путь.");
-    const {data:files,error:listError} = await account.supabase.storage.from(AVATAR_BUCKET).list("avatars/" + account.user.id,{search:filename,limit:5});
-    if(listError || !files?.some(file => file.name === filename && file.metadata?.mimetype === "image/jpeg" && file.metadata?.size <= AVATAR_MAX_BYTES)) return sendError(response,400,"AVATAR_NOT_UPLOADED","Аватар не найден или неверный формат.");
-    const {data:publicData} = account.supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
-    if(!publicData?.publicUrl) return sendError(response,502,"AVATAR_URL_ERROR","Не удалось получить адрес.");
-    const {error:updateError} = await account.supabase.from("profiles").update({avatar_url:publicData.publicUrl}).eq("id",account.user.id);
-    if(updateError) { console.error("Avatar profile update:",updateError); return sendError(response,502,"AVATAR_SAVE_FAILED","Не удалось сохранить аватар."); }
-    return response.status(200).json({ok:true,avatarUrl:publicData.publicUrl});
-  } catch(error) { console.error("Avatar confirm:",error); return sendError(response,500,"AVATAR_ERROR","Не удалось сохранить аватар."); }
-}
-
 export default async function handler(
   request,
   response,
@@ -3077,9 +3020,6 @@ if (action === "mfa-cancel") {
     response,
   );
 }
-
-if (action === "avatar-create-upload") return handleAvatarCreateUpload(request,response,body);
-if (action === "avatar-confirm") return handleAvatarConfirm(request,response,body);
 
 if (action === "find-user") {
 
