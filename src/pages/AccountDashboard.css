@@ -67,3 +67,14 @@
 .iste-avatar-help{font-size:.73rem;color:#a29aa2;margin:0 0 16px;max-width:240px;line-height:1.4}
 .iste-avatar-message{font-size:.79rem;color:#f1c8cc;margin:0 0 14px;line-height:1.4}
 .iste-account-preview__avatar{overflow:hidden}
+
+/* Approved dashboard concept: welcome hero and four quick links */
+.iste-account-welcome{position:relative;min-height:205px;overflow:hidden;padding:32px 38px;border:1px solid rgba(234,31,57,.55);border-radius:19px;background:radial-gradient(ellipse at 80% 50%,rgba(218,8,39,.27),transparent 58%),linear-gradient(110deg,#151014,#0b0b0e 70%);isolation:isolate}
+.iste-account-welcome>span{position:relative;z-index:2;color:#fa5064;font-size:.7rem;font-weight:850;letter-spacing:.2em;text-transform:uppercase}
+.iste-account-welcome h2{position:relative;z-index:2;margin:18px 0 12px;max-width:430px;font-size:clamp(1.8rem,3.4vw,3.1rem);font-weight:900;line-height:1.07;letter-spacing:-.04em;color:#fff}
+.iste-account-welcome h2 em{color:#f12743;font-style:normal}
+.iste-account-welcome p{position:relative;z-index:2;max-width:420px;color:#aaa3a9;font-size:.88rem;line-height:1.6;margin:0}
+.iste-account-welcome>strong{position:absolute;right:-24px;top:38px;font-size:clamp(5rem,11vw,10rem);line-height:1;font-weight:950;font-style:italic;letter-spacing:-.11em;color:rgba(244,32,60,.09);transform:rotate(-8deg);pointer-events:none}
+.iste-account-quick__grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:750px){.iste-account-quick__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.iste-account-welcome{padding:26px;min-height:210px}.iste-account-quick__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.iste-account-quick__item{min-height:100px;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:13px}.iste-account-quick__item b{top:14px;right:14px}}
