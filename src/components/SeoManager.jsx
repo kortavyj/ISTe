@@ -2,9 +2,11 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useLanguage } from "../i18n/LanguageContext.jsx";
+import { ACADEMY_PLAYERS } from "../data/academyRoster.js";
+import founderPhoto from "../assets/history/evgeniy_kortavyj.webp";
 
 const SITE_URL = "https://www.istesport.com";
-const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/og-image-v3.png`;
 
 const OG_LOCALE = {
   uk: "uk_UA",
@@ -25,6 +27,10 @@ const SEO = {
           "ISTesport | Офіційний сайт кіберспортивної команди",
         description:
           "ISTesport — офіційний сайт кіберспортивної команди CS2: склад, матчі, результати, новини та історія клубу.",
+      },
+      "/team/academy": {
+        title: "Склад ISTe Academy CS2 | Гравці та фото",
+        description: "Гравці ISTe Academy: імена, нікнейми, ролі, фотографії, FACEIT і соцмережі учасників.",
       },
       "/team": {
         title:
@@ -90,6 +96,10 @@ const SEO = {
         description:
           "ISTesport — официальный сайт киберспортивной команды CS2: состав, матчи, результаты, новости и история клуба.",
       },
+      "/team/academy": {
+        title: "Состав ISTe Academy CS2 | Игроки и фото",
+        description: "Игроки ISTe Academy: имена, никнеймы, роли, фотографии, FACEIT и социальные сети участников.",
+      },
       "/team": {
         title:
           "Состав ISTesport по CS2 | Игроки команды",
@@ -153,6 +163,10 @@ const SEO = {
           "ISTesport | Official Esports Team Website",
         description:
           "ISTesport — official CS2 esports team website with roster, matches, results, news and club history.",
+      },
+      "/team/academy": {
+        title: "ISTe Academy CS2 Roster | Player Photos",
+        description: "ISTe Academy CS2 players: names, nicknames, roles, photos, FACEIT and social profiles.",
       },
       "/team": {
         title:
@@ -259,6 +273,7 @@ function getFounderProfileSchema(language) {
       alternateName: "Kortavyj",
       url: "https://www.istesport.com/history",
       jobTitle: "Founder & Owner of ISTe",
+      image: new URL(founderPhoto, SITE_URL).href,
       description:
         content.founder.personDescription,
       sameAs: [
@@ -279,6 +294,46 @@ function getFounderProfileSchema(language) {
       },
     },
   };
+}
+
+const ROSTER_JSON_LD_ID = "iste-academy-roster-jsonld";
+
+function syncRosterJsonLd(path) {
+  const existing = document.getElementById(ROSTER_JSON_LD_ID);
+  if (path !== "/team/academy") {
+    existing?.remove();
+    return;
+  }
+
+  const script = existing || document.createElement("script");
+  const players = ACADEMY_PLAYERS.map((player, index) => {
+    const person = {
+      "@type": "Person",
+      name: player.realNameUk || player.displayName || player.nickname,
+      alternateName: player.nickname,
+      description: `ISTe Academy Counter-Strike 2 player — ${player.role || "PLAYER"}`,
+      memberOf: { "@id": `${SITE_URL}/#organization` },
+      sameAs: [
+        player.faceitUrl,
+        ...(player.socials || []).map((social) => social.url),
+      ].filter(Boolean),
+    };
+    if (player.portraitUrl && !player.portraitUrl.endsWith(".svg")) {
+      person.image = new URL(player.portraitUrl, SITE_URL).href;
+    }
+    return { "@type": "ListItem", position: index + 1, item: person };
+  });
+
+  script.id = ROSTER_JSON_LD_ID;
+  script.type = "application/ld+json";
+  script.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "ISTe Academy CS2 roster",
+    url: `${SITE_URL}/team/academy`,
+    itemListElement: players,
+  });
+  if (!existing) document.head.appendChild(script);
 }
 
 function ensureMeta(selector, attributes) {
@@ -458,7 +513,7 @@ export default function SeoManager() {
       'meta[property="og:image"]',
       {
         property: "og:image",
-        content: DEFAULT_IMAGE,
+        content: path === "/history" ? new URL(founderPhoto, SITE_URL).href : DEFAULT_IMAGE,
       },
     );
 
@@ -506,6 +561,7 @@ export default function SeoManager() {
       path,
       language,
     );
+    syncRosterJsonLd(path);
   }, [
     location.pathname,
     language,
