@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ACADEMY_PLAYERS } from "../data/academyRoster.js";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 const MAX_BYTES = 2_000_000;
 function optimize(file, position) {
@@ -37,6 +38,7 @@ function asBase64(blob) {
 }
 
 export default function AcademyPortraitManager() {
+  const { role } = useAuth();
   const [nickname, setNickname] = useState(ACADEMY_PLAYERS[0]?.nickname || "");
   const [file, setFile] = useState(null);
   const [position, setPosition] = useState(20);
@@ -70,6 +72,7 @@ export default function AcademyPortraitManager() {
     } catch (error) { setMessage(error.message || "Помилка завантаження."); }
     finally { setBusy(false); }
   }
+  if (role !== "owner" && role !== "admin") return null;
   return (
     <section className="owner-roster-group" style={{ marginBottom: 32 }}>
       <header><h2>Фото ISTe Academy</h2><span>JPG / PNG / WebP</span></header>
