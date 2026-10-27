@@ -938,6 +938,9 @@ async function handleAcademyPhoto(request, response) {
   if (!guard.ok) return sendGuardError(response, guard);
   const access = await getRosterAccess(request, response);
   if (!access) return;
+  if (access.role !== "admin" && access.role !== "owner") {
+    return sendError(response, 403, "ADMIN_REQUIRED", "Only administrators may upload Academy portraits.");
+  }
   const body = readJsonBody(request);
   const nickname = String(body?.nickname || "").trim().toLowerCase();
   if (!ACADEMY_NICKS.has(nickname) || body?.mimeType !== "image/jpeg" ||
