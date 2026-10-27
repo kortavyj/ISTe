@@ -8,6 +8,7 @@ import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 import "./Auth.css";
 import "./AccountId.css";
+import "./AccountDashboard.css";
 
 const KNOWN_ROLES = new Set([
   "user",
@@ -78,6 +79,7 @@ export default function Account() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("profile");
 
   useEffect(() => {
     setForm({
@@ -95,6 +97,13 @@ export default function Account() {
   }, [profile, user]);
 
   const accountId = formatAccountId(profile?.account_number);
+  const isDirty = form.username.trim() !== (profile?.username ?? "") || form.displayName.trim() !== (profile?.display_name ?? "") || form.bio.trim() !== (profile?.bio ?? "");
+  const completeness = [profile?.username, profile?.display_name, profile?.bio].filter(Boolean).length;
+  const ui = language === "en"
+    ? { overview:"Overview", edit:"Edit profile", welcome:"YOUR ISTe SPACE", subtitle:"Manage your identity, profile and access in one place.", profile:"PROFILE", identity:"ACCOUNT", shortcuts:"QUICK ACCESS", completeness:"Profile completion", view:"Public preview", unsaved:"You have unsaved changes", bioEmpty:"Add a bio to tell the community about yourself.", security:"Account information", join:"Member since", back:"Back to profile", explore:"Explore the team", news:"Team news" }
+    : language === "ru"
+      ? { overview:"Обзор", edit:"Редактировать", welcome:"ТВОЁ ПРОСТРАНСТВО ISTe", subtitle:"Профиль, данные аккаунта и быстрый доступ к возможностям клуба.", profile:"ПРОФИЛЬ", identity:"АККАУНТ", shortcuts:"БЫСТРЫЙ ДОСТУП", completeness:"Заполнение профиля", view:"Предпросмотр профиля", unsaved:"Есть несохранённые изменения", bioEmpty:"Добавь описание, чтобы участники сообщества узнали тебя лучше.", security:"Информация аккаунта", join:"Участник с", back:"Вернуться к профилю", explore:"Состав команды", news:"Новости команды" }
+      : { overview:"Огляд", edit:"Редагувати", welcome:"ТВІЙ ПРОСТІР ISTe", subtitle:"Профіль, дані акаунта та швидкий доступ до можливостей клубу.", profile:"ПРОФІЛЬ", identity:"АКАУНТ", shortcuts:"ШВИДКИЙ ДОСТУП", completeness:"Заповнення профілю", view:"Попередній перегляд профілю", unsaved:"Є незбережені зміни", bioEmpty:"Додай опис, щоб учасники спільноти дізналися про тебе більше.", security:"Інформація акаунта", join:"Учасник з", back:"Повернутися до профілю", explore:"Склад команди", news:"Новини команди" };
 
   function updateField(field) {
     return (event) => {
@@ -188,21 +197,29 @@ export default function Account() {
   }
 
   return (
-    <section className="auth-page">
+    <section className="auth-page iste-account-page">
       <div className="auth-shell auth-shell-wide">
-        <header className="auth-heading">
+        <header className="auth-heading iste-account-heading">
+          <span className="iste-account-heading__eyebrow">{ui.welcome}</span>
           <p className="auth-kicker">{t("accountPage.kicker")}</p>
           <h1>{t("accountPage.title")}</h1>
-          <p>{t("accountPage.description")}</p>
+          <p>{ui.subtitle}</p>
         </header>
 
+        <nav className="iste-account-tabs" aria-label={ui.profile}>
+          <button type="button" className={activeTab === "profile" ? "is-active" : ""} onClick={() => setActiveTab("profile")}>{ui.overview}</button>
+          <button type="button" className={activeTab === "edit" ? "is-active" : ""} onClick={() => setActiveTab("edit")}>{ui.edit}{isDirty ? <span className="iste-account-dirty-dot" /> : null}</button>
+        </nav>
         <div className="account-grid">
           <aside className="auth-card account-summary">
+            <div className="iste-account-summary-top"><span className="iste-account-section-label">{ui.identity}</span><span className="iste-account-live-dot">ISTe MEMBER</span></div>
             <div className="account-avatar" aria-hidden="true">
               {initials}
             </div>
 
             <h2>{profile?.display_name || t("accountPage.memberFallback")}</h2>
+            <p className="iste-account-handle">@{profile?.username || "iste"}</p>
+            <div className="iste-account-progress"><div className="iste-account-progress__heading"><span>{ui.completeness}</span><strong>{Math.round(completeness / 3 * 100)}%</strong></div><div className="iste-account-progress__bar"><span style={{ width: `${completeness / 3 * 100}%` }} /></div></div>
 
             <dl className="account-details">
               <div className="account-detail account-id-detail">
@@ -281,7 +298,21 @@ export default function Account() {
             </div>
           </aside>
 
-          <div className="auth-card account-editor">
+          <div className="iste-account-main-column">
+          {activeTab === "profile" ? (
+            <>
+            <div className="auth-card iste-account-preview">
+              <div className="iste-account-preview__heading"><span className="iste-account-section-label">{ui.view}</span><span className="iste-account-preview__star">✦ ISTe</span></div>
+              <div className="iste-account-preview__identity"><div className="iste-account-preview__avatar">{initials}</div><div><h2>{profile?.display_name || t("accountPage.memberFallback")}</h2><p>@{profile?.username || "iste"}</p><span className="account-role">{KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}</span></div></div>
+              <p className="iste-account-preview__bio">{profile?.bio || ui.bioEmpty}</p>
+              <button type="button" className="iste-account-outline-button" onClick={() => setActiveTab("edit")}>{ui.edit} <span aria-hidden="true">↗</span></button>
+            </div>
+            <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span aria-hidden="true">◈</span>{ui.explore}<b aria-hidden="true">↗</b></Link><Link to="/news" className="iste-account-quick__item"><span aria-hidden="true">✦</span>{ui.news}<b aria-hidden="true">↗</b></Link><Link to="/users" className="iste-account-quick__item"><span aria-hidden="true">◎</span>{t("accountPage.findUser")}<b aria-hidden="true">↗</b></Link></div></div>
+            </>
+          ) : null}
+          <div className={`auth-card account-editor ${activeTab === "profile" ? "iste-account-editor-hidden" : ""}`}>
+            <div className="iste-account-editor-head"><div><span className="iste-account-section-label">{ui.profile}</span><h2>{t("accountPage.editProfile")}</h2></div><button type="button" className="iste-account-back" onClick={() => setActiveTab("profile")}>{ui.back}</button></div>
+            {isDirty ? <p className="iste-account-unsaved">{ui.unsaved}</p> : null}
             <h2>{t("accountPage.editProfile")}</h2>
 
             <form className="auth-form" onSubmit={handleSave}>
@@ -337,7 +368,7 @@ export default function Account() {
                   disabled={saving}
                 />
                 <small className="auth-hint">
-                  {t("accountPage.bioHint")}
+                  {t("accountPage.bioHint")} ({form.bio.length}/500)
                 </small>
               </label>
 
@@ -351,6 +382,7 @@ export default function Account() {
                   : t("accountPage.saveChanges")}
               </button>
             </form>
+          </div>
           </div>
         </div>
       </div>
