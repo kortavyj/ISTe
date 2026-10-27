@@ -574,12 +574,15 @@ function PlayerProfile({ player, index, language, copy }) {
   const isAgregatAcademy = player.rosterStatus === "academy" && normalizedNickname === "agregat";
   const isDettenAcademy = player.rosterStatus === "academy" && normalizedNickname === "dett3n";
   const isIvanAcademy = player.rosterStatus === "academy" && normalizedNickname === "ivan1love";
+  const isS1ZapoooAcademy = player.rosterStatus === "academy" && normalizedNickname === "s1zapooo";
 
   const fallbackCopy = {
     uk: {
-      title: isIvanAcademy ? "Іван" : isDettenAcademy ? "Назар" : isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
+      title: isS1ZapoooAcademy ? "Олександр" : isIvanAcademy ? "Іван" : isDettenAcademy ? "Назар" : isAgregatAcademy ? "Рифлер ISTe Academy" : (player.realNameUk || player.realName || "Гравець ISTe"),
       description:
-        isIvanAcademy
+        isS1ZapoooAcademy
+          ? "Рифлер ISTe Academy зі швидкою реакцією на будь-які дії суперника. АК-47 — продовження його руки: він упевнено виграє дуелі навіть у складних ситуаціях. Його головна мета — командна перемога. Завжди готовий підтримати та прикрити напарників у вирішальний момент. Надійний союзник і потужна бойова одиниця."
+          : isIvanAcademy
           ? "Гравець ISTe Academy з гарячим темпераментом, який переносить свій запал на ігрову арену. Його неможливо не помітити — як і його вплив на результат. Створює постійний вогневий тиск, руйнуючи плани суперника. Можеш спробувати зупинити його запал — тільки не обпечися!"
           : isDettenAcademy
           ? "Ігровий лідер ISTe Academy. Уважно читає гру суперника, допомагає команді зберігати впевненість у напружених раундах і швидко адаптує рішення до змін на карті. Поєднує тактичне мислення, емоційну стійкість та гнучкий підхід до командної гри."
@@ -596,9 +599,11 @@ function PlayerProfile({ player, index, language, copy }) {
           : ["Командна гра"],
     },
     en: {
-      title: isIvanAcademy ? "Ivan" : isDettenAcademy ? "Nazar" : isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
+      title: isS1ZapoooAcademy ? "Oleksandr" : isIvanAcademy ? "Ivan" : isDettenAcademy ? "Nazar" : isAgregatAcademy ? "ISTe Academy Rifler" : (player.realNameEn || player.realName || "ISTe player"),
       description:
-        isIvanAcademy
+        isS1ZapoooAcademy
+          ? "ISTe Academy rifler with lightning-fast reactions. His AK-47 feels like an extension of his arm, helping him win duels even when left alone. Focused on team victories, he always supports and covers his teammates in decisive moments. A reliable partner and powerful presence on the server."
+          : isIvanAcademy
           ? "A fiery ISTe Academy player who brings all his energy to the arena. His presence and impact on the result are impossible to miss. He keeps up relentless firepower and burns through the opponent’s plans. Try stopping his momentum — just don’t get burned!"
           : isDettenAcademy
           ? "ISTe Academy in-game leader. Reads opponents carefully, keeps the team composed in difficult rounds, and adapts plans quickly as the match develops. Combines tactical awareness, emotional stability, and flexibility."
