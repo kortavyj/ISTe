@@ -18,7 +18,7 @@ const footerGroups = [
   {
     titleKey: "footer.club",
     links: [
-      { labelKey: "footer.history", to: "/history" },
+      { customLabel: { uk: "Засновник ISTe", ru: "Основатель ISTe", en: "Founder of ISTe" }, to: "/history" },
       { labelKey: "footer.shop", to: "/shop" },
       { labelKey: "footer.contacts", to: "/contacts" },
     ],
