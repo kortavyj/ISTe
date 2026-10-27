@@ -5,26 +5,38 @@ import { useAuth } from "../auth/AuthContext.jsx";
 const MAX_BYTES = 2_000_000;
 function optimize(file, position) {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const image = new Image();
-    image.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        const width = 1000, height = 1250;
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
-        const scaledWidth = image.naturalWidth * scale;
-        const scaledHeight = image.naturalHeight * scale;
-        const offsetX = (width - scaledWidth) / 2;
-        const offsetY = (height - scaledHeight) * position / 100;
-        ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
-        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Image encoding failed")), "image/jpeg", .88);
-      } catch (error) { reject(error); }
-      URL.revokeObjectURL(url);
+    if (!file || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      reject(new Error("Оберіть JPG, PNG або WebP."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Не вдалося прочитати файл. Спробуйте JPG."));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("Браузер не зміг відкрити фото. Спробуйте JPG-версію."));
+      image.onload = () => {
+        try {
+          if (!image.naturalWidth || !image.naturalHeight) throw new Error("Зображення не має розмірів.");
+          const canvas = document.createElement("canvas");
+          const width = 1000, height = 1250;
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) throw new Error("Не вдалося підготувати фото на цьому пристрої.");
+          const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+          const scaledWidth = image.naturalWidth * scale;
+          const scaledHeight = image.naturalHeight * scale;
+          const offsetX = (width - scaledWidth) / 2;
+          const offsetY = (height - scaledHeight) * position / 100;
+          ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+          canvas.toBlob(
+            blob => blob ? resolve(blob) : reject(new Error("Не вдалося зберегти оброблене фото.")),
+            "image/jpeg", .9
+          );
+        } catch (error) { reject(error); }
+      };
+      image.src = String(reader.result || "");
     };
-    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Cannot read image")); };
-    image.src = url;
+    reader.readAsDataURL(file);
   });
 }
 
@@ -49,13 +61,14 @@ export default function AcademyPortraitManager() {
     if (!file) { setPreview(""); return undefined; }
     let cancelled = false;
     let current = "";
+    setMessage("");
     optimize(file, position).then(blob => {
       if (!cancelled) { current = URL.createObjectURL(blob); setPreview(current); }
-    }).catch(() => { if (!cancelled) setMessage("Не вдалося обробити зображення."); });
+    }).catch(error => { if (!cancelled) setMessage(error.message || "Не вдалося обробити зображення."); });
     return () => { cancelled = true; if (current) URL.revokeObjectURL(current); };
   }, [file, position]);
   async function save() {
-    if (!file || !nickname || busy) return;
+    if (!file || !nickname || busy || !preview) return;
     setBusy(true); setMessage("");
     try {
       const blob = await optimize(file, position);
@@ -90,7 +103,7 @@ export default function AcademyPortraitManager() {
             <input type="range" min="0" max="100" value={position} onChange={event => setPosition(Number(event.target.value))} disabled={!file} />
           </label>
           <p>Фото автоматично підганяється під 1000 × 1250 пікселів. Перевірте, щоб обличчя та груди були видимі.</p>
-          <button type="button" className="owner-roster-button" disabled={!file || busy} onClick={save}>{busy ? "Завантаження..." : "Зберегти фото гравця"}</button>
+          <button type="button" className="owner-roster-button" disabled={!file || busy || !preview} onClick={save}>{busy ? "Завантаження..." : "Зберегти фото гравця"}</button>
           {message && <p role="status">{message}</p>}
         </div>
         <div style={{ aspectRatio: "4 / 5", overflow: "hidden", borderRadius: 14, border: "1px solid #90232b", background: "#150506", display: "grid", placeItems: "center" }}>
