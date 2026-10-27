@@ -142,3 +142,33 @@
  .iste-account-quick__grid {grid-template-columns:1fr}
  .iste-account-quick__item {min-height:65px}
 }
+
+/* Pixel-aligned dashboard composition based on approved concept */
+.iste-account-page .auth-shell-wide{width:min(1180px,calc(100% - 12px))}
+.iste-account-page .account-grid{grid-template-columns:minmax(310px,360px) minmax(0,1fr);gap:22px}
+.iste-account-page .account-summary{min-width:0}
+.iste-account-heading{margin-bottom:36px}
+.iste-account-heading h1{font-size:clamp(2.9rem,5vw,4.7rem)}
+.iste-account-tabs{margin-bottom:18px}
+.iste-account-main-column{gap:14px}
+.iste-account-welcome{min-height:244px;display:flex;flex-direction:column;justify-content:center;padding:33px 38px}
+.iste-account-welcome h2{max-width:550px;font-size:clamp(2.2rem,3.8vw,3.4rem)}
+.iste-account-welcome p{max-width:445px}
+.iste-account-quick{padding:26px 28px 29px}
+.iste-account-quick__grid{gap:12px}
+.iste-account-quick__item{min-height:124px}
+.iste-account-preview{padding:27px 32px 28px}
+.iste-account-preview__identity{gap:18px}
+.iste-account-preview__bio{margin:18px 0 15px}
+.iste-account-activity{padding:25px 30px 24px}
+.iste-account-activity__row{display:flex;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.085)}
+.iste-account-activity__row:last-child{border-bottom:0;padding-bottom:0}
+.iste-account-activity__row:first-of-type{margin-top:11px}
+.iste-account-activity__icon{flex:none;display:grid;place-items:center;width:39px;height:39px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#101014;color:#f03b50;font-size:20px}
+.iste-account-activity__row>div{flex:1;display:grid;gap:4px;min-width:0}
+.iste-account-activity__row strong{color:#f2eef0;font-size:.88rem;font-weight:750}
+.iste-account-activity__row small{color:#99949e;font-size:.78rem}
+.iste-account-activity__indicator{color:#92dfaa;font-size:.73rem;white-space:nowrap}
+.iste-account-activity__indicator::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#3ce579;margin-right:8px;vertical-align:middle}
+@media(max-width:900px){.iste-account-page .account-grid{grid-template-columns:1fr}.iste-account-page .auth-shell-wide{width:min(700px,100%)}}
+@media(max-width:520px){.iste-account-welcome{padding:25px}.iste-account-activity{padding:23px}.iste-account-activity__indicator{font-size:.65rem}.iste-account-activity__row{gap:9px}}
