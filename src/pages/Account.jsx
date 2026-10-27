@@ -351,13 +351,14 @@ export default function Account() {
           <div className="iste-account-main-column">
           {activeTab === "profile" ? (
             <>
+            <div className="iste-account-welcome"><span>ISTe / {ui.overview}</span><h2>{language === "uk" ? "Ласкаво просимо до " : language === "en" ? "Welcome to " : "Добро пожаловать в "}<em>ISTe!</em></h2><p>{ui.subtitle}</p><strong aria-hidden="true">ISTe</strong></div>
             <div className="auth-card iste-account-preview">
               <div className="iste-account-preview__heading"><span className="iste-account-section-label">{ui.view}</span><span className="iste-account-preview__star">✦ ISTe</span></div>
               <div className="iste-account-preview__identity"><div className="iste-account-preview__avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}</div><div><h2>{profile?.display_name || t("accountPage.memberFallback")}</h2><p>@{profile?.username || "iste"}</p><span className="account-role">{KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}</span></div></div>
               <p className="iste-account-preview__bio">{profile?.bio || ui.bioEmpty}</p>
               <button type="button" className="iste-account-outline-button" onClick={() => setActiveTab("edit")}>{ui.edit} <span aria-hidden="true">↗</span></button>
             </div>
-            <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span aria-hidden="true">◈</span>{ui.explore}<b aria-hidden="true">↗</b></Link><Link to="/news" className="iste-account-quick__item"><span aria-hidden="true">✦</span>{ui.news}<b aria-hidden="true">↗</b></Link><Link to="/users" className="iste-account-quick__item"><span aria-hidden="true">◎</span>{t("accountPage.findUser")}<b aria-hidden="true">↗</b></Link></div></div>
+            <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span aria-hidden="true">◈</span>{ui.explore}<b aria-hidden="true">↗</b></Link><Link to="/news" className="iste-account-quick__item"><span aria-hidden="true">✦</span>{ui.news}<b aria-hidden="true">↗</b></Link><Link to="/shop" className="iste-account-quick__item"><span aria-hidden="true">▢</span>{language === "uk" ? "Магазин" : language === "en" ? "Shop" : "Магазин"}<b aria-hidden="true">↗</b></Link><Link to="/users" className="iste-account-quick__item"><span aria-hidden="true">◎</span>{t("accountPage.findUser")}<b aria-hidden="true">↗</b></Link></div></div>
             </>
           ) : null}
           <div className={`auth-card account-editor ${activeTab === "profile" ? "iste-account-editor-hidden" : ""}`}>
