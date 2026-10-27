@@ -56,3 +56,14 @@
 @media(max-width:840px){.iste-account-page .account-grid{grid-template-columns:1fr}.iste-account-page .account-summary{position:static}.iste-account-quick__grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:520px){.iste-account-page .account-summary{padding:22px}.iste-account-preview,.iste-account-quick{padding:22px}.iste-account-tabs{width:100%}.iste-account-tabs button{min-width:0;flex:1}.iste-account-quick__grid{grid-template-columns:1fr}.iste-account-quick__item{min-height:67px;display:flex;flex-direction:row;align-items:center;justify-content:flex-start}.iste-account-quick__item b{top:22px}.iste-account-preview__avatar{width:70px;height:70px}.iste-account-preview__identity{gap:14px}.iste-account-back{font-size:.68rem;padding:9px}.iste-account-editor-head{align-items:center}}
 @media(prefers-reduced-motion:reduce){.iste-account-tabs button,.iste-account-quick__item,.iste-account-progress__bar span{transition:none}.iste-account-quick__item:hover{transform:none}}
+
+/* Account avatar upload */
+.iste-avatar-upload{display:block;position:relative;width:max-content;cursor:pointer;margin-bottom:7px}
+.iste-avatar-upload .account-avatar{margin:0;overflow:hidden}
+.iste-avatar-upload input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.iste-avatar-upload:focus-within .account-avatar{outline:2px solid #f0394f;outline-offset:4px}
+.iste-avatar-upload .account-avatar img,.iste-account-preview__avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.iste-avatar-edit-icon{position:absolute;bottom:-4px;right:-9px;display:grid;place-items:center;width:32px;height:32px;border:2px solid #0d0d10;border-radius:50%;background:#f0253f;color:white;font-size:1.05rem;font-weight:900}
+.iste-avatar-help{font-size:.73rem;color:#a29aa2;margin:0 0 16px;max-width:240px;line-height:1.4}
+.iste-avatar-message{font-size:.79rem;color:#f1c8cc;margin:0 0 14px;line-height:1.4}
+.iste-account-preview__avatar{overflow:hidden}
