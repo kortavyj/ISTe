@@ -76,7 +76,7 @@ export default function AcademyPortraitManager() {
   return (
     <section className="owner-roster-group" style={{ marginBottom: 32 }}>
       <header><h2>Фото ISTe Academy</h2><span>JPG / PNG / WebP</span></header>
-      <div style={{ padding: 22, display: "grid", gridTemplateColumns: "minmax(220px,1fr) minmax(180px,320px)", gap: 24 }}>
+      <div style={{ padding: 22, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: 24 }}>
         <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
           <label>Гравець
             <select value={nickname} onChange={event => setNickname(event.target.value)}>
