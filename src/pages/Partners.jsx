@@ -162,6 +162,15 @@ export default function Partners() {
         .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map{width:100%;height:100%;min-height:260px;flex:1}
         .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-address{margin:16px 0 2px;padding:9px 5px;text-align:center}
         @media(max-width:700px){.cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map-link,.cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map{min-height:300px}}
+
+        /* Real interactive Google satellite map, rather than decorative map grid */
+        .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map-embed{flex:1;display:flex;min-height:300px;overflow:hidden;border-radius:10px;border:1px solid #38353c;background:#101219}
+        .cyberion-ref-map-embed iframe{width:100%;height:100%;min-height:300px;flex:1;display:block;border:0;filter:saturate(.9) contrast(1.05)}
+        .cyberion-ref-map-open{display:inline-flex;justify-content:center;align-items:center;align-self:center;padding:7px 12px;margin-top:8px;font-size:11px;color:#ffc928!important;text-decoration:underline!important;text-underline-offset:3px}
+        .cyberion-zone-chevron{color:#ffdb23!important;font-size:26px;font-weight:800}
+        .cyberion-zone-toggle:hover .cyberion-zone-chevron{color:#fff36f!important}
+        .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-address{margin:9px 0 0}
+        @media(max-width:700px){.cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map-embed,.cyberion-ref-map-embed iframe{min-height:340px}}
       `}</style>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
@@ -204,9 +213,16 @@ export default function Partners() {
         </section>
         <section className="cyberion-panel cyberion-ref-panel">
           <div className="cyberion-ref-heading"><ContactIcon name="location" /><div><h2>Розташування</h2><p>Легко знайти. Зручно дістатися.</p></div></div>
-          <a className="cyberion-ref-map-link" href={maps} target="_blank" rel="noopener noreferrer" aria-label="Відкрити CYBERION у Google Maps">
-            <div className="cyberion-ref-map"><div className="cyberion-ref-map-pin">●</div><div className="cyberion-ref-map-name"><strong>CYBERION</strong><span>Дніпро · Лівий берег</span></div><span className="cyberion-ref-map-street">просп. Слобожанський</span></div>
-          </a>
+          <div className="cyberion-ref-map-embed">
+            <iframe
+              title="CYBERION Дніпро — супутникова карта Google Maps"
+              src="https://maps.google.com/maps?q=%D0%94%D0%BD%D1%96%D0%BF%D1%80%D0%BE%2C%20%D0%BF%D1%80%D0%BE%D1%81%D0%BF%D0%B5%D0%BA%D1%82%20%D0%A1%D0%BB%D0%BE%D0%B1%D0%BE%D0%B6%D0%B0%D0%BD%D1%81%D1%8C%D0%BA%D0%B8%D0%B9%2089&t=k&z=17&output=embed"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+          <a className="cyberion-ref-map-open" href={maps} target="_blank" rel="noopener noreferrer">Переглянути в Google Maps ↗</a>
           <p className="cyberion-ref-address">📍 м. Дніпро, просп. Слобожанський, 89</p>
           
         </section>
