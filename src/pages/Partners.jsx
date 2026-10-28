@@ -171,6 +171,7 @@ export default function Partners() {
         .cyberion-zone-toggle:hover .cyberion-zone-chevron{color:#fff36f!important}
         .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-address{margin:9px 0 0}
         @media(max-width:700px){.cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map-embed,.cyberion-ref-map-embed iframe{min-height:340px}}
+.cyberion-ref-map--image{padding:0!important;display:block!important;background:#17191b!important;min-height:300px!important}.cyberion-ref-map--image:before,.cyberion-ref-map--image:after{display:none!important}.cyberion-ref-map--image img{display:block;width:100%;height:100%;min-height:300px;object-fit:cover;object-position:center}
       `}</style>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
@@ -214,7 +215,7 @@ export default function Partners() {
         <section className="cyberion-panel cyberion-ref-panel">
           <div className="cyberion-ref-heading"><ContactIcon name="location" /><div><h2>Розташування</h2><p>Легко знайти. Зручно дістатися.</p></div></div>
           <a className="cyberion-ref-map-link" href={maps} target="_blank" rel="noopener noreferrer" aria-label="Переглянути CYBERION у Google Maps">
-            <div className="cyberion-ref-map"><div className="cyberion-ref-map-pin">●</div><div className="cyberion-ref-map-name"><strong>CYBERION</strong><span>Дніпро · Лівий берег</span></div><span className="cyberion-ref-map-street">просп. Слобожанський</span></div>
+            <div className="cyberion-ref-map cyberion-ref-map--image"><img src="/%D0%9A%D0%B0%D1%80%D1%82%D0%B0%20%D0%9A%D0%B0%D0%BB%D0%B8%D0%BD%D0%BE%D0%B2%D0%B0.png" alt="Карта розташування CYBERION Kalynova" loading="lazy" /></div>
           </a>
           <p className="cyberion-ref-address">📍 м. Дніпро, просп. Слобожанський, 89</p>
           
