@@ -7,7 +7,6 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { formatAccountId } from "../utils/accountId.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import { supabase } from "../lib/supabase.js";
-import founderBannerPhoto from "../assets/history/evgeniy_kortavyj.webp";
 
 import "./Auth.css";
 import "./AccountId.css";
@@ -365,7 +364,7 @@ export default function Account() {
           <div className="iste-account-main-column">
           {activeTab === "profile" ? (
             <>
-            <div className="iste-account-welcome"><span>{language === "uk" ? "ПРИВІТ, " : language === "en" ? "HELLO, " : "ПРИВЕТ, "}{(profile?.display_name || profile?.username || "ISTe").toUpperCase()}!</span><h2>{language === "uk" ? "Ласкаво просимо до " : language === "en" ? "Welcome to " : "Добро пожаловать в "}<em>ISTe!</em></h2><p>{ui.subtitle}</p><strong aria-hidden="true">ISTe</strong>{role === "owner" ? <img className="iste-account-welcome__portrait" src={founderBannerPhoto} alt="" /> : profile?.avatar_url ? <img className="iste-account-welcome__portrait iste-account-welcome__portrait--avatar" src={profile.avatar_url} alt="" /> : null}</div>
+            <div className="iste-account-welcome"><span>{language === "uk" ? "ПРИВІТ, " : language === "en" ? "HELLO, " : "ПРИВЕТ, "}{(profile?.display_name || profile?.username || "ISTe").toUpperCase()}!</span><h2>{language === "uk" ? "Ласкаво просимо до " : language === "en" ? "Welcome to " : "Добро пожаловать в "}<em>ISTe!</em></h2><p>{ui.subtitle}</p></div>
             <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="users" /></span><span className="iste-quick-title">{ui.explore}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/news" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="news" /></span><span className="iste-quick-title">{ui.news}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/shop" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="shop" /></span><span className="iste-quick-title">{language === "uk" ? "Магазин" : language === "en" ? "Shop" : "Магазин"}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/users" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="search" /></span><span className="iste-quick-title">{t("accountPage.findUser")}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link></div></div>
             <div className="auth-card iste-account-preview">
               <div className="iste-account-preview__heading"><span className="iste-account-section-label">{language === "uk" ? "ІНФОРМАЦІЯ ПРО ТЕБЕ" : language === "en" ? "ABOUT YOU" : "ИНФОРМАЦИЯ О ТЕБЕ"}</span><span className="iste-account-preview__star">✦ ISTe</span></div>
