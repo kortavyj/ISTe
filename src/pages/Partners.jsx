@@ -175,15 +175,11 @@ export default function Partners() {
         .cyberion-zone-group{margin:10px 0 4px;padding:5px 10px;border-left:3px solid #ffe600;background:linear-gradient(90deg,rgba(255,230,0,.13),transparent);color:#ffe600;font-size:11px;font-weight:900;letter-spacing:.1em}
         .cyberion-zone-spec{grid-template-columns:36% minmax(0,1fr)}.cyberion-zone-spec span{overflow-wrap:anywhere}
 
-        /* Keep contents mounted to avoid laggy reflows on every click. */
+        /* Immediate accordion interaction without height animations. */
         .cyberion-zones-panel{backdrop-filter:none}
-        .cyberion-zone{contain:layout style}
-        .cyberion-zone-reveal{display:grid;grid-template-rows:0fr;transition:grid-template-rows 240ms cubic-bezier(.2,.7,.2,1);visibility:hidden}
-        .cyberion-zone.is-open .cyberion-zone-reveal{grid-template-rows:1fr;visibility:visible}
-        .cyberion-zone-reveal-inner{min-height:0;overflow:hidden}
+        .cyberion-zone{contain:none}
         .cyberion-zone-toggle{touch-action:manipulation}
-        .cyberion-zone-chevron{display:inline-flex;align-items:center;justify-content:center;width:25px;transition:transform 180ms ease}
-        @media(prefers-reduced-motion:reduce){.cyberion-zone-reveal,.cyberion-zone-chevron{transition:none}}
+        .cyberion-zone-chevron{transition:none}
       `}</style>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
@@ -216,7 +212,7 @@ export default function Partners() {
                 <span className="cyberion-zone-label"><strong>Зона {index+1} — {zone.name}</strong><small>{zone.description}</small></span>
                 <span className="cyberion-zone-chevron" aria-hidden="true">{openZone === index ? "⌃" : "⌄"}</span>
               </button>
-              <div className="cyberion-zone-reveal" aria-hidden={openZone !== index}><div className="cyberion-zone-reveal-inner"><div className="cyberion-zone-content">
+              {openZone === index && <div className="cyberion-zone-content">
                 <div className="cyberion-zone-group">ЗАЛІЗО</div>
                 <div className="cyberion-zone-spec"><strong>Процесор</strong><span>{zone.cpu}</span></div>
                 <div className="cyberion-zone-spec"><strong>Відеокарта</strong><span>{zone.gpu}</span></div>
@@ -226,7 +222,7 @@ export default function Partners() {
                 <div className="cyberion-zone-spec"><strong>Ігрова миша</strong><span>{zone.mouse}</span></div>
                 <div className="cyberion-zone-spec"><strong>Клавіатура</strong><span>{zone.keyboard}</span></div>
                 <div className="cyberion-zone-spec"><strong>Крісло</strong><span>{zone.chair}</span></div>
-              </div></div></div>
+              </div>}
             </div>)}
           </div>
         </section>
