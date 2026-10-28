@@ -271,3 +271,34 @@
   .iste-account-page .iste-account-quick__grid{grid-template-columns:1fr}
   .iste-account-page .iste-account-quick__item{min-height:95px}
 }
+
+/* Quick-access cards: labels are plain text, not decorative red chips. */
+.iste-account-page .iste-account-quick__grid{gap:12px}
+.iste-account-page .iste-account-quick__item{
+  display:flex;flex-direction:column;align-items:flex-start;
+  justify-content:space-between;min-width:0;min-height:148px;
+  padding:20px 17px 17px;gap:18px;border-radius:13px;
+  background:linear-gradient(155deg,rgba(255,255,255,.025),rgba(255,255,255,.005));
+  text-decoration:none;
+}
+.iste-account-page .iste-account-quick__item > .iste-quick-icon{
+  display:grid;place-items:center;flex:none;
+  width:43px;height:43px;border-radius:12px;
+  background:rgba(232,28,54,.12);color:#ff3152;
+}
+.iste-account-page .iste-account-quick__item > .iste-quick-title{
+  display:block;position:static;flex:0 0 auto;
+  width:100%;min-height:0;max-width:100%;margin:0;padding:0;
+  border:0;border-radius:0;box-shadow:none;
+  background:transparent!important;background-image:none!important;
+  color:#f7f4f7!important;font-size:clamp(.76rem,.9vw,.91rem);
+  line-height:1.4;font-weight:750;letter-spacing:normal;
+  word-break:normal;overflow-wrap:normal;white-space:normal;
+}
+.iste-account-page .iste-account-quick__item:hover > .iste-quick-title{color:#fff!important}
+.iste-account-page .iste-account-quick__item > .iste-quick-arrow{right:17px;top:18px}
+@media(max-width:690px){
+ .iste-account-page .iste-account-quick__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .iste-account-page .iste-account-quick__item{min-height:128px}
+}
+@media(max-width:340px){.iste-account-page .iste-account-quick__grid{grid-template-columns:1fr}}
