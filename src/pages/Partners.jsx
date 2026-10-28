@@ -175,7 +175,7 @@ export default function Partners() {
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
         <p className="cyberion-kicker">{uk ? "Наш партнер" : "Our partner"}</p>
-        <img className="cyberion-original-logo" src="/cyberion-kalynova-logo.svg" alt="CYBERION KALYNOVA" width="600" height="147" />
+        <img className="cyberion-original-logo" src="/cyberion-kalynova-logo.svg?v=20261028b" alt="CYBERION KALYNOVA" width="600" height="147" />
         <h1>Кіберклуб CYBERION Дніпро Лівий берег</h1>
         <p className="cyberion-muted">Мережа кіберклубів України · Дніпро, просп. Слобожанський, 89</p>
         <p className="cyberion-muted">Ігровий простір із 30 геймерськими ПК, сучасним обладнанням та можливістю забронювати місце через офіційні канали клубу.</p>
