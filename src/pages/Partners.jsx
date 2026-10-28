@@ -32,10 +32,10 @@ export default function Partners() {
   const uk = language === "uk";
   const [openZone, setOpenZone] = useState(0);
   const zones = [
-    { name: "GAMER ZONE", description: "Ігрова зона для щоденних матчів" },
-    { name: "PRO ZONE", description: "Зона для змагальної гри" },
-    { name: "PRO BOOTCAMP", description: "Простір для командних тренувань" },
-    { name: "DOUBLE BOOTCAMP", description: "Зона для спільних командних тренувань" },
+    { name: "GAMER ZONE", description: "Ігрова зона для щоденних матчів", cpu:"AMD Ryzen 5 7500F",gpu:"RTX 5060",monitor:'ASUS 24″ + 27″ 180Hz',headset:"ASUS TUF Gaming H1 Gen II",mouse:"ASUS ROG Strix Impact III",keyboard:"ASUS TUF Gaming K3 Gen II RD",chair:"Cougar Armor Elite" },
+    { name: "PRO ZONE", description: "Зона для змагальної гри",cpu:"AMD Ryzen 5 7500F",gpu:"RTX 5060 Ti",monitor:'ASUS 24″ 270Hz',headset:"ASUS ROG Delta S Core",mouse:"ASUS ROG Gladius III Core",keyboard:"ASUS ROG Strix Scope II RX",chair:"Cougar Armor Elite" },
+    { name: "PRO BOOTCAMP", description: "Простір для командних тренувань",cpu:"AMD Ryzen 5 7500F",gpu:"RTX 5070",monitor:'ROG Strix 24″ 310Hz',headset:"ASUS ROG Delta S Core",mouse:"ASUS ROG Gladius III Core",keyboard:"ASUS ROG Strix Scope II RX",chair:"Hator Arc 2 XL" },
+    { name: "DOUBLE BOOTCAMP", description: "Зона для спільних командних тренувань",cpu:"AMD Ryzen 5 9600X",gpu:"RTX 5070",monitor:'ROG Strix 24″ 310Hz',headset:"ASUS ROG Delta S Core",mouse:"ASUS ROG Gladius III Core",keyboard:"ASUS ROG Strix Scope II RX",chair:"Hator Arc 2 XL" },
   ];
   return (
     <section className="cyberion-partners">
@@ -172,6 +172,8 @@ export default function Partners() {
         .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-address{margin:9px 0 0}
         @media(max-width:700px){.cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map-embed,.cyberion-ref-map-embed iframe{min-height:340px}}
 .cyberion-ref-map--image{padding:0!important;display:block!important;background:#17191b!important;min-height:300px!important}.cyberion-ref-map--image:before,.cyberion-ref-map--image:after{display:none!important}.cyberion-ref-map--image img{display:block;width:100%;height:100%;min-height:300px;object-fit:cover;object-position:center}
+        .cyberion-zone-group{margin:10px 0 4px;padding:5px 10px;border-left:3px solid #ffe600;background:linear-gradient(90deg,rgba(255,230,0,.13),transparent);color:#ffe600;font-size:11px;font-weight:900;letter-spacing:.1em}
+        .cyberion-zone-spec{grid-template-columns:36% minmax(0,1fr)}.cyberion-zone-spec span{overflow-wrap:anywhere}
       `}</style>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
@@ -205,9 +207,15 @@ export default function Partners() {
                 <span className="cyberion-zone-chevron" aria-hidden="true">{openZone === index ? "⌃" : "⌄"}</span>
               </button>
               {openZone === index && <div className="cyberion-zone-content">
-                <div className="cyberion-zone-spec"><strong>ПК та відеокарта</strong><span>Характеристики уточнюються в клубі</span></div>
-                <div className="cyberion-zone-spec"><strong>Монітори</strong><span>Залежать від ігрової зони</span></div>
-                <div className="cyberion-zone-spec"><strong>Периферія та крісла</strong><span>Комплектацію уточнюйте під час бронювання</span></div>
+                <div className="cyberion-zone-group">ЗАЛІЗО</div>
+                <div className="cyberion-zone-spec"><strong>Процесор</strong><span>{zone.cpu}</span></div>
+                <div className="cyberion-zone-spec"><strong>Відеокарта</strong><span>{zone.gpu}</span></div>
+                <div className="cyberion-zone-group">ПЕРИФЕРІЯ</div>
+                <div className="cyberion-zone-spec"><strong>Монітор</strong><span>{zone.monitor}</span></div>
+                <div className="cyberion-zone-spec"><strong>Гарнітура</strong><span>{zone.headset}</span></div>
+                <div className="cyberion-zone-spec"><strong>Ігрова миша</strong><span>{zone.mouse}</span></div>
+                <div className="cyberion-zone-spec"><strong>Клавіатура</strong><span>{zone.keyboard}</span></div>
+                <div className="cyberion-zone-spec"><strong>Крісло</strong><span>{zone.chair}</span></div>
               </div>}
             </div>)}
           </div>
