@@ -213,16 +213,9 @@ export default function Partners() {
         </section>
         <section className="cyberion-panel cyberion-ref-panel">
           <div className="cyberion-ref-heading"><ContactIcon name="location" /><div><h2>Розташування</h2><p>Легко знайти. Зручно дістатися.</p></div></div>
-          <div className="cyberion-ref-map-embed">
-            <iframe
-              title="CYBERION Дніпро — супутникова карта Google Maps"
-              src="https://maps.google.com/maps?q=%D0%94%D0%BD%D1%96%D0%BF%D1%80%D0%BE%2C%20%D0%BF%D1%80%D0%BE%D1%81%D0%BF%D0%B5%D0%BA%D1%82%20%D0%A1%D0%BB%D0%BE%D0%B1%D0%BE%D0%B6%D0%B0%D0%BD%D1%81%D1%8C%D0%BA%D0%B8%D0%B9%2089&t=k&z=17&output=embed"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              allowFullScreen
-            />
-          </div>
-          <a className="cyberion-ref-map-open" href={maps} target="_blank" rel="noopener noreferrer">Переглянути в Google Maps ↗</a>
+          <a className="cyberion-ref-map-link" href={maps} target="_blank" rel="noopener noreferrer" aria-label="Переглянути CYBERION у Google Maps">
+            <div className="cyberion-ref-map"><div className="cyberion-ref-map-pin">●</div><div className="cyberion-ref-map-name"><strong>CYBERION</strong><span>Дніпро · Лівий берег</span></div><span className="cyberion-ref-map-street">просп. Слобожанський</span></div>
+          </a>
           <p className="cyberion-ref-address">📍 м. Дніпро, просп. Слобожанський, 89</p>
           
         </section>
