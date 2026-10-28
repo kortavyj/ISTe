@@ -15,6 +15,7 @@ import LanguageSwitcher from "../ui/LanguageSwitcher.jsx";
 
 import "./Navbar.css";
 import "./NavbarLanguage.css";
+import "./NavbarNotifications.css";
 
 const NAVBAR_RELEASE = "2026-10-03-v4";
 
@@ -407,6 +408,8 @@ export default function Navbar() {
   } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsRef = useRef(null);
   const accountMenuRef = useRef(null);
 
   const canManageNews = [
@@ -454,13 +457,19 @@ export default function Navbar() {
     function handleKeyDown(event) {
       if (event.key === "Escape") {
         setMenuOpen(false);
+        setNotificationsOpen(false);
       }
     }
 
+    function handleNotificationsPointerDown(event) {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) setNotificationsOpen(false);
+    }
+    document.addEventListener("pointerdown", handleNotificationsPointerDown);
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      document.removeEventListener("pointerdown", handleNotificationsPointerDown);
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
@@ -530,15 +539,36 @@ export default function Navbar() {
             <SearchIcon />
           </button>
 
-          <span
-            className="navbar-utility-button navbar-notification-indicator"
-            role="img"
-            aria-label={t("navigation.notifications")}
-            title={t("navigation.notifications")}
-          >
-            <BellIcon />
-            <i aria-hidden="true" />
-          </span>
+          <div className="navbar-notifications" ref={notificationsRef}>
+            <button
+              type="button"
+              className="navbar-utility-button navbar-notification-indicator"
+              aria-label={t("navigation.notifications")}
+              title={t("navigation.notifications")}
+              aria-haspopup="dialog"
+              aria-expanded={notificationsOpen}
+              onClick={() => { setNotificationsOpen((open) => !open); setMenuOpen(false); }}
+            >
+              <BellIcon />
+            </button>
+            {notificationsOpen && (
+              <div className="navbar-notifications-panel" role="dialog" aria-label={t("navigation.notifications")}>
+                <div className="navbar-notifications-head">
+                  <strong>{({uk:"Сповіщення",ru:"Уведомления",en:"Notifications"}[language] || "Сповіщення")}</strong>
+                  <button type="button" aria-label="Закрити" onClick={() => setNotificationsOpen(false)}>×</button>
+                </div>
+                <div className="navbar-notifications-empty">
+                  <span aria-hidden="true"><BellIcon /></span>
+                  <strong>{({uk:"Поки немає нових сповіщень",ru:"Пока нет новых уведомлений",en:"No new notifications yet"}[language] || "Поки немає нових сповіщень")}</strong>
+                  <p>{({uk:"Новини та події ISTe можна переглянути нижче.",ru:"Новости и события ISTe доступны по ссылкам ниже.",en:"Explore ISTe updates and events below."}[language] || "Новини та події ISTe можна переглянути нижче.")}</p>
+                </div>
+                <div className="navbar-notifications-links">
+                  <NavLink to="/news" onClick={() => setNotificationsOpen(false)}><span aria-hidden="true">▤</span>{({uk:"Новини клубу",ru:"Новости клуба",en:"Club news"}[language] || "Новини клубу")}<span aria-hidden="true">↗</span></NavLink>
+                  <NavLink to="/tournaments" onClick={() => setNotificationsOpen(false)}><span aria-hidden="true">★</span>{({uk:"Турніри та події",ru:"Турниры и события",en:"Tournaments & events"}[language] || "Турніри та події")}<span aria-hidden="true">↗</span></NavLink>
+                </div>
+              </div>
+            )}
+          </div>
 
           <LanguageSwitcher />
 
