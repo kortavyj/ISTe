@@ -172,3 +172,17 @@
 .iste-account-activity__indicator::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#3ce579;margin-right:8px;vertical-align:middle}
 @media(max-width:900px){.iste-account-page .account-grid{grid-template-columns:1fr}.iste-account-page .auth-shell-wide{width:min(700px,100%)}}
 @media(max-width:520px){.iste-account-welcome{padding:25px}.iste-account-activity{padding:23px}.iste-account-activity__indicator{font-size:.65rem}.iste-account-activity__row{gap:9px}}
+
+/* Approved visual reference: portrait-led header */
+.iste-account-welcome{min-height:260px;padding:34px 40px;background:radial-gradient(ellipse at 79% 50%,rgba(205,12,43,.35),transparent 65%),linear-gradient(108deg,#130d11,#0d0b0e);border:1px solid rgba(237,34,63,.58);overflow:hidden}
+.iste-account-welcome>span,.iste-account-welcome h2,.iste-account-welcome p{z-index:3;position:relative}
+.iste-account-welcome>span{letter-spacing:.21em}
+.iste-account-welcome h2{max-width:430px;font-size:clamp(2.15rem,3.5vw,3.4rem);text-wrap:balance}
+.iste-account-welcome p{max-width:430px;font-size:.86rem}
+.iste-account-welcome>strong{z-index:1;right:68px;top:65px;opacity:.8}
+.iste-account-welcome__portrait{position:absolute;z-index:2;right:-8px;bottom:-14px;height:114%;width:42%;object-fit:cover;object-position:52% 28%;filter:grayscale(1) contrast(1.3) brightness(.63) sepia(.25);mix-blend-mode:lighten;mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.8) 32%,black 78%),linear-gradient(0deg,transparent 0%,black 25%);mask-composite:intersect;pointer-events:none}
+.iste-account-welcome__portrait--avatar{width:35%;height:100%;object-fit:cover;filter:grayscale(.8) contrast(1.15) brightness(.6)}
+.iste-account-quick__item{border-color:rgba(255,255,255,.11)}
+.iste-account-page .account-summary{border-color:rgba(228,24,55,.58)}
+.iste-account-preview{border-color:rgba(235,33,63,.55)!important}
+@media(max-width:640px){.iste-account-welcome__portrait{opacity:.3;width:58%;height:100%}.iste-account-welcome h2{max-width:95%}.iste-account-welcome p{max-width:92%}}
