@@ -186,3 +186,48 @@
 .iste-account-page .account-summary{border-color:rgba(228,24,55,.58)}
 .iste-account-preview{border-color:rgba(235,33,63,.55)!important}
 @media(max-width:640px){.iste-account-welcome__portrait{opacity:.3;width:58%;height:100%}.iste-account-welcome h2{max-width:95%}.iste-account-welcome p{max-width:92%}}
+
+/* High-contrast ISTe dashboard banner and legible action icons */
+.iste-account-welcome{
+  min-height:238px;
+  padding:32px 38px;
+  background:
+    linear-gradient(90deg,#120b10 0%,#160a0f 42%,rgba(20,7,12,.94) 62%,rgba(24,6,14,.83) 100%),
+    radial-gradient(ellipse at 90% 50%,rgba(230,22,54,.28),transparent 65%);
+  border:1px solid rgba(245,42,70,.72);
+  box-shadow:inset 0 0 50px rgba(211,13,43,.035);
+}
+.iste-account-welcome::after{
+  z-index:2;
+  background:linear-gradient(90deg,transparent 45%,rgba(14,5,10,.16) 65%,rgba(13,4,9,.3) 100%);
+  mask-image:none;
+}
+.iste-account-welcome>span,.iste-account-welcome h2,.iste-account-welcome p{z-index:4}
+.iste-account-welcome h2{max-width:440px;line-height:1.09;font-size:clamp(2rem,3.1vw,3.15rem)}
+.iste-account-welcome>strong{top:65px;right:5%;z-index:1;color:rgba(239,34,67,.12);opacity:1}
+.iste-account-welcome__portrait{
+  right:-3px;
+  bottom:0;
+  width:37%;
+  height:100%;
+  object-fit:cover;
+  object-position:50% 38%;
+  opacity:.5;
+  mix-blend-mode:luminosity;
+  filter:grayscale(1) brightness(.38) contrast(1.22) sepia(.17);
+  mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.65) 30%,black 76%);
+  mask-composite:add;
+}
+.iste-account-welcome__portrait--avatar{width:32%;height:100%;object-position:center;opacity:.34}
+.iste-account-quick__item{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:12px;position:relative;min-height:130px}
+.iste-account-quick__item .iste-quick-icon{display:grid;place-items:center;width:43px;height:43px;flex:none;border-radius:12px;background:rgba(235,32,60,.12);color:#ff3656}
+.iste-quick-title{display:block;font-size:.88rem;font-weight:800;line-height:1.28;color:#f4f1f4;max-width:100%;overflow-wrap:anywhere}
+.iste-quick-arrow{position:absolute;top:18px;right:16px;color:#a29ba5;transition:transform .2s,color .2s}
+.iste-account-quick__item:hover .iste-quick-arrow{transform:translate(2px,-2px);color:#fff}
+@media(max-width:640px){
+  .iste-account-welcome{min-height:218px;padding:24px}
+  .iste-account-welcome__portrait{width:48%;opacity:.27}
+  .iste-account-welcome h2{max-width:92%}
+  .iste-account-quick__item{min-height:115px}
+}
+@media(prefers-reduced-motion:reduce){.iste-quick-arrow{transition:none}}
