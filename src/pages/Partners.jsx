@@ -1,4 +1,5 @@
 import { useLanguage } from "../i18n/LanguageContext.jsx";
+import { useState } from "react";
 
 const official = "https://www.cyberion.ua/clubs/cyberion_dnipro_kalynova/";
 const insta = "https://www.instagram.com/cyberion_dnipro_kalynova/";
@@ -29,6 +30,13 @@ function ContactIcon({ name }) {
 export default function Partners() {
   const { language } = useLanguage();
   const uk = language === "uk";
+  const [openZone, setOpenZone] = useState(0);
+  const zones = [
+    { name: "PRO", description: "Професійна ігрова зона" },
+    { name: "STREAM", description: "Зона для стримів і створення контенту" },
+    { name: "TEAM", description: "Зона для командної гри" },
+    { name: "COMFORT", description: "Зона для комфортної гри" },
+  ];
   return (
     <section className="cyberion-partners">
       <style>{`
@@ -117,6 +125,37 @@ export default function Partners() {
         @media(max-width:1050px){.cyberion-grid{grid-template-columns:1fr 1fr}.cyberion-grid>.cyberion-panel:last-child{grid-column:1/-1}.cyberion-socials{flex-direction:column;align-items:stretch;gap:10px}.cyberion-socials h2{flex:auto}}
         @media(max-width:650px){.cyberion-grid{grid-template-columns:1fr}.cyberion-grid>.cyberion-panel:last-child{grid-column:auto}.cyberion-social-row{grid-template-columns:1fr}.cyberion-socials{padding:14px}}
         @media(max-width:850px){.cyberion-grid{grid-template-columns:1fr}.cyberion-social-row{grid-template-columns:1fr}.cyberion-hero{padding:26px 18px}.cyberion-partners{padding:26px 16px 60px}.cyberion-mark-large{font-size:clamp(30px,8vw,56px)}}
+ 
+        /* Three-panel partner layout matching the supplied design */
+        .cyberion-grid-reference{display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:13px;align-items:stretch;margin-top:12px}
+        .cyberion-ref-panel{display:flex;flex-direction:column;padding:17px 15px;border:1px solid #e12039;border-radius:11px;background:linear-gradient(145deg,rgba(18,6,10,.97),rgba(5,6,9,.97));min-width:0;box-shadow:inset 0 0 20px #e0172608,0 8px 30px #0009}
+        .cyberion-ref-heading{display:flex;align-items:center;gap:12px;margin-bottom:16px;min-height:45px}
+        .cyberion-ref-heading>.cyberion-detail-icon,.cyberion-ref-monitor{width:39px;height:39px;flex:0 0 39px;display:grid;place-items:center;border:1px solid #f3284a;border-radius:8px;background:#18060b;color:#ff304f;font-size:25px}
+        .cyberion-ref-heading h2{font-size:clamp(15px,1.6vw,21px);margin:0 0 4px;line-height:1.16}
+        .cyberion-ref-heading h2:after{display:none}.cyberion-ref-heading p{font-size:11px;line-height:1.45;color:#a6a5af;margin:0}
+        .cyberion-ref-contacts{border-top:1px solid #393037;display:grid}
+        .cyberion-ref-contact{display:grid;grid-template-columns:27px minmax(62px,.7fr) minmax(0,1.4fr);align-items:center;gap:7px;padding:15px 0;border-bottom:1px solid #29252b;font-size:12px;min-width:0}
+        .cyberion-ref-contact>.cyberion-detail-icon{border:0;background:none;box-shadow:none;flex:none;width:25px;height:25px;color:#ff2549}
+        .cyberion-ref-contact>.cyberion-detail-icon svg{width:21px;height:21px}
+        .cyberion-ref-contact strong{font-weight:650}.cyberion-ref-contact span:last-child,.cyberion-ref-contact a{overflow-wrap:anywhere;color:#c9c5cc;font-size:11px}
+        .cyberion-ref-cta{display:flex;justify-content:center;align-items:center;gap:13px;min-height:48px;margin-top:auto;padding:12px;border-radius:8px;border:1px solid #f02446;background:linear-gradient(130deg,#21090f,#0c090c);color:#fff!important;font-size:13px;font-weight:800;text-align:center;box-shadow:0 0 18px #e8172920}
+        .cyberion-ref-cta span{margin-left:6px}.cyberion-ref-cta:hover{background:#41111b}
+        .cyberion-zones-list{display:grid;gap:6px}
+        .cyberion-zone{border:1px solid #474149;border-radius:9px;overflow:hidden;background:#0a0a0d}.cyberion-zone.is-open{border-color:#ed1e3f;box-shadow:0 0 14px #df113721}
+        .cyberion-zone-toggle{width:100%;display:flex;align-items:center;gap:11px;padding:8px 10px;background:transparent;color:#fff;text-align:left;border:0;cursor:pointer}
+        .cyberion-zone.is-open .cyberion-zone-toggle{background:linear-gradient(90deg,#5e0719,#23080f)}
+        .cyberion-zone-number{flex:0 0 27px;width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:#f0243e;font-weight:900;font-size:13px}
+        .cyberion-zone-label{display:grid;gap:3px;min-width:0;flex:1}.cyberion-zone-label strong{font-size:12px}.cyberion-zone-label small{font-size:10px;color:#b0a9b0;line-height:1.25}
+        .cyberion-zone-chevron{font-size:25px;color:#eee}.cyberion-zone-content{padding:9px 13px 12px;background:#08090b}
+        .cyberion-zone-spec{display:grid;grid-template-columns:40% 1fr;gap:8px;padding:8px 0;border-bottom:1px solid #28262a;font-size:11px;color:#c5c1c6}
+        .cyberion-zone-spec:last-child{border-bottom:0}.cyberion-zone-spec strong{color:#eee;font-weight:650}
+        .cyberion-ref-map-link{display:block}.cyberion-ref-map{position:relative;overflow:hidden;display:grid;place-items:center;align-content:center;gap:8px;height:220px;border:1px solid #373d49;border-radius:8px;background:repeating-linear-gradient(29deg,transparent 0 19px,#2c303a 20px 24px,transparent 25px 72px),repeating-linear-gradient(112deg,#10151c 0 35px,#29303b 36px 41px,#11151c 42px 90px);color:#fff}
+        .cyberion-ref-map:after{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#06070b40,#0003);pointer-events:none}
+        .cyberion-ref-map-pin{z-index:1;display:grid;place-items:center;width:48px;height:48px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#f42645;box-shadow:0 0 20px #f42645;color:#fff;font-size:22px}
+        .cyberion-ref-map-name{z-index:1;display:grid;gap:3px;padding:8px 13px;text-align:center;border:1px solid #f42849;border-radius:8px;background:#111016e8;font-size:13px}
+        .cyberion-ref-map-name span,.cyberion-ref-map-street{font-size:11px;color:#bac0ca}.cyberion-ref-map-street{z-index:1}.cyberion-ref-address{color:#d2cbd1;font-size:12px;text-align:center;line-height:1.5;margin:13px 0 20px}
+        @media(max-width:1040px){.cyberion-grid-reference{grid-template-columns:1fr 1fr}.cyberion-grid-reference>.cyberion-ref-panel:last-child{grid-column:1/-1}}
+        @media(max-width:700px){.cyberion-grid-reference{grid-template-columns:1fr}.cyberion-grid-reference>.cyberion-ref-panel:last-child{grid-column:auto}.cyberion-ref-panel{padding:18px}.cyberion-ref-map{height:235px}}
       `}</style>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
@@ -129,30 +168,42 @@ export default function Partners() {
           <a className="cyberion-action cyberion-action-primary" href={telegram} target="_blank" rel="noopener noreferrer">↗ {uk ? "Забронювати місце" : "Book a place"}</a>
         </div>
       </div>
-      <div className="cyberion-grid">
-        <div className="cyberion-panel">
-          <h2><span>⌖</span> Контактна інформація</h2>
-          <div className="cyberion-detail"><ContactIcon name="location" /><span>Дніпро, просп. Слобожанський, 89</span></div>
-          <div className="cyberion-detail"><ContactIcon name="phone" /><a href="tel:+380685551080">+38 (068) 555-10-80</a></div>
-          <div className="cyberion-detail"><ContactIcon name="instagram" /><a href={insta} target="_blank" rel="noopener noreferrer">@cyberion_dnipro_kalynova ↗</a></div>
-          <div className="cyberion-detail"><ContactIcon name="telegram" /><a href={telegram} target="_blank" rel="noopener noreferrer">@CyberionKalynova ↗</a></div>
-          <div className="cyberion-detail"><ContactIcon name="web" /><a href={official} target="_blank" rel="noopener noreferrer">cyberion.ua / Дніпро Лівий берег ↗</a></div>
-        </div>
-        <div className="cyberion-panel">
-          <h2><span>⚙</span> Що є в клубі</h2>
-          {specs.map(([icon,text]) => <div className="cyberion-spec" key={text}><i>{icon}</i><span>{text}</span></div>)}
-        </div>
-        <div className="cyberion-panel">
-          <h2><span>⌖</span> Розташування</h2>
-          <a href={maps} target="_blank" rel="noopener noreferrer" aria-label="Відкрити місце CYBERION у Google Maps">
-            <div className="cyberion-map">
-              <em>📍</em>
-              <strong>CYBERION KALYNOVA</strong>
-
-            </div>
+      <div className="cyberion-grid cyberion-grid-reference">
+        <section className="cyberion-panel cyberion-ref-panel">
+          <div className="cyberion-ref-heading"><ContactIcon name="phone" /><div><h2>Контактна інформація</h2><p>Зв’яжіться з клубом або завітайте в гості.</p></div></div>
+          <div className="cyberion-ref-contacts">
+            <div className="cyberion-ref-contact"><ContactIcon name="location" /><strong>Адреса</strong><span>м. Дніпро, просп. Слобожанський, 89</span></div>
+            <div className="cyberion-ref-contact"><ContactIcon name="phone" /><strong>Телефон</strong><a href="tel:+380685551080">+38 (068) 555-10-80</a></div>
+            <div className="cyberion-ref-contact"><ContactIcon name="instagram" /><strong>Instagram</strong><a href={insta} target="_blank" rel="noopener noreferrer">@cyberion_dnipro_kalynova</a></div>
+            <div className="cyberion-ref-contact"><ContactIcon name="telegram" /><strong>Telegram</strong><a href={telegram} target="_blank" rel="noopener noreferrer">@CyberionKalynova</a></div>
+          </div>
+          <a className="cyberion-ref-cta" href={maps} target="_blank" rel="noopener noreferrer">↗ Прокласти маршрут <span aria-hidden="true">→</span></a>
+        </section>
+        <section className="cyberion-panel cyberion-ref-panel cyberion-zones-panel">
+          <div className="cyberion-ref-heading"><span className="cyberion-ref-monitor" aria-hidden="true">▣</span><div><h2>Ігрові зони клубу</h2><p>Кожна зона має власні характеристики та можливості.</p></div></div>
+          <div className="cyberion-zones-list">
+            {zones.map((zone,index) => <div key={zone.name} className={`cyberion-zone ${openZone === index ? "is-open" : ""}`}>
+              <button type="button" className="cyberion-zone-toggle" aria-expanded={openZone === index} onClick={() => setOpenZone(openZone === index ? -1 : index)}>
+                <span className="cyberion-zone-number">{index+1}</span>
+                <span className="cyberion-zone-label"><strong>Зона {index+1} — {zone.name}</strong><small>{zone.description}</small></span>
+                <span className="cyberion-zone-chevron" aria-hidden="true">{openZone === index ? "⌃" : "⌄"}</span>
+              </button>
+              {openZone === index && <div className="cyberion-zone-content">
+                <div className="cyberion-zone-spec"><strong>ПК та відеокарта</strong><span>Характеристики уточнюються в клубі</span></div>
+                <div className="cyberion-zone-spec"><strong>Монітори</strong><span>Залежать від ігрової зони</span></div>
+                <div className="cyberion-zone-spec"><strong>Периферія та крісла</strong><span>Комплектацію уточнюйте під час бронювання</span></div>
+              </div>}
+            </div>)}
+          </div>
+        </section>
+        <section className="cyberion-panel cyberion-ref-panel">
+          <div className="cyberion-ref-heading"><ContactIcon name="location" /><div><h2>Розташування</h2><p>Легко знайти. Зручно дістатися.</p></div></div>
+          <a className="cyberion-ref-map-link" href={maps} target="_blank" rel="noopener noreferrer" aria-label="Відкрити CYBERION у Google Maps">
+            <div className="cyberion-ref-map"><div className="cyberion-ref-map-pin">●</div><div className="cyberion-ref-map-name"><strong>CYBERION</strong><span>Дніпро · Лівий берег</span></div><span className="cyberion-ref-map-street">просп. Слобожанський</span></div>
           </a>
-          <div className="cyberion-location-caption"><span>📍 просп. Слобожанський, 89 · Дніпро</span><span>↗ Відкрити на Google Maps</span></div>
-        </div>
+          <p className="cyberion-ref-address">📍 м. Дніпро, просп. Слобожанський, 89</p>
+          <a className="cyberion-ref-cta" href={maps} target="_blank" rel="noopener noreferrer">↗ Відкрити в Google Maps <span aria-hidden="true">→</span></a>
+        </section>
       </div>
     </section>
   );
