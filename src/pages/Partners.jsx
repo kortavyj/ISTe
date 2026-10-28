@@ -32,10 +32,10 @@ export default function Partners() {
   const uk = language === "uk";
   const [openZone, setOpenZone] = useState(0);
   const zones = [
-    { name: "PRO", description: "Професійна ігрова зона" },
-    { name: "STREAM", description: "Зона для стримів і створення контенту" },
-    { name: "TEAM", description: "Зона для командної гри" },
-    { name: "COMFORT", description: "Зона для комфортної гри" },
+    { name: "GAMER ZONE", description: "Ігрова зона для щоденних матчів" },
+    { name: "PRO ZONE", description: "Зона для змагальної гри" },
+    { name: "PRO BOOTCAMP", description: "Простір для командних тренувань" },
+    { name: "DOUBLE BOOTCAMP", description: "Зона для спільних командних тренувань" },
   ];
   return (
     <section className="cyberion-partners">
@@ -186,7 +186,7 @@ export default function Partners() {
           <a className="cyberion-ref-cta" href={maps} target="_blank" rel="noopener noreferrer">↗ Прокласти маршрут <span aria-hidden="true">→</span></a>
         </section>
         <section className="cyberion-panel cyberion-ref-panel cyberion-zones-panel">
-          <div className="cyberion-ref-heading"><span className="cyberion-ref-monitor" aria-hidden="true">▣</span><div><h2>Ігрові зони клубу</h2><p>Кожна зона має власні характеристики та можливості.</p></div></div>
+          <div className="cyberion-ref-heading"><span className="cyberion-ref-monitor" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4M7 8h10"/></svg></span><div><h2>Ігрові зони клубу</h2><p>Кожна зона має власні характеристики та можливості.</p></div></div>
           <div className="cyberion-zones-list">
             {zones.map((zone,index) => <div key={zone.name} className={`cyberion-zone ${openZone === index ? "is-open" : ""}`}>
               <button type="button" className="cyberion-zone-toggle" aria-expanded={openZone === index} onClick={() => setOpenZone(openZone === index ? -1 : index)}>
