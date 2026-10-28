@@ -15,3 +15,6 @@
 .navbar-notifications-links a span:first-child{color:#ef3752;font-size:18px}
 .navbar-notifications-links a span:last-child{margin-left:auto;color:#aa9faa}
 @media(max-width:760px){.navbar .navbar-notifications .navbar-notification-indicator{display:grid!important}.navbar-notifications-panel{right:-75px}}
+
+.navbar-notifications-head button{display:grid;place-items:center;flex:none;padding:0;line-height:0}
+.navbar-notifications-head button svg{display:block;flex:none}
