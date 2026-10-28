@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowUpRight, Newspaper, ShoppingBag, UserRoundSearch, UsersRound } from "lucide-react";
+
 
 import { getAuthErrorMessage } from "../auth/authErrors.js";
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -12,6 +12,18 @@ import founderBannerPhoto from "../assets/history/evgeniy_kortavyj.webp";
 import "./Auth.css";
 import "./AccountId.css";
 import "./AccountDashboard.css";
+
+function DashboardIcon({ name, size = 23, ...props }) {
+  const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", ...props };
+  const paths = {
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></>,
+    news: <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h6M7 12h6M7 16h10M16 8h2v4h-2z"/></>,
+    shop: <><path d="M5 8h14l1 13H4L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></>,
+    search: <><circle cx="10" cy="8" r="4"/><path d="M3 20v-2a6 6 0 0 1 11.5-2.4"/><circle cx="17" cy="17" r="4"/><path d="m20 20 2 2"/></>,
+    arrow: <><path d="M7 17 17 7M8 7h9v9"/></>,
+  };
+  return <svg {...common}>{paths[name]}</svg>;
+}
 
 const KNOWN_ROLES = new Set([
   "user",
@@ -354,7 +366,7 @@ export default function Account() {
           {activeTab === "profile" ? (
             <>
             <div className="iste-account-welcome"><span>{language === "uk" ? "ПРИВІТ, " : language === "en" ? "HELLO, " : "ПРИВЕТ, "}{(profile?.display_name || profile?.username || "ISTe").toUpperCase()}!</span><h2>{language === "uk" ? "Ласкаво просимо до " : language === "en" ? "Welcome to " : "Добро пожаловать в "}<em>ISTe!</em></h2><p>{ui.subtitle}</p><strong aria-hidden="true">ISTe</strong>{role === "owner" ? <img className="iste-account-welcome__portrait" src={founderBannerPhoto} alt="" /> : profile?.avatar_url ? <img className="iste-account-welcome__portrait iste-account-welcome__portrait--avatar" src={profile.avatar_url} alt="" /> : null}</div>
-            <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><UsersRound size={23}/></span><span className="iste-quick-title">{ui.explore}</span><ArrowUpRight className="iste-quick-arrow" size={18} aria-hidden="true"/></Link><Link to="/news" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><Newspaper size={23}/></span><span className="iste-quick-title">{ui.news}</span><ArrowUpRight className="iste-quick-arrow" size={18} aria-hidden="true"/></Link><Link to="/shop" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><ShoppingBag size={23}/></span><span className="iste-quick-title">{language === "uk" ? "Магазин" : language === "en" ? "Shop" : "Магазин"}</span><ArrowUpRight className="iste-quick-arrow" size={18} aria-hidden="true"/></Link><Link to="/users" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><UserRoundSearch size={23}/></span><span className="iste-quick-title">{t("accountPage.findUser")}</span><ArrowUpRight className="iste-quick-arrow" size={18} aria-hidden="true"/></Link></div></div>
+            <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="users" /></span><span className="iste-quick-title">{ui.explore}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/news" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="news" /></span><span className="iste-quick-title">{ui.news}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/shop" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="shop" /></span><span className="iste-quick-title">{language === "uk" ? "Магазин" : language === "en" ? "Shop" : "Магазин"}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/users" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="search" /></span><span className="iste-quick-title">{t("accountPage.findUser")}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link></div></div>
             <div className="auth-card iste-account-preview">
               <div className="iste-account-preview__heading"><span className="iste-account-section-label">{language === "uk" ? "ІНФОРМАЦІЯ ПРО ТЕБЕ" : language === "en" ? "ABOUT YOU" : "ИНФОРМАЦИЯ О ТЕБЕ"}</span><span className="iste-account-preview__star">✦ ISTe</span></div>
               <div className="iste-account-preview__identity"><div className="iste-account-preview__avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}</div><div><h2>{profile?.display_name || t("accountPage.memberFallback")}</h2><p>@{profile?.username || "iste"}</p><span className="account-role">{KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}</span></div></div>
