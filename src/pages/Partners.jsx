@@ -156,6 +156,12 @@ export default function Partners() {
         .cyberion-ref-map-name span,.cyberion-ref-map-street{font-size:11px;color:#bac0ca}.cyberion-ref-map-street{z-index:1}.cyberion-ref-address{color:#d2cbd1;font-size:12px;text-align:center;line-height:1.5;margin:13px 0 20px}
         @media(max-width:1040px){.cyberion-grid-reference{grid-template-columns:1fr 1fr}.cyberion-grid-reference>.cyberion-ref-panel:last-child{grid-column:1/-1}}
         @media(max-width:700px){.cyberion-grid-reference{grid-template-columns:1fr}.cyberion-grid-reference>.cyberion-ref-panel:last-child{grid-column:auto}.cyberion-ref-panel{padding:18px}.cyberion-ref-map{height:235px}}
+
+        /* Location panel: fill available height without a separate maps button */
+        .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map-link{display:flex;flex:1;min-height:260px;text-decoration:none}
+        .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map{width:100%;height:100%;min-height:260px;flex:1}
+        .cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-address{margin:16px 0 2px;padding:9px 5px;text-align:center}
+        @media(max-width:700px){.cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map-link,.cyberion-grid-reference>.cyberion-ref-panel:last-child .cyberion-ref-map{min-height:300px}}
       `}</style>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
@@ -202,7 +208,7 @@ export default function Partners() {
             <div className="cyberion-ref-map"><div className="cyberion-ref-map-pin">●</div><div className="cyberion-ref-map-name"><strong>CYBERION</strong><span>Дніпро · Лівий берег</span></div><span className="cyberion-ref-map-street">просп. Слобожанський</span></div>
           </a>
           <p className="cyberion-ref-address">📍 м. Дніпро, просп. Слобожанський, 89</p>
-          <a className="cyberion-ref-cta" href={maps} target="_blank" rel="noopener noreferrer">↗ Відкрити в Google Maps <span aria-hidden="true">→</span></a>
+          
         </section>
       </div>
     </section>
