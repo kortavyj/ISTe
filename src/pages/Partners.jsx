@@ -195,7 +195,7 @@ export default function Partners() {
             <div className="cyberion-ref-contact"><ContactIcon name="instagram" /><strong>Instagram</strong><a href={insta} target="_blank" rel="noopener noreferrer">@cyberion_dnipro_kalynova</a></div>
             <div className="cyberion-ref-contact"><ContactIcon name="telegram" /><strong>Telegram</strong><a href={telegram} target="_blank" rel="noopener noreferrer">@CyberionKalynova</a></div>
           </div>
-          <a className="cyberion-ref-cta" href={maps} target="_blank" rel="noopener noreferrer">↗ Прокласти маршрут <span aria-hidden="true">→</span></a>
+          
         </section>
         <section className="cyberion-panel cyberion-ref-panel cyberion-zones-panel">
           <div className="cyberion-ref-heading"><span className="cyberion-ref-monitor" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4M7 8h10"/></svg></span><div><h2>Ігрові зони клубу</h2><p>Кожна зона має власні характеристики та можливості.</p></div></div>
