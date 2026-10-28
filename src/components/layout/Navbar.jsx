@@ -555,7 +555,7 @@ export default function Navbar() {
               <div className="navbar-notifications-panel" role="dialog" aria-label={t("navigation.notifications")}>
                 <div className="navbar-notifications-head">
                   <strong>{({uk:"Сповіщення",ru:"Уведомления",en:"Notifications"}[language] || "Сповіщення")}</strong>
-                  <button type="button" aria-label="Закрити" onClick={() => setNotificationsOpen(false)}>×</button>
+                  <button type="button" aria-label="Закрити" onClick={() => setNotificationsOpen(false)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6 18 18M18 6 6 18"/></svg></button>
                 </div>
                 <div className="navbar-notifications-empty">
                   <span aria-hidden="true"><BellIcon /></span>
