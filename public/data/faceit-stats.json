@@ -79,7 +79,7 @@
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
       "nickname": "1sagi",
       "avatar": "https://distribution.faceit-cdn.net/images/5a978f90-6757-4e26-b1ce-fb267a90f8d4.jpg",
-      "country": "cn",
+      "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/1sagi",
       "level": 10,
@@ -3557,5 +3557,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-29T15:43:44.199Z"
+  "updatedAt": "2026-10-29T20:37:11.562Z"
 }
