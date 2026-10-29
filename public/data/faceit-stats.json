@@ -51,13 +51,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
-      "elo": 2522,
+      "elo": 2462,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.06
+      "kd": 1.05
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -99,13 +99,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
       "level": 10,
-      "elo": 2563,
+      "elo": 2562,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.15
+      "kd": 1.14
     }
   ],
   "teamMatches": [
@@ -3557,5 +3557,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-29T08:55:09.628Z"
+  "updatedAt": "2026-10-29T15:43:44.199Z"
 }
