@@ -21,6 +21,7 @@ const footerGroups = [
       { customLabel: { uk: "Засновник ISTe", ru: "Основатель ISTe", en: "Founder of ISTe" }, to: "/history" },
       { labelKey: "footer.shop", to: "/shop" },
       { labelKey: "footer.contacts", to: "/contacts" },
+      { customLabel: { uk: "Співпраця та партнерство", ru: "Сотрудничество и партнёрство", en: "Business & Partnerships" }, to: "/collaborate" },
     ],
   },
   {
