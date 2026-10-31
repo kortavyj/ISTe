@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const GEO_SOURCE = "/api/world-map";
 const WIDTH = 1000;
@@ -30,19 +30,31 @@ function featurePath(feature) {
   if (geometry.type === "MultiPolygon") return geometry.coordinates.map(polygonPath).join(" ");
   return "";
 }
-function constrain(next) {
-  const w = Math.max(100, Math.min(WIDTH, next.w));
-  const h = w * HEIGHT / WIDTH;
-  return { w, h, x: Math.min(WIDTH - w, Math.max(0, next.x)), y: Math.min(HEIGHT - h, Math.max(0, next.y)) };
+function geometryBounds(geometry) {
+  if (!geometry) return null;
+  const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.type === "MultiPolygon" ? geometry.coordinates : [];
+  let minX = WIDTH, minY = HEIGHT, maxX = 0, maxY = 0;
+  for (const polygon of polygons) for (const ring of polygon) for (const point of ring) {
+    const [x, y] = project(point);
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  }
+  if (minX > maxX) return null;
+  return { x: (minX + maxX) / 2, y: (minY + maxY) / 2, w: maxX - minX, h: maxY - minY };
+}
+function displayName(name) {
+  const translated = {
+    "Ukraine": "Україна", "Germany": "Німеччина", "Czech Republic": "Чехія",
+    "Czechia": "Чехія", "Russia": "Росія", "Poland": "Польща",
+    "United States of America": "США", "United States": "США",
+    "Mongolia": "Монголія", "Netherlands": "Нідерланди"
+  };
+  return translated[name] || name;
 }
 export default function VisitorWorldMap() {
   const [features, setFeatures] = useState([]);
   const [error, setError] = useState("");
-  const [viewport, setViewport] = useState(HOME);
-  const [focused, setFocused] = useState(null);
   const [hovered, setHovered] = useState(null);
-  const pointer = useRef(null);
-  const svgRef = useRef(null);
   useEffect(() => {
     const controller = new AbortController();
     fetch(GEO_SOURCE, { signal: controller.signal })
@@ -55,76 +67,50 @@ export default function VisitorWorldMap() {
     id: feature.id || i,
     path: featurePath(feature),
     name: feature.properties?.name || "Країна",
+    bounds: geometryBounds(feature.geometry)
   })), [features]);
-  function zoom(factor, centerX = viewport.x + viewport.w / 2, centerY = viewport.y + viewport.h / 2) {
-    setViewport(current => {
-      const w = current.w / factor;
-      const h = w * HEIGHT / WIDTH;
-      const rx = (centerX - current.x) / current.w;
-      const ry = (centerY - current.y) / current.h;
-      return constrain({ x: centerX - rx * w, y: centerY - ry * h, w, h });
-    });
-  }
-  function onWheel(event) {
-    event.preventDefault();
-    const bounds = svgRef.current?.getBoundingClientRect();
-    if (!bounds) return;
-    const cx = viewport.x + (event.clientX - bounds.left) / bounds.width * viewport.w;
-    const cy = viewport.y + (event.clientY - bounds.top) / bounds.height * viewport.h;
-    zoom(event.deltaY < 0 ? 1.22 : 1 / 1.22, cx, cy);
-  }
-  function down(event) {
-    if (event.button !== 0 && event.pointerType === "mouse") return;
-    pointer.current = { x: event.clientX, y: event.clientY, viewport };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-  function move(event) {
-    if (!pointer.current) return;
-    const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const start = pointer.current;
-    setViewport(constrain({ ...start.viewport, x: start.viewport.x - (event.clientX - start.x) * start.viewport.w / rect.width, y: start.viewport.y - (event.clientY - start.y) * start.viewport.h / rect.height }));
-  }
-  function stop() { pointer.current = null; }
-  const active = focused || hovered;
+  const focused = hovered?.bounds;
+  const scale = focused ? Math.min(3.8, Math.max(1.45, Math.min(WIDTH / Math.max(95, focused.w * 2.5), HEIGHT / Math.max(70, focused.h * 2.5)))) : 1;
+  const tx = focused ? WIDTH / 2 - focused.x * scale : 0;
+  const ty = focused ? HEIGHT / 2 - focused.y * scale : 0;
+  const activeCount = hovered ? LOCATIONS.find(c => c.name === displayName(hovered.name))?.count : undefined;
   return (
     <div className="iste-real-map">
-      <div className="iste-real-map-toolbar">
-        <span>Країни відвідувачів · 31.10.2026</span>
-        <div className="iste-map-controls">
-          <button type="button" onClick={() => zoom(1.5)} aria-label="Збільшити карту">+</button>
-          <button type="button" onClick={() => zoom(1 / 1.5)} aria-label="Зменшити карту">−</button>
-          <button type="button" onClick={() => {setViewport(HOME);setFocused(null);}} aria-label="Початковий масштаб">↺</button>
-        </div>
-      </div>
-      <div className="iste-real-map-stage">
+      <div className="iste-real-map-toolbar"><span>Географія відвідувачів · 31.10.2026</span></div>
+      <div className="iste-real-map-stage" onMouseLeave={() => setHovered(null)}>
         {error ? <p role="alert" className="iste-map-fallback">{error}</p> : !features.length ? <p className="iste-map-fallback">Завантаження мапи світу…</p> : null}
-        <svg ref={svgRef} viewBox={`${viewport.x} ${viewport.y} ${viewport.w} ${viewport.h}`} role="img" aria-label="Інтерактивна карта світу з географією відвідувань ISTe" onWheel={onWheel} onPointerDown={down} onPointerMove={move} onPointerUp={stop} onPointerCancel={stop} onLostPointerCapture={stop} style={{ touchAction: "none", cursor: pointer.current ? "grabbing" : "grab" }}>
-          <rect width={WIDTH} height={HEIGHT} fill="#11151f" />
-          {shapes.map(shape => <path key={shape.id} d={shape.path} fill="#302735" stroke="#6e5266" strokeWidth={Math.max(0.25, viewport.w / WIDTH * .8)} fillRule="evenodd" />)}
-          {LOCATIONS.map(item => {
-            const [x, y] = project([item.lon, item.lat]);
-            const activePoint = active?.iso === item.iso;
-            return <g key={item.iso} onPointerEnter={() => setHovered(item)} onPointerLeave={() => setHovered(null)} onClick={() => setFocused(item)} style={{ cursor: "pointer" }}>
-              <circle cx={x} cy={y} r={Math.max(2.5, viewport.w / WIDTH * (8 + Math.sqrt(item.count)))} fill="#fb3555" opacity=".2"/>
-              <circle cx={x} cy={y} r={Math.max(1.7, viewport.w / WIDTH * (3.5 + Math.sqrt(item.count) * .55))} fill={activePoint ? "#fff" : "#ff4263"} stroke="#fff" strokeWidth={Math.max(.5, viewport.w / WIDTH)} />
-              <title>{item.name}: {item.count}</title>
-            </g>;
-          })}
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label="Карта світу: наведіть курсор на країну для приближення й перегляду статистики">
+          <rect width={WIDTH} height={HEIGHT} fill="#11151f"/>
+          <g className="iste-map-geography" style={{transform: `translate(${tx}px, ${ty}px) scale(${scale})`}}>
+            {shapes.map(shape => <path key={shape.id} d={shape.path} fill={hovered?.id === shape.id ? "#934056" : "#302735"} stroke={hovered?.id === shape.id ? "#ff7892" : "#6e5266"} strokeWidth={hovered?.id === shape.id ? 1.2 : .7} fillRule="evenodd" />)}
+            {LOCATIONS.map(item => {
+              const [x,y] = project([item.lon,item.lat]);
+              return <g key={item.iso} style={{pointerEvents:"none"}}>
+                <circle cx={x} cy={y} r={8 + Math.sqrt(item.count)} fill="#fb3555" opacity=".2"/>
+                <circle cx={x} cy={y} r={3.5 + Math.sqrt(item.count) * .55} fill="#ff4263" stroke="#fff" strokeWidth=".8" />
+              </g>;
+            })}
+          </g>
+          <g className="iste-map-hit-regions">
+            {shapes.map(shape => <path key={shape.id} d={shape.path} fill="transparent" stroke="none" onMouseEnter={() => setHovered(shape)} onFocus={() => setHovered(shape)} tabIndex={0} aria-label={displayName(shape.name)} />)}
+          </g>
         </svg>
-        {active && <div className="iste-map-tooltip" role="status"><strong>{active.name}</strong><span>{active.count} · значення з наданої статистики</span></div>}
+        {hovered && <div className="iste-map-tooltip" role="status"><strong>{displayName(hovered.name)}</strong><span>{activeCount === undefined ? "Немає даних за цей день" : `${activeCount} · показник зі статистики`}</span></div>}
       </div>
-      <p className="iste-map-legend">Колесо миші або кнопки змінюють масштаб. Перетягніть карту для переміщення, натисніть на маркер для деталей. Точки позначають країни, а не адреси відвідувачів.</p>
+      <p className="iste-map-legend">Наведіть курсор на країну, щоб наблизити її та переглянути показники. Для мобільного перегляду торкніться країни. Дані за 31.10.2026.</p>
       <style>{`
         .iste-real-map{margin-top:13px;border:1px solid #593247;border-radius:13px;overflow:hidden;background:#12121b}
-        .iste-real-map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;color:#dbbece;font-size:12px}
-        .iste-map-controls{display:flex;gap:5px}.iste-map-controls button{min-width:30px;height:30px;cursor:pointer;background:#2a1b29;border:1px solid #784054;color:white;border-radius:7px;font-size:18px}
-        .iste-map-controls button:hover,.iste-map-controls button:focus-visible{background:#bd2448}
+        .iste-real-map-toolbar{padding:12px 14px;color:#dbbece;font-size:12px}
         .iste-real-map-stage{position:relative;aspect-ratio:2/1;background:#11151f;overflow:hidden}
-        .iste-real-map-stage svg{display:block;width:100%;height:100%;user-select:none}
+        .iste-real-map-stage svg{display:block;width:100%;height:100%}
+        .iste-map-geography{transform-origin:0 0;transition:transform .38s cubic-bezier(.2,.75,.2,1)}
+        .iste-map-hit-regions path{cursor:pointer;outline:none}
+        .iste-map-hit-regions path:focus-visible{stroke:#ff718a;stroke-width:1.5}
         .iste-map-tooltip{position:absolute;pointer-events:none;bottom:12px;left:12px;display:grid;gap:3px;background:#180f1eec;border:1px solid #ff4b6b;border-radius:10px;padding:10px 13px;color:#fff;box-shadow:0 8px 26px #0008}
-        .iste-map-tooltip span{font-size:11px;color:#e4b9c8}.iste-map-fallback{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#d0b6c4;padding:20px}
+        .iste-map-tooltip span{font-size:11px;color:#e4b9c8}
+        .iste-map-fallback{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#d0b6c4;padding:20px}
         .iste-map-legend{font-size:11px!important;color:#bbaab8!important;line-height:1.5!important;margin:0!important;padding:10px 12px}
+        @media(prefers-reduced-motion:reduce){.iste-map-geography{transition:none}}
       `}</style>
     </div>
   );
