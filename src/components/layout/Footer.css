@@ -22,13 +22,13 @@
 .footer-shell {
   width: min(1380px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 70px 0 58px;
+  padding: 36px 0 30px;
 }
 
 .footer-primary {
   display: grid;
   grid-template-columns: minmax(240px, 0.9fr) minmax(520px, 1.7fr);
-  gap: clamp(44px, 6vw, 92px);
+  gap: clamp(28px, 4vw, 62px);
   align-items: start;
 }
 
@@ -39,7 +39,7 @@
 .footer-brand {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   color: #fff;
   transition:
     color 180ms ease,
@@ -47,15 +47,15 @@
 }
 
 .footer-brand img {
-  width: 58px;
-  height: 58px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
   filter: drop-shadow(0 0 16px rgba(255, 37, 37, 0.38));
 }
 
 .footer-brand span {
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 950;
   letter-spacing: 0.12em;
 }
@@ -68,21 +68,21 @@
 
 .footer-description {
   max-width: 350px;
-  margin: 24px 0 0;
+  margin: 12px 0 0;
   color: rgba(255, 255, 255, 0.56);
   font-size: 0.92rem;
-  line-height: 1.75;
+  line-height: 1.55;
 }
 
 
 .footer-navigation {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 36px;
+  gap: 22px;
 }
 
 .footer-group h2 {
-  margin: 4px 0 24px;
+  margin: 2px 0 14px;
   color: rgba(255, 255, 255, 0.44);
   font-size: 0.73rem;
   font-weight: 900;
@@ -94,7 +94,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 15px;
+  gap: 10px;
 }
 
 .footer-link {
@@ -145,12 +145,12 @@
 .footer-bottom-inner {
   display: flex;
   width: min(1380px, calc(100% - 48px));
-  min-height: 82px;
+  min-height: 52px;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 12px 0;
 }
 
 .footer-copyright-line {
@@ -185,12 +185,12 @@
   }
 
   .footer-shell {
-    padding-top: 54px;
+    padding-top: 32px;
   }
 
   .footer-primary {
     grid-template-columns: 1fr;
-    gap: 46px;
+    gap: 26px;
   }
 
   .footer-description {
@@ -201,7 +201,7 @@
 @media (max-width: 620px) {
   .footer-navigation {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 36px 28px;
+    gap: 22px 20px;
   }
 
   .footer-group:last-child {
