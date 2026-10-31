@@ -20,19 +20,28 @@ export default function Collaborate() {
   const [contact, setContact] = useState("");
   const [message, setMessage] = useState("");
   const [accepted, setAccepted] = useState(false);
+  const [website, setWebsite] = useState("");
+  const [sending, setSending] = useState(false);
+  const [feedback, setFeedback] = useState("");
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
-    if (!name.trim() || !contact.trim() || !message.trim() || !accepted) return;
-    const subject = kind === "partner" ? "ISTe | Запит на партнерство" : "ISTe | Запит на проведення турніру";
-    const body = [
-      "Тип запиту: " + (kind === "partner" ? "Партнерство" : "Турнір"),
-      "Ім'я / організація: " + name.trim(),
-      "Контакт для відповіді: " + contact.trim(),
-      "",
-      message.trim()
-    ].join("\n");
-    openEmail(subject, body);
+    if (!name.trim() || !contact.trim() || message.trim().length < 10 || !accepted || sending) return;
+    setSending(true);
+    setFeedback("");
+    try {
+      const response = await fetch("/api/collaborate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, name, contact, message, accepted, website }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.ok !== true) throw new Error(result.message || "Не вдалося надіслати заявку.");
+      setFeedback("Дякуємо! Вашу заявку збережено. Команда ISTe розгляне звернення.");
+      setName(""); setContact(""); setMessage(""); setAccepted(false);
+    } catch (error) {
+      setFeedback(error.message || "Помилка відправлення. Спробуйте ще раз.");
+    } finally { setSending(false); }
   }
 
   return (
@@ -91,15 +100,15 @@ export default function Collaborate() {
         <section className="panel" id="request" aria-labelledby="request-title">
           <p className="eyebrow">Зв'язатися з ISTe</p>
           <h2 id="request-title">Заявка на партнерство або турнір</h2>
-          <form onSubmit={submit}>
+          <form onSubmit={submit}><input type="text" autoComplete="off" tabIndex={-1} aria-hidden="true" value={website} onChange={event => setWebsite(event.target.value)} style={{position:"absolute",left:"-10000px",opacity:0}} />
             <label>Тип звернення<select value={kind} onChange={event => setKind(event.target.value)}><option value="partner">Партнерство / реклама</option><option value="tournament">Організація турніру</option></select></label>
             <label>Ім'я або компанія<input required maxLength={120} value={name} onChange={event => setName(event.target.value)} /></label>
             <label>Email, Telegram або Discord<input required maxLength={180} value={contact} onChange={event => setContact(event.target.value)} /></label>
             <label>{kind === "partner" ? "Опишіть ідею співпраці" : "Гра, дата, кількість команд і формат"}<textarea required maxLength={2500} value={message} onChange={event => setMessage(event.target.value)} /></label>
             <label className="check"><input type="checkbox" checked={accepted} onChange={event => setAccepted(event.target.checked)} required />Погоджуюсь передати вказані контактні дані команді ISTe для відповіді на запит.</label>
-            <button type="submit" className="btn">Підготувати лист</button>
+            <button type="submit" className="btn" disabled={sending}>{sending ? "Надсилаємо…" : "Надіслати заявку"}</button>{feedback && <p role="status" aria-live="polite">{feedback}</p>}
           </form>
-          <p className="notice">Кнопка відкриває ваш поштовий застосунок із підготовленою заявкою. Для фактичного відправлення підтвердіть надсилання листа. Дані не зберігаються на сайті.</p>
+          <p className="notice">Заявка зберігається в захищеній базі ISTe для розгляду командою. Контактні дані не публікуються.</p>
           <p className="notice">Або напишіть напряму: <a href={"mailto:" + EMAIL}>{EMAIL}</a></p>
         </section>
       </div>
