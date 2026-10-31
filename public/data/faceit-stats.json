@@ -6,9 +6,9 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 44,
-  "matches": 93,
+  "matches": 94,
   "wins": 75,
-  "winRate": 81,
+  "winRate": 80,
   "players": 6,
   "roster": [
     {
@@ -41,7 +41,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.38
+      "kd": 1.36
     },
     {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
@@ -73,7 +73,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1
+      "kd": 0.99
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -89,7 +89,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.12
+      "kd": 1.11
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -105,10 +105,34 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.14
+      "kd": 1.13
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-883b94e4-fdd4-4397-8ddb-0c61f062311e",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-883b94e4-fdd4-4397-8ddb-0c61f062311e",
+      "tournamentId": "88813790-83d9-4231-ba7e-e68140fded67",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 5 Qualification 2",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-10-31T13:53:16.000Z",
+      "startedAt": "2026-10-31T13:53:16.000Z",
+      "finishedAt": "2026-10-31T14:31:39.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 7
+      },
+      "opponent": {
+        "name": "DIRECTORs YOUNG",
+        "avatar": "https://distribution.faceit-cdn.net/images/83549612-22a0-4827-a9e6-6e3ba7fad050.jpg",
+        "score": 13
+      }
+    },
     {
       "matchId": "1-92541b93-f305-4829-ac6f-172b4d24e34a",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-92541b93-f305-4829-ac6f-172b4d24e34a",
@@ -3614,14 +3638,14 @@
       }
     }
   ],
-  "teamMatchCount": 146,
+  "teamMatchCount": 147,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 14,
+    "historyMatchesFound": 15,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3629,5 +3653,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-31T13:33:32.797Z"
+  "updatedAt": "2026-10-31T17:53:25.585Z"
 }
