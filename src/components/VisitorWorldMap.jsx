@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const GEO_SOURCE = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json";
+const GEO_SOURCE = "/api/world-map";
 const WIDTH = 1000;
 const HEIGHT = 500;
 const HOME = { x: 0, y: 0, w: WIDTH, h: HEIGHT };
