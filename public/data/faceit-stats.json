@@ -5,10 +5,10 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 43,
-  "matches": 92,
+  "tournaments": 44,
+  "matches": 93,
   "wins": 75,
-  "winRate": 82,
+  "winRate": 81,
   "players": 6,
   "roster": [
     {
@@ -41,7 +41,23 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.39
+      "kd": 1.38
+    },
+    {
+      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
+      "nickname": "Droni452",
+      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
+      "level": 10,
+      "elo": 2492,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.05
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -73,23 +89,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.13
-    },
-    {
-      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
-      "nickname": "Droni452",
-      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
-      "level": 10,
-      "elo": 2492,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
-      "kd": 1.05
+      "kd": 1.12
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -109,6 +109,78 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-92541b93-f305-4829-ac6f-172b4d24e34a",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-92541b93-f305-4829-ac6f-172b4d24e34a",
+      "tournamentId": "88813790-83d9-4231-ba7e-e68140fded67",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 5 Qualification 2",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-10-31T12:33:41.000Z",
+      "startedAt": "2026-10-31T12:33:41.000Z",
+      "finishedAt": "2026-10-31T13:04:31.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 3
+      },
+      "opponent": {
+        "name": "GUESS",
+        "avatar": "https://distribution.faceit-cdn.net/images/edb9c928-b0fe-4d6b-95f2-0c3bb672927c.jpeg",
+        "score": 13
+      }
+    },
+    {
+      "matchId": "1-154436cd-011f-4fd8-ac8c-75ea57908492",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-154436cd-011f-4fd8-ac8c-75ea57908492",
+      "tournamentId": "88813790-83d9-4231-ba7e-e68140fded67",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 5 Qualification 2",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-10-31T11:46:04.000Z",
+      "startedAt": "2026-10-31T11:46:04.000Z",
+      "finishedAt": "2026-10-31T11:46:04.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "Brasov Ghouls",
+        "avatar": "https://distribution.faceit-cdn.net/images/9dfbb571-402d-4f12-89de-e0dd6c0dedf4.jpg",
+        "score": 0
+      }
+    },
+    {
+      "matchId": "1-724f88da-e171-4ebb-9765-caba17b030b0",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-724f88da-e171-4ebb-9765-caba17b030b0",
+      "tournamentId": "88813790-83d9-4231-ba7e-e68140fded67",
+      "competitionName": "UESF Ukrainian Championship 2026 STAGE 5 Qualification 2",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-10-31T10:59:06.000Z",
+      "startedAt": "2026-10-31T10:59:06.000Z",
+      "finishedAt": "2026-10-31T10:59:06.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 1
+      },
+      "opponent": {
+        "name": "bye",
+        "avatar": null,
+        "score": 0
+      }
+    },
     {
       "matchId": "1-0f8a95e6-3263-4f17-86d4-eccfc7dbc485",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-0f8a95e6-3263-4f17-86d4-eccfc7dbc485",
@@ -3542,14 +3614,14 @@
       }
     }
   ],
-  "teamMatchCount": 143,
+  "teamMatchCount": 146,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 11,
+    "historyMatchesFound": 14,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3557,5 +3629,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-10-31T07:03:04.452Z"
+  "updatedAt": "2026-10-31T13:33:32.797Z"
 }
