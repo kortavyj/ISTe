@@ -22,6 +22,7 @@ import AIPrivacy from "./pages/AIPrivacy.jsx";
 import BlockedAccount from "./pages/BlockedAccount.jsx";
 import BotDashboard from "./pages/BotDashboard.jsx";
 import Contacts from "./pages/Contacts.jsx";
+import Collaborate from "./pages/Collaborate.jsx";
 import DiscordBot from "./pages/DiscordBot.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import FounderDashboard from "./pages/FounderDashboard.jsx";
@@ -150,6 +151,7 @@ export default function App() {
           <Route path="/owner/tournaments" element={<OwnerRoute><OwnerTournaments /></OwnerRoute>} />
           <Route path="/news" element={<News />} />
           <Route path="/partners" element={<Partners />} />
+          <Route path="/collaborate" element={<Collaborate />} />
           <Route path="/discord" element={<DiscordBot />} />
           <Route path="/history" element={<History />} />
           <Route path="/highlights" element={<Highlights />} />
