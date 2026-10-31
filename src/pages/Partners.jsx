@@ -181,6 +181,7 @@ export default function Partners() {
         .cyberion-zone-toggle{touch-action:manipulation}
         .cyberion-zone-chevron{transition:none}
       `}</style>
+      <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}><a href="/collaborate" style={{display:"inline-block",padding:"10px 15px",border:"1px solid #f02b4c",borderRadius:9,background:"#230911",color:"#fff",fontWeight:700}}>Стати партнером ISTe</a></div>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
         <p className="cyberion-kicker">{uk ? "Наш партнер" : "Our partner"}</p>
