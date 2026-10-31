@@ -106,7 +106,7 @@ export default function VisitorWorldMap() {
         .iste-map-geography{transform-origin:0 0;transition:transform .38s cubic-bezier(.2,.75,.2,1)}
         .iste-map-hit-regions path{cursor:pointer;outline:none}
         .iste-map-hit-regions path:focus-visible{stroke:#ff718a;stroke-width:1.5}
-        .iste-map-tooltip{position:absolute;pointer-events:none;bottom:12px;left:12px;display:grid;gap:3px;background:#180f1eec;border:1px solid #ff4b6b;border-radius:10px;padding:10px 13px;color:#fff;box-shadow:0 8px 26px #0008}
+        .iste-map-tooltip{position:absolute;pointer-events:none;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;gap:3px;text-align:center;min-width:155px;background:#180f1eec;border:1px solid #ff4b6b;border-radius:10px;padding:10px 13px;color:#fff;box-shadow:0 8px 26px #0008}
         .iste-map-tooltip span{font-size:11px;color:#e4b9c8}
         .iste-map-fallback{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#d0b6c4;padding:20px}
         .iste-map-legend{font-size:11px!important;color:#bbaab8!important;line-height:1.5!important;margin:0!important;padding:10px 12px}
