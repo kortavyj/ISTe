@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import VisitorWorldMap from "../components/VisitorWorldMap.jsx";
 
 const EMAIL = "istesport.official@gmail.com";
 const DISCORD = "https://discord.gg/AzpCxEgxye";
@@ -69,15 +70,7 @@ function AudienceInsights() {
         </div>
         <div className="iste-insights-panel">
           <div className="iste-insights-panelhead"><div><h3>Географія аудиторії</h3><p>Знімок за 31 жовтня 2026 року</p></div></div>
-          <div className="iste-geo-map">
-            <svg viewBox="0 0 800 350" role="img" aria-label="Схематична карта країн, які присутні у наданій статистиці">
-              <defs><pattern id="iste-map-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#6a384d" strokeWidth=".7" opacity=".35"/></pattern></defs>
-              <rect width="800" height="350" fill="url(#iste-map-grid)"/>
-              <path d="M85 92L139 59 211 72 247 113 223 141 186 154 160 204 118 189 101 155 75 137Z M215 206L265 216 297 253 282 316 240 336 220 270Z M350 96L400 77 430 103 466 100 486 137 465 165 428 163 413 223 386 248 364 183 345 158Z M469 85L550 54 660 71 718 109 707 154 647 175 610 151 557 181 515 140Z M637 244L698 233 730 261 711 291 662 291Z" fill="#382631" stroke="#875069" strokeWidth="1.5" opacity=".9"/>
-              {countries.map(c=><g key={c.name}><circle cx={c.x*8} cy={c.y*3.5} r={5+Math.sqrt(c.value)*1.6} fill="#ff3157" fillOpacity=".22"/><circle cx={c.x*8} cy={c.y*3.5} r={3+Math.sqrt(c.value)*.55} fill="#ff536f" stroke="#ffd3df" strokeWidth="1"/><title>{c.name}: {c.value}</title></g>)}
-            </svg>
-            <span>Схематичне розташування, не точні координати відвідувачів</span>
-          </div>
+          <VisitorWorldMap />
           <div className="iste-country-list">{countries.map(c=><div className="iste-country" key={c.name}><span>{c.name}</span><div className="iste-country-track"><i style={{width:`${c.value/43*100}%`}}/></div><b>{c.value}</b></div>)}</div>
           <p className="iste-insights-warning">Показані значення другого стовпця наданої таблиці, разом {geographyTotal}. Значення першого стовпця не змішуються з ними. Бразилія не включена, оскільки число не надано.</p>
         </div>
