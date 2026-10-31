@@ -14,6 +14,78 @@ function openEmail(subject, body) {
   window.location.href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
 }
 
+
+const DAILY_SAMPLE = [18,20,21,19,22,24,26,23,21,20,24,27,29,25,22,21,23,24,26,28,30,27,24,22,21,23,25,26,24,25];
+const MONTHLY_AVERAGE = 700;
+const countries = [
+  { name: "Україна", value: 43, x: 59, y: 29 },
+  { name: "Німеччина", value: 3, x: 50, y: 29 },
+  { name: "Чехія", value: 3, x: 52, y: 31 },
+  { name: "Росія", value: 2, x: 74, y: 22 },
+  { name: "Польща", value: 1, x: 54, y: 27 },
+  { name: "США", value: 1, x: 19, y: 36 },
+  { name: "Монголія", value: 1, x: 78, y: 35 },
+  { name: "Нідерланди", value: 1, x: 48, y: 28 },
+];
+const geographyTotal = countries.reduce((sum, item) => sum + item.value, 0);
+function AudienceInsights() {
+  const [windowDays, setWindowDays] = useState(30);
+  const daily = DAILY_SAMPLE.map((count, index) => ({ day: index + 1, count }));
+  const selected = daily.slice(-windowDays);
+  const max = Math.max(...selected.map(item => item.count), 1);
+  const points = selected.map((item, index) => ({
+    x: 22 + index * 656 / Math.max(1, selected.length - 1),
+    y: 170 - item.count / (max + 5) * 145,
+    count: item.count,
+    day: item.day,
+  }));
+  const path = points.map((point, i) => `${i ? "L" : "M"} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ");
+  const area = path + " L 678 185 L 22 185 Z";
+  const sampleTotal = DAILY_SAMPLE.reduce((a, b) => a + b, 0);
+  return (
+    <section className="iste-insights" aria-labelledby="iste-insights-title">
+      <div className="iste-insights-heading">
+        <div><p className="eyebrow">Аудиторія ISTe</p><h2 id="iste-insights-title">ISTe у цифрах</h2><p>Орієнтовна відвідуваність та географія за наданою статистикою.</p></div>
+        <span className="iste-insights-status">Показники оновлюються вручну</span>
+      </div>
+      <div className="iste-insights-kpis">
+        <div className="iste-insights-kpi"><span>Відвідувачів на місяць</span><strong>≈ 700</strong><small>Середня оцінка команди ISTe</small></div>
+        <div className="iste-insights-kpi"><span>За день у середньому</span><strong>≈ 23</strong><small>700 / 30 днів, розрахункове значення</small></div>
+        <div className="iste-insights-kpi"><span>Країн у знімку</span><strong>8</strong><small>Статистика за 31.10.2026</small></div>
+        <div className="iste-insights-kpi"><span>Значень у другому стовпці</span><strong>55</strong><small>Сума наданих даних за день</small></div>
+      </div>
+      <div className="iste-insights-panels">
+        <div className="iste-insights-panel">
+          <div className="iste-insights-panelhead"><div><h3>Динаміка відвідувань</h3><p>Ілюстративний розподіл середньої місячної відвідуваності</p></div>
+          <div className="iste-insights-switch" aria-label="Період графіка">{[7,30].map(n=><button type="button" key={n} aria-pressed={windowDays===n} className={windowDays===n?"active":""} onClick={()=>setWindowDays(n)}>{n} днів</button>)}</div></div>
+          <svg className="iste-insights-chart" viewBox="0 0 700 220" role="img" aria-label={`Модельний графік відвідувань за ${windowDays} днів. Значення не є реальною щоденною аналітикою.`}>
+            <defs><linearGradient id="iste-traffic-gradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#fb4263" stopOpacity=".34"/><stop offset="100%" stopColor="#fb4263" stopOpacity="0"/></linearGradient></defs>
+            {[50,95,140,185].map(y=><line key={y} x1="20" y1={y} x2="680" y2={y} stroke="#47303e" strokeDasharray="4 7"/>)}
+            <path d={area} fill="url(#iste-traffic-gradient)"/><path d={path} fill="none" stroke="#ff4567" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/>
+            {points.filter((_,i)=>i===0||i===points.length-1||i%Math.max(1,Math.floor(points.length/6))===0).map((p,i)=><g key={i}><circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#ff4567" strokeWidth="2"/><text x={p.x} y={p.y-12} fill="#f2dce4" fontSize="12" textAnchor="middle">{p.count}</text></g>)}
+            <text x="22" y="208" fill="#b9aeb9" fontSize="12">{selected[0].day} день</text><text x="678" y="208" fill="#b9aeb9" textAnchor="end" fontSize="12">{selected[selected.length-1].day} день</text>
+          </svg>
+          <p className="iste-insights-warning">Модель, не фактичні щоденні вимірювання. Сума модельного ряду: {sampleTotal}. Середня оцінка за місяць: {MONTHLY_AVERAGE}.</p>
+        </div>
+        <div className="iste-insights-panel">
+          <div className="iste-insights-panelhead"><div><h3>Географія аудиторії</h3><p>Знімок за 31 жовтня 2026 року</p></div></div>
+          <div className="iste-geo-map">
+            <svg viewBox="0 0 800 350" role="img" aria-label="Схематична карта країн, які присутні у наданій статистиці">
+              <defs><pattern id="iste-map-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#6a384d" strokeWidth=".7" opacity=".35"/></pattern></defs>
+              <rect width="800" height="350" fill="url(#iste-map-grid)"/>
+              <path d="M85 92L139 59 211 72 247 113 223 141 186 154 160 204 118 189 101 155 75 137Z M215 206L265 216 297 253 282 316 240 336 220 270Z M350 96L400 77 430 103 466 100 486 137 465 165 428 163 413 223 386 248 364 183 345 158Z M469 85L550 54 660 71 718 109 707 154 647 175 610 151 557 181 515 140Z M637 244L698 233 730 261 711 291 662 291Z" fill="#382631" stroke="#875069" strokeWidth="1.5" opacity=".9"/>
+              {countries.map(c=><g key={c.name}><circle cx={c.x*8} cy={c.y*3.5} r={5+Math.sqrt(c.value)*1.6} fill="#ff3157" fillOpacity=".22"/><circle cx={c.x*8} cy={c.y*3.5} r={3+Math.sqrt(c.value)*.55} fill="#ff536f" stroke="#ffd3df" strokeWidth="1"/><title>{c.name}: {c.value}</title></g>)}
+            </svg>
+            <span>Схематичне розташування, не точні координати відвідувачів</span>
+          </div>
+          <div className="iste-country-list">{countries.map(c=><div className="iste-country" key={c.name}><span>{c.name}</span><div className="iste-country-track"><i style={{width:`${c.value/43*100}%`}}/></div><b>{c.value}</b></div>)}</div>
+          <p className="iste-insights-warning">Показані значення другого стовпця наданої таблиці, разом {geographyTotal}. Значення першого стовпця не змішуються з ними. Бразилія не включена, оскільки число не надано.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Collaborate() {
   const [kind, setKind] = useState("partner");
   const [name, setName] = useState("");
@@ -70,6 +142,12 @@ export default function Collaborate() {
         .iste-collaborate .check{display:flex;align-items:flex-start;gap:10px;font-size:13px;font-weight:400;color:#c9c1c7}
         .iste-collaborate .check input{margin-top:3px}
         .iste-collaborate .notice{font-size:12px;color:#a8a7b0}
+
+        .iste-insights{margin:12px 0 42px}.iste-insights-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:22px}.iste-insights-heading h2{font-size:clamp(28px,4vw,42px)}.iste-insights-heading p{margin:0}.iste-insights-status{font-size:12px;color:#f6b5c3;border:1px solid #693243;border-radius:99px;padding:9px 13px;white-space:nowrap;background:#30121f}
+        .iste-insights-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}.iste-insights-kpi{min-width:0;display:flex;flex-direction:column;gap:9px;padding:21px;border-radius:16px;border:1px solid #653145;background:radial-gradient(circle at 100% 0%,#592037 0%,transparent 65%),#17121b}.iste-insights-kpi span{color:#c8b5c0;font-size:13px}.iste-insights-kpi strong{font-size:clamp(28px,3.5vw,43px);letter-spacing:-.05em;line-height:1;color:#fff}.iste-insights-kpi small{font-size:11px;line-height:1.45;color:#a9a0aa}
+        .iste-insights-panels{display:grid;grid-template-columns:1.12fr 1fr;gap:16px}.iste-insights-panel{min-width:0;border:1px solid #5d283b;border-radius:18px;background:linear-gradient(145deg,#24111c,#101119 60%);padding:22px;box-shadow:0 18px 46px #0004}.iste-insights-panelhead{display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:12px}.iste-insights-panelhead h3{font-size:20px;margin:0 0 5px}.iste-insights-panelhead p{font-size:12px;margin:0}.iste-insights-switch{display:flex;padding:3px;border:1px solid #6b3748;border-radius:9px}.iste-insights-switch button{border:0;background:transparent;color:#baacb8;border-radius:7px;padding:7px 10px;font:inherit;font-size:12px;cursor:pointer}.iste-insights-switch button.active{background:#e32950;color:#fff}
+        .iste-insights-chart{width:100%;height:auto;display:block;margin-top:18px}.iste-insights-warning{font-size:11px!important;line-height:1.6!important;color:#c2a1b2!important;margin:12px 0 0}.iste-geo-map{position:relative;margin-top:12px;border:1px solid #513247;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at center,#231b2a,#100e17)}.iste-geo-map svg{width:100%;height:auto;display:block}.iste-geo-map>span{display:block;text-align:center;font-size:10px;color:#b5a1af;padding:3px 7px 8px}.iste-country-list{display:grid;gap:9px;margin-top:14px}.iste-country{display:grid;grid-template-columns:105px 1fr 24px;gap:8px;align-items:center;font-size:12px;color:#e6dce2}.iste-country-track{height:6px;background:#3a2732;border-radius:20px;overflow:hidden}.iste-country-track i{height:100%;display:block;background:linear-gradient(90deg,#fc3050,#ff8299);border-radius:20px}.iste-country b{text-align:right}
+        @media(max-width:960px){.iste-insights-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.iste-insights-panels{grid-template-columns:1fr}}@media(max-width:560px){.iste-insights-heading{align-items:start;flex-direction:column}.iste-insights-kpis{gap:9px}.iste-insights-kpi{padding:16px}.iste-insights-panel{padding:14px}.iste-country{grid-template-columns:93px 1fr 20px;gap:6px}}
         @media(max-width:760px){.iste-collaborate{padding:36px 16px 70px}.iste-collaborate .cards,.iste-collaborate .two{grid-template-columns:1fr}}
       `}</style>
       <p className="eyebrow">ISTe Esports · Для брендів, клубів та команд</p>
@@ -83,6 +161,7 @@ export default function Collaborate() {
       <section aria-label="Формати співпраці" className="cards">
         {packages.map(item => <article className="card" key={item.title}><h3>{item.title}</h3><p>{item.description}</p></article>)}
       </section>
+      <AudienceInsights />
       <div className="two">
         <section className="panel" aria-labelledby="media-title">
           <p className="eyebrow">Медіакіт · Коротка версія</p>
