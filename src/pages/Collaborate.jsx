@@ -141,16 +141,56 @@ export default function Collaborate() {
         .iste-insights-panels{display:grid;grid-template-columns:1.12fr 1fr;gap:16px}.iste-insights-panel{min-width:0;border:1px solid #5d283b;border-radius:18px;background:linear-gradient(145deg,#24111c,#101119 60%);padding:22px;box-shadow:0 18px 46px #0004}.iste-insights-panelhead{display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:12px}.iste-insights-panelhead h3{font-size:20px;margin:0 0 5px}.iste-insights-panelhead p{font-size:12px;margin:0}.iste-insights-switch{display:flex;padding:3px;border:1px solid #6b3748;border-radius:9px}.iste-insights-switch button{border:0;background:transparent;color:#baacb8;border-radius:7px;padding:7px 10px;font:inherit;font-size:12px;cursor:pointer}.iste-insights-switch button.active{background:#e32950;color:#fff}
         .iste-insights-chart{width:100%;height:auto;display:block;margin-top:18px}.iste-insights-warning{font-size:11px!important;line-height:1.6!important;color:#c2a1b2!important;margin:12px 0 0}.iste-geo-map{position:relative;margin-top:12px;border:1px solid #513247;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at center,#231b2a,#100e17)}.iste-geo-map svg{width:100%;height:auto;display:block}.iste-geo-map>span{display:block;text-align:center;font-size:10px;color:#b5a1af;padding:3px 7px 8px}.iste-country-list{display:grid;gap:9px;margin-top:14px}.iste-country{display:grid;grid-template-columns:105px 1fr 24px;gap:8px;align-items:center;font-size:12px;color:#e6dce2}.iste-country-track{height:6px;background:#3a2732;border-radius:20px;overflow:hidden}.iste-country-track i{height:100%;display:block;background:linear-gradient(90deg,#fc3050,#ff8299);border-radius:20px}.iste-country b{text-align:right}
         @media(max-width:960px){.iste-insights-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.iste-insights-panels{grid-template-columns:1fr}}@media(max-width:560px){.iste-insights-heading{align-items:start;flex-direction:column}.iste-insights-kpis{gap:9px}.iste-insights-kpi{padding:16px}.iste-insights-panel{padding:14px}.iste-country{grid-template-columns:93px 1fr 20px;gap:6px}}
-        @media(max-width:760px){.iste-collaborate{padding:36px 16px 70px}.iste-collaborate .cards,.iste-collaborate .two{grid-template-columns:1fr}}
+
+        /* Partnership page visual refresh */
+        .iste-collaborate{max-width:1320px;padding:35px 28px 78px;background:radial-gradient(ellipse at 84% 5%,rgba(159,23,53,.12),transparent 38%)}
+        .iste-collaborate .iste-hero{position:relative;isolation:isolate;overflow:hidden;padding:60px clamp(24px,5vw,70px) 42px;margin-bottom:20px;border:1px solid #663040;border-radius:26px;background:radial-gradient(ellipse at 86% 24%,rgba(218,29,64,.28),transparent 52%),linear-gradient(125deg,#1d101a,#0a0b12 65%);box-shadow:0 25px 70px #0007}
+        .iste-collaborate .iste-hero:after{content:"ISTe";position:absolute;right:4%;top:7%;font-size:clamp(95px,16vw,240px);font-weight:950;letter-spacing:-.09em;color:rgba(255,255,255,.027);pointer-events:none;z-index:-1}
+        .iste-collaborate .iste-hero h1{max-width:820px;font-size:clamp(40px,5.4vw,72px);line-height:1.07;letter-spacing:-.055em;margin:12px 0 20px}
+        .iste-collaborate .iste-hero .intro{max-width:690px;color:#d4c4ce;font-size:clamp(15px,1.55vw,19px);line-height:1.65}
+        .iste-collaborate .iste-hero .actions{margin:28px 0 0}
+        .iste-collaborate .btn{border-radius:11px;transition:transform .2s,border-color .2s,box-shadow .2s;background:linear-gradient(135deg,#ef244b,#b90e32);border-color:#eb3154;box-shadow:0 7px 18px rgba(191,24,57,.14)}
+        .iste-collaborate .btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(220,29,64,.25)}
+        .iste-collaborate .btn.secondary{background:#ffffff07;box-shadow:none;border-color:#715462}
+        .iste-collaborate .btn.secondary:hover{border-color:#f36a85}
+        .iste-collaborate .cards{gap:15px;margin-bottom:46px}
+        .iste-collaborate .card{position:relative;overflow:hidden;min-height:158px;padding:26px 24px;background:linear-gradient(155deg,#21111d,#111018 73%);border:1px solid #52303d;border-radius:17px;transition:transform .22s,border-color .22s}
+        .iste-collaborate .card:before{content:"";display:block;width:33px;height:3px;background:#ed3659;border-radius:4px;margin-bottom:22px}
+        .iste-collaborate .card:hover{transform:translateY(-4px);border-color:#df4267}
+        .iste-collaborate .card h3{font-size:19px;margin-bottom:12px}
+        .iste-collaborate .card p{line-height:1.6}
+        .iste-insights{margin:0 0 44px}
+        .iste-insights-heading{margin-bottom:18px}
+        .iste-insights-heading h2{font-size:clamp(30px,3vw,42px)}
+        .iste-insights-kpis{gap:12px}
+        .iste-insights-kpi{background:linear-gradient(145deg,#25101c,#12131b);border-color:#4e2a38;padding:20px 22px;border-radius:14px;gap:8px}
+        .iste-insights-kpi strong{color:#fff}
+        .iste-insights-panels{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+        .iste-insights-panel{padding:23px;border-radius:17px;background:linear-gradient(145deg,#1b111b,#101018);box-shadow:none}
+        .iste-insights-panelhead h3{font-size:19px}
+        .iste-collaborate .two{align-items:start;grid-template-columns:.88fr 1.12fr;gap:16px}
+        .iste-collaborate .panel{padding:clamp(22px,2.5vw,34px);border-radius:18px;background:linear-gradient(145deg,#21111c,#100e16);border-color:#55303e}
+        .iste-collaborate .panel h2{line-height:1.22}
+        .iste-collaborate .facts{gap:10px;margin:20px 0 0}
+        .iste-collaborate .facts div{background:#ffffff04;border-color:#513140;border-radius:10px;line-height:1.6;font-size:13px}
+        .iste-collaborate label{font-size:13px;margin-bottom:15px}
+        .iste-collaborate input:not([type="checkbox"]),.iste-collaborate select,.iste-collaborate textarea{min-height:46px;outline:none;border:1px solid #614251;border-radius:10px;background:#0d0d14;transition:border-color .2s,box-shadow .2s}
+        .iste-collaborate input:focus,.iste-collaborate select:focus,.iste-collaborate textarea:focus{border-color:#ff5579;box-shadow:0 0 0 3px #ff315122}
+        .iste-collaborate textarea{min-height:128px}
+        .iste-collaborate .notice{line-height:1.65}
+        @media(max-width:960px){.iste-insights-panels,.iste-collaborate .two{grid-template-columns:1fr}}
+        @media(max-width:760px){.iste-collaborate{padding:18px 14px 56px}.iste-collaborate .iste-hero{padding:35px 22px 30px;border-radius:18px}.iste-collaborate .iste-hero h1{font-size:clamp(33px,9vw,51px)}.iste-collaborate .cards{gap:12px;margin-bottom:32px}.iste-collaborate .card{min-height:unset;padding:21px}.iste-insights{margin-bottom:30px}}
+        @media(prefers-reduced-motion:reduce){.iste-collaborate .card,.iste-collaborate .btn{transition:none}}
+        @media(max-width:760px){.iste-collaborate .cards,.iste-collaborate .two{grid-template-columns:1fr}}
       `}</style>
-      <p className="eyebrow">ISTe Esports · Для брендів, клубів та команд</p>
+      <div className="iste-hero"><p className="eyebrow">ISTe Esports · Для брендів, клубів та команд</p>
       <h1>Станьте партнером ISTe</h1>
       <p className="intro">Розвиваємо ігрову спільноту, проводимо змагальні активності та створюємо цифрові продукти. Запрошуємо до співпраці бренди, комп'ютерні клуби й організаторів подій.</p>
       <div className="actions">
         <a className="btn" href="#request">Запропонувати співпрацю</a>
         <a className="btn secondary" href={DISCORD} target="_blank" rel="noopener noreferrer">Приєднатися до Discord</a>
         <Link className="btn secondary" to="/tournaments">Турніри ISTe</Link>
-      </div>
+      </div></div>
       <section aria-label="Формати співпраці" className="cards">
         {packages.map(item => <article className="card" key={item.title}><h3>{item.title}</h3><p>{item.description}</p></article>)}
       </section>
