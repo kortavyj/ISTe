@@ -182,19 +182,63 @@ export default function Collaborate() {
         @media(max-width:760px){.iste-collaborate{padding:18px 14px 56px}.iste-collaborate .iste-hero{padding:35px 22px 30px;border-radius:18px}.iste-collaborate .iste-hero h1{font-size:clamp(33px,9vw,51px)}.iste-collaborate .cards{gap:12px;margin-bottom:32px}.iste-collaborate .card{min-height:unset;padding:21px}.iste-insights{margin-bottom:30px}}
         @media(prefers-reduced-motion:reduce){.iste-collaborate .card,.iste-collaborate .btn{transition:none}}
         @media(max-width:760px){.iste-collaborate .cards,.iste-collaborate .two{grid-template-columns:1fr}}
+
+        /* Commercial landing visual system */
+        .iste-collaborate{max-width:1380px;padding:28px 26px 90px}
+        .iste-collaborate .iste-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);align-items:center;min-height:410px;gap:20px;padding:56px clamp(26px,5vw,72px);margin-bottom:52px;border:1px solid #592537;border-radius:26px;background:radial-gradient(ellipse at 82% 42%,rgba(218,32,74,.18),transparent 50%),radial-gradient(ellipse at 8% 0%,rgba(147,30,68,.17),transparent 48%),#0d0a12}
+        .iste-collaborate .iste-hero:after{display:none}
+        .iste-hero-content{position:relative;z-index:2}
+        .iste-hero-side{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;min-width:0}
+        .iste-hero-ring{position:relative;width:min(100%,340px);aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;border:1px solid #8a344a;background:radial-gradient(circle,#4a1728 0%,#170c17 58%,#0c0b12 72%);box-shadow:0 0 0 19px #ac23410c,0 0 0 42px #ac234108,inset 0 0 70px #b4253e33}
+        .iste-hero-ring:before,.iste-hero-ring:after{content:"";position:absolute;width:12px;height:12px;background:#ff3b62;border-radius:50%;box-shadow:0 0 20px #ff3b62}
+        .iste-hero-ring:before{top:16%;left:14%}.iste-hero-ring:after{right:10%;bottom:20%;width:7px;height:7px}
+        .iste-hero-brand{font-size:clamp(65px,8vw,112px);font-weight:950;letter-spacing:-.11em;line-height:1;text-shadow:0 7px 35px #0008}
+        .iste-hero-brand span{color:#ff4266}
+        .iste-hero-ring-caption{margin-top:14px;color:#d7a4b2;font-size:10px;font-weight:900;letter-spacing:.24em;text-align:center}
+        .iste-hero-decor{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;color:#946b7b;font-size:10px;font-weight:800;letter-spacing:.08em}
+        .iste-collaborate .iste-hero h1{max-width:740px}
+        .iste-collaborate .iste-hero .intro{max-width:610px}
+        .iste-section-heading{display:flex;justify-content:space-between;align-items:end;gap:30px;margin:0 0 20px}
+        .iste-section-heading h2{margin:7px 0 0!important;font-size:clamp(26px,3vw,36px)!important;letter-spacing:-.035em}
+        .iste-section-heading p{max-width:430px;font-size:14px;line-height:1.6;margin:0}
+        .iste-collaborate .eyebrow{font-size:11px;letter-spacing:.15em}
+        .iste-collaborate .cards{margin-bottom:55px}
+        .iste-collaborate .card{min-height:206px;padding:30px;background:linear-gradient(145deg,#21111b,#101017 75%)}
+        .iste-collaborate .card:before{width:45px;margin-bottom:26px}
+        .iste-card-number{position:absolute;top:21px;right:22px;font-size:13px;font-weight:800;color:#995063;letter-spacing:.13em}
+        .iste-card-arrow{position:absolute;right:25px;bottom:19px;color:#f45776;font-size:24px}
+        .iste-collaborate .card p{max-width:300px}
+        .iste-insights{margin-bottom:56px}
+        .iste-insights-heading{padding-bottom:18px;border-bottom:1px solid #422331}
+        .iste-insights-kpi{border-radius:17px;background:linear-gradient(145deg,#1f111c,#100f16);padding:25px}
+        .iste-insights-kpi strong{font-size:clamp(34px,3.6vw,50px)}
+        .iste-insights-panel{border-radius:18px;background:linear-gradient(145deg,#1c111a,#0e0f17);padding:26px}
+        .iste-insights-panels{align-items:stretch}
+        .iste-last-heading{padding-top:8px}
+        .iste-collaborate .two{align-items:stretch;grid-template-columns:.95fr 1.05fr;gap:20px}
+        .iste-collaborate .two>.panel{min-width:0;box-shadow:0 14px 42px #0003}
+        .iste-collaborate .panel .actions{margin-bottom:20px}
+        .iste-collaborate .panel h2{font-size:clamp(23px,2.3vw,31px)}
+        .iste-collaborate .panel a:not(.btn){color:#ef7290}
+        .iste-collaborate input:not([type="checkbox"]):focus-visible,.iste-collaborate select:focus-visible,.iste-collaborate textarea:focus-visible,.iste-collaborate .btn:focus-visible{outline:2px solid #ff7b9c;outline-offset:2px}
+        @media(max-width:980px){.iste-collaborate .iste-hero{grid-template-columns:1fr}.iste-hero-side{display:none}.iste-collaborate .two{grid-template-columns:1fr}}
+        @media(max-width:720px){.iste-collaborate{padding:16px 14px 58px}.iste-collaborate .iste-hero{min-height:0;padding:38px 23px;margin-bottom:35px}.iste-section-heading{align-items:start;flex-direction:column;gap:10px}.iste-collaborate .cards{margin-bottom:40px}.iste-collaborate .card{min-height:170px;padding:24px}.iste-insights{margin-bottom:40px}.iste-insights-panel{padding:17px}}
+        @media(prefers-reduced-motion:reduce){.iste-collaborate .card,.iste-collaborate .btn{transition:none}}
       `}</style>
-      <div className="iste-hero"><p className="eyebrow">ISTe Esports · Для брендів, клубів та команд</p>
+      <div className="iste-hero"><div className="iste-hero-content"><p className="eyebrow">ISTe Esports · Для брендів, клубів та команд</p>
       <h1>Станьте партнером ISTe</h1>
       <p className="intro">Розвиваємо ігрову спільноту, проводимо змагальні активності та створюємо цифрові продукти. Запрошуємо до співпраці бренди, комп'ютерні клуби й організаторів подій.</p>
       <div className="actions">
         <a className="btn" href="#request">Запропонувати співпрацю</a>
         <a className="btn secondary" href={DISCORD} target="_blank" rel="noopener noreferrer">Приєднатися до Discord</a>
         <Link className="btn secondary" to="/tournaments">Турніри ISTe</Link>
-      </div></div>
+      </div></div><div className="iste-hero-side" aria-hidden="true"><div className="iste-hero-ring"><div className="iste-hero-brand">IST<span>e</span></div><div className="iste-hero-ring-caption">ESPORTS · COMMUNITY · DIGITAL</div></div><div className="iste-hero-decor"><span>01 / CONNECT</span><span>02 / CREATE</span><span>03 / GROW</span></div></div></div>
+      <div className="iste-section-heading"><div><span className="eyebrow">МОЖЛИВОСТІ ДЛЯ БІЗНЕСУ</span><h2>Формати співпраці</h2></div><p>Від ігрових подій до цифрових продуктів, підберемо формат під цілі вашого бренду.</p></div>
       <section aria-label="Формати співпраці" className="cards">
-        {packages.map(item => <article className="card" key={item.title}><h3>{item.title}</h3><p>{item.description}</p></article>)}
+        {packages.map((item,index) => <article className="card" key={item.title}><span className="iste-card-number">0{index+1}</span><h3>{item.title}</h3><p>{item.description}</p><span className="iste-card-arrow" aria-hidden="true">↗</span></article>)}
       </section>
       <AudienceInsights />
+      <div className="iste-section-heading iste-last-heading"><div><span className="eyebrow">ПОЧНІМО СПІВПРАЦЮ</span><h2>Обговорімо ваш проєкт</h2></div><p>Опишіть ідею, а ми підготуємо пропозицію щодо можливого формату роботи.</p></div>
       <div className="two">
         <section className="panel" aria-labelledby="media-title">
           <p className="eyebrow">Медіакіт · Коротка версія</p>
