@@ -282,6 +282,23 @@ export default function Collaborate() {
         @media(max-width:1000px){.iste-process-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.iste-process-step:after{display:none}}
         @media(max-width:620px){.iste-process-grid{grid-template-columns:1fr}.iste-process-step{padding:20px}.iste-process{margin-bottom:35px}}
         @media(prefers-reduced-motion:reduce){.iste-hero-ring:before,.iste-hero-ring:after{animation:none}}
+
+        /* Hexagon Protocol: calm, responsive and reduced-motion aware */
+        .iste-collaborate .iste-hero-side{min-width:0;display:flex;align-items:center;justify-content:center}
+        .iste-hex-protocol{position:relative;width:min(100%,390px);aspect-ratio:10 / 9;display:flex;flex-direction:column;align-items:center;justify-content:center;isolation:isolate;background:radial-gradient(ellipse at 50% 48%,rgba(255,37,37,.09),transparent 67%)}
+        .iste-hex-art{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 0 9px rgba(255,37,37,.16))}
+        .iste-hex-outline{stroke:rgba(255,54,54,.66);stroke-width:1.5;stroke-dasharray:8 6}
+        .iste-hex-inner{stroke:rgba(255,255,255,.13);stroke-width:1.1}
+        .iste-hex-detail{stroke:rgba(255,57,57,.28);stroke-width:1.2}
+        .iste-hex-node{fill:var(--iste-partner-accent);filter:drop-shadow(0 0 6px rgba(255,37,37,.65))}
+        .iste-hex-scan-window{clip-path:polygon(27% 18%,73% 18%,73% 82%,27% 82%)}
+        .iste-hex-scan{stroke:var(--iste-partner-accent);stroke-width:1.3;opacity:.48;filter:drop-shadow(0 0 7px rgba(255,37,37,.65));animation:iste-hex-sweep 6s ease-in-out infinite}
+        .iste-hex-wordmark{position:relative;z-index:1;font-size:clamp(65px,8vw,108px);font-weight:950;line-height:1;letter-spacing:-.1em;color:white;text-shadow:0 4px 22px #0009}
+        .iste-hex-wordmark span{color:var(--iste-partner-accent)}
+        .iste-hex-caption{z-index:1;margin-top:16px;color:#ccc0c3;font-size:10px;font-weight:900;letter-spacing:.19em;text-align:center}
+        @keyframes iste-hex-sweep{0%,100%{transform:translateY(-92px);opacity:0}20%{opacity:.5}50%{transform:translateY(92px);opacity:.52}80%{opacity:0}}
+        @media(max-width:980px){.iste-collaborate .iste-hero-side{display:none}}
+        @media(prefers-reduced-motion:reduce){.iste-hex-scan{animation:none;opacity:.17;transform:none}}
       `}</style>
       <div className="iste-hero"><div className="iste-hero-content"><p className="eyebrow">ISTe Esports · Для брендів, клубів та команд</p>
       <h1>Станьте партнером ISTe</h1>
@@ -290,7 +307,7 @@ export default function Collaborate() {
         <a className="btn" href="#request">Запропонувати співпрацю</a>
         <a className="btn secondary" href={DISCORD} target="_blank" rel="noopener noreferrer">Приєднатися до Discord</a>
         <Link className="btn secondary" to="/tournaments">Турніри ISTe</Link>
-      </div></div><div className="iste-hero-side" aria-hidden="true"><div className="iste-hero-ring"><div className="iste-orbit orbit-one"/><div className="iste-orbit orbit-two"/><div className="iste-orbit orbit-three"/><div className="iste-orbit-grid"/><div className="iste-hero-brand">IST<span>e</span></div><div className="iste-hero-ring-caption">ESPORTS · COMMUNITY · DIGITAL</div></div><div className="iste-hero-decor"><span>01 / CONNECT</span><span>02 / CREATE</span><span>03 / GROW</span></div></div></div>
+      </div></div><div className="iste-hero-side" aria-hidden="true"><div className="iste-hex-protocol"><svg className="iste-hex-art" viewBox="0 0 400 360" fill="none" aria-hidden="true"><polygon className="iste-hex-outline" points="200,18 343,100 343,260 200,342 57,260 57,100"/><polygon className="iste-hex-inner" points="200,54 310,116 310,244 200,306 90,244 90,116"/><path className="iste-hex-detail" d="M200 18V54M343 100L310 116M343 260L310 244M200 342V306M57 260L90 244M57 100L90 116"/><circle className="iste-hex-node" cx="200" cy="18" r="3.5"/><circle className="iste-hex-node" cx="343" cy="260" r="3"/><g className="iste-hex-scan-window"><path className="iste-hex-scan" d="M94 180H306"/></g></svg><div className="iste-hex-wordmark">IST<span>e</span></div><span className="iste-hex-caption">ESPORTS · COMMUNITY · DIGITAL</span></div></div></div>
       <div className="iste-section-heading"><div><span className="eyebrow">МОЖЛИВОСТІ ДЛЯ БІЗНЕСУ</span><h2>Формати співпраці</h2></div><p>Від ігрових подій до цифрових продуктів, підберемо формат під цілі вашого бренду.</p></div>
       <section aria-label="Формати співпраці" className="cards">
         {packages.map((item,index) => <article className="card" key={item.title}><span className="iste-card-number">0{index+1}</span><ServiceIcon index={index}/><h3>{item.title}</h3><p>{item.description}</p><span className="iste-card-arrow" aria-hidden="true">↗</span></article>)}
