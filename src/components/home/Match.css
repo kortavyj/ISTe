@@ -109,3 +109,8 @@
     transition: none;
   }
 }
+
+/* Black seamless match stage */
+.match-section{background:#050505}
+.match-section::before{display:none}
+.match-section__all{margin-top:14px}
