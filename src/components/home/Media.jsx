@@ -100,19 +100,22 @@ export default function Media() {
       className="section media-section"
       id="media"
     >
-      <header className="section-header">
-        <p className="section-tag">
-          {t("home.media.tag")}
-        </p>
+      <header className="section-header media-section-heading">
+        <div className="media-heading-kicker-wrap">
+          <span className="media-heading-line" aria-hidden="true" />
+          <p className="section-tag media-heading-kicker">
+            <span aria-hidden="true" className="media-heading-slashes">//</span>
+            {t("home.media.tag")}
+          </p>
+          <span className="media-heading-line" aria-hidden="true" />
+        </div>
 
-        <h2 className="section-title">
+        <h2 className="section-title media-heading-title">
           {t("home.media.title")}
         </h2>
-
-        <p className="media-intro">
-          {t(
-            "home.media.highlightsDescription",
-          )}
+        <span className="media-heading-accent" aria-hidden="true" />
+        <p className="media-intro media-heading-description">
+          {t("home.media.highlightsDescription")}
         </p>
       </header>
 
