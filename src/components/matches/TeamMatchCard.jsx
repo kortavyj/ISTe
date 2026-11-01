@@ -75,7 +75,7 @@ function TeamLogo({
   );
 }
 
-function MatchScore({ match }) {
+function MatchScore({ match, resultLabel, result }) {
   const { t } = useLanguage();
 
   const ownScore =
@@ -112,6 +112,7 @@ function MatchScore({ match }) {
         <strong>
           {opponentScore}
         </strong>
+        {resultLabel && <span className={`team-match-card__score-result team-match-card__score-result--${result}`}>{resultLabel}</span>}
       </div>
     );
   }
@@ -198,7 +199,7 @@ export default function TeamMatchCard({
             "FACEIT"}
         </span>
 
-        {resultLabel ? (
+        {resultLabel && !compact ? (
           <span
             className={`team-match-card__result team-match-card__result--${result}`}
           >
@@ -243,6 +244,8 @@ export default function TeamMatchCard({
 
         <MatchScore
           match={match}
+          resultLabel={compact ? resultLabel : null}
+          result={result}
         />
 
         <div className="team-match-card__team">
