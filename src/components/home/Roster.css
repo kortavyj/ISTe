@@ -515,3 +515,17 @@
 @media(max-width:900px){.roster-section .roster-showcase-grid{overflow-x:auto;grid-template-columns:repeat(5,minmax(175px,1fr));scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#822532 #10080b}.roster-section .roster-showcase-grid .player-card{height:410px;scroll-snap-align:center}.roster-section .roster-showcase-grid .player-card--captain{height:445px}.roster-section .roster-showcase-grid .player-avatar{height:275px}}
 @media(max-width:620px){.roster-section .roster-showcase-grid{grid-template-columns:repeat(5,210px);margin-inline:-12px;width:calc(100% + 24px);padding-inline:12px}.roster-section .roster-showcase-grid .player-card{height:380px}.roster-section .roster-showcase-grid .player-card--captain{height:410px}.roster-section .roster-showcase-grid .player-avatar{height:260px}.roster-showcase-kicker{gap:9px}.roster-showcase-kicker .section-tag{font-size:10px}.roster-showcase-heading .section-title{font-size:clamp(2.1rem,8vw,3.4rem)}}
 @media(prefers-reduced-motion:reduce){.roster-section .roster-showcase-grid .player-card,.roster-section .roster-showcase-grid .player-avatar img{transition:none}.roster-section .roster-showcase-grid .player-card:hover{transform:none}}
+
+
+/* Remove the visible five rectangular portrait backdrops */
+.roster-section{background:radial-gradient(ellipse at 50% 62%,rgba(93,2,15,.19),transparent 52%),#050505}
+.roster-section .roster-showcase-grid{background:radial-gradient(ellipse at 50% 80%,rgba(150,11,30,.14),transparent 64%);border-bottom-color:#72202c55}
+.roster-section .roster-showcase-grid .player-avatar{overflow:visible;isolation:isolate}
+.roster-section .roster-showcase-grid .player-avatar img{object-fit:cover;object-position:center 31%;transform:scale(1.04);filter:brightness(.72) saturate(.82) contrast(1.23);-webkit-mask-image:radial-gradient(ellipse 49% 58% at 50% 46%,#000 61%,rgba(0,0,0,.92) 70%,transparent 100%),linear-gradient(to top,transparent 0%,#000 24%);mask-image:radial-gradient(ellipse 49% 58% at 50% 46%,#000 61%,rgba(0,0,0,.92) 70%,transparent 100%);-webkit-mask-composite:source-in;mask-composite:intersect}
+.roster-section .roster-showcase-grid .player-card:nth-child(2) .player-avatar img,.roster-section .roster-showcase-grid .player-card:nth-child(4) .player-avatar img{transform:scale(1.04) scaleX(-1)}
+.roster-section .roster-showcase-grid .player-card:nth-child(5) .player-avatar img{transform:scale(1.04)}
+.roster-section .roster-showcase-grid .player-card--captain .player-avatar img{transform:scale(1.13);filter:brightness(.81) saturate(.87) contrast(1.2)}
+.roster-section .roster-showcase-grid .player-card:hover .player-avatar img{filter:brightness(.9) contrast(1.15)}
+.roster-section .roster-showcase-grid .player-avatar:before{content:"";position:absolute;inset:10% 5% 4%;background:radial-gradient(ellipse at 50% 54%,rgba(245,24,43,.22),transparent 60%);filter:blur(19px);pointer-events:none;z-index:-1}
+.roster-section .roster-showcase-grid .player-card--captain .player-avatar:before{background:radial-gradient(ellipse at 50% 48%,rgba(245,24,43,.32),transparent 67%)}
+@media(max-width:900px){.roster-section .roster-showcase-grid .player-avatar img{object-position:center 33%}}
