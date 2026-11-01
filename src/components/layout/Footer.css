@@ -271,3 +271,16 @@
 @media(max-width:620px){.footer-terminal-heading span:last-child{display:none}.footer-navigation{grid-template-columns:repeat(2,minmax(0,1fr))}.footer-group:last-child{grid-column:1/-1}.footer-bottom-inner{flex-direction:row;flex-wrap:wrap;align-items:center}.footer-bottom-tag{order:3;width:100%}}
 @media(max-width:420px){.footer-navigation{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 12px}.footer-group:last-child{grid-column:1/-1}.footer-link{font-size:12px}.footer-group{padding-left:10px}.footer-terminal-heading{font-size:9px}.footer-bottom-inner{gap:9px}}
 @media(prefers-reduced-motion:reduce){.site-footer::before{animation:none;opacity:.25;left:38%}.footer-action{transition:none}.footer-action:hover{transform:none}}
+
+/* Arena Terminal palette refined to match the dark burgundy navigation icon */
+.site-footer{background:radial-gradient(ellipse at 9% 4%,rgba(68,10,17,.4),transparent 37%),linear-gradient(110deg,#18070a 0%,#10080b 36%,#080709 78%);border-top-color:#4b151d}
+.site-footer::after{border-color:rgba(107,25,32,.11)}
+.footer-terminal-heading{color:#ff303e}
+.footer-terminal-heading span:last-child{color:#937b80}
+.footer-group{border-left-color:#4a1c25}
+.footer-group h2{color:#b98186}
+.footer-action-primary{background:#f52a38;border-color:#f52a38}
+.footer-action-secondary{background:#1b0a0e;border-color:#62212a}
+.footer-action-secondary:hover{background:#300d15}
+.footer-bottom{background:#0a0709;border-top-color:#3e161e}
+.footer-bottom-tag{color:#ff3543}
