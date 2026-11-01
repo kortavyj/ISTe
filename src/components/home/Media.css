@@ -278,3 +278,7 @@
 /* Solid black through the main content, subtly blend into burgundy footer */
 .media-section{background:linear-gradient(180deg,#050505 0%,#050505 61%,#080506 75%,#100608 90%,#18070a 100%)}
 .media-section::after{background:none}
+
+/* Softer black-to-footer transition without a burgundy color band */
+.media-section{background:linear-gradient(180deg,#050505 0%,#050505 75%,#070506 88%,#0b0608 100%)}
+.media-section::after{display:none}
