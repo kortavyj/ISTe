@@ -274,3 +274,7 @@
 .media-section{position:relative;background:linear-gradient(180deg,#050505 0%,#050505 54%,#0a0507 72%,#130609 88%,#18070a 100%)}
 .media-section::after{content:"";position:absolute;bottom:0;left:0;right:0;height:33%;background:radial-gradient(ellipse at 22% 110%,rgba(94,11,24,.18),transparent 68%);pointer-events:none}
 .media-section>.media-section-heading,.media-section>.media-highlights-grid,.media-section>.media-grid,.media-section>.media-highlights-action{position:relative;z-index:1}
+
+/* Solid black through the main content, subtly blend into burgundy footer */
+.media-section{background:linear-gradient(180deg,#050505 0%,#050505 61%,#080506 75%,#100608 90%,#18070a 100%)}
+.media-section::after{background:none}
