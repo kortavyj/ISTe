@@ -582,3 +582,11 @@
 .roster-section .roster-showcase-grid .player-avatar{background:transparent}
 .roster-section .roster-showcase-grid .player-avatar img{mix-blend-mode:lighten;filter:brightness(.63) contrast(1.36) saturate(1.03)}
 .roster-section .roster-showcase-grid .player-card--captain .player-avatar img{filter:brightness(.7) contrast(1.33) saturate(1.08)}
+
+
+/* Fix grey band: use the same absolute black as the global page background */
+.roster-section{background:#000!important}
+.roster-section::before{display:none!important}
+.roster-section .roster-showcase-grid{background:transparent!important;background-color:transparent!important}
+.roster-section .roster-showcase-grid .player-card{background:transparent!important;background-color:transparent!important}
+.roster-section .roster-showcase-grid .player-avatar{background:transparent!important;background-color:transparent!important}
