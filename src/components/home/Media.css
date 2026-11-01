@@ -282,3 +282,7 @@
 /* Softer black-to-footer transition without a burgundy color band */
 .media-section{background:linear-gradient(180deg,#050505 0%,#050505 75%,#070506 88%,#0b0608 100%)}
 .media-section::after{display:none}
+
+/* Match background to reference; nearly imperceptible footer handoff */
+.media-section{background:linear-gradient(180deg,#050505 0%,#050505 78%,#060506 90%,#080607 100%)}
+.media-section::after{display:none}
