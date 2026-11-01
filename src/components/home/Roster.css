@@ -548,3 +548,30 @@
 .roster-section{background:#050505}
 .roster-section::before{display:none}
 .roster-section .roster-showcase-grid{background:transparent}
+
+
+/* Lineup 2.0: spacious stage and striking depth without card seams */
+.roster-section{background:#050505!important;min-height:unset;padding-top:clamp(54px,5vw,90px);padding-bottom:clamp(52px,6vw,96px)}
+.roster-section .roster-showcase-grid{width:min(1500px,100%);min-height:550px;align-items:end;gap:clamp(5px,1vw,20px);border:0;background:radial-gradient(ellipse 65% 37% at 50% 72%,rgba(145,0,16,.19),transparent 74%)}
+.roster-section .roster-showcase-grid .player-card{height:clamp(460px,41vw,625px);padding:0 1px 26px;overflow:visible}
+.roster-section .roster-showcase-grid .player-card--captain{height:clamp(510px,45vw,680px)}
+.roster-section .roster-showcase-grid .player-avatar{width:100%;height:clamp(310px,32vw,450px);overflow:visible}
+.roster-section .roster-showcase-grid .player-card--captain .player-avatar{height:clamp(360px,37vw,500px)}
+.roster-section .roster-showcase-grid .player-avatar img{-webkit-mask-image:radial-gradient(ellipse 70% 62% at 50% 44%,#000 52%,rgba(0,0,0,.93) 68%,transparent 100%);mask-image:radial-gradient(ellipse 70% 62% at 50% 44%,#000 52%,rgba(0,0,0,.93) 68%,transparent 100%);transform:scale(1.12);filter:brightness(.72) contrast(1.27) saturate(.95) drop-shadow(0 0 14px rgba(245,25,42,.26))}
+.roster-section .roster-showcase-grid .player-card:nth-child(1) .player-avatar img{transform:scale(1.08) rotate(-2deg);object-position:46% 40%}
+.roster-section .roster-showcase-grid .player-card:nth-child(2) .player-avatar img{transform:scale(1.14) scaleX(-1) rotate(2deg);object-position:45% 40%}
+.roster-section .roster-showcase-grid .player-card:nth-child(3) .player-avatar img{transform:scale(1.2);object-position:50% 36%}
+.roster-section .roster-showcase-grid .player-card:nth-child(4) .player-avatar img{transform:scale(1.1) scaleX(-1) rotate(-2deg);object-position:56% 38%}
+.roster-section .roster-showcase-grid .player-card:nth-child(5) .player-avatar img{transform:scale(1.12) rotate(2deg);object-position:57% 42%}
+.roster-section .roster-showcase-grid .player-card:before{inset:10% -12% 6%;background:radial-gradient(ellipse,rgba(228,10,30,.28),transparent 68%);opacity:.8}
+.roster-section .roster-showcase-grid .player-card--captain:before{background:radial-gradient(ellipse,rgba(251,10,33,.43),transparent 68%)}
+.roster-section .roster-showcase-grid .player-card__identity{margin-top:-18px}
+.roster-section .roster-showcase-grid .player-card h3{font-size:clamp(1.15rem,2.1vw,2.2rem);line-height:1.12;text-shadow:0 2px 12px #000,0 0 5px #ffffff14}
+.roster-section .roster-showcase-grid .player-role{font-size:clamp(.85rem,1.15vw,1.1rem);margin:15px 0 11px}
+.roster-section .roster-showcase-grid .player-card__identity:after{content:"";position:absolute;bottom:-9px;left:50%;width:44px;height:2px;transform:translateX(-50%);background:#ff303f;box-shadow:0 0 11px #ff273eaa}
+.roster-section .roster-showcase-grid .player-level{font-size:.78rem;background:rgba(9,5,7,.8);border-color:#ab2635}
+.roster-section .roster-showcase-grid .player-card--captain .player-card__inline-crown{position:absolute;top:-33px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 0 7px #ffcd6380)}
+.roster-section .roster-showcase-grid .player-card--captain .player-card__inline-crown .player-crown{width:23px;height:23px}
+@media(max-width:900px){.roster-section .roster-showcase-grid{min-height:0;gap:10px;grid-template-columns:repeat(5,210px)}.roster-section .roster-showcase-grid .player-card{height:465px}.roster-section .roster-showcase-grid .player-card--captain{height:505px}.roster-section .roster-showcase-grid .player-avatar{height:340px}.roster-section .roster-showcase-grid .player-card--captain .player-avatar{height:370px}}
+@media(max-width:620px){.roster-section .roster-showcase-grid{grid-template-columns:repeat(5,190px);padding-inline:12px}.roster-section .roster-showcase-grid .player-card{height:395px}.roster-section .roster-showcase-grid .player-card--captain{height:430px}.roster-section .roster-showcase-grid .player-avatar{height:278px}.roster-section .roster-showcase-grid .player-card--captain .player-avatar{height:310px}.roster-section .roster-showcase-grid .player-card h3{font-size:1.4rem}}
+@media(prefers-reduced-motion:reduce){.roster-section .roster-showcase-grid .player-card:hover{transform:none}}
