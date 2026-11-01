@@ -291,3 +291,6 @@
 /* Remove unwanted narrow strip above the Arena Terminal footer */
 .site-footer::before,.site-footer::after{display:none!important}
 .site-footer{border-top:0!important}
+
+/* Footer starts at the same shade as the media section and deepens gradually */
+.site-footer{background:radial-gradient(ellipse at 12% 85%,rgba(85,12,22,.16),transparent 65%),linear-gradient(180deg,#0b0608 0%,#0e070a 48%,#0a0709 100%)}
