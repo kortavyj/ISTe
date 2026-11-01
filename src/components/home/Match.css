@@ -132,3 +132,7 @@
 /* Remove any tinted background separating roster and media */
 .match-section{background:#050505}
 .match-section::before{display:none}
+
+/* Unified near-black homepage background */
+.match-section{background:#050505}
+.match-section::before{display:none}
