@@ -326,3 +326,31 @@
 .match-section .team-match-card--compact .team-match-card__score{text-shadow:0 0 9px #ffffff30,0 0 23px #ffffff12}
 .match-section .team-match-card--compact .team-match-card__footer{max-width:740px;border-top-color:#54212a}
 @media(max-width:620px){.match-section .team-match-card--compact{padding-top:5px;min-height:255px}.match-section .team-match-card--compact .team-match-card__competition p{font-size:.6rem}.match-section .team-match-card--compact .team-match-card__versus-row{padding:20px 0}}
+
+
+/* ISTe homepage Split Banner, scoped so the match listing keeps its original layout */
+.match-section .team-match-card--compact{width:min(1100px,100%);min-height:auto;padding:10px 0 5px;background:none;border:0;box-shadow:none;overflow:visible}
+.match-section .team-match-card--compact:hover{transform:none;border:0;box-shadow:none}
+.match-section .team-match-card--compact .team-match-card__topline{max-width:1040px;margin:0 auto 10px;justify-content:center}
+.match-section .team-match-card--compact .team-match-card__competition{max-width:1040px;margin:0 auto 17px;justify-content:center;gap:12px;flex-wrap:wrap}
+.match-section .team-match-card--compact .team-match-card__competition p{max-width:min(100%,850px);white-space:normal;overflow:visible;text-overflow:clip;line-height:1.45;text-align:center;color:#c9c3c8;font-size:clamp(.68rem,1vw,.83rem)}
+.match-section .team-match-card--compact .team-match-card__versus-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,.8fr) minmax(0,1fr);gap:0;padding:0;max-width:1100px;align-items:stretch}
+.match-section .team-match-card--compact .team-match-card__team{position:relative;isolation:isolate;min-height:210px;padding:28px 14px;align-items:center;justify-content:center;gap:13px;overflow:hidden}
+.match-section .team-match-card--compact .team-match-card__team:before{content:"";position:absolute;inset:0;z-index:-1}
+.match-section .team-match-card--compact .team-match-card__team--own:before{background:linear-gradient(125deg,#3b0813,#1c080e 75%);clip-path:polygon(0 0,100% 0,90% 100%,0 100%)}
+.match-section .team-match-card--compact .team-match-card__team--own:after{content:"ISTe";position:absolute;left:4%;bottom:-15px;z-index:-1;color:#ff344511;font-size:clamp(5rem,11vw,9rem);font-weight:950;font-style:italic;letter-spacing:-.1em;transform:skew(-12deg);pointer-events:none}
+.match-section .team-match-card--compact .team-match-card__team:not(.team-match-card__team--own):before{background:linear-gradient(125deg,#e2e2e7,#a9a9b2);clip-path:polygon(10% 0,100% 0,100% 100%,0 100%)}
+.match-section .team-match-card--compact .team-match-card__team:not(.team-match-card__team--own) strong{color:#19191c;text-shadow:none}
+.match-section .team-match-card--compact .team-match-card__logo,.match-section .team-match-card--compact .team-match-card__logo--own{width:clamp(74px,9vw,110px);height:clamp(74px,9vw,110px);border:0;border-radius:15px;background:transparent;box-shadow:none}
+.match-section .team-match-card--compact .team-match-card__logo img{object-fit:contain}
+.match-section .team-match-card--compact .team-match-card__team strong{font-size:clamp(.9rem,1.4vw,1.12rem);font-weight:900;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+.match-section .team-match-card--compact .team-match-card__score{position:relative;z-index:2;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;align-items:center;gap:clamp(5px,1.5vw,17px);min-height:210px;padding:27px 15px 38px;background:linear-gradient(145deg,#141215,#09090b);clip-path:polygon(12% 0,100% 0,88% 100%,0 100%);font-size:clamp(3.3rem,6vw,5.6rem);line-height:1;white-space:nowrap;text-shadow:0 0 14px #ffffff22,0 0 28px #ffffff0e}
+.match-section .team-match-card--compact .team-match-card__score span:not(.team-match-card__score-result){color:#ff3545;font-size:.55em}
+.match-section .team-match-card--compact .team-match-card__score-result{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);padding:6px 13px;border-radius:999px;background:#4a0c17;color:#ff626b;font-size:11px;letter-spacing:.08em;font-weight:900;text-shadow:none;white-space:nowrap}
+.match-section .team-match-card--compact .team-match-card__score-result--win{background:#143423;color:#78f3a7}
+.match-section .team-match-card--compact .team-match-card__score-result--draw{background:#362c11;color:#f6d073}
+.match-section .team-match-card--compact .team-match-card__versus{z-index:2;min-height:210px;display:grid;place-items:center;background:#141215;clip-path:polygon(12% 0,100% 0,88% 100%,0 100%);color:#ff4350}
+.match-section .team-match-card--compact .team-match-card__footer{margin:15px auto 0;max-width:1040px;border-top:1px solid #7c24334d;color:#b8adb1;justify-content:center}
+@media(max-width:760px){.match-section .team-match-card--compact .team-match-card__versus-row{grid-template-columns:minmax(0,1fr) minmax(100px,.86fr) minmax(0,1fr)}.match-section .team-match-card--compact .team-match-card__team{min-height:180px;padding:14px 8px}.match-section .team-match-card--compact .team-match-card__score,.match-section .team-match-card--compact .team-match-card__versus{min-height:180px;clip-path:none;font-size:clamp(2rem,7.4vw,3.7rem);padding:24px 5px 36px}.match-section .team-match-card--compact .team-match-card__team--own:before,.match-section .team-match-card--compact .team-match-card__team:not(.team-match-card__team--own):before{clip-path:none}.match-section .team-match-card--compact .team-match-card__logo,.match-section .team-match-card--compact .team-match-card__logo--own{width:clamp(43px,13vw,72px);height:clamp(43px,13vw,72px)}.match-section .team-match-card--compact .team-match-card__score-result{bottom:22px;font-size:9px;padding:4px 7px}.match-section .team-match-card--compact .team-match-card__team strong{font-size:clamp(.62rem,2vw,.9rem)}}
+@media(max-width:420px){.match-section .team-match-card--compact .team-match-card__versus-row{grid-template-columns:minmax(0,1fr) 94px minmax(0,1fr)}.match-section .team-match-card--compact .team-match-card__score{font-size:2rem;gap:3px}.match-section .team-match-card--compact .team-match-card__team{padding:12px 4px}}
+@media(prefers-reduced-motion:reduce){.match-section .team-match-card--compact,.match-section .team-match-card--compact *{transition:none!important}}
