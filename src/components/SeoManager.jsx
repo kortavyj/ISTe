@@ -66,6 +66,10 @@ const SEO = {
         description:
           "Євген, відомий як Kortavyj, — засновник і власник ISTesport, стример і музикант. Історія створення ISTe та розвитку проєкту.",
       },
+      "/collaborate": { title: "Співпраця та партнерство з ISTe | Для брендів і клубів", description: "Партнерство з ISTe: кіберспортивні турніри, інтеграції брендів, розробка цифрових рішень та форма звернення." },
+      "/discord": { title: "Discord бот ISTe | Інструменти для спільнот", description: "Discord бот ISTe для ігрових серверів: можливості, інструменти та інформація про проєкт." },
+      "/highlights": { title: "Хайлайти ISTe | Кіберспортивні моменти", description: "Добірка ігрових хайлайтів та відеоматеріалів ISTe." },
+      "/support": { title: "Підтримка ISTe | Допомога користувачам", description: "Довідка та підтримка користувачів сайту й сервісів ISTe." },
       "/contacts": {
         title:
           "Контакти ISTesport | Зв’язатися з командою",
@@ -134,6 +138,10 @@ const SEO = {
         description:
           "Евгений, известный как Kortavyj, — основатель и владелец ISTesport, стример и музыкант. История создания ISTe и развития проекта.",
       },
+      "/collaborate": { title: "Сотрудничество с ISTe | Партнёрам и брендам", description: "Предложения ISTe для брендов: киберспортивные турниры, рекламные интеграции, цифровые решения и форма заявки." },
+      "/discord": { title: "Discord бот ISTe | Инструменты для сообществ", description: "Discord бот ISTe для игровых серверов, функции и информация о сервисе." },
+      "/highlights": { title: "Хайлайты ISTe | Игровые моменты", description: "Видеоролики и яркие игровые моменты сообщества ISTe." },
+      "/support": { title: "Поддержка ISTe | Помощь пользователям", description: "Справка и помощь пользователям сайта и сервисов ISTe." },
       "/contacts": {
         title:
           "Контакты ISTesport | Связаться с командой",
@@ -202,6 +210,10 @@ const SEO = {
         description:
           "Evgeniy, known online as Kortavyj, is the founder and owner of ISTesport, a streamer and musician. The story of ISTe and its development.",
       },
+      "/collaborate": { title: "ISTe Partnerships | Brands and Esports Clubs", description: "Partner with ISTe for esports tournaments, brand activations and digital solutions. Send a collaboration request." },
+      "/discord": { title: "ISTe Discord Bot | Community Tools", description: "Explore ISTe Discord bot tools and features for gaming communities." },
+      "/highlights": { title: "ISTe Highlights | Esports Clips", description: "Watch esports highlights and gaming videos from ISTe." },
+      "/support": { title: "ISTe Support | Help Center", description: "Help and support for ISTe website and services." },
       "/contacts": {
         title:
           "ISTesport Contacts | Contact the Team",
