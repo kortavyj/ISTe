@@ -106,22 +106,19 @@ export default function Match() {
       className="section match-section"
       id="matches"
     >
-      <header className="section-header">
-        <p className="section-tag">
-          {featured
-            ? t(featured.tagKey)
-            : t(
-                "home.matches.tagDefault",
-              )}
-        </p>
-
-        <h2 className="section-title">
-          {featured
-            ? t(featured.titleKey)
-            : t(
-                "home.matches.titleDefault",
-              )}
+      <header className="section-header match-heading">
+        <div className="match-heading-kicker-row">
+          <span className="match-heading-line" aria-hidden="true" />
+          <p className="section-tag match-heading-kicker">
+            <span className="match-heading-slashes" aria-hidden="true">//</span>
+            {featured ? t(featured.tagKey) : t("home.matches.tagDefault")}
+          </p>
+          <span className="match-heading-line" aria-hidden="true" />
+        </div>
+        <h2 className="section-title match-heading-title">
+          {featured ? t(featured.titleKey) : t("home.matches.titleDefault")}
         </h2>
+        <span className="match-heading-accent" aria-hidden="true" />
       </header>
 
       {featured ? (
