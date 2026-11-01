@@ -24,8 +24,7 @@ const mediaItems = [
     type: "TWITCH",
     href:
       "https://www.twitch.tv/kortavyj",
-    image:
-      "https://static-cdn.jtvnw.net/previews-ttv/live_user_kortavyj-1280x720.jpg",
+    image: null,
   },
   {
     titleKey:
@@ -215,19 +214,21 @@ export default function Media() {
                   "common.openNewTab",
                 )}`}
               >
-                <img
-                  src={item.image}
-                  alt=""
-                  loading="lazy"
-                  onError={(event) => {
-                    event.currentTarget.src =
-                      isteLogo;
-
-                    event.currentTarget.classList.add(
-                      "media-image-fallback",
-                    );
-                  }}
-                />
+                {item.type === "TWITCH" ? (
+                  <div className="media-twitch-art" aria-hidden="true">
+                    <div className="media-twitch-light media-twitch-light-left" />
+                    <div className="media-twitch-light media-twitch-light-right" />
+                    <div className="media-twitch-monitor">
+                      <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+                        <path d="M17 13H83V61L67 77H49L37 88V77H17V13Z" fill="#A970FF" fillOpacity=".2" stroke="#C59AFF" strokeWidth="4"/>
+                        <path d="M40 31V53M62 31V53" stroke="#E5CEFF" strokeWidth="7" strokeLinecap="square"/>
+                      </svg>
+                    </div>
+                    <div className="media-twitch-desk" />
+                  </div>
+                ) : (
+                  <img src={item.image} alt="" loading="lazy" />
+                )}
 
                 <div className="media-overlay">
                   <div className="media-meta">
