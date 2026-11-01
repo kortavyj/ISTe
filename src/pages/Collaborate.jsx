@@ -11,6 +11,21 @@ const packages = [
   { title: "Цифрові рішення", description: "Лендінги, інтеграції FACEIT, Discord-боти та автоматизація для ігрових спільнот." }
 ];
 
+function ServiceIcon({ index }) {
+  const paths = [
+    <><path d="M7 3h10v5a5 5 0 0 1-10 0V3Z"/><path d="M7 5H4v2a4 4 0 0 0 4 4m9-6h3v2a4 4 0 0 1-4 4M12 13v4m-4 4h8m-4-4v4"/></>,
+    <><path d="m3 9 4-3 5 4 5-4 4 3-5 6-4-2-4 2-5-6Z"/><path d="m7 15 4 4a2 2 0 0 0 3 0l4-4M9 17l2-2m5 2-2-2"/></>,
+    <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13l-2 2 2 2m8-4 2 2-2 2m-4-5-2 6"/></>,
+  ];
+  return <span className="iste-service-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{paths[index]}</svg></span>;
+}
+const steps = [
+  { title: "Заявка", detail: "Ви описуєте ідею, цілі та формат майбутньої співпраці." },
+  { title: "Обговорення", detail: "Уточнюємо задачі, аудиторію, терміни та очікувані результати." },
+  { title: "Пропозиція", detail: "Формуємо концепцію, обсяг робіт і погоджуємо умови." },
+  { title: "Реалізація", detail: "Запускаємо узгоджений проєкт і підбиваємо результати." },
+];
+
 function openEmail(subject, body) {
   window.location.href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
 }
@@ -224,6 +239,49 @@ export default function Collaborate() {
         @media(max-width:980px){.iste-collaborate .iste-hero{grid-template-columns:1fr}.iste-hero-side{display:none}.iste-collaborate .two{grid-template-columns:1fr}}
         @media(max-width:720px){.iste-collaborate{padding:16px 14px 58px}.iste-collaborate .iste-hero{min-height:0;padding:38px 23px;margin-bottom:35px}.iste-section-heading{align-items:start;flex-direction:column;gap:10px}.iste-collaborate .cards{margin-bottom:40px}.iste-collaborate .card{min-height:170px;padding:24px}.iste-insights{margin-bottom:40px}.iste-insights-panel{padding:17px}}
         @media(prefers-reduced-motion:reduce){.iste-collaborate .card,.iste-collaborate .btn{transition:none}}
+
+        /* Match the ISTe home page: neutral black surfaces and restrained red */
+        .iste-collaborate{--iste-partner-accent:var(--accent,#ff2525);background:radial-gradient(ellipse at 52% 0%,rgba(255,37,37,.065),transparent 42%);color:#f5f5f6}
+        .iste-collaborate .iste-hero{background:radial-gradient(ellipse at 78% 35%,rgba(255,37,37,.11),transparent 55%),linear-gradient(135deg,#151115,#08090b 74%);border-color:#43282d}
+        .iste-collaborate .iste-hero-ring{overflow:hidden;background:radial-gradient(circle,#1c1316 0%,#0c0d10 72%);border-color:#743038;box-shadow:0 0 0 16px #ff252507,0 0 0 36px #ff252503,inset 0 0 70px #ff25250b}
+        .iste-orbit{position:absolute;border:1px solid rgba(255,68,68,.22);border-radius:50%;pointer-events:none}
+        .iste-orbit.orbit-one{inset:11%;transform:rotate(-25deg) scaleX(1.28)}
+        .iste-orbit.orbit-two{inset:18%;transform:rotate(52deg) scaleX(.71)}
+        .iste-orbit.orbit-three{inset:5%;border-style:dashed;border-color:#ffffff13}
+        .iste-orbit-grid{position:absolute;inset:0;border-radius:50%;background-image:linear-gradient(#ffffff05 1px,transparent 1px),linear-gradient(90deg,#ffffff05 1px,transparent 1px);background-size:22px 22px;mask-image:radial-gradient(circle,#000 12%,transparent 74%);pointer-events:none}
+        .iste-hero-ring:before{animation:iste-soft-beacon 5s ease-in-out infinite}.iste-hero-ring:after{animation:iste-soft-beacon 6.5s ease-in-out infinite reverse}
+        .iste-hero-brand,.iste-hero-ring-caption{position:relative;z-index:1}
+        .iste-hero-brand span{color:var(--iste-partner-accent)}
+        .iste-hero-ring-caption{color:#b7a5a7}
+        .iste-hero-decor{color:#8e797d}
+        .iste-collaborate .btn{background:var(--iste-partner-accent);border-color:var(--iste-partner-accent);box-shadow:0 8px 20px #ff252518}
+        .iste-collaborate .btn.secondary{background:#111114;border-color:#494044}
+        .iste-collaborate .card,.iste-collaborate .panel,.iste-insights-panel{background:linear-gradient(155deg,#181518,#0d0e11 75%);border-color:#493038}
+        .iste-collaborate .card:before{display:none}
+        .iste-collaborate .card{padding:25px 27px;min-height:205px}
+        .iste-card-number{color:#8e666d}
+        .iste-card-arrow{color:var(--iste-partner-accent)}
+        .iste-service-icon{display:grid;place-items:center;width:46px;height:46px;color:#ff4a4a;background:rgba(255,37,37,.075);border:1px solid rgba(255,37,37,.24);border-radius:12px;margin-bottom:17px}
+        .iste-service-icon svg{width:24px;height:24px}
+        .iste-collaborate .eyebrow{color:#ff4747}
+        .iste-insights-kpi{background:linear-gradient(145deg,#1a1719,#0e0f12);border-color:#413037}
+        .iste-insights-kpi strong{color:#f7f7f8}
+        .iste-insights-heading{border-bottom-color:#3c292d}
+        .iste-insights-panel{box-shadow:none}
+        .iste-collaborate .facts div{border-color:#413037;background:#ffffff03}
+        .iste-collaborate input:not([type="checkbox"]),.iste-collaborate textarea,.iste-collaborate select{border-color:#514046}
+        .iste-collaborate .iste-insights-status{background:#221517;border-color:#513036;color:#eeb1b1}
+        .iste-process{margin:0 0 52px}
+        .iste-process-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+        .iste-process-step{position:relative;min-width:0;padding:24px 23px;border:1px solid #403036;border-radius:16px;background:linear-gradient(145deg,#171518,#0e0f12)}
+        .iste-process-step:not(:last-child):after{content:"";position:absolute;right:-10px;top:39px;width:18px;height:1px;background:#ff4949;z-index:2}
+        .iste-step-count{display:block;color:#ff4949;font-size:12px;font-weight:900;letter-spacing:.13em;margin-bottom:24px}
+        .iste-process-step h3{margin:0 0 11px;font-size:19px;color:#f5f5f6}
+        .iste-process-step p{margin:0;font-size:13px;line-height:1.62}
+        @keyframes iste-soft-beacon{0%,100%{opacity:.4;box-shadow:0 0 8px #ff3636}50%{opacity:1;box-shadow:0 0 19px #ff3636}}
+        @media(max-width:1000px){.iste-process-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.iste-process-step:after{display:none}}
+        @media(max-width:620px){.iste-process-grid{grid-template-columns:1fr}.iste-process-step{padding:20px}.iste-process{margin-bottom:35px}}
+        @media(prefers-reduced-motion:reduce){.iste-hero-ring:before,.iste-hero-ring:after{animation:none}}
       `}</style>
       <div className="iste-hero"><div className="iste-hero-content"><p className="eyebrow">ISTe Esports · Для брендів, клубів та команд</p>
       <h1>Станьте партнером ISTe</h1>
@@ -232,12 +290,13 @@ export default function Collaborate() {
         <a className="btn" href="#request">Запропонувати співпрацю</a>
         <a className="btn secondary" href={DISCORD} target="_blank" rel="noopener noreferrer">Приєднатися до Discord</a>
         <Link className="btn secondary" to="/tournaments">Турніри ISTe</Link>
-      </div></div><div className="iste-hero-side" aria-hidden="true"><div className="iste-hero-ring"><div className="iste-hero-brand">IST<span>e</span></div><div className="iste-hero-ring-caption">ESPORTS · COMMUNITY · DIGITAL</div></div><div className="iste-hero-decor"><span>01 / CONNECT</span><span>02 / CREATE</span><span>03 / GROW</span></div></div></div>
+      </div></div><div className="iste-hero-side" aria-hidden="true"><div className="iste-hero-ring"><div className="iste-orbit orbit-one"/><div className="iste-orbit orbit-two"/><div className="iste-orbit orbit-three"/><div className="iste-orbit-grid"/><div className="iste-hero-brand">IST<span>e</span></div><div className="iste-hero-ring-caption">ESPORTS · COMMUNITY · DIGITAL</div></div><div className="iste-hero-decor"><span>01 / CONNECT</span><span>02 / CREATE</span><span>03 / GROW</span></div></div></div>
       <div className="iste-section-heading"><div><span className="eyebrow">МОЖЛИВОСТІ ДЛЯ БІЗНЕСУ</span><h2>Формати співпраці</h2></div><p>Від ігрових подій до цифрових продуктів, підберемо формат під цілі вашого бренду.</p></div>
       <section aria-label="Формати співпраці" className="cards">
-        {packages.map((item,index) => <article className="card" key={item.title}><span className="iste-card-number">0{index+1}</span><h3>{item.title}</h3><p>{item.description}</p><span className="iste-card-arrow" aria-hidden="true">↗</span></article>)}
+        {packages.map((item,index) => <article className="card" key={item.title}><span className="iste-card-number">0{index+1}</span><ServiceIcon index={index}/><h3>{item.title}</h3><p>{item.description}</p><span className="iste-card-arrow" aria-hidden="true">↗</span></article>)}
       </section>
       <AudienceInsights />
+      <section className="iste-process" aria-labelledby="iste-process-title"><div className="iste-section-heading"><div><span className="eyebrow">ПРОЗОРИЙ ПРОЦЕС</span><h2 id="iste-process-title">Як ми працюємо</h2></div><p>Чотири зрозумілі етапи від першого звернення до реалізації.</p></div><div className="iste-process-grid">{steps.map((step,i)=><article className="iste-process-step" key={step.title}><span className="iste-step-count">{String(i+1).padStart(2,"0")}</span><h3>{step.title}</h3><p>{step.detail}</p></article>)}</div></section>
       <div className="iste-section-heading iste-last-heading"><div><span className="eyebrow">ПОЧНІМО СПІВПРАЦЮ</span><h2>Обговорімо ваш проєкт</h2></div><p>Опишіть ідею, а ми підготуємо пропозицію щодо можливого формату роботи.</p></div>
       <div className="two">
         <section className="panel" aria-labelledby="media-title">
