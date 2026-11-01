@@ -297,3 +297,9 @@
 
 /* Continue from near-black media background without burgundy band */
 .site-footer{background:linear-gradient(180deg,#080607 0%,#090708 35%,#0b0809 100%);border-top:0!important}
+
+/* Replace pinkish footer labels with the site's true vivid red */
+.footer-terminal-heading,.footer-group h2,.footer-brand-caption,.footer-bottom-tag{color:#ff303a}
+.footer-terminal-heading span:last-child{color:#a8a8ae}
+.footer-description{color:#b9b9be}
+.footer-group{border-left-color:#422027}
