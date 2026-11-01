@@ -284,3 +284,6 @@
 .footer-action-secondary:hover{background:#300d15}
 .footer-bottom{background:#0a0709;border-top-color:#3e161e}
 .footer-bottom-tag{color:#ff3543}
+
+/* Continue the media section gradient without a visible seam */
+.site-footer{border-top-color:transparent;background:radial-gradient(ellipse at 16% 2%,rgba(80,10,20,.22),transparent 47%),linear-gradient(180deg,#18070a 0%,#130709 31%,#0c080a 73%,#080709 100%)}
