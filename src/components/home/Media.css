@@ -220,3 +220,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Card Focus: atmospheric Twitch and Discord media cards */
+.media-section{background:#050506}
+.media-grid{gap:22px}
+.media-card-social{min-height:300px;border-radius:20px;border-color:rgba(238,37,53,.42);background:#09080c}
+.media-card-social img{height:300px;object-fit:cover;filter:brightness(.68) saturate(1.08)}
+.media-card-twitch{background:radial-gradient(ellipse at 54% 40%,#42205c 0%,#1b0f2a 40%,#0b090f 78%);isolation:isolate}
+.media-card-twitch:before{content:"";position:absolute;z-index:0;inset:0;pointer-events:none;background:linear-gradient(110deg,rgba(12,6,20,.78),rgba(100,29,146,.18) 46%,rgba(8,5,16,.76)),repeating-linear-gradient(90deg,transparent 0 18%,rgba(164,67,255,.09) 19%,transparent 20% 45%);mix-blend-mode:screen}
+.media-card-twitch img.media-image-fallback{opacity:.12;filter:grayscale(1);background:transparent;padding:65px}
+.media-card-discord{background:radial-gradient(ellipse at 55% 38%,#101d47 0%,#0b1022 44%,#09080d 80%)}
+.media-card-discord img{object-fit:contain;padding:55px 32%;background:radial-gradient(ellipse at center,rgba(80,92,220,.2),transparent 65%);filter:drop-shadow(0 0 25px rgba(113,110,245,.18))}
+.media-card-social .media-overlay{z-index:2;padding:24px;background:linear-gradient(180deg,rgba(5,4,8,.12) 0%,rgba(5,4,8,.13) 40%,rgba(3,3,6,.96) 100%)}
+.media-card-social .media-copy h3{font-size:clamp(1.4rem,2.1vw,1.85rem);letter-spacing:-.035em;text-transform:uppercase}
+.media-card-social .media-copy p{color:#c8c1c9;font-size:.88rem}
+.media-card-social .media-type{color:#ff3b46;border-color:rgba(255,43,55,.65)}
+.media-card-social .media-open{background:#f52031;box-shadow:0 0 24px rgba(245,32,49,.31)}
+.media-card-social:hover{transform:translateY(-4px);border-color:#ff3747}
+@media(max-width:760px){.media-card-social{min-height:260px}.media-card-social img{height:260px}.media-card-discord img{padding:42px 32%}}
+@media(prefers-reduced-motion:reduce){.media-card-social,.media-card-social img,.media-card-social .media-open{transition:none}.media-card-social:hover,.media-card-social:hover img,.media-card-social:hover .media-open{transform:none}}
