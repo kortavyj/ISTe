@@ -269,3 +269,8 @@
 @keyframes media-heading-reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:760px){.media-section .media-section-heading{margin-bottom:30px;padding:4px 0 0}.media-heading-kicker-wrap{gap:12px;margin-bottom:16px}.media-heading-line{flex-basis:20px}.media-section .media-heading-kicker{font-size:10px;letter-spacing:.17em;gap:7px}.media-section .media-heading-title{font-size:clamp(2rem,8.8vw,3.4rem);line-height:1.1}.media-heading-accent{width:58px;height:4px;margin:17px 0 18px}.media-section .media-heading-description{font-size:.92rem}}
 @media(prefers-reduced-motion:reduce){.media-section .media-section-heading{animation:none}}
+
+/* Seamless black-to-burgundy handoff into the footer */
+.media-section{position:relative;background:linear-gradient(180deg,#050505 0%,#050505 54%,#0a0507 72%,#130609 88%,#18070a 100%)}
+.media-section::after{content:"";position:absolute;bottom:0;left:0;right:0;height:33%;background:radial-gradient(ellipse at 22% 110%,rgba(94,11,24,.18),transparent 68%);pointer-events:none}
+.media-section>.media-section-heading,.media-section>.media-highlights-grid,.media-section>.media-grid,.media-section>.media-highlights-action{position:relative;z-index:1}
