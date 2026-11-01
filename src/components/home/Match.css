@@ -114,3 +114,17 @@
 .match-section{background:#050505}
 .match-section::before{display:none}
 .match-section__all{margin-top:14px}
+
+
+/* Visual continuity with the Media section heading */
+.match-section{background:#050505}
+.match-section .match-heading{display:flex;flex-direction:column;align-items:center;text-align:center;margin:0 auto 20px;padding:0 12px}
+.match-heading-kicker-row{display:flex;width:min(960px,100%);align-items:center;justify-content:center;gap:26px;margin-bottom:19px}
+.match-section .match-heading-kicker{display:inline-flex;align-items:center;gap:10px;margin:0;color:#ff303c;font-size:clamp(11px,1vw,14px);font-weight:900;letter-spacing:.2em;white-space:nowrap}
+.match-heading-slashes{font-size:1.35em;font-weight:950;letter-spacing:-.15em}
+.match-heading-line{display:block;height:2px;flex:1;max-width:230px;background:linear-gradient(90deg,transparent,#ff2635 30%,#ff2635 92%,transparent);box-shadow:0 0 9px #ff263550}
+.match-heading-line:last-child{transform:scaleX(-1)}
+.match-section .match-heading-title{margin:0;color:white;font-size:clamp(2.35rem,5.2vw,4.9rem);font-weight:950;line-height:1.05;letter-spacing:-.045em;text-transform:uppercase;text-shadow:0 0 8px #ffffff50,0 0 20px #ffffff26,0 0 35px #ffffff12}
+.match-heading-accent{display:block;width:80px;height:5px;margin:22px 0 0;border-radius:999px;background:#ff2635;box-shadow:0 0 11px #ff263560}
+.match-section .match-section__all{margin-top:8px;font-size:.86rem}
+@media(max-width:760px){.match-heading-kicker-row{gap:12px;margin-bottom:15px}.match-section .match-heading-kicker{font-size:10px;letter-spacing:.14em;gap:7px}.match-section .match-heading-title{font-size:clamp(2rem,8.8vw,3.4rem)}.match-heading-accent{width:58px;height:4px;margin-top:17px}}
