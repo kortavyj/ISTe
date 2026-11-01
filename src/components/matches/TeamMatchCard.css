@@ -314,3 +314,15 @@
 .match-section .team-match-card--compact .team-match-card__versus{font-size:clamp(2.4rem,5vw,4rem)}
 .match-section .team-match-card--compact .team-match-card__footer{max-width:950px;width:100%;margin:auto;padding-top:14px;border-top:1px solid rgba(255,53,66,.24);justify-content:center}
 @media(max-width:620px){.match-section .team-match-card--compact{padding:18px 4px;min-height:260px}.match-section .team-match-card--compact .team-match-card__versus-row{grid-template-columns:minmax(0,1fr) minmax(92px,.8fr) minmax(0,1fr);gap:6px;padding:24px 0}.match-section .team-match-card--compact .team-match-card__logo{width:clamp(48px,16vw,76px)}.match-section .team-match-card--compact .team-match-card__score{font-size:clamp(2rem,8.5vw,3.25rem);gap:4px}.match-section .team-match-card--compact .team-match-card__team strong{font-size:.72rem}.match-section .team-match-card--compact .team-match-card__footer{align-items:center;text-align:center}}
+
+
+/* Seamless match stage: emphasize real team assets and keep metadata quiet */
+.match-section .team-match-card--compact{min-height:280px;padding-top:10px;padding-bottom:8px;background:radial-gradient(ellipse at 50% 55%,rgba(132,20,31,.075),transparent 37%)}
+.match-section .team-match-card--compact .team-match-card__topline{justify-content:center;gap:12px}
+.match-section .team-match-card--compact .team-match-card__competition{justify-content:center;gap:15px;text-align:center}
+.match-section .team-match-card--compact .team-match-card__competition p{max-width:min(720px,75%);color:#b9b4b9;font-size:.75rem}
+.match-section .team-match-card--compact .team-match-card__versus-row{padding:26px 0 19px}
+.match-section .team-match-card--compact .team-match-card__logo--own{filter:drop-shadow(0 0 13px #ff253528)}
+.match-section .team-match-card--compact .team-match-card__score{text-shadow:0 0 9px #ffffff30,0 0 23px #ffffff12}
+.match-section .team-match-card--compact .team-match-card__footer{max-width:740px;border-top-color:#54212a}
+@media(max-width:620px){.match-section .team-match-card--compact{padding-top:5px;min-height:255px}.match-section .team-match-card--compact .team-match-card__competition p{font-size:.6rem}.match-section .team-match-card--compact .team-match-card__versus-row{padding:20px 0}}
