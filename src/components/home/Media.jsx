@@ -200,13 +200,13 @@ export default function Media() {
       <div className="media-grid">
         {mediaItems.map(
           (item) => {
-            const title = t(
-              item.titleKey,
-            );
+            const title = item.type === "TWITCH"
+              ? (language === "uk" ? "СТРІМИ ISTe" : language === "ru" ? "СТРИМЫ ISTe" : "ISTe STREAMS")
+              : t(item.titleKey);
 
             return (
               <a
-                className={`media-card${item.isBrandCard ? " media-card-brand" : ""}`}
+                className={`media-card media-card-social ${item.isBrandCard ? " media-card-brand media-card-discord" : "media-card-twitch"}`}
                 href={item.href}
                 key={item.href}
                 target="_blank"
