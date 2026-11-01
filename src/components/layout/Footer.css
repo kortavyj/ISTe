@@ -287,3 +287,7 @@
 
 /* Continue the media section gradient without a visible seam */
 .site-footer{border-top-color:transparent;background:radial-gradient(ellipse at 16% 2%,rgba(80,10,20,.22),transparent 47%),linear-gradient(180deg,#18070a 0%,#130709 31%,#0c080a 73%,#080709 100%)}
+
+/* Remove unwanted narrow strip above the Arena Terminal footer */
+.site-footer::before,.site-footer::after{display:none!important}
+.site-footer{border-top:0!important}
