@@ -543,3 +543,8 @@
 .roster-section .roster-showcase-grid{background:transparent}
 .roster-section .roster-showcase-grid .player-card:before{opacity:.35}
 .roster-section .roster-showcase-grid .player-avatar:before{opacity:.55}
+
+/* Unified near-black homepage background */
+.roster-section{background:#050505}
+.roster-section::before{display:none}
+.roster-section .roster-showcase-grid{background:transparent}
