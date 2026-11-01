@@ -263,16 +263,6 @@ export default function Media() {
         )}
       </div>
 
-      <div className="media-highlights-action">
-        <Link to="/highlights">
-          {t(
-            "home.media.viewHighlights",
-          )}
-          <span aria-hidden="true">
-            →
-          </span>
-        </Link>
-      </div>
     </section>
   );
 }
