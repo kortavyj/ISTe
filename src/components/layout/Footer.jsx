@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 import logo from "../../assets/logos/iste-logo.png";
+
+const brushLogo = "/iste-brush-vector.svg";
 import { useLanguage } from "../../i18n/LanguageContext.jsx";
 
 import "./Footer.css";
@@ -73,6 +75,7 @@ export default function Footer() {
 
   return (
     <footer className="site-footer">
+      <div className="footer-terminal-heading" aria-hidden="true"><span>ISTe / ARENA TERMINAL</span><span>ESPORTS · COMMUNITY · DIGITAL</span></div>
       <div className="footer-shell">
         <div className="footer-primary">
           <div className="footer-brand-column">
@@ -81,13 +84,17 @@ export default function Footer() {
               to="/"
               aria-label={t("footer.homeAria")}
             >
-              <img src={logo} alt="" />
-              <span>ISTe</span>
+              <img src={brushLogo} alt="ISTe" />
             </Link>
 
+            <span className="footer-brand-caption">COMPETITIVE ECOSYSTEM</span>
             <p className="footer-description">
               {t("footer.description")}
             </p>
+            <div className="footer-brand-actions">
+              <a href="https://discord.gg/AzpCxEgxye" target="_blank" rel="noopener noreferrer" className="footer-action footer-action-primary">{language === "uk" ? "Приєднатися до Discord" : language === "ru" ? "Присоединиться к Discord" : "Join Discord"}</a>
+              <Link to="/tournaments" className="footer-action footer-action-secondary">{language === "uk" ? "Турніри ISTe" : language === "ru" ? "Турниры ISTe" : "ISTe Tournaments"}</Link>
+            </div>
           </div>
 
           <div className="footer-navigation">
@@ -135,6 +142,7 @@ export default function Footer() {
             © 2026 ISTesport
           </strong>
 
+          <span className="footer-bottom-tag" aria-hidden="true">BEYOND THE GAME</span>
           <a
             className="footer-email"
             href="mailto:istesport.official@gmail.com"
