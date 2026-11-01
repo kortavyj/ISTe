@@ -444,18 +444,14 @@ export default function Roster() {
       className="section roster-section"
       id="roster"
     >
-      <header className="section-header">
-        <p className="section-tag">
-          {t("home.roster.tag")}
-        </p>
-
-        <h2 className="section-title">
-          {t("home.roster.title")}
-        </h2>
+      <header className="section-header roster-showcase-heading">
+        <div className="roster-showcase-kicker"><span aria-hidden="true" /> <p className="section-tag">// {t("home.roster.tag")}</p><span aria-hidden="true" /></div>
+        <h2 className="section-title">{t("home.roster.title")}</h2>
+        <span className="roster-showcase-accent" aria-hidden="true" />
       </header>
 
       <nav className="iste-roster-tabs" aria-label="ISTe rosters"><button type="button" aria-pressed={activeRoster==="main"} onClick={()=>setActiveRoster("main")}>ISTe MAIN</button><button type="button" aria-pressed={activeRoster==="academy"} onClick={()=>setActiveRoster("academy")}>ISTe ACADEMY</button></nav>
-      {activeRoster==="academy" ? <>{academyStatsError ? <p role="status">{language === "en" ? "FACEIT statistics temporarily unavailable" : "Статистика FACEIT тимчасово недоступна"}</p> : null}<div className="roster-grid">{academyPlayers.map(player=><PlayerCard player={player} key={player.playerId}/>)}</div></> : <>
+      {activeRoster==="academy" ? <>{academyStatsError ? <p role="status">{language === "en" ? "FACEIT statistics temporarily unavailable" : "Статистика FACEIT тимчасово недоступна"}</p> : null}<div className="roster-grid roster-showcase-grid">{academyPlayers.map(player=><PlayerCard player={player} key={player.playerId}/>)}</div></> : <>
       {loading &&
       mainRoster.length === 0 ? (
         <RosterSkeleton />
@@ -463,7 +459,7 @@ export default function Roster() {
 
       {!loading &&
       mainRoster.length > 0 ? (
-        <div className="roster-grid">
+        <div className="roster-grid roster-showcase-grid">
           {centeredMainRoster.map(
             (player) => (
               <PlayerCard
