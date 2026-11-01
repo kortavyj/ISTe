@@ -299,6 +299,10 @@ export default function Collaborate() {
         @keyframes iste-hex-sweep{0%,100%{transform:translateY(-92px);opacity:0}20%{opacity:.5}50%{transform:translateY(92px);opacity:.52}80%{opacity:0}}
         @media(max-width:980px){.iste-collaborate .iste-hero-side{display:none}}
         @media(prefers-reduced-motion:reduce){.iste-hex-scan{animation:none;opacity:.17;transform:none}}
+
+        .iste-hex-brush-logo{position:relative;z-index:2;display:block;width:88%;max-width:350px;height:auto;object-fit:contain;filter:drop-shadow(0 5px 18px rgba(0,0,0,.38));pointer-events:none;user-select:none}
+        .iste-hex-protocol .iste-hex-caption{position:relative;z-index:2;margin-top:0;color:#bdb5b6;letter-spacing:.17em;font-size:9px;font-weight:750}
+        @media(max-width:1200px){.iste-hex-brush-logo{width:84%}}
       `}</style>
       <div className="iste-hero"><div className="iste-hero-content"><p className="eyebrow">ISTe Esports · Для брендів, клубів та команд</p>
       <h1>Станьте партнером ISTe</h1>
@@ -307,7 +311,7 @@ export default function Collaborate() {
         <a className="btn" href="#request">Запропонувати співпрацю</a>
         <a className="btn secondary" href={DISCORD} target="_blank" rel="noopener noreferrer">Приєднатися до Discord</a>
         <Link className="btn secondary" to="/tournaments">Турніри ISTe</Link>
-      </div></div><div className="iste-hero-side" aria-hidden="true"><div className="iste-hex-protocol"><svg className="iste-hex-art" viewBox="0 0 400 360" fill="none" aria-hidden="true"><polygon className="iste-hex-outline" points="200,18 343,100 343,260 200,342 57,260 57,100"/><polygon className="iste-hex-inner" points="200,54 310,116 310,244 200,306 90,244 90,116"/><path className="iste-hex-detail" d="M200 18V54M343 100L310 116M343 260L310 244M200 342V306M57 260L90 244M57 100L90 116"/><circle className="iste-hex-node" cx="200" cy="18" r="3.5"/><circle className="iste-hex-node" cx="343" cy="260" r="3"/><g className="iste-hex-scan-window"><path className="iste-hex-scan" d="M94 180H306"/></g></svg><div className="iste-hex-wordmark">IST<span>e</span></div><span className="iste-hex-caption">ESPORTS · COMMUNITY · DIGITAL</span></div></div></div>
+      </div></div><div className="iste-hero-side" aria-hidden="true"><div className="iste-hex-protocol"><svg className="iste-hex-art" viewBox="0 0 400 360" fill="none" aria-hidden="true"><polygon className="iste-hex-outline" points="200,18 343,100 343,260 200,342 57,260 57,100"/><polygon className="iste-hex-inner" points="200,54 310,116 310,244 200,306 90,244 90,116"/><path className="iste-hex-detail" d="M200 18V54M343 100L310 116M343 260L310 244M200 342V306M57 260L90 244M57 100L90 116"/><circle className="iste-hex-node" cx="200" cy="18" r="3.5"/><circle className="iste-hex-node" cx="343" cy="260" r="3"/><g className="iste-hex-scan-window"><path className="iste-hex-scan" d="M94 180H306"/></g></svg><img className="iste-hex-brush-logo" src="/iste-brush-vector.svg" alt="" draggable="false" /><span className="iste-hex-caption">ESPORTS · COMMUNITY · DIGITAL</span></div></div></div>
       <div className="iste-section-heading"><div><span className="eyebrow">МОЖЛИВОСТІ ДЛЯ БІЗНЕСУ</span><h2>Формати співпраці</h2></div><p>Від ігрових подій до цифрових продуктів, підберемо формат під цілі вашого бренду.</p></div>
       <section aria-label="Формати співпраці" className="cards">
         {packages.map((item,index) => <article className="card" key={item.title}><span className="iste-card-number">0{index+1}</span><ServiceIcon index={index}/><h3>{item.title}</h3><p>{item.description}</p><span className="iste-card-arrow" aria-hidden="true">↗</span></article>)}
