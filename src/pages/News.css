@@ -401,3 +401,13 @@
 @media(max-width:900px){.news-featured--spotlight{grid-template-columns:1fr 1fr}.news-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.news-page{padding:calc(var(--navbar-height) + 22px) 12px 60px}.news-header{margin-bottom:20px}.news-featured--spotlight{display:flex;flex-direction:column}.news-featured--spotlight .news-featured-cover{min-height:215px;height:215px;order:0}.news-featured--spotlight .news-featured-content{order:1}.news-featured--spotlight h2{font-size:1.7rem}.news-grid{grid-template-columns:1fr}.news-toolbar{margin-top:27px}.news-toolbar input{width:100%}.news-community{margin-top:35px;padding:22px}}
 @media(prefers-reduced-motion:reduce){.news-card,.news-featured button,.news-card button{transition:none}.news-card:hover,.news-featured button:hover,.news-card button:hover{transform:none}.news-loader{animation:none}}
+
+
+/* Compact ISTe category chips, matching article category label */
+.news-page .news-categories{gap:9px;align-items:center}
+.news-page .news-categories button{display:inline-flex;align-items:center;justify-content:center;min-height:31px;padding:6px 13px;border:1px solid rgba(255,43,58,.42);border-radius:999px;background:rgba(33,5,10,.42);box-shadow:none;color:#ff4656;font-size:.73rem;font-weight:900;letter-spacing:.075em;line-height:1.2;text-transform:uppercase;transition:color .18s,background .18s,border-color .18s,box-shadow .18s}
+.news-page .news-categories button:hover,.news-page .news-categories button:focus-visible{border-color:#ff3949;background:rgba(87,10,19,.65);color:#fff}
+.news-page .news-categories button.active{border-color:#c52939;background:rgba(105,15,25,.62);color:#ff6671;box-shadow:inset 0 0 15px rgba(255,35,52,.13),0 0 9px rgba(255,30,48,.07)}
+.news-page .news-card-category,.news-page .news-featured .news-meta b{display:inline-flex;align-items:center;min-height:24px;padding:4px 10px;border:1px solid rgba(255,44,60,.45);border-radius:999px;background:rgba(70,8,17,.64);color:#ff5966;font-size:.67rem;font-weight:900;letter-spacing:.085em;text-transform:uppercase;box-shadow:none}
+@media(max-width:620px){.news-page .news-categories{gap:7px}.news-page .news-categories button{min-height:30px;padding:6px 10px;font-size:.66rem}}
+@media(prefers-reduced-motion:reduce){.news-page .news-categories button{transition:none}}
