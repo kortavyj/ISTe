@@ -411,3 +411,14 @@
 .news-page .news-card-category,.news-page .news-featured .news-meta b{display:inline-flex;align-items:center;min-height:24px;padding:4px 10px;border:1px solid rgba(255,44,60,.45);border-radius:999px;background:rgba(70,8,17,.64);color:#ff5966;font-size:.67rem;font-weight:900;letter-spacing:.085em;text-transform:uppercase;box-shadow:none}
 @media(max-width:620px){.news-page .news-categories{gap:7px}.news-page .news-categories button{min-height:30px;padding:6px 10px;font-size:.66rem}}
 @media(prefers-reduced-motion:reduce){.news-page .news-categories button{transition:none}}
+
+
+/* Minimal editorial carousel navigator */
+.news-page .news-feature-controls--progress{display:flex;align-items:center;gap:13px;width:min(330px,100%);margin-top:22px}
+.news-page .news-feature-controls--progress .news-progress-current,.news-page .news-feature-controls--progress .news-progress-total{color:#fff;font-size:.83rem;font-weight:900;letter-spacing:.1em;font-variant-numeric:tabular-nums}
+.news-page .news-feature-controls--progress .news-progress-total{color:#8e858a}
+.news-page .news-progress-track{position:relative;flex:1;min-width:42px;height:2px;overflow:hidden;border-radius:3px;background:rgba(255,255,255,.2)}
+.news-page .news-progress-track>span{display:block;height:100%;background:#ff293c;box-shadow:0 0 12px rgba(255,33,55,.65);transition:width .35s ease}
+.news-page .news-feature-controls--progress .news-progress-arrow{display:grid;place-items:center;width:24px;min-width:24px;height:27px;min-height:27px;padding:0;border:0;border-radius:0;background:transparent;color:#a89da3;font-size:1.1rem;box-shadow:none}
+.news-page .news-feature-controls--progress .news-progress-arrow:hover,.news-page .news-feature-controls--progress .news-progress-arrow:focus-visible{color:#ff4555;background:transparent;transform:none}
+@media(prefers-reduced-motion:reduce){.news-page .news-progress-track>span{transition:none}}
