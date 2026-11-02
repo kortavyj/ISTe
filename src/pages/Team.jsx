@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { ACADEMY_PLAYERS, centerCaptain } from "../data/academyRoster.js";
 import useAcademyRoster from "../hooks/useAcademyRoster.js";
 import useOfficialRoster from "../hooks/useOfficialRoster.js";
@@ -568,7 +569,7 @@ function PlayerPortrait({ player, profile, displayName }) {
   );
 }
 
-function PlayerProfile({ player, index, language, copy }) {
+function PlayerProfile({ player, index, language, copy, featured = false }) {
   const normalizedNickname = normalizeNickname(player.nickname);
   const savedProfile = PROFILE_BY_NICKNAME.get(normalizedNickname);
   const isAgregatAcademy = player.rosterStatus === "academy" && normalizedNickname === "agregat";
@@ -733,7 +734,7 @@ function PlayerProfile({ player, index, language, copy }) {
   ];
 
   return (
-    <article className={`team-profile${isCutout ? " team-profile--cutout" : ""}${(isIvanAcademy || isDettenAcademy) ? " team-profile--academy-feature" : ""}`}>
+    <article className={`team-profile${featured ? " team-profile--featured" : " team-profile--grid-card"}${isCutout ? " team-profile--cutout" : ""}${(isIvanAcademy || isDettenAcademy) ? " team-profile--academy-feature" : ""}`}>
       <div className={`team-profile__visual${isCutout ? " team-profile__visual--cutout" : ""}`}>
         <span className="team-profile__number" aria-hidden="true">
           {String(index + 1).padStart(2, "0")}
@@ -792,7 +793,10 @@ function PlayerProfile({ player, index, language, copy }) {
           ))}
         </div>
 
-        <PlayerSocials socials={profile.socials} copy={copy} />
+        <div className="team-profile__actions">
+          <PlayerSocials socials={profile.socials} copy={copy} />
+          {player.faceitUrl ? <a className="team-profile__cta" href={player.faceitUrl} target="_blank" rel="noopener noreferrer">{language === "en" ? "Player profile" : "Профіль гравця"} <span aria-hidden="true">→</span></a> : null}
+        </div>
       </div>
     </article>
   );
@@ -874,6 +878,18 @@ export default function Team({ initialRoster = "main" }) {
   );
 
   const centeredMainPlayers = centerCaptain(mainPlayers);
+  const featuredPlayer = centeredMainPlayers.find((player) => player.isCaptain === true || normalizeNickname(player.nickname) === "droni452") || centeredMainPlayers[0];
+  const remainingPlayers = centeredMainPlayers.filter((player) => player !== featuredPlayer);
+  const academyFeatured = academyPlayers.find((player) => player.isCaptain === true || player.captain === true) || academyPlayers[0];
+  const academyRemaining = academyPlayers.filter((player) => player !== academyFeatured);
+  const visiblePlayers = activeRoster === "academy" ? academyPlayers : mainPlayers;
+  const numericValues = (key) => visiblePlayers.map((player) => player[key]).filter(Number.isFinite);
+  const rates = numericValues("winRate");
+  const elos = numericValues("elo");
+  const average = (items) => items.length ? items.reduce((sum, value) => sum + value, 0) / items.length : null;
+  const avgWinRate = average(rates);
+  const avgElo = average(elos);
+
   const substitutePlayers = players.filter(
     (player) =>
       player.officialRoster
@@ -896,22 +912,18 @@ export default function Team({ initialRoster = "main" }) {
       </header>
 
       <nav className="iste-roster-tabs" aria-label="ISTe rosters"><button type="button" aria-pressed={activeRoster==="main"} onClick={()=>setActiveRoster("main")}>ISTesport MAIN</button><button type="button" aria-pressed={activeRoster==="academy"} onClick={()=>setActiveRoster("academy")}>ISTe ACADEMY</button></nav>
-      {activeRoster === "academy" ? <>{academyStatsError ? <p role="status" className="team-page__empty">{language === "en" ? "FACEIT statistics are temporarily unavailable. Player profiles remain accessible." : "Статистика FACEIT тимчасово недоступна. Профілі гравців залишаються доступними."}</p> : null}<div className="team-profiles">{academyPlayers.map((player,index)=><PlayerProfile player={player} index={index} language={language} copy={copy} key={player.playerId}/>)}</div></> : <>
+      {activeRoster === "academy" ? <>
+        {academyStatsError ? <p role="status" className="team-page__empty">{language === "en" ? "FACEIT statistics are temporarily unavailable. Player profiles remain accessible." : "Статистика FACEIT тимчасово недоступна. Профілі гравців залишаються доступними."}</p> : null}
+        {academyFeatured ? <div className="team-roster-showcase">
+          <PlayerProfile player={academyFeatured} index={0} language={language} copy={copy} featured />
+          <div className="team-profiles team-profiles--grid">{academyRemaining.map((player,index)=><PlayerProfile player={player} index={index+1} language={language} copy={copy} key={player.playerId || player.nickname} />)}</div>
+        </div> : null}
+      </> : <>
       {loading && players.length === 0 ? <ProfilesSkeleton copy={copy} /> : null}
-
-      {!loading && mainPlayers.length > 0 ? (
-        <div className="team-profiles">
-          {centeredMainPlayers.map((player, index) => (
-            <PlayerProfile
-              player={player}
-              index={index}
-              language={language}
-              copy={copy}
-              key={player.playerId || `${index}-${player.nickname || "player"}`}
-            />
-          ))}
-        </div>
-      ) : null}
+      {!loading && featuredPlayer ? <div className="team-roster-showcase">
+        <PlayerProfile player={featuredPlayer} index={0} language={language} copy={copy} featured />
+        <div className="team-profiles team-profiles--grid">{remainingPlayers.map((player,index)=><PlayerProfile player={player} index={index+1} language={language} copy={copy} key={player.playerId || player.nickname} />)}</div>
+      </div> : null}
 
       {!loading && substitutePlayers.length > 0 ? (
         <section className="team-substitutes">
@@ -943,6 +955,22 @@ export default function Team({ initialRoster = "main" }) {
         </div>
       ) : null}
       </>}
+      {visiblePlayers.length > 0 ? <div className="team-page__lower">
+        <section className="team-overview" aria-label={language === "en" ? "Roster overview" : "Статистика складу"}>
+          <h2>{language === "en" ? "ROSTER OVERVIEW" : "СТАТИСТИКА СКЛАДУ"}</h2>
+          <div className="team-overview__metrics">
+            <div><strong>{avgWinRate === null ? "—" : formatDecimal(avgWinRate,1,language)+"%"}</strong><span>{language === "en" ? "Average win rate" : "Середній відсоток перемог"}</span></div>
+            <div><strong>{avgElo === null ? "—" : formatInteger(avgElo,language)}</strong><span>{language === "en" ? "Average ELO" : "Середній ELO"}</span></div>
+            <div><strong>{visiblePlayers.length}</strong><span>{language === "en" ? "Active players" : "Гравців у складі"}</span></div>
+          </div>
+        </section>
+        <section className="team-follow">
+          <p className="page-eyebrow">ISTe COMMUNITY</p>
+          <h2>{language === "en" ? "Follow ISTe" : "Слідкуй за ISTe"}</h2>
+          <p>{language === "en" ? "Match results, highlights and the latest team updates." : "Матчі, хайлайти та новини команди."}</p>
+          <div><Link to="/matches">{language === "en" ? "Matches" : "Матчі"} →</Link><Link to="/news">{language === "en" ? "News" : "Новини"} →</Link><a href="https://discord.gg/AzpCxEgxye" target="_blank" rel="noopener noreferrer">Discord ↗</a></div>
+        </section>
+      </div> : null}
     </section>
   );
 }
