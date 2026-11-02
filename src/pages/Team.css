@@ -1059,3 +1059,18 @@
 @media(max-width:1100px){.team-page .team-page__lower{grid-template-columns:1fr}.team-page .team-overview,.team-page .team-follow{min-height:220px}}
 @media(max-width:650px){.team-page .team-page__lower{gap:15px;margin-top:27px}.team-page .team-overview,.team-page .team-follow{padding:23px 20px;min-height:0}.team-page .team-overview h2{margin-bottom:23px}.team-page .team-overview__metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 0}.team-page .team-overview__metrics>div:nth-child(2){border-right:0}.team-page .team-overview__metrics>div:nth-child(3){padding-left:0}.team-page .team-follow .team-follow__links a{width:45px;height:45px;padding:10px}}
 @media(prefers-reduced-motion:reduce){.team-page .team-follow .team-follow__links a{transition:none}.team-page .team-follow .team-follow__links a:hover{transform:none}}
+
+
+/* Approved team hero: lift title and use soft white neon, preserving page content */
+.team-page{padding-top:calc(var(--navbar-height) + 6px)!important;background:radial-gradient(ellipse 46% 22% at 50% 0%,rgba(124,0,11,.22),transparent 83%),#030303}
+.team-page::before{background:linear-gradient(180deg,rgba(34,0,5,.11),transparent 50%,#030303 95%);pointer-events:none}
+.team-page__glow{top:calc(var(--navbar-height) - 125px)!important;width:min(540px,66vw)!important;opacity:.34!important;box-shadow:0 0 75px rgba(153,5,16,.07),inset 0 0 65px rgba(130,0,11,.025)!important}
+.team-page .team-page__header{width:min(920px,100%);margin:0 auto 14px!important;padding:0!important;transform:none!important;min-height:0!important;height:auto!important}
+.team-page .team-page__header .page-eyebrow{margin-bottom:13px;color:#ff3440;font-size:clamp(.7rem,.86vw,.85rem);font-weight:900;letter-spacing:.16em}
+.team-page .team-page__header h1{max-width:900px;margin:0 auto;color:#fff;font-size:clamp(3.2rem,7.4vw,6.75rem);line-height:.96;letter-spacing:-.055em;font-weight:950;text-shadow:0 0 5px rgba(255,255,255,.24),0 0 17px rgba(255,255,255,.16),0 0 34px rgba(255,255,255,.07)}
+.team-page .team-page__counter{margin-top:23px;border-color:rgba(255,53,65,.35);background:rgba(40,3,9,.45)}
+.team-page .iste-roster-tabs{margin:15px auto 29px}
+@media(min-width:981px){.team-page{padding-top:calc(var(--navbar-height) + 6px)!important}.team-page .team-page__header{margin-top:0!important;margin-bottom:14px!important}.team-page__glow{top:calc(var(--navbar-height) - 125px)!important}}
+@media(min-width:641px) and (max-width:980px){.team-page{padding-top:calc(var(--navbar-height) + 6px)!important}.team-page .team-page__header{margin-top:0!important;margin-bottom:14px!important}}
+@media(max-width:640px){.team-page{padding-top:calc(var(--navbar-height) + 16px)!important}.team-page .team-page__header{margin:0 auto 10px!important}.team-page .team-page__header h1{font-size:clamp(2.8rem,11.5vw,4.6rem);line-height:.98}.team-page .team-page__counter{margin-top:19px}.team-page .iste-roster-tabs{margin:12px auto 24px}.team-page__glow{top:calc(var(--navbar-height) - 35px)!important;width:90vw!important}}
+@media(prefers-reduced-motion:reduce){.team-page .team-page__header h1{text-shadow:0 0 7px rgba(255,255,255,.18),0 0 19px rgba(255,255,255,.08)}}
