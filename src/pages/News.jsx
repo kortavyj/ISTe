@@ -43,10 +43,18 @@ const CATEGORY_TRANSLATIONS = {
   match: { uk: "МАТЧ", en: "MATCH" },
   club: { uk: "КЛУБ", en: "CLUB" },
   update: { uk: "ОНОВЛЕННЯ", en: "UPDATE" },
+  partnership: { uk: "ПАРТНЕРСТВО", en: "PARTNERSHIP" },
 };
 
 const CATEGORY_ALIASES = new Map([
   ["team", "team"],
+  ["партнерство", "partnership"],
+  ["партнерства", "partnership"],
+  ["партнер", "partnership"],
+  ["партнёрство", "partnership"],
+  ["partnership", "partnership"],
+  ["partners", "partnership"],
+  ["співпраця", "partnership"],
   ["команда", "team"],
   ["tournament", "tournament"],
   ["турнир", "tournament"],
@@ -107,6 +115,18 @@ function localizeCategory(value, language) {
 
   return localized?.[language] || source;
 }
+
+function categoryKey(value) {
+  const normalized = String(value || "").trim().toLocaleLowerCase();
+  return CATEGORY_ALIASES.get(normalized) || normalized;
+}
+
+const NEWS_FILTERS = [
+  { key: "all", uk: "Усі новини", en: "All news" },
+  { key: "partnership", uk: "Партнерство", en: "Partnership" },
+  { key: "team", uk: "Команда", en: "Team" },
+  { key: "tournament", uk: "Турнір", en: "Tournament" },
+];
 
 function getStoredTranslation(post, language, field) {
   const translations =
@@ -427,8 +447,11 @@ export default function News() {
     [language, posts],
   );
 
-  const categories = useMemo(() => Array.from(new Set(localizedPosts.map(post => post.category).filter(Boolean))), [localizedPosts]);
-  const matchedPosts = useMemo(() => localizedPosts.filter(post => (category === "all" || post.category === category) && (!search.trim() || [post.title, post.excerpt, post.content].some(value => String(value || "").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())))), [localizedPosts, category, search]);
+  const categories = useMemo(() => {
+    const additional = Array.from(new Set(localizedPosts.map(post => categoryKey(post.category)).filter(key => key && !NEWS_FILTERS.some(filter => filter.key === key))));
+    return [...NEWS_FILTERS, ...additional.map(key => ({ key, uk: localizeCategory(key, "uk"), en: localizeCategory(key, "en") }))];
+  }, [localizedPosts]);
+  const matchedPosts = useMemo(() => localizedPosts.filter(post => (category === "all" || categoryKey(post.category) === category) && (!search.trim() || [post.title, post.excerpt, post.content].some(value => String(value || "").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())))), [localizedPosts, category, search]);
   const featuredCandidates = useMemo(() => matchedPosts.filter(post => post.is_featured).concat(matchedPosts.filter(post => !post.is_featured)).slice(0, 5), [matchedPosts]);
   const featuredPost = featuredCandidates.length ? featuredCandidates[featuredIndex % featuredCandidates.length] : null;
   const regularPosts = useMemo(() => matchedPosts.filter(post => post.id !== featuredPost?.id), [matchedPosts, featuredPost]);
@@ -490,8 +513,7 @@ export default function News() {
           </article> : null}
           <div className="news-toolbar">
             <div className="news-categories" aria-label={language === "en" ? "Filter news" : "Категорії новин"}>
-              <button type="button" className={category === "all" ? "active" : ""} onClick={() => setCategory("all")}>{language === "en" ? "All news" : "Усі новини"}</button>
-              {categories.map(value => <button type="button" key={value} className={category === value ? "active" : ""} onClick={() => setCategory(value)}>{value}</button>)}
+              {categories.map(item => <button type="button" key={item.key} className={category === item.key ? "active" : ""} aria-pressed={category === item.key} onClick={() => setCategory(item.key)}>{item[language] || item.uk}</button>)}
             </div>
             <input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder={language === "en" ? "Search news" : "Пошук новин"} aria-label={language === "en" ? "Search news" : "Пошук новин"} />
           </div>
