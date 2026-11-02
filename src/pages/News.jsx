@@ -8,7 +8,7 @@ import "./News.css";
 const NEWS_COPY = {
   uk: {
     eyebrow: "ОСТАННІ ОНОВЛЕННЯ",
-    title: "НОВИНИ ISTesport",
+    title: "НОВИНИ",
     loading: "Завантажуємо новини...",
     loadErrorTitle: "Помилка завантаження",
     loadErrorText: "Не вдалося завантажити новини.",
@@ -20,7 +20,7 @@ const NEWS_COPY = {
   },
   en: {
     eyebrow: "LATEST UPDATES",
-    title: "ISTesport NEWS",
+    title: "NEWS",
     loading: "Loading news...",
     loadErrorTitle: "Loading error",
     loadErrorText: "Could not load news.",
@@ -313,6 +313,10 @@ export default function News() {
   const copy = NEWS_COPY[language] || NEWS_COPY.uk;
 
   const [posts, setPosts] = useState([]);
+  const [category, setCategory] = useState("all");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [featuredIndex, setFeaturedIndex] = useState(0);
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -423,19 +427,15 @@ export default function News() {
     [language, posts],
   );
 
-  const featuredPost = useMemo(
-    () => localizedPosts.find((post) => post.is_featured) ?? null,
-    [localizedPosts],
-  );
-
-  const regularPosts = useMemo(
-    () =>
-      featuredPost
-        ? localizedPosts.filter((post) => post.id !== featuredPost.id)
-        : localizedPosts,
-    [featuredPost, localizedPosts],
-  );
-
+  const categories = useMemo(() => Array.from(new Set(localizedPosts.map(post => post.category).filter(Boolean))), [localizedPosts]);
+  const matchedPosts = useMemo(() => localizedPosts.filter(post => (category === "all" || post.category === category) && (!search.trim() || [post.title, post.excerpt, post.content].some(value => String(value || "").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())))), [localizedPosts, category, search]);
+  const featuredCandidates = useMemo(() => matchedPosts.filter(post => post.is_featured).concat(matchedPosts.filter(post => !post.is_featured)).slice(0, 5), [matchedPosts]);
+  const featuredPost = featuredCandidates.length ? featuredCandidates[featuredIndex % featuredCandidates.length] : null;
+  const regularPosts = useMemo(() => matchedPosts.filter(post => post.id !== featuredPost?.id), [matchedPosts, featuredPost]);
+  const pageCount = Math.max(1, Math.ceil(regularPosts.length / 6));
+  const visiblePosts = regularPosts.slice((Math.min(page, pageCount) - 1) * 6, Math.min(page, pageCount) * 6);
+  useEffect(() => { setPage(1); setFeaturedIndex(0); }, [category, search]);
+  useEffect(() => { if (!featuredCandidates.length) return undefined; const timer = window.setInterval(() => setFeaturedIndex(value => (value + 1) % featuredCandidates.length), 8500); return () => window.clearInterval(timer); }, [featuredCandidates.length]);
   const selectedPost = useMemo(
     () =>
       selectedPostId
@@ -448,10 +448,10 @@ export default function News() {
     <section className="news-page">
       <div className="news-shell">
         <header className="news-header">
-          <p className="page-eyebrow">{copy.eyebrow}</p>
+          <p className="page-eyebrow">ISTESPORT / CS2</p>
           <h1>{copy.title}</h1>
+          <p>{language === "en" ? "Latest results, announcements and life inside the ISTe team." : "Актуальні події, результати та життя команди ISTe."}</p>
         </header>
-
         {loading ? (
           <div className="news-state">
             <span className="news-loader" aria-hidden="true" />
@@ -473,72 +473,43 @@ export default function News() {
           </div>
         ) : null}
 
-        {!loading && featuredPost ? (
-          <article className="news-featured">
-            <div className="news-featured-cover">
-              {featuredPost.cover_url ? (
-                <img src={featuredPost.cover_url} alt="" />
-              ) : (
-                <span>ISTesport</span>
-              )}
-            </div>
-
+        {!loading && !errorMessage && localizedPosts.length > 0 ? <>
+          {featuredPost ? <article className="news-featured news-featured--spotlight">
+            <div className="news-featured-cover">{featuredPost.cover_url ? <img src={featuredPost.cover_url} alt="" /> : <span>ISTe</span>}</div>
             <div className="news-featured-content">
-              <div className="news-meta">
-                <b>{copy.featured}</b>
-                <span>{featuredPost.category}</span>
-                <time dateTime={featuredPost.published_at}>
-                  {formatDate(featuredPost.published_at, language)}
-                </time>
-              </div>
-
+              <div className="news-meta"><b>{featuredPost.category || copy.featured}</b><time dateTime={featuredPost.published_at}>{formatDate(featuredPost.published_at, language)}</time></div>
               <h2>{featuredPost.title}</h2>
               <p>{featuredPost.excerpt || featuredPost.content}</p>
-
-              <button
-                type="button"
-                onClick={() => setSelectedPostId(featuredPost.id)}
-              >
-                {copy.readMore}
-              </button>
+              <button type="button" onClick={() => setSelectedPostId(featuredPost.id)}>{copy.readMore} ↗</button>
+              <div className="news-feature-controls">
+                <button type="button" aria-label={language === "en" ? "Previous featured article" : "Попередня новина"} onClick={() => setFeaturedIndex(index => (index - 1 + featuredCandidates.length) % featuredCandidates.length)}>←</button>
+                <span>{featuredIndex % featuredCandidates.length + 1} / {featuredCandidates.length}</span>
+                <button type="button" aria-label={language === "en" ? "Next featured article" : "Наступна новина"} onClick={() => setFeaturedIndex(index => (index + 1) % featuredCandidates.length)}>→</button>
+              </div>
             </div>
-          </article>
-        ) : null}
-
-        {!loading && regularPosts.length > 0 ? (
-          <div className="news-grid">
-            {regularPosts.map((post) => (
-              <article className="news-card" key={post.id}>
-                <div className="news-card-cover">
-                  {post.cover_url ? (
-                    <img src={post.cover_url} alt="" loading="lazy" />
-                  ) : (
-                    <span>ISTesport</span>
-                  )}
-                </div>
-
-                <div className="news-card-body">
-                  <div className="news-meta">
-                    <span>{post.category}</span>
-                    <time dateTime={post.published_at}>
-                      {formatDate(post.published_at, language)}
-                    </time>
-                  </div>
-
-                  <h2>{post.title}</h2>
-                  <p>{post.excerpt || post.content}</p>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPostId(post.id)}
-                  >
-                    {copy.readMore}
-                  </button>
-                </div>
-              </article>
-            ))}
+          </article> : null}
+          <div className="news-toolbar">
+            <div className="news-categories" aria-label={language === "en" ? "Filter news" : "Категорії новин"}>
+              <button type="button" className={category === "all" ? "active" : ""} onClick={() => setCategory("all")}>{language === "en" ? "All news" : "Усі новини"}</button>
+              {categories.map(value => <button type="button" key={value} className={category === value ? "active" : ""} onClick={() => setCategory(value)}>{value}</button>)}
+            </div>
+            <input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder={language === "en" ? "Search news" : "Пошук новин"} aria-label={language === "en" ? "Search news" : "Пошук новин"} />
           </div>
-        ) : null}
+          {visiblePosts.length ? <div className="news-grid">
+            {visiblePosts.map(post => <article className="news-card" key={post.id}>
+              <div className="news-card-cover">{post.cover_url ? <img src={post.cover_url} alt="" loading="lazy" /> : <span>ISTe</span>}<span className="news-card-category">{post.category}</span></div>
+              <div className="news-card-body"><h2>{post.title}</h2><p>{post.excerpt || post.content}</p>
+                <div className="news-card-bottom"><time dateTime={post.published_at}>{formatDate(post.published_at, language)}</time><button type="button" onClick={() => setSelectedPostId(post.id)}>{copy.readMore} ↗</button></div>
+              </div>
+            </article>)}
+          </div> : <p className="news-results-empty">{language === "en" ? "No more articles for this selection." : "За вибраними умовами більше немає публікацій."}</p>}
+          {pageCount > 1 ? <nav className="news-pagination" aria-label="News pages">
+            <button type="button" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>←</button>
+            {Array.from({length: pageCount}, (_, index) => <button type="button" key={index} className={page === index + 1 ? "active" : ""} aria-current={page === index + 1 ? "page" : undefined} onClick={() => setPage(index + 1)}>{index + 1}</button>)}
+            <button type="button" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}>→</button>
+          </nav> : null}
+          <div className="news-community"><div><strong>{language === "en" ? "Follow ISTe news" : "Слідкуй за новинами ISTe"}</strong><p>{language === "en" ? "Join our community for team announcements and match updates." : "Приєднуйся до спільноти, щоб не пропустити новини та матчі."}</p></div><a href="https://discord.gg/AzpCxEgxye" target="_blank" rel="noopener noreferrer">{language === "en" ? "Join Discord" : "Приєднатися до Discord"} ↗</a></div>
+        </> : null}
       </div>
 
       {selectedPost ? (
