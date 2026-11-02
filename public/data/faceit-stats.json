@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 44,
-  "matches": 94,
-  "wins": 75,
+  "matches": 95,
+  "wins": 76,
   "winRate": 80,
   "players": 6,
   "roster": [
@@ -30,7 +30,7 @@
     {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
       "nickname": "VaLaF",
-      "avatar": "https://distribution.faceit-cdn.net/images/7d48da5a-ccec-4ab8-aec8-990fc655f9df.jpg",
+      "avatar": null,
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/VaLaF",
@@ -42,22 +42,6 @@
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
       "kd": 1.36
-    },
-    {
-      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
-      "nickname": "Droni452",
-      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
-      "level": 10,
-      "elo": 2342,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.04
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -89,7 +73,23 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 0.98
+      "kd": 0.97
+    },
+    {
+      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
+      "nickname": "Droni452",
+      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
+      "level": 10,
+      "elo": 2372,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1.04
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -105,10 +105,34 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.14
+      "kd": 1.13
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-019d377b-527b-4190-8785-62ab41dd970b",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-019d377b-527b-4190-8785-62ab41dd970b",
+      "tournamentId": "3b1873c0-4401-4a4e-8aef-111138b9a3c4",
+      "competitionName": "S59 EU Open10 B - Regular Season",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-11-02T19:06:04.000Z",
+      "startedAt": "2026-11-02T19:06:04.000Z",
+      "finishedAt": "2026-11-02T19:57:12.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "NoName",
+        "avatar": "https://distribution.faceit-cdn.net/images/3f1b5dd9-ee12-4c86-ad4c-54bd2bee621a.jpg",
+        "score": 11
+      }
+    },
     {
       "matchId": "1-883b94e4-fdd4-4397-8ddb-0c61f062311e",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-883b94e4-fdd4-4397-8ddb-0c61f062311e",
@@ -3638,14 +3662,14 @@
       }
     }
   ],
-  "teamMatchCount": 147,
+  "teamMatchCount": 148,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 7,
-    "historyMatchesFound": 15,
+    "historyMatchesFound": 16,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3653,5 +3677,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-02T02:48:37.470Z"
+  "updatedAt": "2026-11-02T20:15:28.003Z"
 }
