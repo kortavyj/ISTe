@@ -978,7 +978,7 @@ export default function Team({ initialRoster = "main" }) {
             <Link to="/contacts" aria-label={language === "en" ? "Contacts" : "Контакти"} title={language === "en" ? "Contacts" : "Контакти"}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-8-6 18-4-8-8-2z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg></Link>
           </div>
         </section>
-      </div>
+      </div> : null}
     </section>
   );
 }
