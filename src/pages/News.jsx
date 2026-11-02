@@ -504,10 +504,14 @@ export default function News() {
               <h2>{featuredPost.title}</h2>
               <p>{featuredPost.excerpt || featuredPost.content}</p>
               <button type="button" onClick={() => setSelectedPostId(featuredPost.id)}>{copy.readMore} ↗</button>
-              <div className="news-feature-controls">
-                <button type="button" aria-label={language === "en" ? "Previous featured article" : "Попередня новина"} onClick={() => setFeaturedIndex(index => (index - 1 + featuredCandidates.length) % featuredCandidates.length)}>←</button>
-                <span>{featuredIndex % featuredCandidates.length + 1} / {featuredCandidates.length}</span>
-                <button type="button" aria-label={language === "en" ? "Next featured article" : "Наступна новина"} onClick={() => setFeaturedIndex(index => (index + 1) % featuredCandidates.length)}>→</button>
+              <div className="news-feature-controls news-feature-controls--progress" aria-label={language === "en" ? "Featured articles" : "Головні новини"}>
+                <button type="button" className="news-progress-arrow" aria-label={language === "en" ? "Previous featured article" : "Попередня новина"} onClick={() => setFeaturedIndex(index => (index - 1 + featuredCandidates.length) % featuredCandidates.length)}>←</button>
+                <span className="news-progress-current">{String(featuredIndex % featuredCandidates.length + 1).padStart(2, "0")}</span>
+                <div className="news-progress-track" role="progressbar" aria-valuemin={1} aria-valuemax={featuredCandidates.length} aria-valuenow={featuredIndex % featuredCandidates.length + 1}>
+                  <span style={{ width: `${(featuredIndex % featuredCandidates.length + 1) / featuredCandidates.length * 100}%` }} />
+                </div>
+                <span className="news-progress-total">{String(featuredCandidates.length).padStart(2, "0")}</span>
+                <button type="button" className="news-progress-arrow" aria-label={language === "en" ? "Next featured article" : "Наступна новина"} onClick={() => setFeaturedIndex(index => (index + 1) % featuredCandidates.length)}>→</button>
               </div>
             </div>
           </article> : null}
