@@ -399,6 +399,7 @@ function formatDecimal(value, digits, language) {
 }
 
 function SocialIcon({ type }) {
+  if (type === "discord") { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7.5c4-2.5 8-2.5 12 0l2 9c-2 2-4 2.5-6 2.5l-.7-1.2c1-.2 2-.6 2.7-1.2-2.7 1.3-5.3 1.3-8 0 .8.6 1.7 1 2.7 1.2L10 19c-2 0-4-.5-6-2.5l2-9Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/></svg>; }
   if (type === "faceit") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -956,21 +957,28 @@ export default function Team({ initialRoster = "main" }) {
       ) : null}
       </>}
       {visiblePlayers.length > 0 ? <div className="team-page__lower">
-        <section className="team-overview" aria-label={language === "en" ? "Roster overview" : "Статистика складу"}>
-          <h2>{language === "en" ? "ROSTER OVERVIEW" : "СТАТИСТИКА СКЛАДУ"}</h2>
+        <section className="team-overview" aria-label={language === "en" ? "Roster statistics" : "Статистика складу"}>
+          <h2>{language === "en" ? "ROSTER STATISTICS" : "СТАТИСТИКА СКЛАДУ"}</h2>
           <div className="team-overview__metrics">
-            <div><strong>{avgWinRate === null ? "—" : formatDecimal(avgWinRate,1,language)+"%"}</strong><span>{language === "en" ? "Average win rate" : "Середній відсоток перемог"}</span></div>
-            <div><strong>{avgElo === null ? "—" : formatInteger(avgElo,language)}</strong><span>{language === "en" ? "Average ELO" : "Середній ELO"}</span></div>
-            <div><strong>{visiblePlayers.length}</strong><span>{language === "en" ? "Active players" : "Гравців у складі"}</span></div>
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h4v3H3zm7-7h4v10h-4zm7-7h4v17h-4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg><strong>{avgWinRate === null ? "—" : formatDecimal(avgWinRate,1,language)+"%"}</strong><span>{language === "en" ? "Average win rate" : "Середній вінрейт"}</span></div>
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.3 7 1-5 4.9 1.2 7-6.3-3.3-6.3 3.3 1.2-7-5-4.9 7-1z" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg><strong>{avgElo === null ? "—" : formatInteger(avgElo,language)}</strong><span>{language === "en" ? "Average ELO" : "Середній ELO"}</span></div>
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="16" height="10" rx="3" stroke="currentColor" strokeWidth="2" fill="none"/><path d="M8 10v4m-2-2h4m6-1h.1m2 2h.1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg><strong>{visiblePlayers.length}</strong><span>{language === "en" ? "Active players" : "Активних гравців"}</span></div>
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 20 6v6c0 5-3 8-8 10-5-2-8-5-8-10V6z" stroke="currentColor" strokeWidth="2" fill="none"/><path d="M12 6v12" stroke="currentColor" strokeWidth="2"/></svg><strong>{activeRoster === "academy" ? "ACADEMY" : "MAIN"}</strong><span>{language === "en" ? "Current roster" : "Поточний склад"}</span></div>
           </div>
         </section>
         <section className="team-follow">
           <p className="page-eyebrow">ISTe COMMUNITY</p>
           <h2>{language === "en" ? "Follow ISTe" : "Слідкуй за ISTe"}</h2>
-          <p>{language === "en" ? "Match results, highlights and the latest team updates." : "Матчі, хайлайти та новини команди."}</p>
-          <div><Link to="/matches">{language === "en" ? "Matches" : "Матчі"} →</Link><Link to="/news">{language === "en" ? "News" : "Новини"} →</Link><a href="https://discord.gg/AzpCxEgxye" target="_blank" rel="noopener noreferrer">Discord ↗</a></div>
+          <p>{language === "en" ? "Matches, news, highlights and team updates." : "Матчі, новини, хайлайти та життя команди в наших соціальних мережах."}</p>
+          <div className="team-follow__links">
+            <a href="https://discord.gg/AzpCxEgxye" target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord"><SocialIcon type="discord" /></a>
+            <Link to="/matches" aria-label={language === "en" ? "Matches" : "Матчі"} title={language === "en" ? "Matches" : "Матчі"}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinejoin="round"/></svg></Link>
+            <Link to="/news" aria-label={language === "en" ? "News" : "Новини"} title={language === "en" ? "News" : "Новини"}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/><path d="M7 9h10M7 13h10M7 17h6" stroke="currentColor" strokeWidth="2"/></svg></Link>
+            <Link to="/tournaments" aria-label={language === "en" ? "Tournaments" : "Турніри"} title={language === "en" ? "Tournaments" : "Турніри"}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v6c0 4-2 6-5 6s-5-2-5-6V4zm5 12v4m-4 0h8M7 7H4v2c0 3 2 4 5 4m8-6h3v2c0 3-2 4-5 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg></Link>
+            <Link to="/contacts" aria-label={language === "en" ? "Contacts" : "Контакти"} title={language === "en" ? "Contacts" : "Контакти"}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-8-6 18-4-8-8-2z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg></Link>
+          </div>
         </section>
-      </div> : null}
+      </div>
     </section>
   );
 }
