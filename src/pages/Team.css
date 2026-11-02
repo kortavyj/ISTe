@@ -990,3 +990,45 @@
 @media(max-width:960px){.team-roster-showcase>.team-profile--featured{grid-template-columns:1fr 1fr}.team-roster-showcase .team-profile--featured .team-profile__visual{min-height:410px}.team-page__lower{grid-template-columns:1fr}}
 @media(max-width:700px){.team-roster-showcase>.team-profile--featured{grid-template-columns:1fr}.team-roster-showcase .team-profile--featured .team-profile__visual{min-height:310px}.team-roster-showcase .team-profile--featured .team-profile__content{padding:25px}.team-roster-showcase .team-profiles--grid{grid-template-columns:1fr;gap:14px}.team-roster-showcase .team-profile--grid-card .team-profile__visual{min-height:250px}.team-roster-showcase .team-profile--grid-card .team-profile__content{padding:24px 19px}.team-roster-showcase .team-profile__personal-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.team-overview__metrics{gap:9px}.team-overview,.team-follow{padding:22px}}
 @media(prefers-reduced-motion:reduce){.team-profile__cta{transition:none}.team-profile__cta:hover{transform:none}}
+
+
+/* Reference-faithful ISTe team page: full-height portraits, no circular photo frames */
+.team-page{background:radial-gradient(ellipse at 50% 0%,rgba(99,7,15,.20),transparent 42%),#030303}
+.team-page .team-page__header{margin-bottom:18px!important}
+.team-page .team-page__header h1{letter-spacing:-.035em;text-shadow:0 0 9px #ffffff1c}
+.team-roster-showcase{width:min(1370px,100%)}
+.team-roster-showcase>.team-profile--featured{grid-template-columns:minmax(0,48%) minmax(0,52%);min-height:470px;border:1px solid rgba(245,29,43,.65);border-radius:17px;background:linear-gradient(110deg,#20070b,#050506 64%);overflow:hidden}
+.team-roster-showcase .team-profile--featured .team-profile__visual{min-height:470px;background:radial-gradient(ellipse at 52% 52%,rgba(205,10,26,.54),rgba(64,3,10,.26) 51%,transparent 78%),#160408;overflow:hidden;display:block}
+.team-roster-showcase .team-profile--featured .team-profile__visual::before,.team-roster-showcase .team-profile--featured .team-profile__visual::after{display:none!important;content:none!important}
+.team-roster-showcase .team-profile--featured .team-profile__portrait{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;aspect-ratio:auto;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:hidden}
+.team-roster-showcase .team-profile--featured .team-profile__portrait img{width:100%;height:100%;object-fit:cover;object-position:center 27%;transform:scale(1.16);filter:contrast(1.17) saturate(.98) brightness(.83);-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 12%,#000 86%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0%,#000 12%,#000 86%,transparent 100%)}
+.team-roster-showcase .team-profile--featured .team-profile__content{padding:clamp(28px,4.5vw,65px);gap:0}
+.team-roster-showcase .team-profile--featured .team-profile__heading h2{font-size:clamp(3.1rem,5.3vw,5.7rem);letter-spacing:-.05em}
+.team-roster-showcase .team-profiles--grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:22px}
+.team-roster-showcase .team-profiles--grid>.team-profile--grid-card{display:flex;flex-direction:column;min-width:0;border:1px solid #66202a;border-radius:15px;background:linear-gradient(180deg,#16070b,#050505 60%);overflow:hidden}
+.team-roster-showcase .team-profile--grid-card .team-profile__visual{height:clamp(230px,24vw,360px);min-height:0;max-height:none;position:relative;display:block;overflow:hidden;background:radial-gradient(ellipse at 50% 55%,rgba(170,15,28,.33),transparent 74%),#110408}
+.team-roster-showcase .team-profile--grid-card .team-profile__visual::before,.team-roster-showcase .team-profile--grid-card .team-profile__visual::after{display:none!important;content:none!important}
+.team-roster-showcase .team-profile--grid-card .team-profile__portrait{position:absolute;inset:0;width:100%;height:100%;max-width:none;aspect-ratio:auto;border:0;border-radius:0;overflow:hidden;background:transparent;box-shadow:none}
+.team-roster-showcase .team-profile--grid-card .team-profile__portrait img{width:100%;height:100%;object-fit:cover;object-position:center 28%;transform:scale(1.18);filter:contrast(1.15) brightness(.73);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 75%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 75%,transparent 100%)}
+.team-roster-showcase .team-profile--grid-card:nth-child(2) .team-profile__portrait img{transform:scale(1.18) scaleX(-1)}
+.team-roster-showcase .team-profile--grid-card:nth-child(3) .team-profile__portrait img{transform:scale(1.2) scaleX(-1)}
+.team-roster-showcase .team-profile--grid-card .team-profile__content{padding:18px 17px 20px;flex:1}
+.team-roster-showcase .team-profile--grid-card .team-profile__heading{align-items:flex-start;gap:6px}
+.team-roster-showcase .team-profile--grid-card .team-profile__heading h2{font-size:clamp(1.35rem,2.0vw,2.05rem);overflow-wrap:anywhere;line-height:1.1}
+.team-roster-showcase .team-profile--grid-card .team-profile__role{font-size:.7rem}
+.team-roster-showcase .team-profile--grid-card .team-profile__meta{font-size:.64rem}
+.team-roster-showcase .team-profile--grid-card .team-profile__personal-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:14px}
+.team-roster-showcase .team-profile--grid-card .team-profile__personal-stat{min-width:0;padding:9px 5px;border-radius:7px}
+.team-roster-showcase .team-profile--grid-card .team-profile__personal-stat span{font-size:.55rem;letter-spacing:0}
+.team-roster-showcase .team-profile--grid-card .team-profile__personal-stat strong{font-size:clamp(.78rem,1.1vw,1.06rem);overflow:hidden;text-overflow:ellipsis}
+.team-roster-showcase .team-profile--grid-card .team-profile__title{font-size:.78rem;margin-top:15px}
+.team-roster-showcase .team-profile--grid-card .team-profile__description{font-size:.79rem;line-height:1.55;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.team-roster-showcase .team-profile--grid-card .team-profile__strengths{gap:5px;margin-top:11px}
+.team-roster-showcase .team-profile--grid-card .team-profile__strengths span{padding:5px 7px;font-size:.65rem}
+.team-roster-showcase .team-profile--grid-card .team-profile__actions{margin-top:auto;padding-top:18px;align-items:center}
+.team-roster-showcase .team-profile--grid-card .team-profile__actions>div a{width:33px!important;height:33px!important}
+.team-roster-showcase .team-profile--grid-card .team-profile__cta{padding:9px 10px;font-size:.68rem}
+.team-page__lower{width:min(1370px,100%);margin-top:42px}
+@media(max-width:1150px){.team-roster-showcase .team-profiles--grid{grid-template-columns:repeat(2,minmax(0,1fr))}.team-roster-showcase .team-profile--grid-card .team-profile__visual{height:330px}.team-roster-showcase .team-profile--grid-card .team-profile__heading h2{font-size:2.15rem}.team-roster-showcase .team-profile--grid-card .team-profile__description{font-size:.87rem}}
+@media(max-width:700px){.team-roster-showcase>.team-profile--featured{grid-template-columns:1fr}.team-roster-showcase .team-profile--featured .team-profile__visual{min-height:360px}.team-roster-showcase .team-profile--featured .team-profile__content{padding:28px 22px}.team-roster-showcase .team-profiles--grid{grid-template-columns:1fr}.team-roster-showcase .team-profile--grid-card .team-profile__visual{height:350px}.team-roster-showcase .team-profile--grid-card .team-profile__content{padding:23px}.team-roster-showcase .team-profile--grid-card .team-profile__personal-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.team-roster-showcase .team-profile--grid-card .team-profile__personal-stat{padding:10px 6px}}
+@media(max-width:380px){.team-roster-showcase .team-profile--grid-card .team-profile__personal-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
