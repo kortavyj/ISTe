@@ -74,7 +74,7 @@ function TournamentIcon({ kind }) {
 
 function ArenaArtwork() {
   return <div className="ts-arena" aria-hidden="true">
-    <img className="ts-arena-illustration" src="/tournament-arena-art.svg" alt="" fetchPriority="high" />
+    <img className="ts-arena-illustration" src="https://images.unsplash.com/photo-1758410473735-c76baff30a79?auto=format&fit=crop&w=1600&q=82" alt="" fetchPriority="high" referrerPolicy="no-referrer" />
     <div className="ts-arena-stripes" />
   </div>;
 }
@@ -129,6 +129,7 @@ export default function TournamentsShowcase() {
         </section>
 
         <p className="ts-preview-note">{t.note} <Link to="/collaborate">{t.request} ↗</Link></p>
+        <p className="ts-preview-photo-credit">{language === "en" ? "CS2 gaming photographs" : "Фото гравців CS2"}: <a href="https://unsplash.com/@ramanshaunia" target="_blank" rel="noopener noreferrer">Raman Shaunia / Unsplash</a>. {language === "en" ? "Illustrative photos; not ISTe roster members." : "Ілюстративні фото, не гравці ISTe."}</p>
       </div>
     </section>
   );
