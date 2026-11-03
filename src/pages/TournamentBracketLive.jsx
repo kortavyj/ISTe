@@ -7,7 +7,7 @@ import "./TournamentPremiumTheme.css";
 const MAPS=["Ancient","Anubis","Dust2","Inferno","Mirage","Nuke","Overpass","Train","Vertigo"];
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export default function TournamentBracketLive(){
- const [mode,setMode]=useState("manual");
+ const [mode,setMode]=useState(()=>new URLSearchParams(window.location.search).get("mode")==="manual"?"manual":"server");
  const [id,setId]=useState(()=>new URLSearchParams(window.location.search).get("tournamentId")||"");const [matches,setMatches]=useState(null);
  const [loading,setLoading]=useState(false);const [error,setError]=useState("");
  const [editing,setEditing]=useState(null);const [saveBusy,setSaveBusy]=useState(false);const [saveError,setSaveError]=useState("");const [notice,setNotice]=useState("");
@@ -52,7 +52,7 @@ export default function TournamentBracketLive(){
  const rounds=matches===null?[]:[...new Set(matches.map(m=>m.roundIndex))].sort((a,b)=>a-b);
  return <main className="tbl-page">
   <header><p>ISTe / OWNER / TOURNAMENTS V2</p><h1>LIVE <span>BRACKET</span></h1><p>Реальная турнирная сетка и подтверждение результатов владельцем.</p></header>
-  <nav><Link to="/owner/tournaments">← Панель турниров</Link><Link to="/owner/tournaments-match-lab">Тестовая сетка →</Link></nav>
+  <nav><Link to="/owner/tournaments">← Панель турниров</Link><Link to="/owner/tournaments">Управление турнирами →</Link></nav>
   <div className="tbl-mode-tabs" role="group" aria-label="Способ создания и загрузки сетки"><button type="button" className={mode==="manual"?"is-active":""} onClick={()=>setMode("manual")}>Создать вручную · без UUID</button><button type="button" className={mode==="server"?"is-active":""} onClick={()=>setMode("server")}>Загрузить реальный турнир</button></div>
   {mode==="manual"?<TournamentManualBracket/>:<>
   <form onSubmit={load}><label htmlFor="tbl-id">UUID турнира</label><input id="tbl-id" value={id} onChange={e=>setId(e.target.value)} placeholder="xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx" required spellCheck={false}/><button type="submit" disabled={loading}>{loading?"Загрузка…":"Загрузить"}</button></form>
