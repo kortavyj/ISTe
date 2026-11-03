@@ -432,3 +432,15 @@
   .ts-season-watch,.ts-season-watch span,.ts-season-calendar{transition:none}
   .ts-season-watch:hover span{transform:none}
 }
+
+
+/* Account-based tournament alerts */
+.ts-preview-actions .ts-alert-toggle{display:inline-flex;align-items:center;justify-content:center;gap:11px;min-height:47px;padding:12px 19px;border:1px solid #51444b;border-radius:10px;background:rgba(12,12,15,.8);color:#faf7f8;font-family:inherit;font-size:.87rem;line-height:1.25;font-weight:800;cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+.ts-preview-actions .ts-alert-toggle svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+.ts-preview-actions .ts-alert-toggle:hover:not(:disabled){background:#242024;border-color:#a63544;transform:translateY(-2px)}
+.ts-preview-actions .ts-alert-toggle--active{border-color:#c5263b;background:rgba(99,13,30,.55);color:#fff}
+.ts-preview-actions .ts-alert-toggle:disabled{cursor:wait;opacity:.65}
+.ts-alert-feedback{min-height:1em;margin:12px 0 0!important;color:#e1bcc4!important;font-size:.79rem!important}
+.ts-alert-feedback:empty{display:none}
+@media(max-width:660px){.ts-preview-actions .ts-alert-toggle{min-height:43px;padding:10px 12px;font-size:.78rem}}
+@media(prefers-reduced-motion:reduce){.ts-preview-actions .ts-alert-toggle{transition:none}.ts-preview-actions .ts-alert-toggle:hover:not(:disabled){transform:none}}
