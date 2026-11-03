@@ -18,3 +18,15 @@
 
 .navbar-notifications-head button{display:grid;place-items:center;flex:none;padding:0;line-height:0}
 .navbar-notifications-head button svg{display:block;flex:none}
+
+
+.navbar-notification-indicator{position:relative}
+.navbar-notification-count{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;display:grid;place-items:center;padding:0 4px;border:1px solid #0b0b0e;border-radius:999px;background:#ef2038;color:white;font-size:10px;font-weight:900;line-height:1}
+.navbar-tournament-alert-list{display:grid;gap:8px;max-height:310px;overflow:auto;padding:13px 0}
+.navbar-tournament-alert-item{display:flex;gap:12px;align-items:flex-start;text-decoration:none;border:1px solid #4d222d;border-radius:10px;padding:13px;background:linear-gradient(110deg,#220b14,#121015);color:white}
+.navbar-tournament-alert-item:hover,.navbar-tournament-alert-item:focus-visible{border-color:#ff3448;background:#32111d}
+.navbar-tournament-alert-item>span{color:#ff3248;font-size:19px}
+.navbar-tournament-alert-item>div{min-width:0;display:grid;gap:5px}
+.navbar-tournament-alert-item strong{font-size:.79rem}
+.navbar-tournament-alert-item p{font-size:.85rem;color:#ddd1d7;margin:0;overflow-wrap:anywhere}
+.navbar-tournament-alert-item time{font-size:.69rem;color:#a99ca2}
