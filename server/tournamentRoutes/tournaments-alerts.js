@@ -10,10 +10,14 @@ async function signedInClient(request, response) {
   const { accessToken, refreshToken } = readAuthCookies(request);
   if (!refreshToken) return null;
   const supabase = getSupabaseServerClient();
-  const { data, error } = await supabase.auth.setSession({
-    access_token: accessToken || refreshToken,
-    refresh_token: refreshToken,
-  });
+  const { data, error } = accessToken
+    ? await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      })
+    : await supabase.auth.refreshSession({
+        refresh_token: refreshToken,
+      });
   if (error || !data?.user || !data?.session) {
     clearAuthCookies(response);
     return null;
