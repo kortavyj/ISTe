@@ -737,14 +737,12 @@ function PlayerProfile({ player, index, language, copy, featured = false }) {
   return (
     <article className={`team-profile${featured ? " team-profile--featured" : " team-profile--grid-card"}${isCutout ? " team-profile--cutout" : ""}${(isIvanAcademy || isDettenAcademy) ? " team-profile--academy-feature" : ""}`}>
       <div className={`team-profile__visual${isCutout ? " team-profile__visual--cutout" : ""}`}>
-        <span className="team-profile__number" aria-hidden="true">
-          {String(index + 1).padStart(2, "0")}
-        </span>
         <PlayerPortrait player={player} profile={profile} displayName={displayName} />
         <div className="team-profile__scanline" aria-hidden="true" />
       </div>
 
       <div className="team-profile__content">
+        <span className="team-profile__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
         <div className="team-profile__heading">
           <div>
             <p className="team-profile__role">{roleLabel}</p>
