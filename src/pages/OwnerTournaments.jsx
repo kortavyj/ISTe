@@ -8,6 +8,23 @@ const statusLabels = {
   draft: "Черновик", registration: "Регистрация", checkin: "Чекин",
   live: "В эфире", finished: "Завершён", cancelled: "Отменён",
 };
+const NEW_TOURNAMENT = {
+  title: "", slug: "", capacity: 8, best_of: 3,
+  registration_start: "", registration_end: "", starts_at: "",
+};
+
+function toSlug(value) {
+  return String(value || "").normalize("NFKD").toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 100);
+}
+
+function dateToIso(value) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) throw new Error("Некорректная дата.");
+  return parsed.toISOString();
+}
+
 const shortcuts = [
   { to: "/owner/tournaments-team-applications", number: "01", name: "Заявки команд", hint: "Проверка составов и допуск к турниру", tag: "Управление" },
   { to: "/owner/tournaments-bracket", number: "02", name: "Турнирная сетка", hint: "Матчи, результаты и продвижение команд", tag: "Управление" },
@@ -22,6 +39,69 @@ export default function OwnerTournaments() {
   const [tournaments, setTournaments] = useState([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [writesEnabled, setWritesEnabled] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [draft, setDraft] = useState(NEW_TOURNAMENT);
+  const [slugEdited, setSlugEdited] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [createNotice, setCreateNotice] = useState("");
+
+  function editDraft(field, value) {
+    setDraft(current => {
+      const next = { ...current, [field]: value };
+      if (field === "title" && !slugEdited) next.slug = toSlug(value);
+      return next;
+    });
+  }
+
+  async function createTournament(event) {
+    event.preventDefault();
+    if (creating || !writesEnabled) return;
+    setCreating(true);
+    setCreateError("");
+    setCreateNotice("");
+    try {
+      const registration_start = dateToIso(draft.registration_start);
+      const registration_end = dateToIso(draft.registration_end);
+      const starts_at = dateToIso(draft.starts_at);
+      if (!registration_start || !registration_end || !starts_at ||
+          registration_start >= registration_end || registration_end >= starts_at) {
+        throw new Error("Укажите даты по порядку: открытие регистрации, закрытие и начало турнира.");
+      }
+      if (new Date(starts_at).getTime() <= Date.now()) {
+        throw new Error("Дата начала турнира должна быть в будущем.");
+      }
+      const payload = {
+        slug: draft.slug.trim(), title: draft.title.trim(), game: "CS2",
+        format: "single_elimination", timezone: "Europe/Kyiv",
+        best_of: Number(draft.best_of), capacity: Number(draft.capacity),
+        registration_start, registration_end, starts_at,
+      };
+      const response = await fetch("/api/tournaments-owner", {
+        method: "POST", credentials: "include", cache: "no-store",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok || result?.ok !== true) {
+        if (result?.error === "TOURNAMENT_WRITES_DISABLED") throw new Error("Сервер не разрешает создание турниров.");
+        if (result?.error === "TOURNAMENT_CREATE_FAILED") throw new Error("Не удалось создать черновик. Проверьте уникальность адреса турнира и параметры.");
+        throw new Error(result?.message || "Не удалось создать турнир.");
+      }
+      setShowCreate(false);
+      setDraft(NEW_TOURNAMENT);
+      setSlugEdited(false);
+      setCreateNotice("Черновик турнира создан. Он не опубликован и не доступен участникам.");
+      await refresh();
+      setFilter("drafts");
+    } catch (cause) {
+      setCreateError(cause?.message || "Ошибка создания турнира.");
+    } finally {
+      setCreating(false);
+    }
+  }
+
 
   const refresh = useCallback(async ({ signal } = {}) => {
     setLoading(true);
@@ -39,6 +119,7 @@ export default function OwnerTournaments() {
         throw new Error(message);
       }
       setTournaments(Array.isArray(result.tournaments) ? result.tournaments : []);
+      setWritesEnabled(result.writesEnabled === true);
     } catch (cause) {
       if (cause?.name !== "AbortError") setError(cause?.message || "Сервер временно недоступен.");
     } finally {
@@ -79,17 +160,60 @@ export default function OwnerTournaments() {
           <h1>Управление <span>турнирами</span></h1>
           <p>Единая панель организации CS2-турниров: заявки, команды, сетка и результаты.</p>
           <div className="ot-hero-actions">
-            <Link className="ot-primary-link" to="/owner/tournaments-team-applications">Управление командами <span aria-hidden="true">↗</span></Link>
+            {writesEnabled && <button type="button" className="ot-primary-link ot-create-trigger" onClick={() => { setShowCreate(value => !value); setCreateError(""); }}>{showCreate ? "Закрыть форму" : "+ Создать турнир"}</button>}
+            <Link className={writesEnabled ? "ot-secondary-link" : "ot-primary-link"} to="/owner/tournaments-team-applications">Управление командами <span aria-hidden="true">↗</span></Link>
             <Link className="ot-secondary-link" to="/owner/tournaments-bracket">Открыть сетку <span aria-hidden="true">→</span></Link>
           </div>
         </div>
         <div className="ot-hero-side">
           <div className="ot-system"><span className="ot-system-dot" /> СИСТЕМА ПОДКЛЮЧЕНА</div>
           <div className="ot-lock-icon" aria-hidden="true">▦</div>
-          <div className="ot-read-label">РЕЖИМ ПРОСМОТРА</div>
-          <div className="ot-read-desc">Создание и изменение временно отключены до завершения проверки.</div>
+          <div className="ot-read-label">{writesEnabled ? "УПРАВЛЕНИЕ ВКЛЮЧЕНО" : "РЕЖИМ ПРОСМОТРА"}</div>
+          <div className="ot-read-desc">{writesEnabled ? "Создание черновиков и изменение статусов доступны владельцу с подтверждённой MFA." : "Создание и изменение временно отключены до завершения проверки."}</div>
         </div>
       </header>
+
+      {createNotice && <p className="ot-create-notice" role="status">{createNotice}</p>}
+      {showCreate && writesEnabled && (
+        <section className="ot-create-panel" aria-labelledby="ot-create-heading">
+          <div className="ot-section-title">
+            <div><span className="ot-section-index">НОВЫЙ ТУРНИР / ЧЕРНОВИК</span><h2 id="ot-create-heading">Создать турнир CS2</h2><p>Создание не публикует турнир. Для запуска регистрации потребуется отдельное подтверждение.</p></div>
+          </div>
+          <form onSubmit={createTournament} className="ot-create-form">
+            <label>Название турнира
+              <input required minLength={3} maxLength={160} value={draft.title} onChange={event => editDraft("title", event.target.value)} placeholder="ISTe Open Cup" />
+            </label>
+            <label>Адрес турнира (латиница)
+              <input required maxLength={100} pattern="[a-z0-9]+(-[a-z0-9]+)*" value={draft.slug} onChange={event => { setSlugEdited(true); editDraft("slug", event.target.value); }} placeholder="iste-open-cup" />
+            </label>
+            <label>Количество команд
+              <select value={draft.capacity} onChange={event => editDraft("capacity", Number(event.target.value))}>
+                {[2,4,8,16,32,64,128].map(value => <option key={value} value={value}>{value} команд</option>)}
+              </select>
+            </label>
+            <label>Формат матчей
+              <select value={draft.best_of} onChange={event => editDraft("best_of", Number(event.target.value))}>
+                {[1,3,5].map(value => <option key={value} value={value}>BO{value}</option>)}
+              </select>
+            </label>
+            <label>Открытие регистрации
+              <input required type="datetime-local" value={draft.registration_start} onChange={event => editDraft("registration_start", event.target.value)} />
+            </label>
+            <label>Закрытие регистрации
+              <input required type="datetime-local" value={draft.registration_end} onChange={event => editDraft("registration_end", event.target.value)} />
+            </label>
+            <label>Начало турнира
+              <input required type="datetime-local" value={draft.starts_at} onChange={event => editDraft("starts_at", event.target.value)} />
+            </label>
+            <div className="ot-create-tip">Формат сетки Single Elimination. Время вводится в часовом поясе вашего устройства, в базе сохраняется UTC. После создания турнир остаётся черновиком.</div>
+            {createError && <p className="ot-create-error" role="alert">{createError}</p>}
+            <div className="ot-create-buttons">
+              <button type="submit" disabled={creating}>{creating ? "Создаём черновик…" : "Создать черновик"}</button>
+              <button type="button" onClick={() => setShowCreate(false)} disabled={creating}>Отмена</button>
+            </div>
+          </form>
+        </section>
+      )}
 
       <div className="ot-stats" aria-label="Статистика турниров">
         {[
@@ -127,7 +251,7 @@ export default function OwnerTournaments() {
         {!loading && error && <div className="ot-empty ot-error" role="alert"><span className="ot-empty-mark">!</span><h3>Не удалось загрузить данные</h3><p>{error}</p><button type="button" onClick={() => void refresh()}>Повторить запрос →</button></div>}
         {!loading && !error && !visible.length && <div className="ot-empty"><span className="ot-empty-mark">◇</span>
           <h3>{tournaments.length ? "Ничего не найдено" : "Первый турнир ещё впереди"}</h3>
-          <p>{tournaments.length ? "Попробуйте изменить поиск или фильтр." : "Здесь появятся ваши турниры после их создания. Сейчас доступен безопасный просмотр и тестовые инструменты."}</p>
+          <p>{tournaments.length ? "Попробуйте изменить поиск или фильтр." : writesEnabled ? "Здесь появятся ваши турниры после создания. Нажмите «Создать турнир», чтобы подготовить первый черновик." : "Здесь появятся ваши турниры после их создания. Сейчас доступен безопасный просмотр и тестовые инструменты."}</p>
           {tournaments.length ? <button type="button" onClick={() => { setQuery(""); setFilter("all"); }}>Сбросить фильтры →</button> :
             <Link to="/owner/tournaments-preview">Посмотреть демонстрационную сетку →</Link>}
         </div>}
