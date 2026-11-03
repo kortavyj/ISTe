@@ -88,7 +88,7 @@ export default async function handler(request, response) {
       title: event.title,
       publishedAt: event.published_at,
       startsAt: event.starts_at,
-      url: "/tournaments",
+      url: "/tournaments#published-tournaments",
     }));
     const unread = notifications.filter((item) => item.publishedAt > subscription.last_seen_at).length;
     return response.status(200).json({ ok: true, subscribed: true, unread, notifications });
