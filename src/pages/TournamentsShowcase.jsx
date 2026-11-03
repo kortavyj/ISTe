@@ -1,35 +1,140 @@
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import "./TournamentsShowcase.css";
-const words={
-ru:["Турниры CS2","Сетка победителей","РАУНД 1","ПОЛУФИНАЛ","ПОБЕДИТЕЛЬ","ЧЕМПИОН ТУРНИРА","ДАЛЕЕ","ФИНАЛ","ЗАВЕРШЁН","Демонстрация турнирной сетки. Регистрация на турниры пока недоступна.","Повторить анимацию","Создание турниров скоро"],
-uk:["Турніри CS2","Сітка переможців","РАУНД 1","ПІВФІНАЛ","ПЕРЕМОЖЕЦЬ","ЧЕМПІОН ТУРНІРУ","ДАЛІ","ФІНАЛ","ЗАВЕРШЕНО","Демонстрація турнірної сітки. Реєстрація на турніри поки недоступна.","Повторити анімацію","Створення турнірів незабаром"],
-en:["CS2 Tournaments","Winners Bracket","ROUND 1","SEMIFINAL","WINNER","TOURNAMENT CHAMPION","ADVANCE","FINAL","FINISHED","Tournament bracket preview. Tournament registration is not yet available.","Replay animation","Tournament creation coming soon"]};
-const games=[[["ISTesport","TEAM ALPHA",13,7],["TEAM BRAVO","TEAM CHARLIE",13,9]],[["ISTesport","TEAM BRAVO",13,10]]];
-function Match({m,t}){return <div className="ts-match"><small>{t[8]}</small>{[0,1].map(i=><div key={i} className={"ts-side"+(m[2+i]>m[3-i]?" ts-win":"")}><span>{m[i]}</span><b>{m[2+i]}</b></div>)}</div>}
-function Arrow({label,multi}){return <div className={"ts-join"+(multi?" ts-join--merge":"")} aria-hidden="true"><span className="ts-join-label">{label}</span><svg viewBox="0 0 80 300" preserveAspectRatio="none"><path className="ts-join-track" d={multi?"M0 64 H26 V150 H72 M0 236 H26 V150":"M0 150 H72"}/><path className="ts-join-moving" d={multi?"M0 64 H26 V150 H72 M0 236 H26 V150":"M0 150 H72"}/><path className="ts-join-tip" d="m65 143 8 7-8 7"/></svg></div>}
-export default function TournamentsShowcase(){
-const {language}=useLanguage(),t=words[language]||words.en;
-const [playing,setPlaying]=useState(false);
-useEffect(()=>{if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;setPlaying(true);const id=setTimeout(()=>setPlaying(false),3600);return()=>clearTimeout(id)},[]);
-const replay=()=>{if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;setPlaying(false);requestAnimationFrame(()=>{setPlaying(true);setTimeout(()=>setPlaying(false),3600)})};
-return <section className="ts-page"><header className="ts-hero"><span className="ts-kicker">ISTesport / COUNTER-STRIKE 2</span><h1>{t[0]}</h1><p>{t[9]}</p><div className="ts-actions"><button onClick={replay}>{t[10]}</button><button disabled>{t[11]}</button></div></header><div className="ts-shell"><div className="ts-head"><div><span className="ts-kicker">ISTesport / CHAMPIONSHIP BRACKET</span><h2>{t[1]}</h2></div><span className="ts-chip">BRACKET PREVIEW</span></div><div className="ts-bracket ts-bracket--grid"><div className="ts-round"><h3>{t[2]} <small>2 MATCHES</small></h3>{games[0].map((m,i)=><Match key={i} m={m} t={t}/>)}</div><Arrow label={t[6]} multi/><div className="ts-round"><h3>{t[3]} <small>1 MATCH</small></h3><Match m={games[1][0]} t={t}/></div><Arrow label={t[7]}/><div className="ts-champion"><h3>{t[4]}</h3><div className="ts-champion-card"><span>{t[5]}</span><strong>ISTesport</strong><i>🏆</i></div></div></div><p className="ts-notice">{t[9]} <a href="/collaborate" style={{color:"#ff526b",fontWeight:700,marginLeft:8}}>Запропонувати проведення турніру ISTe</a></p></div>{playing&&<div className="ts-overlay" aria-hidden="true">
-<div className="ts-cinema-glow"/>
-<div className="ts-cinema-heading"><span>ISTesport</span><strong>THE ROAD TO VICTORY</strong></div>
-<div className="ts-overlay-rounds"><div><small>ROUND 01</small><b>ISTesport</b><span>TEAM ALPHA</span></div><div><small>SEMIFINAL</small><b>ISTesport</b><span>TEAM BRAVO</span></div><div className="ts-overlay-winner"><small>CHAMPION</small><b>ISTesport</b><span>🏆 WINNER</span></div></div>
-<div className="ts-flight"><div className="ts-trail-soft"/><div className="ts-trail-core"/><div className="ts-bullet"><svg viewBox="0 0 300 100" aria-hidden="true"><defs>
-<linearGradient id="ts-brass" x1="0" y1="0" x2=".05" y2="1"><stop offset="0" stopColor="#faeac0"/><stop offset=".15" stopColor="#d8b17b"/><stop offset=".42" stopColor="#76502c"/><stop offset=".67" stopColor="#c89b5c"/><stop offset=".88" stopColor="#a27642"/><stop offset="1" stopColor="#51391f"/></linearGradient>
-<linearGradient id="ts-lead" x1="0" y1="0" x2=".2" y2="1"><stop offset="0" stopColor="#f7f8f9"/><stop offset=".2" stopColor="#d4d8db"/><stop offset=".45" stopColor="#85898d"/><stop offset=".7" stopColor="#c7cccf"/><stop offset="1" stopColor="#50565b"/></linearGradient>
-<linearGradient id="ts-rim" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#896037"/><stop offset=".5" stopColor="#ebca8d"/><stop offset="1" stopColor="#5b4025"/></linearGradient>
-</defs>
-<path d="M22 16H158c9 0 17 4 24 10l13 12 3 12-3 12-13 12c-7 6-15 10-24 10H22c-9 0-13-5-13-15V31c0-10 4-15 13-15Z" fill="url(#ts-brass)" stroke="#e5ca92" strokeWidth="1.4"/>
-<path d="M164 16c11 0 21 5 30 15L211 50l-17 19c-9 10-19 15-30 15 8-11 12-23 12-34s-4-23-12-34" fill="url(#ts-brass)" stroke="#bf965c" strokeWidth="1.5"/>
-<path d="M198 31c17-6 29-4 47 3 16 6 33 15 44 16-11 2-28 11-44 16-18 7-30 9-47 3 6-13 9-25 9-38Z" fill="url(#ts-lead)" stroke="#e9edf0" strokeWidth="1.5"/>
-<path d="M18 19H153M18 80H153" stroke="#fff1c2" strokeWidth="1" opacity=".48"/>
-<path d="M34 17V83M155 18V82" stroke="#4d321c" strokeWidth="2" opacity=".8"/>
-<ellipse cx="19" cy="50" rx="9" ry="31" fill="url(#ts-rim)" stroke="#f4d79c" strokeWidth="1.2"/><ellipse cx="19" cy="50" rx="4" ry="16" fill="#7d5630" stroke="#d7b27d"/>
-<path d="M213 36c20 1 41 8 63 14-23 7-43 13-63 14 5-10 7-20 0-28" fill="#fff" opacity=".16"/>
-</svg></div></div>
-<div className="ts-overlay-caption">ISTesport <b>TOURNAMENTS</b></div>
-</div>}</section>
+
+const DISCORD = "https://discord.gg/AzpCxEgxye";
+const copy = {
+  uk: {
+    title: "ТУРНІРИ CS2",
+    eyebrow: "ISTesport / CS2",
+    intro: "Скоро на платформі ISTe. Ми готуємо серію турнірів, які об'єднають команди, гравців і нашу спільноту.",
+    discord: "Слідкувати в Discord",
+    notify: "Дізнатися першими",
+    statusTitle: "ТУРНІРИ НЕЗАБАРОМ",
+    statusDescription: "Підготовка першої серії змагань триває. Слідкуй за анонсами в наших соціальних мережах і Discord.",
+    formats: "ФОРМАТИ ТУРНІРІВ",
+    cards: [
+      { title: "Відкриті турніри", description: "Доступні для всіх команд. Ідеальний старт для нових складів." },
+      { title: "Командні кубки", description: "Багатоетапні турніри з більшою конкуренцією та статусом." },
+      { title: "Події спільноти", description: "Тематичні змагання, шоуматчі та активності для учасників ISTe." },
+    ],
+    followTitle: "БУДЬ У КУРСІ",
+    followDescription: "Приєднуйся до нашого Discord, щоб не пропустити анонси турнірів, реєстрацію та важливі новини.",
+    followButton: "Перейти в Discord",
+    request: "Запропонувати проведення турніру",
+    note: "Реєстрація ще не відкрита. Дати та призові фонди будуть оголошені окремо.",
+  },
+  ru: {
+    title: "ТУРНИРЫ CS2",
+    eyebrow: "ISTesport / CS2",
+    intro: "Скоро на платформе ISTe. Мы готовим серию турниров, объединяющих команды, игроков и наше сообщество.",
+    discord: "Следить в Discord",
+    notify: "Узнать первыми",
+    statusTitle: "ТУРНИРЫ СКОРО",
+    statusDescription: "Подготовка первой серии соревнований продолжается. Следи за анонсами в наших соцсетях и Discord.",
+    formats: "ФОРМАТЫ ТУРНИРОВ",
+    cards: [
+      { title: "Открытые турниры", description: "Доступны всем командам. Хороший старт для новых составов." },
+      { title: "Командные кубки", description: "Многоэтапные турниры с более высокой конкуренцией и статусом." },
+      { title: "События сообщества", description: "Тематические соревнования, шоу-матчи и активности участников ISTe." },
+    ],
+    followTitle: "БУДЬ В КУРСЕ",
+    followDescription: "Присоединяйся к нашему Discord, чтобы не пропустить анонсы, регистрацию и важные новости.",
+    followButton: "Перейти в Discord",
+    request: "Предложить проведение турнира",
+    note: "Регистрация ещё не открыта. Даты и призовые фонды будут объявлены отдельно.",
+  },
+  en: {
+    title: "CS2 TOURNAMENTS",
+    eyebrow: "ISTesport / CS2",
+    intro: "Coming to ISTe. We're preparing a series of events bringing teams, players and our community together.",
+    discord: "Follow on Discord",
+    notify: "Be first to know",
+    statusTitle: "TOURNAMENTS COMING SOON",
+    statusDescription: "We're preparing the first series of competitions. Follow updates on our social channels and Discord.",
+    formats: "TOURNAMENT FORMATS",
+    cards: [
+      { title: "Open tournaments", description: "Accessible to all teams. A great start for new rosters." },
+      { title: "Team cups", description: "Multi-stage tournaments with stronger competition and prestige." },
+      { title: "Community events", description: "Themed events, showmatches and activities for the ISTe community." },
+    ],
+    followTitle: "STAY IN THE LOOP",
+    followDescription: "Join our Discord for tournament announcements, registration details and important updates.",
+    followButton: "Go to Discord",
+    request: "Propose hosting a tournament",
+    note: "Registration is not open yet. Dates and prizes will be announced separately.",
+  },
+};
+
+function TournamentIcon({ kind }) {
+  if (kind === 0) return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="4" /><circle cx="23" cy="11" r="4" /><path d="M3 26v-4c0-4 3-6 8-6s8 2 8 6v4M18 17c5-1 11 1 11 6v3H22" /></svg>;
+  if (kind === 1) return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M8 5h16v10a8 8 0 0 1-16 0V5ZM8 8H3v5c0 4 3 6 7 6M24 8h5v5c0 4-3 6-7 6M16 23v5m-7 0h14" /></svg>;
+  return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M17 2 7 17h8l-2 13 12-18h-9l1-10Z" /></svg>;
+}
+
+function ArenaArtwork() {
+  return <div className="ts-arena" aria-hidden="true">
+    <div className="ts-arena-sky" />
+    <div className="ts-arena-building ts-arena-building--left"><span /><span /><span /></div>
+    <div className="ts-arena-building ts-arena-building--right"><span className="ts-arena-mark">A</span><span className="ts-arena-window" /></div>
+    <div className="ts-arena-crate ts-arena-crate--one" />
+    <div className="ts-arena-crate ts-arena-crate--two" />
+    <div className="ts-arena-floor" />
+    <div className="ts-arena-stripes" />
+  </div>;
+}
+
+export default function TournamentsShowcase() {
+  const { language } = useLanguage();
+  const t = copy[language] || copy.uk;
+  return (
+    <section className="ts-page ts-preview-page">
+      <div className="ts-preview-shell">
+        <header className="ts-preview-hero">
+          <ArenaArtwork />
+          <div className="ts-preview-hero-content">
+            <span className="ts-preview-kicker">{t.eyebrow}</span>
+            <h1>{t.title}</h1>
+            <p>{t.intro}</p>
+            <div className="ts-preview-actions">
+              <a href={DISCORD} target="_blank" rel="noopener noreferrer" className="ts-preview-primary"><span aria-hidden="true">◈</span>{t.discord}</a>
+              <a href="#tournament-status" className="ts-preview-secondary"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3ZM10 20h4" /></svg>{t.notify}</a>
+            </div>
+          </div>
+        </header>
+
+        <section id="tournament-status" className="ts-preview-announcement">
+          <div className="ts-preview-announcement-copy">
+            <span className="ts-preview-section-mark" aria-hidden="true">//</span>
+            <div>
+              <h2>{t.statusTitle}</h2>
+              <p>{t.statusDescription}</p>
+            </div>
+          </div>
+          <div className="ts-preview-flag" aria-hidden="true"><span className="ts-preview-flag-pole" /><div className="ts-preview-flag-cloth"><img src="/iste-brush-vector.svg" alt="" /></div></div>
+        </section>
+
+        <section className="ts-preview-formats" aria-labelledby="ts-formats-heading">
+          <h2 id="ts-formats-heading"><span aria-hidden="true">//</span>{t.formats}</h2>
+          <div className="ts-preview-format-grid">
+            {t.cards.map((item, i) => <article className={"ts-preview-format ts-preview-format--" + i} key={item.title}>
+              <TournamentIcon kind={i} />
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>)}
+          </div>
+        </section>
+
+        <section className="ts-preview-community">
+          <div className="ts-preview-community-copy">
+            <h2><span aria-hidden="true">//</span>{t.followTitle}</h2>
+            <p>{t.followDescription}</p>
+          </div>
+          <a href={DISCORD} target="_blank" rel="noopener noreferrer">{t.followButton}<span aria-hidden="true">→</span></a>
+        </section>
+
+        <p className="ts-preview-note">{t.note} <Link to="/collaborate">{t.request} ↗</Link></p>
+      </div>
+    </section>
+  );
 }
