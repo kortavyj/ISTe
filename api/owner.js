@@ -17,6 +17,15 @@ import publicRosterHandler from "../server/publicRosterHandler.js";
 import publicTacticShareHandler from "../server/publicTacticShareHandler.js";
 import tacticsHandler from "../server/tacticsHandler.js";
 
+// Temporary preview-only trace. Never log sessions or request details.
+if (process.env.VERCEL_ENV === "preview") {
+  process.on("warning", warning => {
+    if (warning?.code === "DEP0169") {
+      console.error("ISTE_OWNER_DEP0169_STACK:", warning.stack || warning.message);
+    }
+  });
+}
+
 const ALLOWED_ROLES = new Set([
   "user",
   "player",
