@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-label="Stylized tactical CS2 arena illustration">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#08080b"/><stop offset=".48" stop-color="#181015"/><stop offset="1" stop-color="#350710"/></linearGradient>
+ <radialGradient id="red" cx=".78" cy=".45" r=".63"><stop stop-color="#e41c30" stop-opacity=".65"/><stop offset=".48" stop-color="#6a0b1d" stop-opacity=".28"/><stop offset="1" stop-color="#070609" stop-opacity="0"/></radialGradient>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#323039"/><stop offset=".35" stop-color="#13151a"/><stop offset=".73" stop-color="#05080d"/><stop offset="1" stop-color="#343039"/></linearGradient>
+ <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3e3139"/><stop offset=".26" stop-color="#151921"/><stop offset=".72" stop-color="#070a10"/><stop offset="1" stop-color="#211921"/></linearGradient>
+ <linearGradient id="visor" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#200007"/><stop offset=".32" stop-color="#ff3348"/><stop offset=".57" stop-color="#960d24"/><stop offset="1" stop-color="#120307"/></linearGradient>
+ <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#13191d"/><stop offset=".5" stop-color="#4d3439"/><stop offset="1" stop-color="#15171e"/></linearGradient>
+ <linearGradient id="ambient" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fa243d" stop-opacity=".45"/><stop offset="1" stop-color="#050406" stop-opacity="0"/></linearGradient>
+ <filter id="blur"><feGaussianBlur stdDeviation="31"/></filter>
+ <filter id="glow"><feGaussianBlur stdDeviation="6"/></filter>
+ <pattern id="grid" width="52" height="52" patternUnits="userSpaceOnUse"><path d="M52 0H0V52" fill="none" stroke="#d9bfc4" stroke-opacity=".09" stroke-width=".65"/><circle cx="0" cy="0" r="1.4" fill="#ee3445" fill-opacity=".24"/></pattern>
+ <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(36)"><path d="M0 0V14" stroke="#ec5363" stroke-opacity=".13" stroke-width="2"/></pattern>
+</defs>
+<rect width="1200" height="620" fill="url(#bg)"/><rect width="1200" height="620" fill="url(#red)"/><rect width="1200" height="620" fill="url(#grid)"/>
+<ellipse cx="910" cy="300" rx="280" ry="270" fill="#fb193b" opacity=".2" filter="url(#blur)"/>
+<g opacity=".28" fill="none" stroke="#aa283a" stroke-width="1.7">
+ <path d="M1200 70 910 70 855 125 760 125 695 185"/><path d="M1200 145 930 145 860 215 710 215"/><path d="M1200 475 1040 475 960 555 600 555"/>
+ <path d="M100 520 390 520 520 390 720 390"/><circle cx="920" cy="320" r="240"/><circle cx="920" cy="320" r="190" stroke-dasharray="6 13"/>
+</g>
+<path d="M650 620 1070 80 1200 80 1200 620Z" fill="url(#hatch)" opacity=".55"/>
+<g opacity=".4" stroke="#b18c83" fill="none" stroke-width="2">
+ <path d="M410 510V230l120-72 120 30v322M440 230l90-48 110 25M457 261h42v70h-42zM530 240h48v82h-48zM604 245h23v68h-23z"/>
+ <path d="M340 620V300l70-60 30 15M380 410h42v85h-42z"/><path d="M552 620 600 530l90-20 40 110"/>
+</g>
+<rect x="400" y="0" width="800" height="620" fill="url(#ambient)" opacity=".22"/>
+<!-- tactical operator torso -->
+<g transform="translate(570 18)">
+ <path d="M150 592c-38-82-53-150-13-215 35-56 87-82 140-96l88-2c73 12 123 59 149 115 20 43 19 126 2 198Z" fill="#05060a" stroke="#b9293b" stroke-opacity=".63" stroke-width="7"/>
+ <path d="M125 592c12-95 37-163 91-206l52-36 67 49-8 193Z" fill="url(#armor)" stroke="#654250" stroke-width="5"/>
+ <path d="M530 592c-1-104-12-163-70-209l-88-47-53 68 13 188Z" fill="url(#armor)" stroke="#9c2235" stroke-width="5"/>
+ <path d="M244 391 303 416 349 385l84 31-29 176H250Z" fill="#13161d" stroke="#68414b" stroke-width="5"/>
+ <path d="M273 436h107l-10 78h-89zM278 533h94v59h-94z" fill="#070b10" stroke="#4f343c" stroke-width="4"/>
+ <path d="M266 433h116M276 460h104M275 492h95M305 424V590M347 425V590" stroke="#a82b3b" stroke-opacity=".5" stroke-width="4"/>
+ <path d="M145 409c-21 61-39 111-46 183h120l40-181-29-51Z" fill="url(#armor)" stroke="#ad3347" stroke-width="6"/>
+ <path d="M466 396c36 67 58 129 63 196H424l-27-176 31-55Z" fill="url(#armor)" stroke="#9c2a3a" stroke-width="7"/>
+ <path d="M110 538 246 522 268 555 223 594H98Z" fill="#171922" stroke="#644951" stroke-width="4"/>
+ <path d="M510 531 382 515 361 553 419 595h120Z" fill="#151820" stroke="#71303d" stroke-width="4"/>
+ <!-- neck -->
+ <path d="M274 315V374l51 39 51-42-6-68Z" fill="#221c24" stroke="#843046" stroke-width="5"/>
+ <!-- helmet and mask -->
+ <path d="M207 172c2-98 52-155 135-155 85 0 144 59 152 152l-28 113-35 56-94 27-80-29-43-69Z" fill="url(#metal)" stroke="#ad3649" stroke-width="7"/>
+ <path d="M205 158c-2-99 71-162 151-153 78 8 124 56 138 138l-41 15-57-37-127 7Z" fill="#181b22" stroke="#5c5158" stroke-width="7"/>
+ <path d="M218 177 278 149l147-5 63 31-23 59-68-9-115 5-61-2Z" fill="#060609" stroke="#b7253e" stroke-width="5"/>
+ <path d="M253 190 424 172l35 17-20 22-169 16-28-16Z" fill="url(#visor)" stroke="#f74a5a" stroke-width="3"/>
+ <path d="M258 195 414 181" stroke="#ff9ca6" stroke-width="2" opacity=".65"/>
+ <path d="M270 237 326 246 388 235l44 25-26 70-83 27-75-34-16-58Z" fill="#090b10" stroke="#52434d" stroke-width="5"/>
+ <path d="M260 269 390 260M263 284 384 278M278 298 374 293M300 325h51" stroke="#3c424b" stroke-width="8"/>
+ <path d="M202 182 191 226l29 67 34-1-6-79Z" fill="#25242a" stroke="#8e3d46" stroke-width="6"/>
+ <path d="M488 183 505 234l-24 65-39-8 11-83Z" fill="#222229" stroke="#ae3246" stroke-width="6"/>
+ <path d="M252 47 281 98M313 23l11 68M389 35l-15 56" stroke="#66515b" stroke-width="7"/>
+ <path d="M214 150q120-66 275-5" stroke="#ff3653" stroke-opacity=".7" stroke-width="4" fill="none"/>
+ <path d="M245 350 210 410M417 344 457 410" stroke="#ef2946" stroke-opacity=".65" stroke-width="5"/>
+ <!-- rifle -->
+ <g transform="translate(-165 335) rotate(-16)">
+ <path d="M36 81H640v29H36z" fill="url(#blade)" stroke="#8a4752" stroke-width="4"/>
+ <path d="M617 71h140v12H617zM4 88h56v13H4z" fill="#22222a" stroke="#84414f" stroke-width="3"/>
+ <path d="M190 47h135v37H190zM232 30h75v18h-75z" fill="#1a1c22" stroke="#9c3b4a" stroke-width="4"/>
+ <path d="M352 110 376 199h49l-24-90M490 110l-20 62h61l38-62" fill="#15161c" stroke="#7f4250" stroke-width="5"/>
+ <path d="M56 86h120M420 87h182" stroke="#ec5361" stroke-opacity=".65" stroke-width="3"/>
+ <path d="M109 102v15M150 102v15M180 102v15M565 102v14" stroke="#4c4850" stroke-width="6"/>
+ </g>
+</g>
+<path d="M0 620h1200v-68c-185-22-325 6-481-3-226-16-390-49-719-8Z" fill="#030405" opacity=".67"/>
+<path d="M1080 0h120v490L934 620h-91l237-388Z" fill="#ef2036" opacity=".12"/>
+<path d="M1170 0h30v620h-110Z" fill="#f02b48" opacity=".27"/>
+<g stroke="#ff3349" stroke-opacity=".6" fill="none"><path d="M1075 55h58v2h-58M1132 55v58" stroke-width="2"/><path d="M630 520h-40v-36M1150 518h-35v35" stroke-width="2"/></g>
+</svg>
