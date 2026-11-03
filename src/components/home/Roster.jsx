@@ -303,11 +303,6 @@ function PlayerCard({ player, rosterStatus = "main" }) {
         {roleLabel}
       </p>
 
-      <div className="player-card__badges">
-        <span className="player-level">
-          FACEIT LVL {level}
-        </span>
-      </div>
 
       <span className="player-role-note">
         {rosterStatus === "substitute"
