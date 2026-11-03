@@ -237,6 +237,23 @@ export default function ResetPassword() {
     setSubmitting(true);
 
     try {
+      // Check the candidate server-side before updating Supabase Auth.
+      // The external breach database receives only a hash prefix.
+      const safetyResponse = await fetch("/api/auth/password-safety", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const safety = await safetyResponse.json().catch(() => null);
+      if (!safetyResponse.ok || safety?.ok !== true) {
+        throw Object.assign(new Error("PASSWORD_CHECK_UNAVAILABLE"), { safetyCheckFailed: true });
+      }
+      if (safety.exposed === true) {
+        throw Object.assign(new Error("EXPOSED_PASSWORD"), { exposedPassword: true });
+      }
+
       const {
         error,
       } =
@@ -274,9 +291,11 @@ export default function ResetPassword() {
       );
     } catch (error) {
       setErrorMessage(
-        getAuthErrorMessage(
-          error,
-        ),
+        error?.exposedPassword
+          ? "Этот пароль найден в известных утечках. Используйте другой уникальный пароль."
+          : error?.safetyCheckFailed
+            ? "Не удалось проверить безопасность пароля. Повторите попытку позже."
+            : getAuthErrorMessage(error),
       );
       setSubmitting(false);
     }
