@@ -8,6 +8,7 @@ import {
 
 import { useAuth } from "../auth/AuthContext.jsx";
 import MfaChallenge from "../auth/MfaChallenge.jsx";
+import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 import "./Auth.css";
 
@@ -27,6 +28,7 @@ async function readApiResponse(response) {
 export default function Login() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const {
     user,
@@ -184,11 +186,10 @@ return (
             ISTe account
           </p>
 
-          <h1>Вход</h1>
+          <h1>{t("authLogin.title")}</h1>
 
           <p>
-            Войдите в аккаунт участника
-            сообщества ISTe.
+            {t("authLogin.description")}
           </p>
         </header>
 
@@ -214,7 +215,7 @@ return (
 
             <label className="auth-field">
               <span>
-                Электронная почта
+                {t("authLogin.email")}
               </span>
 
               <input
@@ -237,7 +238,7 @@ return (
             </label>
 
             <label className="auth-field">
-              <span>Пароль</span>
+              <span>{t("authLogin.password")}</span>
 
               <input
                 className="auth-input"
@@ -249,7 +250,7 @@ return (
                     event.target.value,
                   )
                 }
-                placeholder="Введите пароль"
+                placeholder={t("authLogin.passwordPlaceholder")}
                 maxLength={128}
                 required
                 disabled={submitting}
@@ -261,19 +262,17 @@ return (
               type="submit"
               disabled={submitting}
             >
-              {submitting
-                ? "Входим..."
-                : "Войти"}
+              {submitting ? t("authLogin.loading") : t("authLogin.submit")}
             </button>
           </form>
 
           <div className="auth-links">
             <Link to="/forgot-password">
-              Забыли пароль?
+              {t("authLogin.forgot")}
             </Link>
 
             <Link to="/register">
-              Создать аккаунт
+              {t("authLogin.register")}
             </Link>
           </div>
         </div>
