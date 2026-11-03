@@ -102,7 +102,8 @@ export default async function handler(request, response) {
     }
     return response.status(200).json({
       ok: true, tournaments: Array.isArray(data) ? data : [],
-      readOnly: true, scope: "owner_all",
+      writesEnabled: process.env.ISTE_TOURNAMENT_WRITES_ENABLED === "true",
+      readOnly: process.env.ISTE_TOURNAMENT_WRITES_ENABLED !== "true", scope: "owner_all",
     });
   } catch {
     return response.status(500).json({
