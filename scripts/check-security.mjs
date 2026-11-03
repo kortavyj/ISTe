@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { guardRequest } from "../server/apiLib/requestGuard.js";
 import { checkExposedPassword } from "../server/lib/pwnedPassword.js";
-import passwordSafetyHandler from "../api/auth/password-safety.js";
+import passwordSafetyHandler from "../server/lib/passwordSafetyHandler.js";
 
 const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
 const universal = config.headers.find(row => row.source === "/(.*)");
