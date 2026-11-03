@@ -4,6 +4,7 @@ import {
   recordAuthSecurityEvent,
 } from "../../server/lib/authSecurity.js";
 import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
+import { getSupabaseAdminClient } from "../../server/lib/supabaseAdmin.js";
 
 const usernamePattern =
   /^[A-Za-z0-9_]{3,32}$/;
@@ -327,7 +328,7 @@ export default async function handler(
     const {
       data: usernameAvailable,
       error: usernameCheckError,
-    } = await supabase.rpc(
+    } = await getSupabaseAdminClient().rpc(
       "is_username_available",
       {
         candidate_username:
