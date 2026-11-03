@@ -5,6 +5,7 @@ import {
 } from "../../server/lib/authSecurity.js";
 import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
 import { getSupabaseAdminClient } from "../../server/lib/supabaseAdmin.js";
+import { checkExposedPassword } from "../../server/lib/pwnedPassword.js";
 
 const usernamePattern =
   /^[A-Za-z0-9_]{3,32}$/;
@@ -319,6 +320,23 @@ export default async function handler(
         message:
           "Слишком много попыток регистрации. Повторите позже.",
       });
+  }
+
+  try {
+    const passwordSafety = await checkExposedPassword(password);
+    if (passwordSafety.exposed) {
+      return response.status(422).json({
+        ok: false,
+        error: "EXPOSED_PASSWORD",
+        message: "Этот пароль найден в известных утечках. Используйте другой уникальный пароль.",
+      });
+    }
+  } catch {
+    return response.status(503).json({
+      ok: false,
+      error: "PASSWORD_CHECK_UNAVAILABLE",
+      message: "Проверка безопасности пароля временно недоступна. Повторите попытку позже.",
+    });
   }
 
   try {
