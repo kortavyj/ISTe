@@ -590,3 +590,52 @@
 .roster-section .roster-showcase-grid{background:transparent!important;background-color:transparent!important}
 .roster-section .roster-showcase-grid .player-card{background:transparent!important;background-color:transparent!important}
 .roster-section .roster-showcase-grid .player-avatar{background:transparent!important;background-color:transparent!important}
+
+
+/* Keep the homepage roster safely below the tabs and inside each player's column. */
+.roster-section .iste-roster-tabs{
+  position:relative;
+  z-index:5;
+  margin-bottom:26px;
+}
+.roster-section .roster-showcase-grid{
+  position:relative;
+  padding-top:clamp(44px,5vw,76px);
+  column-gap:clamp(8px,1.35vw,22px);
+  overflow:visible;
+}
+.roster-section .roster-showcase-grid .player-avatar{
+  overflow:hidden;
+  isolation:isolate;
+}
+.roster-section .roster-showcase-grid .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(1) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(2) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(3) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(4) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(5) .player-avatar img{
+  transform:scale(1.025);
+  object-position:center 43%;
+}
+.roster-section .roster-showcase-grid .player-card--captain .player-avatar img{
+  transform:scale(1.055);
+  object-position:center 43%;
+}
+.roster-section .roster-showcase-grid .player-card{
+  z-index:1;
+}
+.roster-section .roster-showcase-grid .player-card--captain{
+  z-index:2;
+}
+@media(max-width:900px){
+  .roster-section .roster-showcase-grid{
+    padding-top:34px;
+    column-gap:12px;
+    overflow-x:auto;
+    overflow-y:hidden;
+  }
+}
+@media(max-width:620px){
+  .roster-section .iste-roster-tabs{margin-bottom:16px}
+  .roster-section .roster-showcase-grid{padding-top:28px;column-gap:10px}
+}
