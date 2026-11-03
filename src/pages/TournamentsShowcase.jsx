@@ -221,6 +221,52 @@ export default function TournamentsShowcase() {
   const [alertMessage, setAlertMessage] = useState("");
   const [publishedTournaments, setPublishedTournaments] = useState([]);
   const [tournamentsError, setTournamentsError] = useState(false);
+  const [applyingFor, setApplyingFor] = useState(null);
+  const [teamName, setTeamName] = useState("");
+  const [faceitIds, setFaceitIds] = useState(["", "", "", ""]);
+  const [applicationBusy, setApplicationBusy] = useState(false);
+  const [applicationResult, setApplicationResult] = useState("");
+
+  function openTeamApplication(tournamentId) {
+    if (!user?.id) {
+      navigate("/login", { state: { from: "/tournaments" } });
+      return;
+    }
+    setApplyingFor(current => current === tournamentId ? null : tournamentId);
+    setTeamName("");
+    setFaceitIds(["", "", "", ""]);
+    setApplicationResult("");
+  }
+
+  async function submitTeamApplication(event, tournamentId) {
+    event.preventDefault();
+    if (!user?.id || applicationBusy) return;
+    setApplicationBusy(true);
+    setApplicationResult("");
+    try {
+      const ids = faceitIds.map(value => value.trim());
+      if (ids.some(value => !/^[a-zA-Z0-9_-]{3,64}$/.test(value)) ||
+          new Set(ids.map(value => value.toLowerCase())).size !== ids.length) {
+        throw new Error(language === "en" ? "Enter four different FACEIT player IDs." : language === "ru" ? "Укажите четыре разных FACEIT ID игроков." : "Вкажіть чотири різні FACEIT ID гравців.");
+      }
+      const response = await fetch("/api/tournaments-team-apply", {
+        method: "POST",
+        credentials: "include",
+        headers: {"Content-Type":"application/json","Accept":"application/json"},
+        body: JSON.stringify({
+          tournamentId, name: teamName.trim(),
+          members: [{ userId: user.id }, ...ids.map(faceitPlayerId => ({ faceitPlayerId }))],
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || result?.ok !== true) throw new Error(result?.message ||
+        (language === "en" ? "Application was rejected. Check team roster and registration status." : language === "ru" ? "Заявка отклонена. Проверьте состав и сроки регистрации." : "Заявку відхилено. Перевірте склад і терміни реєстрації."));
+      setApplyingFor(null);
+      setApplicationResult(language === "en" ? "Your application has been submitted for review." : language === "ru" ? "Заявка отправлена на рассмотрение." : "Заявку надіслано на розгляд.");
+    } catch (cause) { setApplicationResult(cause?.message || "Request failed."); }
+    finally { setApplicationBusy(false); }
+  }
+
   useEffect(() => {
     let mounted = true;
     async function loadPublished() {
@@ -302,6 +348,7 @@ export default function TournamentsShowcase() {
               <h2 id="ts-live-tournaments-title">{language === "ru" ? "ОБЪЯВЛЕННЫЕ ТУРНИРЫ" : language === "en" ? "ANNOUNCED TOURNAMENTS" : "ОГОЛОШЕНІ ТУРНІРИ"}</h2>
               <p>{language === "ru" ? "Официальные события ISTe с актуальными датами и статусами." : language === "en" ? "Official ISTe events with verified dates and current status." : "Офіційні події ISTe з актуальними датами та статусами."}</p>
             </div>
+            {applicationResult && <p className="ts-application-result" role="status">{applicationResult}</p>}
             <div className="ts-live-tournaments-grid">
               {publishedTournaments.map(item => (
                 <article className="ts-live-tournament" key={item.id}>
@@ -311,7 +358,17 @@ export default function TournamentsShowcase() {
                     <span>CS2</span><span>{item.capacity} {language === "en" ? "teams" : language === "ru" ? "команд" : "команд"}</span><span>BO{item.best_of}</span>
                   </div>
                   {item.starts_at && <p>{language === "ru" ? "Начало:" : language === "en" ? "Starts:" : "Початок:"} <time dateTime={item.starts_at}>{new Date(item.starts_at).toLocaleString(language === "en" ? "en-GB" : language === "ru" ? "ru-RU" : "uk-UA", {dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Kyiv"})} (Kyiv)</time></p>}
-                  {item.status === "registration" && <a className="ts-live-tournament-link" href="#tournament-status">{language === "ru" ? "Подать заявку" : language === "en" ? "Team registration" : "Подати заявку"} <span aria-hidden="true">↗</span></a>}
+                  {item.status === "registration" && (!item.registration_start || Date.now() >= new Date(item.registration_start).getTime()) && (!item.registration_end || Date.now() < new Date(item.registration_end).getTime()) && <button type="button" className="ts-live-tournament-link" onClick={() => openTeamApplication(item.id)} aria-expanded={applyingFor === item.id}>{language === "ru" ? "Подать заявку" : language === "en" ? "Team registration" : "Подати заявку"} <span aria-hidden="true">↗</span></button>}
+                  {applyingFor === item.id && <form className="ts-tournament-apply" onSubmit={event => submitTeamApplication(event, item.id)}>
+                    <label>{language === "en" ? "Team name" : language === "ru" ? "Название команды" : "Назва команди"}
+                      <input required minLength={2} maxLength={80} value={teamName} onChange={event => setTeamName(event.target.value)} />
+                    </label>
+                    <p>{language === "en" ? "You are the captain. Enter FACEIT player IDs (not nicknames) for four other players." : language === "ru" ? "Вы капитан команды. Введите FACEIT ID (не никнеймы) четырёх остальных игроков." : "Ви капітан команди. Введіть FACEIT ID (не нікнейми) чотирьох інших гравців."}</p>
+                    {faceitIds.map((value, index) => <label key={index}>FACEIT ID #{index + 2}
+                      <input required pattern="[a-zA-Z0-9_-]{3,64}" value={value} onChange={event => setFaceitIds(current => current.map((v, i) => i === index ? event.target.value : v))} />
+                    </label>)}
+                    <button disabled={applicationBusy} type="submit">{applicationBusy ? "..." : language === "en" ? "Submit application" : language === "ru" ? "Отправить заявку" : "Надіслати заявку"}</button>
+                  </form>}
                 </article>
               ))}
             </div>
