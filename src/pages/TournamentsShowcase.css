@@ -372,3 +372,63 @@
 @media(prefers-reduced-motion:reduce){
   .ts-preview-format--1:hover::before{transform:scale(1.015)!important}
 }
+
+
+/* Upcoming CS2 season announcement, replaces oversized ISTe flag. */
+.ts-preview-page .ts-season-announcement{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);
+  align-items:stretch;
+  gap:clamp(18px,4vw,48px);
+  min-height:250px;
+  padding:clamp(22px,3vw,36px);
+  border:1px solid #812238;
+  border-radius:18px;
+  background:radial-gradient(ellipse at 90% 70%,rgba(151,14,39,.13),transparent 48%),linear-gradient(115deg,#11070c 0%,#09080b 55%,#080709 100%);
+  box-shadow:inset 0 1px 0 rgba(255,83,102,.07),0 16px 40px rgba(0,0,0,.2);
+  isolation:isolate;
+}
+.ts-preview-page .ts-season-announcement::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
+  background:repeating-linear-gradient(90deg,transparent 0 54px,rgba(255,255,255,.014) 55px),
+             repeating-linear-gradient(0deg,transparent 0 54px,rgba(255,255,255,.01) 55px);
+  box-shadow:inset 0 -1px 0 rgba(242,40,66,.24);
+}
+.ts-season-copy{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-width:0}
+.ts-season-kicker{display:inline-flex;align-items:center;gap:9px;color:#ff536a;font-size:11px;font-weight:850;letter-spacing:.18em;margin-bottom:15px}
+.ts-season-indicator{width:7px;height:7px;flex:none;border-radius:50%;background:#ff334e;box-shadow:0 0 11px rgba(246,34,65,.35)}
+.ts-preview-page .ts-season-announcement h2{display:flex;align-items:center;gap:13px;font-size:clamp(1.8rem,3vw,2.8rem);line-height:1.13;letter-spacing:-.043em;font-weight:950;margin:0 0 12px}
+.ts-season-slashes{color:#ff304b;font-weight:950;font-style:italic;letter-spacing:-.2em;padding-right:6px}
+.ts-preview-page .ts-season-announcement p{max-width:635px;margin:0;color:#c9c1c7;font-size:clamp(.91rem,1.1vw,1.03rem);line-height:1.65}
+.ts-season-watch{display:inline-flex;align-items:center;gap:9px;margin-top:22px;color:#ff5b70;text-decoration:none;font-size:12px;letter-spacing:.09em;font-weight:800;transition:color .2s ease}
+.ts-season-watch svg{width:17px;height:17px;flex:none}
+.ts-season-watch span{transition:transform .2s ease}
+.ts-season-watch:hover{color:#fff}
+.ts-season-watch:hover span{transform:translate(2px,-2px)}
+.ts-season-watch:focus-visible{outline:2px solid #ff5065;outline-offset:5px;border-radius:3px}
+.ts-season-visual{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;overflow:hidden;min-height:192px;padding:25px 20px;border:1px solid rgba(156,45,67,.32);border-radius:15px;background:radial-gradient(ellipse at 50% 44%,rgba(140,22,47,.32),transparent 66%),linear-gradient(150deg,#180c15,#0c0a0e 75%);text-align:center}
+.ts-season-visual-grid{position:absolute;inset:0;opacity:.42;pointer-events:none;background:linear-gradient(90deg,transparent 49.75%,rgba(246,44,69,.09) 50%,transparent 50.25%),linear-gradient(0deg,transparent 49.75%,rgba(246,44,69,.09) 50%,transparent 50.25%)}
+.ts-season-calendar{position:relative;width:76px;height:76px;display:grid;place-items:center;color:#ff4b64;filter:drop-shadow(0 0 12px rgba(247,40,68,.28));transition:filter .25s ease}
+.ts-season-calendar svg{width:100%;height:100%}
+.ts-season-visual strong{position:relative;color:#f6edf0;font-size:13px;font-weight:900;letter-spacing:.14em}
+.ts-season-visual>span{position:relative;color:#ad8290;font-size:10px;font-weight:800;letter-spacing:.12em}
+.ts-season-visual:hover .ts-season-calendar{filter:drop-shadow(0 0 18px rgba(247,40,68,.45))}
+@media(max-width:760px){
+  .ts-preview-page .ts-season-announcement{grid-template-columns:1fr;gap:20px;padding:25px}
+  .ts-season-visual{min-height:145px;flex-direction:row;justify-content:flex-start;gap:14px;text-align:left;flex-wrap:wrap}
+  .ts-season-calendar{width:65px;height:65px}
+  .ts-season-visual strong{flex:1;min-width:115px}
+  .ts-season-visual>span{width:100%;padding-left:79px}
+}
+@media(max-width:440px){
+  .ts-preview-page .ts-season-announcement{padding:20px;gap:18px}
+  .ts-preview-page .ts-season-announcement h2{font-size:clamp(1.55rem,7vw,1.85rem);gap:9px}
+  .ts-season-kicker{font-size:10px}
+  .ts-season-visual{padding:18px;min-height:125px}
+  .ts-season-visual>span{padding-left:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .ts-season-watch,.ts-season-watch span,.ts-season-calendar{transition:none}
+  .ts-season-watch:hover span{transform:none}
+}
