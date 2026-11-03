@@ -21,8 +21,12 @@ HTTP or Supabase Auth integration test.
 Production logs showed `DEP0169` while handling GET `/api/owner`
 on Node.js 24. The current project sources do not contain a direct call to
 `url.parse()`; do not assume the warning is caused by owner authorization.
-`api/owner.js` imports other modules, so a direct call in an import or
-compiled runtime remains possible.
+A Node.js 24.22.1 GitHub Actions run directly imported and invoked the
+unauthenticated owner handler, confirmed HTTP 401, and observed **zero DEP0169
+warnings**. This rules out a reproducible warning in that isolated execution,
+but does not cover the Vercel HTTP adapter or deployed serverless wrapper.
+`api/owner.js` imports other modules, so a path that is only called by the
+serverless runtime remains possible.
 
 To attribute the warning, enable `NODE_OPTIONS=--trace-deprecation`
 **only in an isolated preview environment**, generate one unauthenticated
