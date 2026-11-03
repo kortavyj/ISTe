@@ -1,0 +1,23 @@
+name: Probe owner preview deprecation safely
+
+on:
+  push:
+    branches:
+      - diagnostics/vercel-owner-dep0169-20261104
+    paths:
+      - ".github/workflows/iste-owner-preview-probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Unauthenticated non-mutating preview request
+        run: |
+          status="$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' 'https://iste-ibiqqyjty-kortavyj1.vercel.app/api/owner?action=users')"
+          echo "Preview HTTP status: $status"
+          if [ "$status" != "401" ]; then
+            echo "Preview endpoint not reachable or returned unexpected status"
+          fi
