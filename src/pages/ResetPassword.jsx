@@ -239,7 +239,7 @@ export default function ResetPassword() {
     try {
       // Check the candidate server-side before updating Supabase Auth.
       // The external breach database receives only a hash prefix.
-      const safetyResponse = await fetch("/api/auth/password-safety", {
+      const safetyResponse = await fetch("/api/auth/recover?mode=password-safety", {
         method: "POST",
         credentials: "same-origin",
         cache: "no-store",
