@@ -41,7 +41,7 @@ export default function TournamentOwnerActions({ tournament, onUpdated }) {
         <h2 id="ot-confirm-heading">Изменить статус турнира?</h2>
         <p>{tournament.title}</p>
         <p>{LABEL[tournament.status]} → {LABEL[next]}</p>
-        <p>Сервер дополнительно проверит MFA, состав команд и готовность сетки. Реальная запись пока отключена.</p>
+        <p>Сервер дополнительно проверит MFA, состав команд и готовность сетки. Публикация черновика откроет доступ к турниру и отправит анонс подписчикам на сайте.</p>
         <div className="ot-confirm-buttons">
           <button type="button" disabled={busy} onClick={()=>void advance()}>{busy?"Проверка…":"Подтвердить"}</button>
           <button type="button" disabled={busy} onClick={()=>setConfirm(false)}>Отмена</button>
