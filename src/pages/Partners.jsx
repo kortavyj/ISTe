@@ -180,7 +180,19 @@ export default function Partners() {
         .cyberion-zone{contain:none}
         .cyberion-zone-toggle{touch-action:manipulation}
         .cyberion-zone-chevron{transition:none}
-      `}</style>
+      
+        /* REDLINE partner booking button */
+        .cyberion-partners .cyberion-action-redline{position:relative;display:inline-flex;align-items:center;justify-content:space-between;gap:23px;min-height:52px;padding:15px 19px 17px;overflow:hidden;border:1px solid #64242e;border-radius:8px;background:linear-gradient(115deg,#1b0d12,#0d0d10);color:#fff;font-size:12px;font-weight:850;letter-spacing:.085em;line-height:1.3;text-transform:uppercase;box-shadow:0 10px 25px rgba(0,0,0,.22);transition:border-color .2s ease,background .2s ease,box-shadow .2s ease}
+        .cyberion-partners .cyberion-action-redline:after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#ff243c 0%,#ea1a36 44%,transparent 100%);box-shadow:0 0 10px rgba(255,38,65,.38);pointer-events:none;transition:height .2s ease,box-shadow .2s ease}
+        .cyberion-partners .cyberion-action-redline-label{position:relative;z-index:1;white-space:nowrap}
+        .cyberion-partners .cyberion-action-redline svg{position:relative;z-index:1;flex-shrink:0;color:#ff3a51;transition:transform .2s ease,color .2s ease}
+        .cyberion-partners .cyberion-action-redline:hover{border-color:#a63547;background:linear-gradient(115deg,#260c14,#131015);box-shadow:0 11px 28px rgba(0,0,0,.26),0 0 12px rgba(229,28,53,.08)}
+        .cyberion-partners .cyberion-action-redline:hover:after{height:3px;box-shadow:0 0 15px rgba(255,38,65,.5)}
+        .cyberion-partners .cyberion-action-redline:hover svg{transform:translate(2px,-2px);color:#ff6172}
+        .cyberion-partners .cyberion-action-redline:focus-visible{outline:2px solid #fff;outline-offset:4px}
+        @media(max-width:420px){.cyberion-partners .cyberion-action-redline{max-width:100%;gap:12px;padding-inline:14px;font-size:11px}.cyberion-partners .cyberion-action-redline-label{white-space:normal}}
+        @media(prefers-reduced-motion:reduce){.cyberion-partners .cyberion-action-redline,.cyberion-partners .cyberion-action-redline:after,.cyberion-partners .cyberion-action-redline svg{transition:none}.cyberion-partners .cyberion-action-redline:hover svg{transform:none}}
+`}</style>
       <div className="cyberion-breadcrumb">ISTe　›　{uk ? "Партнери" : "Partners"}　›　<b>CYBERION KALYNOVA</b></div>
       <div className="cyberion-hero">
         <p className="cyberion-kicker">{uk ? "Наш партнер" : "Our partner"}</p>
@@ -189,7 +201,7 @@ export default function Partners() {
         <p className="cyberion-muted">Мережа кіберклубів України · Дніпро, просп. Слобожанський, 89</p>
         <p className="cyberion-muted">Ігровий простір із 30 геймерськими ПК, сучасним обладнанням та можливістю забронювати місце через офіційні канали клубу.</p>
         <div className="cyberion-actions">
-          <a className="cyberion-action cyberion-action-primary" href={telegram} target="_blank" rel="noopener noreferrer">↗ {uk ? "Забронювати місце" : "Book a place"}</a>
+          <a className="cyberion-action cyberion-action-primary cyberion-action-redline" href={telegram} target="_blank" rel="noopener noreferrer" aria-label={uk ? "Забронювати місце через Telegram" : "Book a place via Telegram"}><span className="cyberion-action-redline-label">{uk ? "ЗАБРОНЮВАТИ МІСЦЕ" : "BOOK A PLACE"}</span><svg viewBox="0 0 24 24" aria-hidden="true" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
         </div>
       </div>
       <div className="cyberion-grid cyberion-grid-reference">
