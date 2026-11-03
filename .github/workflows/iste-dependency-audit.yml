@@ -7,6 +7,10 @@ on:
       - "package.json"
       - "package-lock.json"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/iste-dependency-audit.yml"
 
 permissions:
   contents: read
@@ -47,7 +51,7 @@ jobs:
   remediate:
     permissions:
       contents: write
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
