@@ -26,11 +26,11 @@ function dateToIso(value) {
 }
 
 const shortcuts = [
-  { to: "/owner/tournaments-team-applications", number: "01", name: "Заявки команд", hint: "Проверка составов и допуск к турниру", tag: "Управление" },
-  { to: "/owner/tournaments-bracket", number: "02", name: "Турнирная сетка", hint: "Матчи, результаты и продвижение команд", tag: "Управление" },
-  { to: "/owner/tournaments-preview", number: "03", name: "Демо-сетка", hint: "Предпросмотр сетки без записи в базу", tag: "Демо" },
-  { to: "/owner/tournaments-match-lab", number: "04", name: "Тест матчей", hint: "Проверка сценариев и ручного подсчёта", tag: "Демо" },
-  { to: "/owner/tournaments-teams", number: "05", name: "Тест заявок", hint: "Демонстрация модерации команд", tag: "Демо" },
+  { to: "/owner/tournaments-team-applications", number: "01", name: "Заявки команд", hint: "Реальные заявки, проверка составов и одобрение", tag: "Управление", icon: "users" },
+  { to: "/owner/tournaments-bracket?mode=server", number: "02", name: "Турнирная сетка", hint: "Сетка реального турнира и продвижение команд", tag: "Управление", icon: "bracket" },
+  { action: "create", number: "03", name: "Создать турнир", hint: "Создание черновика с настройками CS2", tag: "Создание", icon: "plus" },
+  { to: "/owner/tournaments-bracket?mode=server", number: "04", name: "Результаты матчей", hint: "Ввод счетов BO1, BO3, BO5 с записью в базу", tag: "Управление", icon: "score" },
+  { action: "schedule", number: "05", name: "Календарь турниров", hint: "Даты регистрации, старты и текущие статусы", tag: "Расписание", icon: "calendar" },
 ];
 
 export default function OwnerTournaments() {
@@ -46,6 +46,30 @@ export default function OwnerTournaments() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [createNotice, setCreateNotice] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  const schedule = useMemo(() => [...tournaments]
+    .filter(item => item.starts_at || item.registration_start || item.registration_end)
+    .sort((a, b) => new Date(a.starts_at || a.registration_start || a.registration_end) - new Date(b.starts_at || b.registration_start || b.registration_end)),
+    [tournaments]);
+
+  function openCreate() {
+    if (!writesEnabled) {
+      setCreateNotice("Создание пока недоступно. Проверьте права владельца, MFA и серверную настройку.");
+      document.getElementById("ot-list-heading")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    setShowCreate(true);
+    setCreateError("");
+    setCreateNotice("");
+    requestAnimationFrame(() => document.getElementById("ot-create-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
+  function openCalendar() {
+    setShowCalendar(value => !value);
+    requestAnimationFrame(() => document.getElementById("ot-calendar-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
 
   function editDraft(field, value) {
     setDraft(current => {
@@ -266,12 +290,53 @@ export default function OwnerTournaments() {
         ))}</div>}
       </section>
 
+      {showCalendar && <section className="ot-calendar" aria-labelledby="ot-calendar-heading">
+        <div className="ot-section-title">
+          <div>
+            <span className="ot-section-index">КАЛЕНДАРЬ / РЕАЛЬНЫЕ ТУРНИРЫ</span>
+            <h2 id="ot-calendar-heading">Расписание турниров</h2>
+            <p>Даты и статусы берутся из защищённого списка турниров ISTe. Черновики видны только владельцу.</p>
+          </div>
+          <button className="ot-refresh" type="button" onClick={() => void refresh()} disabled={loading}>{loading ? "Загрузка…" : "Обновить"}</button>
+        </div>
+        {error ? <p className="ot-calendar-empty" role="alert">{error}</p> : !schedule.length ? <div className="ot-calendar-empty" role="status">Пока нет турниров с назначенными датами. Создайте первый черновик, чтобы добавить его в календарь.</div> :
+          <div className="ot-calendar-list">{schedule.map(item => (
+            <article className="ot-calendar-event" key={item.id}>
+              <div className="ot-calendar-date">
+                <span>{item.starts_at ? "НАЧАЛО ТУРНИРА" : "РЕГИСТРАЦИЯ"}</span>
+                <strong>{new Date(item.starts_at || item.registration_start || item.registration_end).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", year: "numeric", timeZone: "Europe/Kyiv" })}</strong>
+                <small>{new Date(item.starts_at || item.registration_start || item.registration_end).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Kyiv" })} · Киев</small>
+              </div>
+              <div className="ot-calendar-details">
+                <span className={`ot-status ot-status--${item.status || "draft"}`}>{statusLabels[item.status] || item.status}</span>
+                <h3>{item.title}</h3>
+                <p>{item.capacity} команд · BO{item.best_of} · {item.slug}</p>
+                {item.registration_start && <p>Открытие регистрации: {new Date(item.registration_start).toLocaleString("ru-RU", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Kyiv" })}</p>}
+                {item.registration_end && <p>Закрытие регистрации: {new Date(item.registration_end).toLocaleString("ru-RU", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Kyiv" })}</p>}
+                <div className="ot-calendar-links">
+                  <Link to={`/owner/tournaments-team-applications?tournamentId=${encodeURIComponent(item.id)}`}>Заявки команд</Link>
+                  <Link to={`/owner/tournaments-bracket?mode=server&tournamentId=${encodeURIComponent(item.id)}`}>Сетка и результаты</Link>
+                  <button type="button" onClick={() => {setQuery(item.slug);setFilter("all"); document.getElementById("ot-list-heading")?.scrollIntoView({ behavior: "smooth", block: "start" });}}>Управление статусом</button>
+                </div>
+              </div>
+            </article>
+          ))}</div>}
+      </section>}
+
       <section className="ot-tools" aria-labelledby="ot-tools-heading">
         <div className="ot-section-title"><div><span className="ot-section-index">02 / ИНСТРУМЕНТЫ</span><h2 id="ot-tools-heading">Рабочее пространство</h2><p>Управление участниками, матчами и тестовыми сценариями.</p></div></div>
-        <div className="ot-tools-grid">{shortcuts.map(item => <Link className="ot-tool" to={item.to} key={item.number}>
-          <div className="ot-tool-top"><span>{item.number} / ISTe</span><span className={item.tag === "Демо" ? "ot-tool-tag ot-tool-tag--demo" : "ot-tool-tag"}>{item.tag}</span></div>
-          <div><h3>{item.name}</h3><p>{item.hint}</p></div><span className="ot-tool-arrow" aria-hidden="true">↗</span>
-        </Link>)}</div>
+        <div className="ot-tools-grid">
+          {shortcuts.map(item => {
+            const inner = <>
+              <div className="ot-tool-top"><span>{item.number} / ISTe</span><span className="ot-tool-tag">{item.tag}</span></div>
+              <div><h3>{item.name}</h3><p>{item.hint}</p></div>
+              <span className="ot-tool-arrow" aria-hidden="true">↗</span>
+            </>;
+            if (item.action === "create") return <button type="button" className="ot-tool ot-tool-button" key={item.number} onClick={openCreate}>{inner}</button>;
+            if (item.action === "schedule") return <button type="button" className="ot-tool ot-tool-button" key={item.number} onClick={openCalendar} aria-expanded={showCalendar}>{inner}</button>;
+            return <Link className="ot-tool" to={item.to} key={item.number}>{inner}</Link>;
+          })}
+        </div>
       </section>
       <footer className="ot-footer"><span>ISTe / TOURNAMENT OPERATIONS V2</span><Link to="/founder">← К панели владельца</Link></footer>
     </main>
