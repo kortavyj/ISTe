@@ -484,3 +484,37 @@
   .ts-preview-page .ts-preview-actions .ts-discord-outline,.ts-preview-page .ts-discord-outline-arrow{transition:none}
   .ts-preview-page .ts-preview-actions .ts-discord-outline:hover,.ts-preview-page .ts-discord-outline:hover .ts-discord-outline-arrow{transform:none}
 }
+
+
+/* Refined alignment for the upcoming-tournaments description */
+.ts-preview-page .ts-season-announcement .ts-season-copy>p{
+  box-sizing:border-box;
+  width:100%;
+  max-width:610px;
+  padding-left:clamp(46px,3.8vw,58px);
+  margin:0;
+  color:#e2d7de;
+  font-size:clamp(.94rem,1.12vw,1.06rem);
+  font-weight:450;
+  line-height:1.7;
+  letter-spacing:.005em;
+  text-wrap:pretty;
+}
+.ts-preview-page .ts-season-announcement .ts-season-watch{
+  margin-left:clamp(46px,3.8vw,58px);
+}
+@media(max-width:760px){
+  .ts-preview-page .ts-season-announcement .ts-season-copy>p{
+    padding-left:clamp(39px,7vw,49px);
+    max-width:100%;
+    font-size:.94rem;
+    line-height:1.65;
+  }
+  .ts-preview-page .ts-season-announcement .ts-season-watch{
+    margin-left:clamp(39px,7vw,49px);
+  }
+}
+@media(max-width:440px){
+  .ts-preview-page .ts-season-announcement .ts-season-copy>p{padding-left:0}
+  .ts-preview-page .ts-season-announcement .ts-season-watch{margin-left:0}
+}
