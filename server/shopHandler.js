@@ -6,6 +6,7 @@ import {
 import { createClient } from "@supabase/supabase-js";
 
 import { guardRequest } from "./apiLib/requestGuard.js";
+import { getClientAddress } from "./lib/authSecurity.js";
 import {
   isUuid,
   readJsonBody,
@@ -290,38 +291,6 @@ function getHeader(
     : "";
 }
 
-function getClientAddress(request) {
-  const forwarded = getHeader(
-    request,
-    "x-forwarded-for",
-  );
-
-  if (forwarded.trim()) {
-    return forwarded
-      .split(",")[0]
-      .trim()
-      .slice(0, 96);
-  }
-
-  const realIp = getHeader(
-    request,
-    "x-real-ip",
-  );
-
-  return realIp.trim()
-    ? realIp.trim().slice(0, 96)
-    : "unknown";
-}
-
-function getUserAgent(request) {
-  return getHeader(
-    request,
-    "user-agent",
-  )
-    .trim()
-    .slice(0, 320) || "unknown";
-}
-
 function createRateLimitKey(request) {
   const secret =
     process.env
@@ -340,17 +309,9 @@ function createRateLimitKey(request) {
     );
   }
 
-  return createHmac(
-    "sha256",
-    secret,
-  )
-    .update(
-      `${getClientAddress(
-        request,
-      )}|${getUserAgent(
-        request,
-      )}|preorder`,
-    )
+  // Rate limiting must not depend on caller-controlled User-Agent.
+  return createHmac("sha256", secret)
+    .update(`preorder:client:${getClientAddress(request)}`)
     .digest("hex");
 }
 
