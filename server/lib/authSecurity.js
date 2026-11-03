@@ -124,15 +124,12 @@ export function getLoginRateLimitBuckets(request, email) {
   };
 }
 
-export async function enforceLoginRateLimit(request, email) {
-  const context = getLoginRateLimitBuckets(request, email);
-
-  // This independent account quota is intentionally NOT reset on login.
-  // Otherwise valid sessions could erase the distributed guessing budget.
+export async function evaluateLoginRateLimit(context, consume) {
+  // Never reset the independent account quota on successful authentication.
   const [pair, client, identity] = await Promise.all([
-    consumeBucket(context.pairBucket, 8, 15 * 60, 15 * 60),
-    consumeBucket(context.clientBucket, 30, 15 * 60, 30 * 60),
-    consumeBucket(context.identityBucket, 20, 15 * 60, 15 * 60),
+    consume(context.pairBucket, 8, 15 * 60, 15 * 60),
+    consume(context.clientBucket, 30, 15 * 60, 30 * 60),
+    consume(context.identityBucket, 20, 15 * 60, 15 * 60),
   ]);
 
   return {
@@ -144,6 +141,13 @@ export async function enforceLoginRateLimit(request, email) {
       identity.retryAfterSeconds,
     ),
   };
+}
+
+export async function enforceLoginRateLimit(request, email) {
+  return evaluateLoginRateLimit(
+    getLoginRateLimitBuckets(request, email),
+    consumeBucket,
+  );
 }
 
 export async function enforceRegisterRateLimit(
