@@ -35,9 +35,15 @@
   transform: translateX(-50%);
 }
 
-.team-page > * {
+.team-page > :not(.team-page__glow) {
   position: relative;
   z-index: 1;
+}
+
+/* Decorative glow must never occupy layout space. */
+.team-page > .team-page__glow {
+  position: absolute;
+  z-index: 0;
 }
 
 .team-page__header {
