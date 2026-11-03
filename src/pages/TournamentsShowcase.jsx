@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext.jsx";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import "./TournamentsShowcase.css";
 
@@ -10,6 +12,12 @@ const copy = {
     intro: "Скоро на платформі ISTe. Ми готуємо серію турнірів, які об'єднають команди, гравців і нашу спільноту.",
     discord: "Слідкувати в Discord",
     notify: "Дізнатися першими",
+    subscribed: "Сповіщення увімкнено",
+    subscribing: "Збереження...",
+    alertSuccess: "Готово! Після публікації турніру з’явиться сповіщення в дзвіночку на сайті.",
+    alertRemoved: "Підписку на анонси вимкнено.",
+    alertLogin: "Увійди в акаунт ISTe, щоб отримувати сповіщення про турніри.",
+    alertError: "Не вдалося оновити підписку. Спробуй ще раз.",
     statusTitle: "ТУРНІРИ НЕЗАБАРОМ",
     statusDescription: "Готуємо перші змагання CS2. Анонси, регламент та реєстрація з’являться після офіційного оголошення.",
     seasonLabel: "НОВИЙ СЕЗОН",
@@ -34,6 +42,12 @@ const copy = {
     intro: "Скоро на платформе ISTe. Мы готовим серию турниров, объединяющих команды, игроков и наше сообщество.",
     discord: "Следить в Discord",
     notify: "Узнать первыми",
+    subscribed: "Уведомления включены",
+    subscribing: "Сохранение...",
+    alertSuccess: "Готово! После публикации турнира уведомление появится в колокольчике на сайте.",
+    alertRemoved: "Подписка на анонсы отключена.",
+    alertLogin: "Войди в аккаунт ISTe, чтобы получать уведомления о турнирах.",
+    alertError: "Не удалось обновить подписку. Попробуй ещё раз.",
     statusTitle: "ТУРНИРЫ СКОРО",
     statusDescription: "Готовим первые соревнования CS2. Анонсы, регламент и регистрация появятся после официального объявления.",
     seasonLabel: "НОВЫЙ СЕЗОН",
@@ -58,6 +72,12 @@ const copy = {
     intro: "Coming to ISTe. We're preparing a series of events bringing teams, players and our community together.",
     discord: "Follow on Discord",
     notify: "Be first to know",
+    subscribed: "Alerts enabled",
+    subscribing: "Saving...",
+    alertSuccess: "Subscribed! Tournament announcements will appear in the website notification bell.",
+    alertRemoved: "Tournament alerts disabled.",
+    alertLogin: "Sign in to ISTe to receive tournament notifications.",
+    alertError: "Could not update your subscription. Try again.",
     statusTitle: "TOURNAMENTS COMING SOON",
     statusDescription: "Our first CS2 events are in preparation. Announcements, rules and registration will follow an official launch.",
     seasonLabel: "NEW SEASON",
@@ -192,7 +212,51 @@ function ArenaArtwork() {
 
 export default function TournamentsShowcase() {
   const { language } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const t = copy[language] || copy.uk;
+  const [subscribed, setSubscribed] = useState(false);
+  const [alertPending, setAlertPending] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  useEffect(() => {
+    if (!user?.id) {
+      setSubscribed(false);
+      return undefined;
+    }
+    let live = true;
+    fetch("/api/tournaments-alerts", { credentials: "include", cache: "no-store" })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("status")))
+      .then((result) => { if (live) setSubscribed(result.subscribed === true); })
+      .catch(() => { if (live) setAlertMessage(t.alertError); });
+    return () => { live = false; };
+  }, [user?.id]);
+  async function toggleAlert() {
+    if (alertPending) return;
+    if (!user) {
+      setAlertMessage(t.alertLogin);
+      navigate("/login", { state: { from: "/tournaments" } });
+      return;
+    }
+    setAlertPending(true);
+    setAlertMessage("");
+    try {
+      const response = await fetch("/api/tournaments-alerts", {
+        method: subscribed ? "DELETE" : "POST",
+        credentials: "include",
+        headers: subscribed ? { Accept: "application/json" } : { "Content-Type": "application/json", Accept: "application/json" },
+        ...(subscribed ? {} : { body: JSON.stringify({ action: "subscribe" }) }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error("Failed");
+      setSubscribed(result.subscribed === true);
+      setAlertMessage(result.subscribed ? t.alertSuccess : t.alertRemoved);
+      window.dispatchEvent(new Event("iste:tournament-alert-changed"));
+    } catch {
+      setAlertMessage(t.alertError);
+    } finally {
+      setAlertPending(false);
+    }
+  }
   return (
     <section className="ts-page ts-preview-page">
       <div className="ts-preview-shell">
@@ -204,8 +268,9 @@ export default function TournamentsShowcase() {
             <p>{t.intro}</p>
             <div className="ts-preview-actions">
               <a href={DISCORD} target="_blank" rel="noopener noreferrer" className="ts-preview-primary"><span aria-hidden="true">◈</span>{t.discord}</a>
-              <a href="#tournament-status" className="ts-preview-secondary"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3ZM10 20h4" /></svg>{t.notify}</a>
+              <button type="button" disabled={alertPending || authLoading} onClick={toggleAlert} className={`ts-preview-secondary ts-alert-toggle${subscribed ? " ts-alert-toggle--active" : ""}`} aria-pressed={subscribed}><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3ZM10 20h4" /></svg>{alertPending ? t.subscribing : subscribed ? t.subscribed : t.notify}</button>
             </div>
+            <p className="ts-alert-feedback" role="status" aria-live="polite">{alertMessage}</p>
           </div>
         </header>
 
