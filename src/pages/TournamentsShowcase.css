@@ -518,3 +518,28 @@
   .ts-preview-page .ts-season-announcement .ts-season-copy>p{padding-left:0}
   .ts-preview-page .ts-season-announcement .ts-season-watch{margin-left:0}
 }
+
+
+/* Public real tournament cards, shown only after an official publication */
+.ts-live-tournaments{margin:30px 0 26px;padding:31px;border:1px solid #672a39;border-radius:17px;background:radial-gradient(ellipse at 100% 0%,#4e0c202e,transparent 55%),linear-gradient(140deg,#140b12,#08080a 62%)}
+.ts-live-tournaments-heading>span{color:#ff3c56;font-weight:850;font-size:11px;letter-spacing:.17em}
+.ts-live-tournaments-heading h2{margin:10px 0 7px;font-size:clamp(1.7rem,3vw,2.5rem);font-weight:950;letter-spacing:-.04em;color:#fff}
+.ts-live-tournaments-heading>p{color:#cbc0c6;font-size:.93rem;margin:0 0 23px}
+.ts-live-tournaments-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px}
+.ts-live-tournament{min-width:0;padding:22px;border:1px solid #53323a;border-radius:12px;background:linear-gradient(155deg,#251019,#0d0b0f 66%);box-shadow:inset 0 -2px 0 #e12640}
+.ts-live-tournament-status{display:inline-flex;color:#ff7183;font-weight:850;font-size:.72rem;letter-spacing:.12em}
+.ts-live-tournament h3{color:#fff;font-size:clamp(1.2rem,2vw,1.6rem);line-height:1.25;font-weight:900;margin:13px 0}
+.ts-live-tournament-meta{display:flex;flex-wrap:wrap;gap:8px}
+.ts-live-tournament-meta span{padding:5px 9px;border:1px solid #50333d;border-radius:6px;font-size:.72rem;font-weight:700;color:#ddd2d8;background:#171015}
+.ts-live-tournament>p{font-size:.83rem;line-height:1.6;color:#d4c8d0;margin:13px 0}
+.ts-live-tournament-link,.ts-tournament-apply>button{display:inline-flex;align-items:center;gap:11px;padding:10px 15px;margin-top:12px;border:1px solid #e9344c;border-radius:9px;background:#e9233e;color:#fff;font:inherit;font-weight:850;font-size:.84rem;cursor:pointer}
+.ts-live-tournament-link:hover,.ts-tournament-apply>button:hover{background:#fa304e}
+.ts-tournament-apply{display:grid;gap:12px;margin-top:16px;padding-top:15px;border-top:1px solid #4e2836}
+.ts-tournament-apply label{display:grid;gap:6px;font-size:.76rem;font-weight:800;color:#e1cfd8}
+.ts-tournament-apply label input{width:100%;min-width:0;min-height:38px;padding:9px 12px;border-radius:7px;border:1px solid #6a3a48;background:#110b10;color:white;font:inherit}
+.ts-tournament-apply label input:focus{outline:2px solid #ff485c;outline-offset:2px}
+.ts-tournament-apply p{color:#c8b4bd;line-height:1.6;font-size:.77rem;margin:0}
+.ts-tournament-apply>button{justify-self:start;margin-top:2px}
+.ts-tournament-apply>button:disabled{opacity:.6;cursor:wait}
+.ts-application-result{padding:12px 14px;margin:0 0 16px;border:1px solid #733747;border-radius:8px;background:#260f19;color:#fce4e9;font-size:.83rem}
+@media(max-width:660px){.ts-live-tournaments{padding:22px 17px}.ts-live-tournament{padding:19px 16px}}
