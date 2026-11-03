@@ -114,15 +114,19 @@ function ArenaArtwork() {
             <path d={`M${x+12} ${y+14}H${x+38}M${x+12} ${y+23}H${x+63}`} stroke="#dc6576" strokeOpacity=".24" strokeWidth="3" strokeLinecap="round"/>
           </g>
         ))}
-        <rect x="471" y="124" width="113" height="104" rx="14" fill="#1c080e" stroke="#e62c46" strokeWidth="1.6"/>
-        <rect x="478" y="131" width="99" height="90" rx="9" stroke="#e62c46" strokeOpacity=".18"/>
-        <g transform="translate(503 142)" stroke="#ff4861" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M13 7H49V27C49 39 41 46 31 46S13 39 13 27V7Z"/>
-          <path d="M13 12H4V21C4 32 10 35 16 35M49 12H58V21C58 32 52 35 46 35"/>
-          <path d="M31 46V55M20 57H42"/>
-          <path d="m31 15 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z" fill="#fa354d" fillOpacity=".34" strokeWidth="1.3"/>
+        <g className="ts-bracket-neon-trophy">
+          <rect className="ts-bracket-trophy-aura" x="461" y="114" width="133" height="125" rx="19" fill="#eb183b" fillOpacity=".12"/>
+          <rect className="ts-bracket-trophy-frame" x="472" y="124" width="111" height="104" rx="14" fill="#15080f" stroke="#fc3857" strokeWidth="1.7"/>
+          <rect x="479" y="131" width="97" height="90" rx="10" stroke="#fe5169" strokeOpacity=".45" strokeWidth=".8"/>
+          <path d="M489 142H500M555 142H566M489 209H500M555 209H566" stroke="#fb4863" strokeOpacity=".42" strokeWidth="1.4" strokeLinecap="round"/>
+          <g className="ts-bracket-trophy-symbol" transform="translate(503 140)" stroke="#ff5267" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 7H48V27C48 39 40 45 31 45S14 39 14 27V7Z" fill="#f02a46" fillOpacity=".11"/>
+            <path d="M14 12H5V20C5 31 11 35 17 35M48 12H57V20C57 31 51 35 45 35"/>
+            <path d="M31 45V56M20 58H42"/>
+            <path d="m31 15 3.3 7 7.7 1.1-5.6 5.2 1.5 8-6.9-3.8-6.9 3.8 1.5-8-5.6-5.2 7.7-1.1Z" fill="#fb364e" fillOpacity=".23" strokeWidth="1.5"/>
+          </g>
+          <path d="M491 207H563" stroke="#fe5169" strokeOpacity=".38" strokeWidth="1"/>
         </g>
-        <path d="M496 204H560" stroke="#f02c47" strokeOpacity=".36" strokeWidth="1"/>
         <g stroke="#e82842" strokeOpacity=".18">
           <path d="M15 310H208M218 327H405M420 21H602"/>
         </g>
