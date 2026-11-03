@@ -74,7 +74,8 @@ function TournamentIcon({ kind }) {
 
 function ArenaArtwork() {
   return <div className="ts-arena" aria-hidden="true">
-    <img className="ts-arena-illustration" src="https://images.unsplash.com/photo-1758410473735-c76baff30a79?auto=format&fit=crop&w=1800&q=88" alt="" fetchPriority="high" referrerPolicy="no-referrer" />
+    <img className="ts-arena-illustration" src="https://images.unsplash.com/photo-1730103138676-5562791a5eb1?auto=format&fit=crop&w=2200&q=90" alt="" fetchPriority="high" referrerPolicy="no-referrer" />
+    <div className="ts-arena-target" aria-hidden="true"><span>CS2</span></div>
 
   </div>;
 }
@@ -128,8 +129,7 @@ export default function TournamentsShowcase() {
           <a href={DISCORD} target="_blank" rel="noopener noreferrer">{t.followButton}<span aria-hidden="true">→</span></a>
         </section>
 
-        <p className="ts-preview-note">{t.note} <Link to="/collaborate">{t.request} ↗</Link></p>
-        <p className="ts-preview-photo-credit">{language === "en" ? "CS2 gaming photographs" : "Фото гравців CS2"}: <a href="https://unsplash.com/@ramanshaunia" target="_blank" rel="noopener noreferrer">Raman Shaunia / Unsplash</a>, <a href="https://www.pexels.com/@yan-krukau/" target="_blank" rel="noopener noreferrer">Yan Krukau / Pexels</a>. {language === "en" ? "Illustrative photos; not ISTe roster members." : "Ілюстративні фото, не гравці ISTe."}</p>
+
       </div>
     </section>
   );
