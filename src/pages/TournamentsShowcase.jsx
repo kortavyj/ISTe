@@ -212,7 +212,6 @@ export default function TournamentsShowcase() {
           <h2 id="ts-formats-heading"><span aria-hidden="true">//</span>{t.formats}</h2>
           <div className="ts-preview-format-grid">
             {t.cards.map((item, i) => <article className={"ts-preview-format ts-preview-format--" + i} key={item.title}>
-              <span className="ts-preview-format-photo" aria-hidden="true" />
               <TournamentIcon kind={i} />
               <h3>{item.title}</h3>
               <p>{item.description}</p>
