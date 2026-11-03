@@ -1,0 +1,45 @@
+name: Dependency security audit
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/iste-dependency-audit.yml"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm ci --ignore-scripts
+      - name: Report vulnerable packages and recommended updates
+        shell: bash
+        run: |
+          npm audit --json > /tmp/iste-audit.json || true
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const audit=JSON.parse(fs.readFileSync("/tmp/iste-audit.json","utf8"));
+          console.log("Vulnerability counts",JSON.stringify(audit.metadata?.vulnerabilities||{}));
+          for(const [name,v] of Object.entries(audit.vulnerabilities||{})) {
+            console.log("Package",JSON.stringify({name,severity:v.severity,isDirect:v.isDirect,range:v.range,fixAvailable:v.fixAvailable,via:v.via?.map(x=>typeof x==="string"?x:{name:x.name,title:x.title,url:x.url,range:x.range})}));
+          }
+          NODE
+      - name: Report safe lockfile-only remediation
+        shell: bash
+        run: |
+          npm audit fix --package-lock-only --ignore-scripts --dry-run --json > /tmp/iste-audit-fix.json || true
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const report=JSON.parse(fs.readFileSync("/tmp/iste-audit-fix.json","utf8"));
+          console.log("Remediation",JSON.stringify({added:report.added,removed:report.removed,changed:report.changed,audit:report.audit?.metadata?.vulnerabilities,error:report.error}));
+          NODE
