@@ -289,3 +289,21 @@
 .ts-bracket-hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(5,5,5,.12),transparent 27%),linear-gradient(0deg,#080508 0%,transparent 19%,transparent 80%,#080508 100%)}
 @media(max-width:980px){.ts-bracket-hero.ts-arena{inset:0 0 0 40%}.ts-bracket-svg{width:113%;left:-5%}}
 @media(max-width:660px){.ts-preview-hero{min-height:430px;align-items:flex-end}.ts-preview-hero:before{background:linear-gradient(0deg,#050505 0%,rgba(5,5,5,.95) 28%,rgba(5,5,5,.47) 59%,rgba(5,5,5,.13) 100%)}.ts-bracket-hero.ts-arena{inset:0 0 21%;background:transparent}.ts-bracket-svg{width:108%;left:-4%;height:76%;top:0}.ts-bracket-hero::after{background:linear-gradient(0deg,#050505 0%,transparent 42%)}}
+
+
+/* Option 01: Neon Trophy. Highlight only the final node, not the entire bracket. */
+.ts-bracket-neon-trophy{
+  filter:drop-shadow(0 0 7px rgba(255,45,74,.52)) drop-shadow(0 0 17px rgba(213,18,51,.23));
+}
+.ts-bracket-trophy-frame{
+  filter:drop-shadow(0 0 4px rgba(255,54,83,.5));
+}
+.ts-bracket-trophy-symbol{
+  filter:drop-shadow(0 0 5px rgba(255,54,83,.6));
+}
+.ts-bracket-trophy-aura{
+  opacity:.78;
+}
+@media(prefers-reduced-motion:reduce){
+  .ts-bracket-neon-trophy,.ts-bracket-trophy-frame,.ts-bracket-trophy-symbol{animation:none}
+}
