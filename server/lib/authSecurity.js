@@ -10,23 +10,19 @@ function getHeader(request, name) {
 }
 
 export function getClientAddress(request) {
-  // Vercel supplies these canonical client-IP headers at its edge.
-  // Prefer them to the user-controllable leftmost X-Forwarded-For value.
-  const canonical = [
-    getHeader(request, "x-vercel-forwarded-for"),
-    getHeader(request, "x-real-ip"),
-  ];
-  for (const value of canonical) {
-    const candidate = value.trim();
-    if (isIP(candidate)) return candidate;
+  // Vercel overwrites this header at its edge. Never trust generic
+  // forwarded headers as fallback: outside Vercel they may be supplied
+  // by the client, and using them would make rate limits bypassable.
+  const edgeAddress = getHeader(request, "x-vercel-forwarded-for").trim();
+  if (process.env.VERCEL === "1") {
+    return isIP(edgeAddress) ? edgeAddress : "unknown";
   }
 
-  // Outside Vercel, fall back to the last proxy-provided address rather
-  // than the leftmost entry, which can be supplied by an attacker.
-  const forwarded = getHeader(request, "x-forwarded-for");
-  const addresses = forwarded.split(",").map(value => value.trim()).filter(Boolean);
-  const last = addresses.at(-1) || "";
-  return isIP(last) ? last : "unknown";
+  // Direct, non-Vercel development requests can use the TCP peer address.
+  // Do not infer a client IP from unverified proxy headers.
+  const peerAddress =
+    request.socket?.remoteAddress || request.connection?.remoteAddress || "";
+  return isIP(peerAddress) ? peerAddress : "unknown";
 }
 
 function getSecret() {
@@ -132,7 +128,13 @@ export async function enforceLoginRateLimit(
   const clientBucket =
     `auth:login:client:${context.clientHash}`;
 
-  const [pair, client] = await Promise.all([
+  // Protect the account across many client IPs. Do not clear this bucket
+  // on successful login, or a single valid session could erase evidence
+  // of a distributed password guessing campaign.
+  const identityBucket =
+    `auth:login:identity:${context.identityHash}`;
+
+  const [pair, client, identity] = await Promise.all([
     consumeBucket(
       pairBucket,
       8,
@@ -145,6 +147,12 @@ export async function enforceLoginRateLimit(
       15 * 60,
       30 * 60,
     ),
+    consumeBucket(
+      identityBucket,
+      20,
+      15 * 60,
+      15 * 60,
+    ),
   ]);
 
   return {
@@ -152,10 +160,12 @@ export async function enforceLoginRateLimit(
     pairBucket,
     allowed:
       pair.allowed &&
-      client.allowed,
+      client.allowed &&
+      identity.allowed,
     retryAfterSeconds: Math.max(
       pair.retryAfterSeconds,
       client.retryAfterSeconds,
+      identity.retryAfterSeconds,
     ),
   };
 }
