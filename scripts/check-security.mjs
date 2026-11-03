@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { guardRequest } from "../server/apiLib/requestGuard.js";
+import { checkExposedPassword } from "../server/lib/pwnedPassword.js";
 
 const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
 const universal = config.headers.find(row => row.source === "/(.*)");
@@ -40,5 +41,18 @@ assert.equal(guardRequest({ ...trusted, headers: { ...trusted.headers, host: "at
 assert.equal(guardRequest({ ...trusted, headers: { ...trusted.headers, origin: "https://www.istesport.com/unsafe" } }).status, 403);
 assert.equal(guardRequest({ ...trusted, body: { value: "x".repeat(17_000) } }).status, 413);
 assert.equal(guardRequest({ ...trusted, headers: { ...trusted.headers, "content-type": "text/plain" } }).status, 415);
+
+const breached = await checkExposedPassword("password", async (url, opts) => {
+  assert.equal(url, "https://api.pwnedpasswords.com/range/5BAA6");
+  assert.equal(opts.headers["Add-Padding"], "true");
+  assert.ok(!JSON.stringify({ url, opts }).includes('"password"'));
+  return { ok: true, text: async () => "1E4C9B93F3F0682250B6CF8331B7EE68FD8:123\r\n" };
+});
+assert.equal(breached.exposed, true);
+const unique = await checkExposedPassword("password", async () => ({
+  ok: true,
+  text: async () => "00000000000000000000000000000000000:5\r\n",
+}));
+assert.equal(unique.exposed, false);
 
 console.log("Security regression checks passed.");
