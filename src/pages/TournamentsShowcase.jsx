@@ -92,6 +92,33 @@ function ArenaArtwork() {
             <stop offset="1" stopColor="#e7203e" stopOpacity="0"/>
           </radialGradient>
           <filter id="ts-connect-glow"><feGaussianBlur stdDeviation="4"/></filter>
+          <linearGradient id="ts-trophy-metal" x1="0" y1="0" x2="1" y2=".2">
+            <stop offset="0" stopColor="#260d16"/>
+            <stop offset=".13" stopColor="#b74759"/>
+            <stop offset=".24" stopColor="#ffe1d4"/>
+            <stop offset=".34" stopColor="#8c5663"/>
+            <stop offset=".51" stopColor="#30202e"/>
+            <stop offset=".66" stopColor="#d79195"/>
+            <stop offset=".79" stopColor="#fff1e0"/>
+            <stop offset=".91" stopColor="#9a394c"/>
+            <stop offset="1" stopColor="#1c0a15"/>
+          </linearGradient>
+          <linearGradient id="ts-trophy-bowl" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#f6c6b5"/>
+            <stop offset=".18" stopColor="#894d59"/>
+            <stop offset=".42" stopColor="#2b1826"/>
+            <stop offset=".62" stopColor="#a85f70"/>
+            <stop offset=".84" stopColor="#e8bab1"/>
+            <stop offset="1" stopColor="#3a1723"/>
+          </linearGradient>
+          <linearGradient id="ts-trophy-base" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#c46676"/>
+            <stop offset=".25" stopColor="#2b121d"/>
+            <stop offset=".59" stopColor="#130d15"/>
+            <stop offset="1" stopColor="#992b40"/>
+          </linearGradient>
+          <radialGradient id="ts-trophy-spot"><stop stopColor="#b51532" stopOpacity=".38"/><stop offset=".65" stopColor="#780b24" stopOpacity=".11"/><stop offset="1" stopColor="#780b24" stopOpacity="0"/></radialGradient>
+
         </defs>
         <circle cx="532" cy="169" r="106" fill="url(#ts-final-glow)" />
         <g className="ts-bracket-connection" stroke="url(#ts-line)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -114,18 +141,34 @@ function ArenaArtwork() {
             <path d={`M${x+12} ${y+14}H${x+38}M${x+12} ${y+23}H${x+63}`} stroke="#dc6576" strokeOpacity=".24" strokeWidth="3" strokeLinecap="round"/>
           </g>
         ))}
-        <g className="ts-bracket-neon-trophy">
-          <rect className="ts-bracket-trophy-aura" x="461" y="114" width="133" height="125" rx="19" fill="#eb183b" fillOpacity=".12"/>
-          <rect className="ts-bracket-trophy-frame" x="472" y="124" width="111" height="104" rx="14" fill="#15080f" stroke="#fc3857" strokeWidth="1.7"/>
-          <rect x="479" y="131" width="97" height="90" rx="10" stroke="#fe5169" strokeOpacity=".45" strokeWidth=".8"/>
-          <path d="M489 142H500M555 142H566M489 209H500M555 209H566" stroke="#fb4863" strokeOpacity=".42" strokeWidth="1.4" strokeLinecap="round"/>
-          <g className="ts-bracket-trophy-symbol" transform="translate(503 140)" stroke="#ff5267" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 7H48V27C48 39 40 45 31 45S14 39 14 27V7Z" fill="#f02a46" fillOpacity=".11"/>
-            <path d="M14 12H5V20C5 31 11 35 17 35M48 12H57V20C57 31 51 35 45 35"/>
-            <path d="M31 45V56M20 58H42"/>
-            <path d="m31 15 3.3 7 7.7 1.1-5.6 5.2 1.5 8-6.9-3.8-6.9 3.8 1.5-8-5.6-5.2 7.7-1.1Z" fill="#fb364e" fillOpacity=".23" strokeWidth="1.5"/>
+        <g className="ts-bracket-champion-trophy">
+          <ellipse cx="539" cy="184" rx="95" ry="117" fill="url(#ts-trophy-spot)" />
+          <path d="M467 177H484" stroke="#e8324d" strokeWidth="1.8" strokeLinecap="round"/>
+          <circle cx="484" cy="177" r="2.5" fill="#ff536c" />
+          <ellipse cx="538" cy="253" rx="56" ry="9" fill="#000" opacity=".65"/>
+          <g className="ts-bracket-champion-figure">
+            <path d="M499 111C478 107 468 117 471 135C473 149 487 161 504 163" stroke="url(#ts-trophy-metal)" strokeWidth="8" strokeLinecap="round"/>
+            <path d="M499 112C483 112 477 118 480 132C482 144 490 150 500 152" stroke="#fa9ca1" strokeOpacity=".66" strokeWidth="2.2"/>
+            <path d="M576 111C595 107 606 117 603 135C600 151 590 160 572 163" stroke="url(#ts-trophy-metal)" strokeWidth="8" strokeLinecap="round"/>
+            <path d="M576 112C594 112 598 119 595 131C593 143 586 150 576 151" stroke="#fac1b7" strokeOpacity=".48" strokeWidth="2.2"/>
+            <path d="M490 102Q538 96 585 102L579 149Q573 186 539 198Q504 188 495 150Z" fill="url(#ts-trophy-bowl)" stroke="#e2a3a4" strokeOpacity=".8" strokeWidth="1.6"/>
+            <path d="M496 112Q536 118 579 111" stroke="#ffdfcd" strokeOpacity=".78" strokeWidth="2" fill="none"/>
+            <path d="M500 124Q537 131 576 121M504 148Q537 156 571 142" stroke="#ffd1c7" strokeOpacity=".22" strokeWidth="1" fill="none"/>
+            <path d="M515 113Q509 148 528 177" stroke="#fff1e4" strokeOpacity=".22" strokeWidth="5" fill="none"/>
+            <path d="M557 111Q562 146 549 177" stroke="#ffe0d0" strokeOpacity=".4" strokeWidth="4" fill="none"/>
+            <ellipse cx="538" cy="103" rx="47" ry="6" fill="url(#ts-trophy-metal)" stroke="#f9cfbf" strokeOpacity=".86" strokeWidth="1.4"/>
+            <path d="M520 192Q539 199 556 192L550 208L545 224H531L527 207Z" fill="url(#ts-trophy-metal)" stroke="#d3858e" strokeWidth=".8"/>
+            <rect x="524" y="223" width="30" height="6" rx="2" fill="#c57880"/>
+            <path d="M507 228H570L576 245H501Z" fill="url(#ts-trophy-base)" stroke="#cd586e" strokeWidth="1"/>
+            <path d="M500 243H577L583 250H494Z" fill="url(#ts-trophy-metal)" stroke="#a54258" strokeWidth="1"/>
+            <path d="M511 232H566" stroke="#c8858b" strokeOpacity=".4"/>
+            <rect x="517" y="234" width="44" height="8" rx="2" fill="#09090e" stroke="#8e4353" strokeWidth=".6"/>
+            <path d="M520 238H558" stroke="#e58d92" strokeOpacity=".45" strokeWidth="1"/>
           </g>
-          <path d="M491 207H563" stroke="#fe5169" strokeOpacity=".38" strokeWidth="1"/>
+          <path d="M488 89L489 81M538 83V73M589 89L593 81" stroke="#f33956" strokeOpacity=".48" strokeWidth="1.4" strokeLinecap="round"/>
+          <g stroke="#f43e58" strokeOpacity=".3" strokeWidth="1">
+            <path d="M459 252H487M584 252H613M589 267H610"/>
+          </g>
         </g>
         <g stroke="#e82842" strokeOpacity=".18">
           <path d="M15 310H208M218 327H405M420 21H602"/>
