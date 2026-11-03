@@ -9,7 +9,7 @@
     "lint": "oxlint src",
     "preview": "vite preview",
     "faceit:update": "node scripts/update-faceit-stats.mjs",
-    "security:check": "node scripts/check-security.mjs"
+    "security:check": "node scripts/check-security.mjs && node --test tests/authRateLimitSecurity.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.110.8",
