@@ -25,6 +25,17 @@ async function readApiResponse(response) {
   }
 }
 
+
+function localizedLoginError(result, status, t) {
+  const code = String(result?.error || result?.code || "").toUpperCase();
+  const source = String(result?.message || "").toLowerCase();
+  if (status === 429 || /RATE_LIMIT|TOO_MANY|BRUTE_FORCE/.test(code)) return t("authLogin.rateLimited");
+  if (/BLOCKED|BANNED/.test(code) || /заблокирован|заблокован/.test(source)) return t("authLogin.blocked");
+  if (/EMAIL_NOT_CONFIRMED|EMAIL_UNCONFIRMED/.test(code) || /подтверд.*почт|підтверд.*пошт/.test(source)) return t("authLogin.confirmEmail");
+  if (status === 401 || /INVALID_CREDENTIAL|INVALID_LOGIN|LOGIN_FAILED|AUTH_FAILED/.test(code) || /неверн.*(?:почт|парол)|невірн.*(?:пошт|парол)|invalid login credentials|incorrect email/.test(source)) return t("authLogin.invalidCredentials");
+  return t("authLogin.serverError");
+}
+
 export default function Login() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -104,10 +115,7 @@ const [submitting, setSubmitting] =
         !response.ok ||
         result.ok !== true
       ) {
-        setErrorMessage(
-          result.message ||
-            "Не удалось выполнить вход.",
-        );
+        setErrorMessage(localizedLoginError(result, response.status, t));
 
         return;
       }
@@ -141,9 +149,7 @@ navigate(destination, {
         error,
       );
 
-      setErrorMessage(
-        "Не удалось связаться с сервером. Повторите попытку.",
-      );
+      setErrorMessage(t("authLogin.networkError"));
     } finally {
       setSubmitting(false);
     }
