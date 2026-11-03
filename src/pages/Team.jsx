@@ -546,12 +546,13 @@ function PlayerPortrait({ player, profile, displayName }) {
     displayName?.charAt(0)?.toUpperCase() ||
     player.nickname?.charAt(0)?.toUpperCase() ||
     "?";
-  const portrait = profile.portrait || player.avatar;
+  const portrait = profile.portrait || player.avatar || sharedPlayerPortrait;
+  const isFallbackPortrait = portrait === sharedPlayerPortrait;
   const isCutout = false;
 
   return (
     <div
-      className={`team-profile__portrait${isCutout ? " team-profile__portrait--cutout" : ""}`}
+      className={`team-profile__portrait${isCutout ? " team-profile__portrait--cutout" : ""}${isFallbackPortrait ? " team-profile__portrait--faceless" : ""}`}
       aria-hidden="true"
     >
       {!isCutout ? <span>{initial}</span> : null}
@@ -562,7 +563,14 @@ function PlayerPortrait({ player, profile, displayName }) {
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={(event) => {
-            event.currentTarget.hidden = true;
+            const image = event.currentTarget;
+            if (!image.dataset.usingFallback) {
+              image.dataset.usingFallback = "true";
+              image.parentElement?.classList.add("team-profile__portrait--faceless");
+              image.src = sharedPlayerPortrait;
+            } else {
+              image.hidden = true;
+            }
           }}
         />
       ) : null}
