@@ -679,12 +679,20 @@ function PlayerProfile({ player, index, language, copy, featured = false }) {
           )
       : [];
 
+  // These main-roster players do not have approved face photographs.
+  // Use the same unmirrored ISTe jersey image instead of legacy ring portraits.
+  const useFacelessJersey =
+    player.rosterStatus !== "academy" &&
+    baseProfile.portrait === sharedPlayerPortrait;
+
   const profile = {
     ...baseProfile,
     portrait:
-      player.portraitUrl ||
-      baseProfile.portrait ||
-      sharedPlayerPortrait,
+      useFacelessJersey
+        ? sharedPlayerPortrait
+        : player.portraitUrl ||
+          baseProfile.portrait ||
+          sharedPlayerPortrait,
     portraitMode:
       "default",
     socials:
