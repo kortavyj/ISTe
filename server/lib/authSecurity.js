@@ -10,23 +10,19 @@ function getHeader(request, name) {
 }
 
 export function getClientAddress(request) {
-  // Vercel supplies these canonical client-IP headers at its edge.
-  // Prefer them to the user-controllable leftmost X-Forwarded-For value.
-  const canonical = [
-    getHeader(request, "x-vercel-forwarded-for"),
-    getHeader(request, "x-real-ip"),
-  ];
-  for (const value of canonical) {
-    const candidate = value.trim();
-    if (isIP(candidate)) return candidate;
+  // Vercel overwrites this header at its edge. Never trust generic
+  // forwarded headers as fallback: outside Vercel they may be supplied
+  // by the client, and using them would make rate limits bypassable.
+  const edgeAddress = getHeader(request, "x-vercel-forwarded-for").trim();
+  if (process.env.VERCEL === "1") {
+    return isIP(edgeAddress) ? edgeAddress : "unknown";
   }
 
-  // Outside Vercel, fall back to the last proxy-provided address rather
-  // than the leftmost entry, which can be supplied by an attacker.
-  const forwarded = getHeader(request, "x-forwarded-for");
-  const addresses = forwarded.split(",").map(value => value.trim()).filter(Boolean);
-  const last = addresses.at(-1) || "";
-  return isIP(last) ? last : "unknown";
+  // Direct, non-Vercel development requests can use the TCP peer address.
+  // Do not infer a client IP from unverified proxy headers.
+  const peerAddress =
+    request.socket?.remoteAddress || request.connection?.remoteAddress || "";
+  return isIP(peerAddress) ? peerAddress : "unknown";
 }
 
 function getSecret() {
@@ -113,49 +109,39 @@ async function consumeBucket(
   };
 }
 
-export async function enforceLoginRateLimit(
-  request,
-  email,
-) {
-  const context = getAuthSecurityContext(
-    request,
-    email,
-  );
-
+export function getLoginRateLimitBuckets(request, email) {
+  const context = getAuthSecurityContext(request, email);
   const pairHash = digest(
     `login-pair:${context.clientHash}:${context.identityHash}`,
   );
 
-  const pairBucket =
-    `auth:login:pair:${pairHash}`;
+  return {
+    ...context,
+    pairBucket: `auth:login:pair:${pairHash}`,
+    clientBucket: `auth:login:client:${context.clientHash}`,
+    // Account-wide quota remains stable when an attacker rotates IPs.
+    identityBucket: `auth:login:identity:${context.identityHash}`,
+  };
+}
 
-  const clientBucket =
-    `auth:login:client:${context.clientHash}`;
+export async function enforceLoginRateLimit(request, email) {
+  const context = getLoginRateLimitBuckets(request, email);
 
-  const [pair, client] = await Promise.all([
-    consumeBucket(
-      pairBucket,
-      8,
-      15 * 60,
-      15 * 60,
-    ),
-    consumeBucket(
-      clientBucket,
-      30,
-      15 * 60,
-      30 * 60,
-    ),
+  // This independent account quota is intentionally NOT reset on login.
+  // Otherwise valid sessions could erase the distributed guessing budget.
+  const [pair, client, identity] = await Promise.all([
+    consumeBucket(context.pairBucket, 8, 15 * 60, 15 * 60),
+    consumeBucket(context.clientBucket, 30, 15 * 60, 30 * 60),
+    consumeBucket(context.identityBucket, 20, 15 * 60, 15 * 60),
   ]);
 
   return {
     ...context,
-    pairBucket,
-    allowed:
-      pair.allowed &&
-      client.allowed,
+    allowed: pair.allowed && client.allowed && identity.allowed,
     retryAfterSeconds: Math.max(
       pair.retryAfterSeconds,
       client.retryAfterSeconds,
+      identity.retryAfterSeconds,
     ),
   };
 }
