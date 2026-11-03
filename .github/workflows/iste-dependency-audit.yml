@@ -7,10 +7,6 @@ on:
       - "package.json"
       - "package-lock.json"
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/iste-dependency-audit.yml"
 
 permissions:
   contents: read
@@ -47,38 +43,5 @@ jobs:
           const report=JSON.parse(fs.readFileSync("/tmp/iste-audit-fix.json","utf8"));
           console.log("Remediation",JSON.stringify({added:report.added,removed:report.removed,changed:report.changed,audit:report.audit?.metadata?.vulnerabilities,error:report.error}));
           NODE
-
-  remediate:
-    permissions:
-      contents: write
-    env:
-      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - name: Update pinned Vite and vulnerable lockfile dependencies
-        run: |
-          npm install --package-lock-only --ignore-scripts --save-dev --save-exact vite@8.3.5
-          npm audit fix --package-lock-only --ignore-scripts
-          npm ci
-          npm run build
-          npm audit --audit-level=high
-      - name: Push isolated security fix branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c security/fix-vite-and-source-map
-          git add package.json package-lock.json
-          git diff --cached --check
-          git diff --cached --stat
-          git commit -m "security: update vulnerable Vite and source-map-js versions"
-          git push origin HEAD:refs/heads/security/fix-vite-and-source-map
+      - name: Reject high or critical npm vulnerabilities
+        run: npm audit --audit-level=high
