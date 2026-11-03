@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { guardRequest } from "../server/apiLib/requestGuard.js";
 import { checkExposedPassword } from "../server/lib/pwnedPassword.js";
 import passwordSafetyHandler from "../server/lib/passwordSafetyHandler.js";
-import { getClientAddress } from "../server/lib/authSecurity.js";
+import { getClientAddress, getLoginRateLimitBuckets } from "../server/lib/authSecurity.js";
 
 const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
 const universal = config.headers.find(row => row.source === "/(.*)");
@@ -111,12 +111,34 @@ assert.equal(getClientAddress({
 }), "127.0.0.1");
 assert.equal(getClientAddress({ headers: { "x-forwarded-for": "198.51.100.10" } }), "unknown");
 
-// A separate account-wide quota must exist in addition to pair and client quotas.
-const authSecuritySource = readFileSync(
-  new URL("../server/lib/authSecurity.js", import.meta.url), "utf8"
-);
-assert.ok(authSecuritySource.includes("auth:login:identity:"));
-assert.ok(authSecuritySource.includes("identity.allowed"));
-assert.ok(authSecuritySource.includes("identity.retryAfterSeconds"));
+// A rotating source address must not reset the account-wide quota.
+const previousSecret = process.env.AUTH_RATE_LIMIT_SECRET;
+const previousVercelForBucketTest = process.env.VERCEL;
+try {
+  process.env.AUTH_RATE_LIMIT_SECRET = "security-regression-test-secret-32-bytes-long";
+  process.env.VERCEL = "1";
+  const first = getLoginRateLimitBuckets({
+    headers: { "x-vercel-forwarded-for": "203.0.113.19" },
+  }, "Owner@Example.com");
+  const rotated = getLoginRateLimitBuckets({
+    headers: { "x-vercel-forwarded-for": "198.51.100.22" },
+  }, "owner@example.com");
+  assert.equal(first.identityBucket, rotated.identityBucket);
+  assert.notEqual(first.clientBucket, rotated.clientBucket);
+  assert.notEqual(first.pairBucket, rotated.pairBucket);
+  assert.ok(first.identityBucket.startsWith("auth:login:identity:"));
+  assert.ok(first.clientBucket.startsWith("auth:login:client:"));
+  assert.ok(first.pairBucket.startsWith("auth:login:pair:"));
+  const otherAccount = getLoginRateLimitBuckets({
+    headers: { "x-vercel-forwarded-for": "203.0.113.19" },
+  }, "other@example.com");
+  assert.notEqual(first.identityBucket, otherAccount.identityBucket);
+  assert.equal(first.clientBucket, otherAccount.clientBucket);
+} finally {
+  if (previousSecret === undefined) delete process.env.AUTH_RATE_LIMIT_SECRET;
+  else process.env.AUTH_RATE_LIMIT_SECRET = previousSecret;
+  if (previousVercelForBucketTest === undefined) delete process.env.VERCEL;
+  else process.env.VERCEL = previousVercelForBucketTest;
+}
 
 console.log("Security regression checks passed.");
