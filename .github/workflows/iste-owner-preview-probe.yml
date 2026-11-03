@@ -21,3 +21,9 @@ jobs:
           if [ "$status" != "401" ]; then
             echo "Preview endpoint not reachable or returned unexpected status"
           fi
+
+      - name: Verify deployed owner endpoint requires authentication
+        run: |
+          status="$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' 'https://www.istesport.com/api/owner?action=users')"
+          echo "Production owner endpoint HTTP status: $status"
+          test "$status" = "401"
