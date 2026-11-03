@@ -18,3 +18,23 @@
 .ot-page a:focus-visible,.ot-page button:focus-visible,.ot-page input:focus-visible{outline:2px solid #ff737a;outline-offset:3px}
 @media(max-width:1050px){.ot-page{width:min(100% - 40px,1200px)}.ot-hero{padding:36px;grid-template-columns:minmax(0,1fr) 210px;gap:24px}.ot-tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ot-filterbar{flex-direction:column;align-items:stretch}.ot-tabs{justify-content:flex-start}}
 @media(max-width:700px){.ot-page{width:calc(100% - 28px);margin:22px auto 60px}.ot-hero{padding:25px 22px;grid-template-columns:1fr;gap:20px}.ot-hero h1{font-size:36px}.ot-hero-side{border-left:0;border-top:1px solid #63363d;padding:19px 0 0}.ot-lock-icon{display:none}.ot-read-label{margin-top:13px}.ot-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ot-stat{padding:16px;min-height:120px}.ot-stat-value{font-size:32px}.ot-workspace,.ot-tools{margin-top:34px}.ot-section-title{align-items:stretch;flex-direction:column}.ot-tabs{display:grid;grid-template-columns:repeat(2,1fr)}.ot-tabs button{padding:10px 6px}.ot-tools-grid{grid-template-columns:1fr}.ot-tool{min-height:155px}.ot-item{flex-direction:column}.ot-footer{line-height:1.6}}
+
+
+/* Tournament creation workspace */
+.ot-page .ot-create-trigger{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid #ff3a49;font-family:inherit;font-weight:850}
+.ot-create-panel{margin-top:22px;padding:30px 32px;border:1px solid #67333d;border-radius:15px;background:linear-gradient(130deg,#1b141a,#0e0d12 65%);box-shadow:0 20px 40px #0003}
+.ot-create-panel .ot-section-title{margin-bottom:20px}
+.ot-create-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.ot-create-form label{display:flex;flex-direction:column;gap:9px;font-size:12px;color:#c7bec7;font-weight:750}
+.ot-create-form input,.ot-create-form select{width:100%;min-height:44px;padding:10px 12px;border:1px solid #4b3d48;border-radius:7px;background:#111016;color:#fff;font:inherit;font-size:14px;outline:none;color-scheme:dark}
+.ot-create-form input:focus,.ot-create-form select:focus{border-color:#f3374a;box-shadow:0 0 0 3px #f3374a1a}
+.ot-create-form input::placeholder{color:#817983}
+.ot-create-tip,.ot-create-error,.ot-create-buttons{grid-column:1/-1}
+.ot-create-tip{color:#b9aab5;font-size:12px;line-height:1.65;padding:13px 15px;border:1px solid #47313a;border-radius:8px;background:#2a171e4d}
+.ot-create-error{margin:0;color:#ff8995;font-weight:700;font-size:13px}
+.ot-create-notice{margin:17px 0 0;padding:14px 18px;background:#122118;color:#b8f3c8;border:1px solid #37654a;border-radius:8px;font-size:13px}
+.ot-create-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.ot-create-buttons button{min-height:44px;padding:11px 20px;border:1px solid #f33b4c;border-radius:8px;background:#fa3045;color:#fff;cursor:pointer;font:inherit;font-size:13px;font-weight:850}
+.ot-create-buttons button+button{background:transparent;border-color:#59424b;color:#ddd3d8}
+.ot-create-buttons button:disabled{opacity:.6;cursor:wait}
+@media(max-width:710px){.ot-create-panel{padding:22px 18px}.ot-create-form{grid-template-columns:1fr}.ot-create-buttons button{flex:1}}
