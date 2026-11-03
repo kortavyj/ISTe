@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run security:check && vite build",
     "lint": "oxlint src",
     "preview": "vite preview",
-    "faceit:update": "node scripts/update-faceit-stats.mjs"
+    "faceit:update": "node scripts/update-faceit-stats.mjs",
+    "security:check": "node scripts/check-security.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.110.8",
