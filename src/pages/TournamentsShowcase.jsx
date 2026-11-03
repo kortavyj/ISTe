@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
+import { supabase } from "../lib/supabase.js";
 import "./TournamentsShowcase.css";
 
 const DISCORD = "https://discord.gg/AzpCxEgxye";
@@ -218,6 +219,26 @@ export default function TournamentsShowcase() {
   const [subscribed, setSubscribed] = useState(false);
   const [alertPending, setAlertPending] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [publishedTournaments, setPublishedTournaments] = useState([]);
+  const [tournamentsError, setTournamentsError] = useState(false);
+  useEffect(() => {
+    let mounted = true;
+    async function loadPublished() {
+      const { data, error } = await supabase.from("iste_tournaments")
+        .select("id,slug,title,game,capacity,best_of,status,registration_start,registration_end,starts_at,published_at")
+        .not("published_at", "is", null)
+        .not("status", "in", '("draft","cancelled")')
+        .order("published_at", { ascending: false })
+        .limit(20);
+      if (!mounted) return;
+      if (error) setTournamentsError(true);
+      else { setPublishedTournaments(data || []); setTournamentsError(false); }
+    }
+    void loadPublished();
+    const timer = window.setInterval(loadPublished, 120_000);
+    return () => { mounted = false; window.clearInterval(timer); };
+  }, []);
+
   useEffect(() => {
     if (!user?.id) {
       setSubscribed(false);
@@ -274,6 +295,29 @@ export default function TournamentsShowcase() {
           </div>
         </header>
 
+        {publishedTournaments.length > 0 && (
+          <section className="ts-live-tournaments" aria-labelledby="ts-live-tournaments-title">
+            <div className="ts-live-tournaments-heading">
+              <span>ISTe / TOURNAMENTS LIVE</span>
+              <h2 id="ts-live-tournaments-title">{language === "ru" ? "ОБЪЯВЛЕННЫЕ ТУРНИРЫ" : language === "en" ? "ANNOUNCED TOURNAMENTS" : "ОГОЛОШЕНІ ТУРНІРИ"}</h2>
+              <p>{language === "ru" ? "Официальные события ISTe с актуальными датами и статусами." : language === "en" ? "Official ISTe events with verified dates and current status." : "Офіційні події ISTe з актуальними датами та статусами."}</p>
+            </div>
+            <div className="ts-live-tournaments-grid">
+              {publishedTournaments.map(item => (
+                <article className="ts-live-tournament" key={item.id}>
+                  <span className="ts-live-tournament-status">{item.status === "registration" ? (language === "ru" ? "РЕГИСТРАЦИЯ" : language === "en" ? "REGISTRATION OPEN" : "РЕЄСТРАЦІЯ") : item.status.toUpperCase()}</span>
+                  <h3>{item.title}</h3>
+                  <div className="ts-live-tournament-meta">
+                    <span>CS2</span><span>{item.capacity} {language === "en" ? "teams" : language === "ru" ? "команд" : "команд"}</span><span>BO{item.best_of}</span>
+                  </div>
+                  {item.starts_at && <p>{language === "ru" ? "Начало:" : language === "en" ? "Starts:" : "Початок:"} <time dateTime={item.starts_at}>{new Date(item.starts_at).toLocaleString(language === "en" ? "en-GB" : language === "ru" ? "ru-RU" : "uk-UA", {dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Kyiv"})} (Kyiv)</time></p>}
+                  {item.status === "registration" && <a className="ts-live-tournament-link" href="#tournament-status">{language === "ru" ? "Подать заявку" : language === "en" ? "Team registration" : "Подати заявку"} <span aria-hidden="true">↗</span></a>}
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+        {publishedTournaments.length === 0 && (
         <section id="tournament-status" className="ts-preview-announcement ts-season-announcement" aria-labelledby="ts-season-title">
           <div className="ts-season-copy">
             <span className="ts-season-kicker"><span className="ts-season-indicator" aria-hidden="true" />{t.statusEyebrow}</span>
@@ -301,6 +345,7 @@ export default function TournamentsShowcase() {
             <span>{t.dateLabel}</span>
           </div>
         </section>
+        )}
 
         <section className="ts-preview-formats" aria-labelledby="ts-formats-heading">
           <h2 id="ts-formats-heading"><span aria-hidden="true">//</span>{t.formats}</h2>
