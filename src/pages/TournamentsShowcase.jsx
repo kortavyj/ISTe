@@ -11,7 +11,11 @@ const copy = {
     discord: "Слідкувати в Discord",
     notify: "Дізнатися першими",
     statusTitle: "ТУРНІРИ НЕЗАБАРОМ",
-    statusDescription: "Підготовка першої серії змагань триває. Слідкуй за анонсами в наших соціальних мережах і Discord.",
+    statusDescription: "Готуємо перші змагання CS2. Анонси, регламент та реєстрація з’являться після офіційного оголошення.",
+    seasonLabel: "НОВИЙ СЕЗОН",
+    dateLabel: "ДАТУ БУДЕ ОГОЛОШЕНО",
+    statusEyebrow: "ISTe / UPCOMING EVENTS",
+    statusWatch: "СТЕЖ ЗА АНОНСАМИ",
     formats: "ФОРМАТИ ТУРНІРІВ",
     cards: [
       { title: "Відкриті турніри", description: "Доступні для всіх команд. Ідеальний старт для нових складів." },
@@ -31,7 +35,11 @@ const copy = {
     discord: "Следить в Discord",
     notify: "Узнать первыми",
     statusTitle: "ТУРНИРЫ СКОРО",
-    statusDescription: "Подготовка первой серии соревнований продолжается. Следи за анонсами в наших соцсетях и Discord.",
+    statusDescription: "Готовим первые соревнования CS2. Анонсы, регламент и регистрация появятся после официального объявления.",
+    seasonLabel: "НОВЫЙ СЕЗОН",
+    dateLabel: "ДАТА БУДЕТ ОБЪЯВЛЕНА",
+    statusEyebrow: "ISTe / UPCOMING EVENTS",
+    statusWatch: "СЛЕДИ ЗА АНОНСАМИ",
     formats: "ФОРМАТЫ ТУРНИРОВ",
     cards: [
       { title: "Открытые турниры", description: "Доступны всем командам. Хороший старт для новых составов." },
@@ -51,7 +59,11 @@ const copy = {
     discord: "Follow on Discord",
     notify: "Be first to know",
     statusTitle: "TOURNAMENTS COMING SOON",
-    statusDescription: "We're preparing the first series of competitions. Follow updates on our social channels and Discord.",
+    statusDescription: "Our first CS2 events are in preparation. Announcements, rules and registration will follow an official launch.",
+    seasonLabel: "NEW SEASON",
+    dateLabel: "DATE TO BE ANNOUNCED",
+    statusEyebrow: "ISTe / UPCOMING EVENTS",
+    statusWatch: "FOLLOW ANNOUNCEMENTS",
     formats: "TOURNAMENT FORMATS",
     cards: [
       { title: "Open tournaments", description: "Accessible to all teams. A great start for new rosters." },
@@ -197,15 +209,32 @@ export default function TournamentsShowcase() {
           </div>
         </header>
 
-        <section id="tournament-status" className="ts-preview-announcement">
-          <div className="ts-preview-announcement-copy">
-            <span className="ts-preview-section-mark" aria-hidden="true">//</span>
-            <div>
-              <h2>{t.statusTitle}</h2>
-              <p>{t.statusDescription}</p>
-            </div>
+        <section id="tournament-status" className="ts-preview-announcement ts-season-announcement" aria-labelledby="ts-season-title">
+          <div className="ts-season-copy">
+            <span className="ts-season-kicker"><span className="ts-season-indicator" aria-hidden="true" />{t.statusEyebrow}</span>
+            <h2 id="ts-season-title"><span className="ts-season-slashes" aria-hidden="true">//</span>{t.statusTitle}</h2>
+            <p>{t.statusDescription}</p>
+            <a className="ts-season-watch" href={DISCORD} target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3ZM10 20h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              {t.statusWatch}
+              <span aria-hidden="true">↗</span>
+            </a>
           </div>
-          <div className="ts-preview-flag" aria-hidden="true"><span className="ts-preview-flag-pole" /><div className="ts-preview-flag-cloth"><img src="/iste-brush-vector.svg" alt="" /></div></div>
+          <div className="ts-season-visual" aria-label={t.dateLabel}>
+            <div className="ts-season-visual-grid" aria-hidden="true" />
+            <div className="ts-season-calendar" aria-hidden="true">
+              <svg viewBox="0 0 80 80" fill="none">
+                <rect x="12" y="17" width="56" height="52" rx="9" stroke="currentColor" strokeWidth="2.5"/>
+                <path d="M25 11v13M55 11v13M12 33h56" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                <circle cx="30" cy="46" r="3.5" fill="currentColor"/>
+                <circle cx="49" cy="46" r="3.5" fill="currentColor"/>
+                <circle cx="30" cy="58" r="3.5" fill="currentColor"/>
+                <path d="m45 59 5 5 9-12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <strong>{t.seasonLabel}</strong>
+            <span>{t.dateLabel}</span>
+          </div>
         </section>
 
         <section className="ts-preview-formats" aria-labelledby="ts-formats-heading">
