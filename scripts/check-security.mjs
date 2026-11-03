@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { guardRequest } from "../server/apiLib/requestGuard.js";
 import { checkExposedPassword } from "../server/lib/pwnedPassword.js";
 import passwordSafetyHandler from "../server/lib/passwordSafetyHandler.js";
+import { getClientAddress } from "../server/lib/authSecurity.js";
 
 const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
 const universal = config.headers.find(row => row.source === "/(.*)");
@@ -79,5 +80,23 @@ await passwordSafetyHandler({
   body: { password: "short" },
 }, invalidPassword);
 assert.equal(invalidPassword.statusCode, 400);
+
+// Vercel's canonical headers must override attacker-provided forwarded IPs.
+assert.equal(getClientAddress({ headers: {
+  "x-vercel-forwarded-for": "203.0.113.19",
+  "x-forwarded-for": "198.51.100.11, 198.51.100.12",
+}}), "203.0.113.19");
+assert.equal(getClientAddress({ headers: {
+  "x-real-ip": "2001:db8::19",
+  "x-forwarded-for": "198.51.100.11, 198.51.100.12",
+}}), "2001:db8::19");
+assert.equal(getClientAddress({ headers: {
+  "x-forwarded-for": "198.51.100.11, 198.51.100.12",
+}}), "198.51.100.12");
+assert.equal(getClientAddress({ headers: {
+  "x-vercel-forwarded-for": "attacker-invalid",
+  "x-real-ip": "198.51.100.13",
+}}), "198.51.100.13");
+assert.equal(getClientAddress({ headers: { "x-forwarded-for": "not-an-ip" }}), "unknown");
 
 console.log("Security regression checks passed.");
