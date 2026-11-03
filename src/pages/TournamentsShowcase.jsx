@@ -267,16 +267,7 @@ export default function TournamentsShowcase() {
             <h1>{t.title}</h1>
             <p>{t.intro}</p>
             <div className="ts-preview-actions">
-              <a href={DISCORD} target="_blank" rel="noopener noreferrer" className="ts-preview-primary ts-discord-outline">
-                <span className="ts-discord-outline-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="currentColor" focusable="false">
-                    <path d="M19.73 5.16a18.5 18.5 0 0 0-4.5-1.4l-.55 1.12a17 17 0 0 0-5.36 0l-.55-1.12a18.5 18.5 0 0 0-4.5 1.4C1.42 9.42.64 13.58 1.03 17.7a18.7 18.7 0 0 0 5.56 2.79l1.2-1.96c-.66-.25-1.3-.57-1.91-.93l.46-.36c3.68 1.73 7.61 1.73 11.28 0l.46.36c-.61.36-1.25.68-1.91.93l1.2 1.96a18.7 18.7 0 0 0 5.56-2.79c.45-4.78-.77-8.9-3.2-12.54ZM8.57 15.24c-1.03 0-1.87-.96-1.87-2.13s.82-2.12 1.87-2.12 1.88.96 1.87 2.12c0 1.17-.82 2.13-1.87 2.13Zm6.86 0c-1.03 0-1.87-.96-1.87-2.13s.82-2.12 1.87-2.12 1.88.96 1.87 2.12c0 1.17-.82 2.13-1.87 2.13Z"/>
-                  </svg>
-                </span>
-                <span className="ts-discord-outline-divider" aria-hidden="true"/>
-                <span className="ts-discord-outline-label">{t.discord}</span>
-                <span className="ts-discord-outline-arrow" aria-hidden="true">→</span>
-              </a>
+
               <button type="button" disabled={alertPending || authLoading} onClick={toggleAlert} className={`ts-preview-secondary ts-alert-toggle${subscribed ? " ts-alert-toggle--active" : ""}`} aria-pressed={subscribed}><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3ZM10 20h4" /></svg>{alertPending ? t.subscribing : subscribed ? t.subscribed : t.notify}</button>
             </div>
             <p className="ts-alert-feedback" role="status" aria-live="polite">{alertMessage}</p>
