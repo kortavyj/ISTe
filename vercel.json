@@ -38,6 +38,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/tournaments-alerts",
+      "destination": "/api/tournaments?route=alerts"
+    },
+    {
       "source": "/api/tournaments-owner",
       "destination": "/api/tournaments?route=owner"
     },
