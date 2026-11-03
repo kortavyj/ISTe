@@ -104,12 +104,19 @@ try {
   else process.env.VERCEL = previousVercel;
 }
 
-// Non-Vercel requests use the TCP peer, never client-controlled proxy headers.
-assert.equal(getClientAddress({
-  headers: { "x-forwarded-for": "198.51.100.10", "x-vercel-forwarded-for": "198.51.100.11" },
-  socket: { remoteAddress: "127.0.0.1" },
-}), "127.0.0.1");
-assert.equal(getClientAddress({ headers: { "x-forwarded-for": "198.51.100.10" } }), "unknown");
+// Explicitly emulate a non-Vercel process; Vercel builds set VERCEL=1.
+const previousVercelForDirectTest = process.env.VERCEL;
+try {
+  delete process.env.VERCEL;
+  assert.equal(getClientAddress({
+    headers: { "x-forwarded-for": "198.51.100.10", "x-vercel-forwarded-for": "198.51.100.11" },
+    socket: { remoteAddress: "127.0.0.1" },
+  }), "127.0.0.1");
+  assert.equal(getClientAddress({ headers: { "x-forwarded-for": "198.51.100.10" } }), "unknown");
+} finally {
+  if (previousVercelForDirectTest === undefined) delete process.env.VERCEL;
+  else process.env.VERCEL = previousVercelForDirectTest;
+}
 
 // A rotating source address must not reset the account-wide quota.
 const previousSecret = process.env.AUTH_RATE_LIMIT_SECRET;
