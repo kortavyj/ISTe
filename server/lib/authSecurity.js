@@ -109,59 +109,35 @@ async function consumeBucket(
   };
 }
 
-export async function enforceLoginRateLimit(
-  request,
-  email,
-) {
-  const context = getAuthSecurityContext(
-    request,
-    email,
-  );
-
+export function getLoginRateLimitBuckets(request, email) {
+  const context = getAuthSecurityContext(request, email);
   const pairHash = digest(
     `login-pair:${context.clientHash}:${context.identityHash}`,
   );
 
-  const pairBucket =
-    `auth:login:pair:${pairHash}`;
+  return {
+    ...context,
+    pairBucket: `auth:login:pair:${pairHash}`,
+    clientBucket: `auth:login:client:${context.clientHash}`,
+    // Account-wide quota remains stable when an attacker rotates IPs.
+    identityBucket: `auth:login:identity:${context.identityHash}`,
+  };
+}
 
-  const clientBucket =
-    `auth:login:client:${context.clientHash}`;
+export async function enforceLoginRateLimit(request, email) {
+  const context = getLoginRateLimitBuckets(request, email);
 
-  // Protect the account across many client IPs. Do not clear this bucket
-  // on successful login, or a single valid session could erase evidence
-  // of a distributed password guessing campaign.
-  const identityBucket =
-    `auth:login:identity:${context.identityHash}`;
-
+  // This independent account quota is intentionally NOT reset on login.
+  // Otherwise valid sessions could erase the distributed guessing budget.
   const [pair, client, identity] = await Promise.all([
-    consumeBucket(
-      pairBucket,
-      8,
-      15 * 60,
-      15 * 60,
-    ),
-    consumeBucket(
-      clientBucket,
-      30,
-      15 * 60,
-      30 * 60,
-    ),
-    consumeBucket(
-      identityBucket,
-      20,
-      15 * 60,
-      15 * 60,
-    ),
+    consumeBucket(context.pairBucket, 8, 15 * 60, 15 * 60),
+    consumeBucket(context.clientBucket, 30, 15 * 60, 30 * 60),
+    consumeBucket(context.identityBucket, 20, 15 * 60, 15 * 60),
   ]);
 
   return {
     ...context,
-    pairBucket,
-    allowed:
-      pair.allowed &&
-      client.allowed &&
-      identity.allowed,
+    allowed: pair.allowed && client.allowed && identity.allowed,
     retryAfterSeconds: Math.max(
       pair.retryAfterSeconds,
       client.retryAfterSeconds,
