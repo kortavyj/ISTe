@@ -126,3 +126,13 @@
 .ts-preview-format:hover:before,.ts-preview-format--1:hover:before{transform:scale(1.1);opacity:.88}
 .ts-preview-format:after{background:linear-gradient(180deg,rgba(5,5,8,.15) 0%,rgba(5,5,8,.68) 40%,rgba(4,4,7,.96) 92%),linear-gradient(95deg,rgba(32,3,10,.48),transparent 88%);box-shadow:inset 0 -2px 0 #ea263f}
 @media(prefers-reduced-motion:reduce){.ts-preview-format:hover:before,.ts-preview-format--1:hover:before{transform:scale(1.04)}}
+
+
+/* Tournament hero uses live gaming-room photography, matching approved reference */
+.ts-preview-hero{min-height:325px;border-radius:12px}
+.ts-arena{inset:0 0 0 36%;background:#08090d}
+.ts-arena-illustration{object-fit:cover;object-position:54% 52%;filter:brightness(.71) contrast(1.15) saturate(.97)}
+.ts-preview-hero:before{background:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.99) 29%,rgba(5,5,5,.84) 45%,rgba(5,5,5,.2) 73%,rgba(5,5,5,.03) 100%),linear-gradient(0deg,#050505 0%,transparent 21%);z-index:2}
+.ts-arena-stripes{display:none}
+@media(max-width:860px){.ts-arena{inset:0 0 0 29%}}
+@media(max-width:660px){.ts-preview-hero{min-height:405px}.ts-arena{inset:0 0 18%}.ts-arena-illustration{object-position:58% center}.ts-preview-hero:before{background:linear-gradient(0deg,#050505 0%,rgba(5,5,5,.98) 25%,rgba(5,5,5,.48) 64%,rgba(5,5,5,.12) 100%)}}
