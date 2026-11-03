@@ -177,3 +177,14 @@
 @media(max-width:860px){.ts-preview-hero{min-height:350px}.ts-arena{inset:0 0 0 25%}.ts-preview-format{min-height:265px;padding:22px 18px}}
 @media(max-width:660px){.ts-preview-hero{min-height:420px}.ts-arena{inset:0 0 18%}.ts-arena-illustration{object-position:57% 43%}.ts-preview-hero:before{background:linear-gradient(0deg,#050505 0%,rgba(5,5,5,.97) 30%,rgba(5,5,5,.42) 67%,rgba(5,5,5,.06) 100%)}.ts-arena-target span{right:7%;bottom:16%;font-size:5rem}.ts-preview-format{min-height:240px}.ts-preview-format::before{background-size:cover!important}}
 @media(prefers-reduced-motion:reduce){.ts-preview-format::before{transition:none!important}.ts-preview-format:hover::before{transform:scale(1.012)!important}}
+
+
+/* Tournament hero: authentic CS2 gaming photo, no military figures or insignia. */
+.ts-preview-hero{background:#050505}
+.ts-arena{inset:0 0 0 35%;background:#050505}
+.ts-arena-illustration{object-fit:cover;object-position:52% 51%;filter:brightness(.77) contrast(1.13) saturate(1.06)}
+.ts-preview-hero:before{background:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.99) 24%,rgba(5,5,5,.9) 43%,rgba(5,5,5,.28) 72%,rgba(5,5,5,.05) 100%),linear-gradient(0deg,#050505 0%,transparent 24%);z-index:2}
+.ts-arena:after{background:linear-gradient(135deg,transparent 51%,rgba(112,3,19,.17) 100%);mix-blend-mode:normal}
+.ts-arena-target{display:none}
+@media(max-width:860px){.ts-arena{inset:0 0 0 27%}}
+@media(max-width:660px){.ts-arena{inset:0 0 19%}.ts-arena-illustration{object-position:52% 50%}.ts-preview-hero:before{background:linear-gradient(0deg,#050505 0%,rgba(5,5,5,.98) 27%,rgba(5,5,5,.4) 65%,rgba(5,5,5,.08) 100%)}}
