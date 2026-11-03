@@ -21,7 +21,7 @@
 
 
 /* Tournament creation workspace */
-.ot-page .ot-create-trigger{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid #ff3a49;font-family:inherit;font-weight:850}
+.ot-page .ot-create-trigger{display:inline-flex;align-items:center;justify-content:center;gap:16px;min-height:44px;padding:12px 19px;cursor:pointer;border:1px solid #ff3a49;font-family:inherit;font-size:13px;font-weight:850;line-height:1.25}
 .ot-create-panel{margin-top:22px;padding:30px 32px;border:1px solid #67333d;border-radius:15px;background:linear-gradient(130deg,#1b141a,#0e0d12 65%);box-shadow:0 20px 40px #0003}
 .ot-create-panel .ot-section-title{margin-bottom:20px}
 .ot-create-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
