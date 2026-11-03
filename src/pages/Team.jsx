@@ -541,21 +541,15 @@ function PlayerSocials({ socials, copy }) {
   );
 }
 
-function PlayerPortrait({ player, profile, displayName }) {
-  const initial =
-    displayName?.charAt(0)?.toUpperCase() ||
-    player.nickname?.charAt(0)?.toUpperCase() ||
-    "?";
+function PlayerPortrait({ player, profile }) {
   const portrait = profile.portrait || player.avatar || sharedPlayerPortrait;
   const isFallbackPortrait = portrait === sharedPlayerPortrait;
-  const isCutout = false;
 
   return (
     <div
-      className={`team-profile__portrait${isCutout ? " team-profile__portrait--cutout" : ""}${isFallbackPortrait ? " team-profile__portrait--faceless" : ""}`}
+      className={`team-profile__portrait${isFallbackPortrait ? " team-profile__portrait--faceless" : ""}`}
       aria-hidden="true"
     >
-      {!isCutout ? <span>{initial}</span> : null}
       {portrait ? (
         <img
           src={portrait}
