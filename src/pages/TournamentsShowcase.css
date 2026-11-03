@@ -117,3 +117,12 @@
 .ts-preview-photo-credit a{color:#9c858e;text-underline-offset:2px}
 @media(max-width:860px){.ts-arena{inset:0 0 0 29%}}
 @media(max-width:660px){.ts-arena{inset:0 0 19%}.ts-arena-illustration{object-position:50% center}.ts-preview-hero:before{background:linear-gradient(0deg,#050505 0%,rgba(5,5,5,.98) 25%,rgba(5,5,5,.5) 62%,rgba(5,5,5,.14) 100%)}}
+
+
+/* Three distinct authentic esports photographs for tournament formats */
+.ts-preview-format--0:before{background-image:url("https://images.pexels.com/photos/9072388/pexels-photo-9072388.jpeg?auto=compress&cs=tinysrgb&w=950");background-position:51% 44%;opacity:.74;transform:scale(1.04)}
+.ts-preview-format--1:before{background-image:url("https://images.pexels.com/photos/9071736/pexels-photo-9071736.jpeg?auto=compress&cs=tinysrgb&w=950");background-position:58% 43%;opacity:.76;transform:scale(1.04)}
+.ts-preview-format--2:before{background-image:url("https://images.pexels.com/photos/9072210/pexels-photo-9072210.jpeg?auto=compress&cs=tinysrgb&w=950");background-position:52% 38%;opacity:.8;transform:scale(1.04)}
+.ts-preview-format:hover:before,.ts-preview-format--1:hover:before{transform:scale(1.1);opacity:.88}
+.ts-preview-format:after{background:linear-gradient(180deg,rgba(5,5,8,.15) 0%,rgba(5,5,8,.68) 40%,rgba(4,4,7,.96) 92%),linear-gradient(95deg,rgba(32,3,10,.48),transparent 88%);box-shadow:inset 0 -2px 0 #ea263f}
+@media(prefers-reduced-motion:reduce){.ts-preview-format:hover:before,.ts-preview-format--1:hover:before{transform:scale(1.04)}}
