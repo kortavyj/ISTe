@@ -129,7 +129,7 @@ export default function TournamentsShowcase() {
         </section>
 
         <p className="ts-preview-note">{t.note} <Link to="/collaborate">{t.request} ↗</Link></p>
-        <p className="ts-preview-photo-credit">{language === "en" ? "CS2 gaming photographs" : "Фото гравців CS2"}: <a href="https://unsplash.com/@ramanshaunia" target="_blank" rel="noopener noreferrer">Raman Shaunia / Unsplash</a>. {language === "en" ? "Illustrative photos; not ISTe roster members." : "Ілюстративні фото, не гравці ISTe."}</p>
+        <p className="ts-preview-photo-credit">{language === "en" ? "CS2 gaming photographs" : "Фото гравців CS2"}: <a href="https://unsplash.com/@ramanshaunia" target="_blank" rel="noopener noreferrer">Raman Shaunia / Unsplash</a>, <a href="https://www.pexels.com/@yan-krukau/" target="_blank" rel="noopener noreferrer">Yan Krukau / Pexels</a>. {language === "en" ? "Illustrative photos; not ISTe roster members." : "Ілюстративні фото, не гравці ISTe."}</p>
       </div>
     </section>
   );
