@@ -313,13 +313,7 @@ export default function TournamentsShowcase() {
           </div>
         </section>
 
-        <section className="ts-preview-community">
-          <div className="ts-preview-community-copy">
-            <h2><span aria-hidden="true">//</span>{t.followTitle}</h2>
-            <p>{t.followDescription}</p>
-          </div>
-          <a href={DISCORD} target="_blank" rel="noopener noreferrer">{t.followButton}<span aria-hidden="true">→</span></a>
-        </section>
+
 
 
       </div>
