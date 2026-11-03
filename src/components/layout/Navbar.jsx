@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -409,6 +410,67 @@ export default function Navbar() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [tournamentNotifications, setTournamentNotifications] = useState([]);
+  const [unreadTournaments, setUnreadTournaments] = useState(0);
+  const [alertSubscriptionActive, setAlertSubscriptionActive] = useState(false);
+  const refreshTournamentNotifications = useCallback(async () => {
+    if (!user?.id || isBlocked) {
+      setTournamentNotifications([]);
+      setUnreadTournaments(0);
+      setAlertSubscriptionActive(false);
+      return;
+    }
+    try {
+      const response = await fetch("/api/tournaments-alerts", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) return;
+      const result = await response.json();
+      if (!result.ok) return;
+      setTournamentNotifications(result.notifications || []);
+      setUnreadTournaments(result.unread || 0);
+      setAlertSubscriptionActive(result.subscribed === true);
+    } catch {
+      // Notifications are optional. Do not disrupt navigation.
+    }
+  }, [user?.id, isBlocked]);
+
+  useEffect(() => {
+    void refreshTournamentNotifications();
+    if (!user?.id || isBlocked) return undefined;
+    const timer = window.setInterval(refreshTournamentNotifications, 90_000);
+    window.addEventListener("iste:tournament-alert-changed", refreshTournamentNotifications);
+    window.addEventListener("focus", refreshTournamentNotifications);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("iste:tournament-alert-changed", refreshTournamentNotifications);
+      window.removeEventListener("focus", refreshTournamentNotifications);
+    };
+  }, [user?.id, isBlocked, refreshTournamentNotifications]);
+
+  async function openTournamentNotifications() {
+    const next = !notificationsOpen;
+    setNotificationsOpen(next);
+    setMenuOpen(false);
+    if (next) {
+      await refreshTournamentNotifications();
+      if (user?.id && !isBlocked) {
+        try {
+          const response = await fetch("/api/tournaments-alerts", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "mark_seen" }),
+          });
+          if (response.ok) setUnreadTournaments(0);
+        } catch {
+          // Keep displayed items; next refresh can retry.
+        }
+      }
+    }
+  }
+
   const notificationsRef = useRef(null);
   const accountMenuRef = useRef(null);
 
@@ -547,9 +609,10 @@ export default function Navbar() {
               title={t("navigation.notifications")}
               aria-haspopup="dialog"
               aria-expanded={notificationsOpen}
-              onClick={() => { setNotificationsOpen((open) => !open); setMenuOpen(false); }}
+              onClick={() => { void openTournamentNotifications(); }}
             >
               <BellIcon />
+              {unreadTournaments > 0 && <span className="navbar-notification-count" aria-label={`${unreadTournaments} unread`}>{Math.min(unreadTournaments, 9)}</span>}
             </button>
             {notificationsOpen && (
               <div className="navbar-notifications-panel" role="dialog" aria-label={t("navigation.notifications")}>
@@ -557,11 +620,28 @@ export default function Navbar() {
                   <strong>{({uk:"Сповіщення",ru:"Уведомления",en:"Notifications"}[language] || "Сповіщення")}</strong>
                   <button type="button" aria-label="Закрити" onClick={() => setNotificationsOpen(false)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6 18 18M18 6 6 18"/></svg></button>
                 </div>
-                <div className="navbar-notifications-empty">
-                  <span aria-hidden="true"><BellIcon /></span>
-                  <strong>{({uk:"Поки немає нових сповіщень",ru:"Пока нет новых уведомлений",en:"No new notifications yet"}[language] || "Поки немає нових сповіщень")}</strong>
-                  <p>{({uk:"Новини та події ISTe можна переглянути нижче.",ru:"Новости и события ISTe доступны по ссылкам ниже.",en:"Explore ISTe updates and events below."}[language] || "Новини та події ISTe можна переглянути нижче.")}</p>
-                </div>
+                {tournamentNotifications.length > 0 ? (
+                  <div className="navbar-tournament-alert-list">
+                    {tournamentNotifications.map((item) => (
+                      <NavLink to={item.url} key={item.id} onClick={() => setNotificationsOpen(false)} className="navbar-tournament-alert-item">
+                        <span aria-hidden="true">★</span>
+                        <div>
+                          <strong>{({uk:"Анонс турніру ISTe",ru:"Анонс турнира ISTe",en:"ISTe tournament announcement"}[language] || "Анонс турніру ISTe")}</strong>
+                          <p>{item.title}</p>
+                          <time dateTime={item.publishedAt}>{new Date(item.publishedAt).toLocaleDateString(language === "en" ? "en-GB" : "uk-UA")}</time>
+                        </div>
+                      </NavLink>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="navbar-notifications-empty">
+                    <span aria-hidden="true"><BellIcon /></span>
+                    <strong>{({uk:"Поки немає нових сповіщень",ru:"Пока нет новых уведомлений",en:"No new notifications yet"}[language] || "Поки немає нових сповіщень")}</strong>
+                    <p>{alertSubscriptionActive
+                      ? ({uk:"Коли ISTe оголосить турнір, він з’явиться тут.",ru:"Когда ISTe объявит турнир, он появится здесь.",en:"New ISTe tournaments will appear here."}[language] || "Коли ISTe оголосить турнір, він з’явиться тут.")
+                      : ({uk:"Підписатися на анонси можна на сторінці турнірів.",ru:"Подписаться на анонсы можно на странице турниров.",en:"Subscribe to alerts on the tournaments page."}[language] || "Підписатися на анонси можна на сторінці турнірів.")}</p>
+                  </div>
+                )}
                 <div className="navbar-notifications-links">
                   <NavLink to="/news" onClick={() => setNotificationsOpen(false)}><span aria-hidden="true">▤</span>{({uk:"Новини клубу",ru:"Новости клуба",en:"Club news"}[language] || "Новини клубу")}<span aria-hidden="true">↗</span></NavLink>
                   <NavLink to="/tournaments" onClick={() => setNotificationsOpen(false)}><span aria-hidden="true">★</span>{({uk:"Турніри та події",ru:"Турниры и события",en:"Tournaments & events"}[language] || "Турніри та події")}<span aria-hidden="true">↗</span></NavLink>
