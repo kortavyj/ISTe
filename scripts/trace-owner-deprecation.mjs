@@ -17,6 +17,7 @@ const response = {
   headers: {},
   body: null,
   setHeader(name, value) { this.headers[name.toLowerCase()] = value; return this; },
+  getHeader(name) { return this.headers[name.toLowerCase()]; },
   status(code) { this.statusCode = code; return this; },
   json(body) { this.body = body; return this; },
 };
