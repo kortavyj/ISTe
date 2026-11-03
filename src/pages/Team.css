@@ -1147,3 +1147,22 @@
     object-position:center 29%;
   }
 }
+
+
+/* Hide the stray pale glyph visible at the upper-left of roster portraits. */
+.team-page .team-roster-showcase .team-profile--grid-card .team-profile__visual::after,
+.team-page .team-roster-showcase .team-profile--featured .team-profile__visual::after{
+  content:""!important;
+  display:block!important;
+  position:absolute;
+  z-index:4;
+  top:0;
+  left:0;
+  width:clamp(52px,29%,92px);
+  height:clamp(100px,48%,175px);
+  border:0;
+  border-radius:0;
+  background:linear-gradient(90deg,#050405 0%,#050405 55%,rgba(5,4,5,.92) 75%,transparent 100%);
+  box-shadow:none;
+  pointer-events:none;
+}
