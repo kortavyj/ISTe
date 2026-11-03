@@ -390,3 +390,18 @@ export async function enforceNewsTranslationRateLimit(request) {
     60 * 60,
   );
 }
+
+
+/**
+ * Independent budget for password breach checks from the reset-password page.
+ * Keep this quota separate from login, registration, recovery email and MFA.
+ */
+export async function enforcePasswordSafetyRateLimit(request) {
+  const { clientHash } = getAuthSecurityContext(request);
+  return consumeBucket(
+    `auth:password-safety:client:${clientHash}`,
+    20,
+    60 * 60,
+    60 * 60,
+  );
+}
