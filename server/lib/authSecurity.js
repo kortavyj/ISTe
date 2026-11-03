@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { isIP } from "node:net";
 
 import { getSupabaseAdminClient } from "./supabaseAdmin.js";
 
@@ -8,18 +9,24 @@ function getHeader(request, name) {
   return typeof value === "string" ? value : "";
 }
 
-function getClientAddress(request) {
-  const forwarded = getHeader(request, "x-forwarded-for");
-
-  if (forwarded.trim()) {
-    return forwarded.split(",")[0].trim().slice(0, 96);
+export function getClientAddress(request) {
+  // Vercel supplies these canonical client-IP headers at its edge.
+  // Prefer them to the user-controllable leftmost X-Forwarded-For value.
+  const canonical = [
+    getHeader(request, "x-vercel-forwarded-for"),
+    getHeader(request, "x-real-ip"),
+  ];
+  for (const value of canonical) {
+    const candidate = value.trim();
+    if (isIP(candidate)) return candidate;
   }
 
-  const realIp = getHeader(request, "x-real-ip");
-
-  return realIp.trim()
-    ? realIp.trim().slice(0, 96)
-    : "unknown";
+  // Outside Vercel, fall back to the last proxy-provided address rather
+  // than the leftmost entry, which can be supplied by an attacker.
+  const forwarded = getHeader(request, "x-forwarded-for");
+  const addresses = forwarded.split(",").map(value => value.trim()).filter(Boolean);
+  const last = addresses.at(-1) || "";
+  return isIP(last) ? last : "unknown";
 }
 
 function getSecret() {
