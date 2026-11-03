@@ -38,3 +38,23 @@
 .ot-create-buttons button+button{background:transparent;border-color:#59424b;color:#ddd3d8}
 .ot-create-buttons button:disabled{opacity:.6;cursor:wait}
 @media(max-width:710px){.ot-create-panel{padding:22px 18px}.ot-create-form{grid-template-columns:1fr}.ot-create-buttons button{flex:1}}
+
+
+/* Real tournament operations replacing test shortcuts */
+.ot-page .ot-tool-button{font:inherit;text-align:left;color:inherit;cursor:pointer;border-radius:0;width:100%}
+.ot-page .ot-tool-button:focus-visible{outline:2px solid #ff737a;outline-offset:3px}
+.ot-calendar{margin-top:42px;padding:28px;border-radius:15px;border:1px solid #533139;background:linear-gradient(135deg,#181017,#0b0b0e 70%)}
+.ot-calendar .ot-section-title{margin-bottom:20px}
+.ot-calendar-list{display:grid;gap:12px}
+.ot-calendar-event{display:grid;grid-template-columns:minmax(145px,210px) minmax(0,1fr);gap:23px;padding:22px;background:#151217;border:1px solid #493039;border-radius:11px}
+.ot-calendar-date{display:flex;flex-direction:column;justify-content:center;gap:7px;padding-right:20px;border-right:1px solid #56303a}
+.ot-calendar-date>span{font-size:10px;letter-spacing:.12em;color:#ff6175;font-weight:850}
+.ot-calendar-date strong{color:#fff;font-size:23px;font-weight:850}
+.ot-calendar-date small{color:#bdb1ba;font-size:12px}
+.ot-calendar-details h3{margin:11px 0 8px;font-size:21px;letter-spacing:-.02em}
+.ot-calendar-details>p{margin:4px 0;color:#aaa2ad;font-size:12px;line-height:1.6}
+.ot-calendar-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px}
+.ot-calendar-links a,.ot-calendar-links button{background:#2c1922;color:#f7e8ef;text-decoration:none;border:1px solid #8a3045;border-radius:6px;padding:9px 11px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.ot-calendar-links a:hover,.ot-calendar-links button:hover{border-color:#ff4b61;background:#44212e}
+.ot-calendar-empty{padding:26px;border-radius:9px;border:1px solid #51333c;background:#131115;color:#cbc0c8;text-align:center;font-size:13px;line-height:1.6}
+@media(max-width:760px){.ot-calendar{padding:18px}.ot-calendar-event{grid-template-columns:1fr;gap:14px}.ot-calendar-date{border-right:0;border-bottom:1px solid #56303a;padding:0 0 16px}}
