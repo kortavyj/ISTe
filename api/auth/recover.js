@@ -4,6 +4,7 @@ import {
   recordAuthSecurityEvent,
 } from "../../server/lib/authSecurity.js";
 import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
+import passwordSafetyHandler from "../../server/lib/passwordSafetyHandler.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -36,6 +37,7 @@ function genericSuccess(response) {
 }
 
 export default async function handler(request, response) {
+  if (request.query?.mode === "password-safety") return passwordSafetyHandler(request, response);
   response.setHeader("Cache-Control", "no-store, private");
   response.setHeader("X-Content-Type-Options", "nosniff");
 
