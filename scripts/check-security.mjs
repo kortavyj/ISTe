@@ -81,22 +81,42 @@ await passwordSafetyHandler({
 }, invalidPassword);
 assert.equal(invalidPassword.statusCode, 400);
 
-// Vercel's canonical headers must override attacker-provided forwarded IPs.
-assert.equal(getClientAddress({ headers: {
-  "x-vercel-forwarded-for": "203.0.113.19",
-  "x-forwarded-for": "198.51.100.11, 198.51.100.12",
-}}), "203.0.113.19");
-assert.equal(getClientAddress({ headers: {
-  "x-real-ip": "2001:db8::19",
-  "x-forwarded-for": "198.51.100.11, 198.51.100.12",
-}}), "2001:db8::19");
-assert.equal(getClientAddress({ headers: {
-  "x-forwarded-for": "198.51.100.11, 198.51.100.12",
-}}), "198.51.100.12");
-assert.equal(getClientAddress({ headers: {
-  "x-vercel-forwarded-for": "attacker-invalid",
-  "x-real-ip": "198.51.100.13",
-}}), "198.51.100.13");
-assert.equal(getClientAddress({ headers: { "x-forwarded-for": "not-an-ip" }}), "unknown");
+// Only the edge-rewritten Vercel header is trusted in production.
+const previousVercel = process.env.VERCEL;
+try {
+  process.env.VERCEL = "1";
+  assert.equal(getClientAddress({ headers: {
+    "x-vercel-forwarded-for": "203.0.113.19",
+    "x-real-ip": "198.51.100.12",
+    "x-forwarded-for": "198.51.100.11, 198.51.100.12",
+  }}), "203.0.113.19");
+  for (const headers of [
+    { "x-real-ip": "2001:db8::19" },
+    { "x-forwarded-for": "198.51.100.11, 198.51.100.12" },
+    { "x-vercel-forwarded-for": "attacker-invalid", "x-real-ip": "198.51.100.13" },
+    { "x-vercel-forwarded-for": "203.0.113.19, 198.51.100.13" },
+    {},
+  ]) {
+    assert.equal(getClientAddress({ headers, socket: { remoteAddress: "192.0.2.44" } }), "unknown");
+  }
+} finally {
+  if (previousVercel === undefined) delete process.env.VERCEL;
+  else process.env.VERCEL = previousVercel;
+}
+
+// Non-Vercel requests use the TCP peer, never client-controlled proxy headers.
+assert.equal(getClientAddress({
+  headers: { "x-forwarded-for": "198.51.100.10", "x-vercel-forwarded-for": "198.51.100.11" },
+  socket: { remoteAddress: "127.0.0.1" },
+}), "127.0.0.1");
+assert.equal(getClientAddress({ headers: { "x-forwarded-for": "198.51.100.10" } }), "unknown");
+
+// A separate account-wide quota must exist in addition to pair and client quotas.
+const authSecuritySource = readFileSync(
+  new URL("../server/lib/authSecurity.js", import.meta.url), "utf8"
+);
+assert.ok(authSecuritySource.includes("auth:login:identity:"));
+assert.ok(authSecuritySource.includes("identity.allowed"));
+assert.ok(authSecuritySource.includes("identity.retryAfterSeconds"));
 
 console.log("Security regression checks passed.");
