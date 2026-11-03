@@ -74,12 +74,7 @@ function TournamentIcon({ kind }) {
 
 function ArenaArtwork() {
   return <div className="ts-arena" aria-hidden="true">
-    <div className="ts-arena-sky" />
-    <div className="ts-arena-building ts-arena-building--left"><span /><span /><span /></div>
-    <div className="ts-arena-building ts-arena-building--right"><span className="ts-arena-mark">A</span><span className="ts-arena-window" /></div>
-    <div className="ts-arena-crate ts-arena-crate--one" />
-    <div className="ts-arena-crate ts-arena-crate--two" />
-    <div className="ts-arena-floor" />
+    <img className="ts-arena-illustration" src="/tournament-arena-art.svg" alt="" fetchPriority="high" />
     <div className="ts-arena-stripes" />
   </div>;
 }
