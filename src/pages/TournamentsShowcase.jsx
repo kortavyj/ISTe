@@ -73,11 +73,62 @@ function TournamentIcon({ kind }) {
 }
 
 function ArenaArtwork() {
-  return <div className="ts-arena" aria-hidden="true">
-    <img className="ts-arena-illustration" src="https://images.unsplash.com/photo-1758410473735-c76baff30a79?auto=format&fit=crop&w=2200&q=90" alt="" fetchPriority="high" referrerPolicy="no-referrer" />
-
-
-  </div>;
+  return (
+    <div className="ts-arena ts-bracket-hero" aria-hidden="true">
+      <div className="ts-bracket-atmosphere" />
+      <svg className="ts-bracket-svg" viewBox="0 0 620 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ts-line" x1="190" y1="0" x2="475" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#ef344e" stopOpacity=".4"/>
+            <stop offset=".55" stopColor="#ed2945" stopOpacity=".9"/>
+            <stop offset="1" stopColor="#fc3853" stopOpacity=".8"/>
+          </linearGradient>
+          <linearGradient id="ts-slot" x1="0" y1="0" x2="1" y2="1">
+            <stop stopColor="#262026" stopOpacity=".95"/>
+            <stop offset="1" stopColor="#0a090d" stopOpacity=".97"/>
+          </linearGradient>
+          <radialGradient id="ts-final-glow">
+            <stop stopColor="#e7203e" stopOpacity=".24"/>
+            <stop offset="1" stopColor="#e7203e" stopOpacity="0"/>
+          </radialGradient>
+          <filter id="ts-connect-glow"><feGaussianBlur stdDeviation="4"/></filter>
+        </defs>
+        <circle cx="532" cy="169" r="106" fill="url(#ts-final-glow)" />
+        <g className="ts-bracket-connection" stroke="url(#ts-line)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M190 55 H220 V88 H270 M190 117 H220 V88 M190 233 H220 V265 H270 M190 295 H220 V265"/>
+          <path d="M384 88 H411 V176 H471 M384 265 H411 V176"/>
+        </g>
+        <g stroke="#db3047" strokeWidth="2" opacity=".32" filter="url(#ts-connect-glow)">
+          <path d="M220 88H270 M220 265H270 M411 176H471"/>
+        </g>
+        {[{x:49,y:36},{x:49,y:98},{x:49,y:214},{x:49,y:276}].map(({x,y},i)=>(
+          <g key={i}>
+            <rect x={x} y={y} width="141" height="38" rx="8" fill="url(#ts-slot)" stroke="#ad3044" strokeOpacity=".55"/>
+            <path d={`M${x+12} ${y+13}H${x+44}M${x+12} ${y+22}H${x+67}`} stroke="#dc6576" strokeOpacity=".22" strokeWidth="3" strokeLinecap="round"/>
+            <rect x={x+113} y={y+13} width="15" height="11" rx="3" fill="#5c2430" fillOpacity=".45"/>
+          </g>
+        ))}
+        {[{x:270,y:69},{x:270,y:246}].map(({x,y},i)=>(
+          <g key={i}>
+            <rect x={x} y={y} width="114" height="38" rx="8" fill="url(#ts-slot)" stroke="#c3324a" strokeOpacity=".67"/>
+            <path d={`M${x+12} ${y+14}H${x+38}M${x+12} ${y+23}H${x+63}`} stroke="#dc6576" strokeOpacity=".24" strokeWidth="3" strokeLinecap="round"/>
+          </g>
+        ))}
+        <rect x="471" y="124" width="113" height="104" rx="14" fill="#1c080e" stroke="#e62c46" strokeWidth="1.6"/>
+        <rect x="478" y="131" width="99" height="90" rx="9" stroke="#e62c46" strokeOpacity=".18"/>
+        <g transform="translate(503 142)" stroke="#ff4861" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M13 7H49V27C49 39 41 46 31 46S13 39 13 27V7Z"/>
+          <path d="M13 12H4V21C4 32 10 35 16 35M49 12H58V21C58 32 52 35 46 35"/>
+          <path d="M31 46V55M20 57H42"/>
+          <path d="m31 15 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z" fill="#fa354d" fillOpacity=".34" strokeWidth="1.3"/>
+        </g>
+        <path d="M496 204H560" stroke="#f02c47" strokeOpacity=".36" strokeWidth="1"/>
+        <g stroke="#e82842" strokeOpacity=".18">
+          <path d="M15 310H208M218 327H405M420 21H602"/>
+        </g>
+      </svg>
+    </div>
+  );
 }
 
 export default function TournamentsShowcase() {
