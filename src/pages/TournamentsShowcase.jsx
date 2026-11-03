@@ -342,7 +342,7 @@ export default function TournamentsShowcase() {
         </header>
 
         {publishedTournaments.length > 0 && (
-          <section className="ts-live-tournaments" aria-labelledby="ts-live-tournaments-title">
+          <section id="published-tournaments" className="ts-live-tournaments" aria-labelledby="ts-live-tournaments-title">
             <div className="ts-live-tournaments-heading">
               <span>ISTe / TOURNAMENTS LIVE</span>
               <h2 id="ts-live-tournaments-title">{language === "ru" ? "ОБЪЯВЛЕННЫЕ ТУРНИРЫ" : language === "en" ? "ANNOUNCED TOURNAMENTS" : "ОГОЛОШЕНІ ТУРНІРИ"}</h2>
