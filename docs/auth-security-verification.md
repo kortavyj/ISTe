@@ -46,3 +46,27 @@ Keep the production response unchanged until a stack trace identifies the
 source. Continue checking rate-limit events and legitimate login errors
 after rollout; the account-wide bucket is intentionally not reset on a
 successful sign-in.
+
+## Final production verification on 2026-11-04
+
+* Production deployment for commit `337fd8117c1d23834e76871876b42742a799c1db`
+  reached Vercel READY and owns `www.istesport.com` and `istesport.com`.
+* A credential-free GET to `https://www.istesport.com/api/owner?action=users`
+  returned HTTP 401 as expected.
+* In the same Node.js 24 production deployment the `DEP0169` warning was
+  logged by **both** `/api/owner` and `/api/tournaments-alerts`. Its scope
+  therefore is not specific to owner authorization. Direct Node 24 execution
+  of the owner handler did not reproduce the warning. A temporary Vercel
+  preview was protected (HTTP 302), so it did not provide a usable remote
+  stack trace. The strongest current hypothesis is a shared deployed runtime
+  or adapter path; the exact caller remains unconfirmed. Do not modify
+  authorization or silence warnings merely to hide it.
+* The dependency remediation PR updated Vite 8.1.5 to 8.3.5 and
+  source-map-js to 1.2.2, with `npm audit --audit-level=high` returning
+  zero vulnerabilities. The repository CI now fails on future high-severity
+  audit findings when the package manifest, lockfile, or audit workflow changes.
+
+`DEP0169` is a Node API deprecation warning, not evidence that an unauthenticated
+user accessed the owner API. Continue monitoring it when Vercel updates its
+runtime; use isolated stack tracing if the warning develops into a functional
+error.
