@@ -3,6 +3,7 @@
 // All endpoint-specific guards, owner/MFA checks and disabled-write flags
 // are preserved in the imported request handlers.
 import owner from "../server/tournamentRoutes/tournaments-owner.js";
+import alerts from "../server/tournamentRoutes/tournaments-alerts.js";
 import confirm from "../server/tournamentRoutes/tournaments-match-confirm.js";
 import teamApply from "../server/tournamentRoutes/tournaments-team-apply.js";
 import teamReview from "../server/tournamentRoutes/tournaments-team-review.js";
@@ -13,6 +14,7 @@ import statusTransition from "../server/tournamentRoutes/tournaments-status-tran
 
 const routes = Object.freeze({
   owner,
+  alerts,
   "match-confirm": confirm,
   "team-apply": teamApply,
   "team-review": teamReview,
