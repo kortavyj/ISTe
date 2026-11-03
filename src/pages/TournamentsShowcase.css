@@ -307,3 +307,15 @@
 @media(prefers-reduced-motion:reduce){
   .ts-bracket-neon-trophy,.ts-bracket-trophy-frame,.ts-bracket-trophy-symbol{animation:none}
 }
+
+
+/* Sculpted championship trophy: no square UI frame or aggressive neon halo */
+.ts-bracket-champion-trophy{
+  filter:drop-shadow(0 12px 8px rgba(0,0,0,.68)) drop-shadow(0 0 9px rgba(183,27,53,.27));
+}
+.ts-bracket-champion-figure{
+  filter:drop-shadow(1px 1px 2px rgba(255,217,198,.10));
+}
+.ts-bracket-hero.ts-arena:after{
+  background:linear-gradient(90deg,rgba(5,5,5,.12),transparent 27%),linear-gradient(0deg,#080508 0%,transparent 13%,transparent 89%,#080508 100%);
+}
