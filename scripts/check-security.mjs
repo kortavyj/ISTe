@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { guardRequest } from "../server/apiLib/requestGuard.js";
 import { checkExposedPassword } from "../server/lib/pwnedPassword.js";
+import passwordSafetyHandler from "../api/auth/password-safety.js";
 
 const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
 const universal = config.headers.find(row => row.source === "/(.*)");
@@ -54,5 +55,29 @@ const unique = await checkExposedPassword("password", async () => ({
   text: async () => "00000000000000000000000000000000000:5\r\n",
 }));
 assert.equal(unique.exposed, false);
+
+
+// The password safety endpoint must reject untrusted origins before any
+// rate-limit database query or external breach-database call can run.
+const mockResponse = () => ({
+  statusCode: 200,
+  headers: {},
+  setHeader(name, value) { this.headers[name.toLowerCase()] = value; return this; },
+  status(value) { this.statusCode = value; return this; },
+  json(value) { this.payload = value; return this; },
+});
+const rejected = mockResponse();
+await passwordSafetyHandler({
+  ...trusted,
+  headers: { ...trusted.headers, origin: "https://attacker.example" },
+  body: { password: "sample-unique-value-1111" },
+}, rejected);
+assert.equal(rejected.statusCode, 403);
+const invalidPassword = mockResponse();
+await passwordSafetyHandler({
+  ...trusted,
+  body: { password: "short" },
+}, invalidPassword);
+assert.equal(invalidPassword.statusCode, 400);
 
 console.log("Security regression checks passed.");
