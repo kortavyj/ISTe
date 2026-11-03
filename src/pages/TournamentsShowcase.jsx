@@ -74,8 +74,8 @@ function TournamentIcon({ kind }) {
 
 function ArenaArtwork() {
   return <div className="ts-arena" aria-hidden="true">
-    <img className="ts-arena-illustration" src="https://images.unsplash.com/photo-1730103138676-5562791a5eb1?auto=format&fit=crop&w=2200&q=90" alt="" fetchPriority="high" referrerPolicy="no-referrer" />
-    <div className="ts-arena-target" aria-hidden="true"><span>CS2</span></div>
+    <img className="ts-arena-illustration" src="https://images.unsplash.com/photo-1758410473735-c76baff30a79?auto=format&fit=crop&w=2200&q=90" alt="" fetchPriority="high" referrerPolicy="no-referrer" />
+
 
   </div>;
 }
