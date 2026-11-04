@@ -30,10 +30,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/b1cdce43-4629-4739-af8f-1e4dbfb2107b.jpg",
       "level": 5,
-      "elo": 1142,
-      "kd": 0.95,
+      "elo": 1178,
+      "kd": 0.96,
       "winRate": 49,
-      "matches": 610,
+      "matches": 611,
       "faceitUrl": "https://www.faceit.com/ru/players/DETT3N"
     },
     {
@@ -42,10 +42,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/951bc299-9b42-40c6-9570-9a34812e4d53.jpg",
       "level": 8,
-      "elo": 1587,
+      "elo": 1611,
       "kd": 1.07,
-      "winRate": 52,
-      "matches": 715,
+      "winRate": 53,
+      "matches": 716,
       "faceitUrl": "https://www.faceit.com/ru/players/AGREGAT"
     },
     {
@@ -54,10 +54,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/2138965a-96b6-4af9-a5f4-16ba0b8aed6b.jpg",
       "level": 7,
-      "elo": 1465,
+      "elo": 1497,
       "kd": 0.97,
       "winRate": 54,
-      "matches": 387,
+      "matches": 388,
       "faceitUrl": "https://www.faceit.com/ru/players/syro_S"
     }
   ]
