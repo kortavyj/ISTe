@@ -3,9 +3,6 @@ name: Diagnose owner URL deprecation (Node 24)
 on:
   workflow_dispatch:
   pull_request:
-    paths:
-      - "scripts/trace-owner-deprecation.mjs"
-      - ".github/workflows/iste-owner-deprecation-diagnostics.yml"
 
 permissions:
   contents: read
