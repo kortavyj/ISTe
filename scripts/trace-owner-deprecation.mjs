@@ -32,6 +32,7 @@ assert.equal(response.statusCode, 401);
 assert.equal(response.body?.error, "AUTH_REQUIRED");
 await new Promise(resolve => setImmediate(resolve));
 
+assert.equal(deprecatedUrlWarnings, 0, "Direct owner handler must not use deprecated Node.js URL APIs");
 console.log("Unauthenticated owner API returns 401 as expected.");
 console.log(`DEP0169 warnings from direct in-process handler execution: ${deprecatedUrlWarnings}`);
 console.log("Note: Vercel's request adapter is not part of this diagnostic run.");
