@@ -268,6 +268,41 @@ async function handleUpdateRole(request, response) {
   }
 }
 
+async function handleVerificationStatus(request, response) {
+  const guard = guardRequest(request, {
+    methods: ["GET"],
+    requireJson: false,
+    requireOrigin: false,
+  });
+  if (!guard.ok) return sendGuardError(response, guard);
+
+  const accountNumber = Number(request.query?.accountNumber);
+  if (!Number.isSafeInteger(accountNumber) || accountNumber <= 0) {
+    return sendError(response, 400, "INVALID_ACCOUNT_NUMBER", "Невірний ID учасника.");
+  }
+
+  const actor = await getOwner(request, response);
+  if (!actor) return;
+
+  const { data, error } = await actor.supabase
+    .from("profiles")
+    .select("id, is_verified")
+    .eq("account_number", accountNumber)
+    .maybeSingle();
+
+  if (error) {
+    return sendError(response, 502, "VERIFICATION_LOOKUP_FAILED", "Не вдалося отримати статус верифікації.");
+  }
+  if (!data) {
+    return sendError(response, 404, "PROFILE_NOT_FOUND", "Профіль не знайдено.");
+  }
+
+  return response.status(200).json({
+    ok: true,
+    verified: data.is_verified === true,
+  });
+}
+
 async function handleSetVerified(request, response) {
   const guard = guardRequest(request, {
     methods: ["POST"],
@@ -278,7 +313,12 @@ async function handleSetVerified(request, response) {
   if (!guard.ok) return sendGuardError(response, guard);
 
   const body = readJsonBody(request);
-  if (!body || !isUuid(body.userId) || typeof body.verified !== "boolean") {
+  const byUuid = typeof body?.userId === "string" && isUuid(body.userId);
+  const accountNumber = Number(body?.accountNumber);
+  const byAccountNumber = body?.accountNumber !== undefined
+    && Number.isSafeInteger(accountNumber)
+    && accountNumber > 0;
+  if (!body || (!byUuid && !byAccountNumber) || typeof body.verified !== "boolean") {
     return sendError(response, 400, "INVALID_VERIFICATION_REQUEST", "Невірні дані підтвердження.");
   }
 
@@ -289,8 +329,23 @@ async function handleSetVerified(request, response) {
   }
 
   try {
+    let userId = byUuid ? body.userId : null;
+    if (!userId) {
+      const { data: target, error: lookupError } = await owner.supabase
+        .from("profiles")
+        .select("id")
+        .eq("account_number", accountNumber)
+        .maybeSingle();
+      if (lookupError) {
+        return sendError(response, 502, "VERIFICATION_LOOKUP_FAILED", "Не вдалося знайти профіль.");
+      }
+      if (!target) {
+        return sendError(response, 404, "PROFILE_NOT_FOUND", "Профіль не знайдено.");
+      }
+      userId = target.id;
+    }
     const { data, error } = await owner.supabase.rpc("owner_set_profile_verified", {
-      p_user_id: body.userId,
+      p_user_id: userId,
       p_verified: body.verified,
     });
     if (error) {
@@ -486,6 +541,10 @@ export default async function handler(request, response) {
 
   if (action === "update-role") {
     return handleUpdateRole(request, response);
+  }
+
+  if (action === "verification-status") {
+    return handleVerificationStatus(request, response);
   }
 
   if (action === "set-verified") {
