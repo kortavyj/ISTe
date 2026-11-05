@@ -113,3 +113,14 @@
 @media (prefers-reduced-motion: reduce) {
   .user-search-controls button, .user-search-controls input { transition: none; }
 }
+
+.user-result-account-link {
+  min-height: 45px;
+  background: linear-gradient(125deg, rgba(228, 26, 44, .22), rgba(255, 35, 53, .07));
+  border-color: rgba(255, 67, 83, .58);
+  box-shadow: 0 0 20px rgba(250, 20, 45, .06);
+}
+.user-result-account-link:focus-visible {
+  outline: 2px solid #ff5968;
+  outline-offset: 3px;
+}
