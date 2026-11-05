@@ -488,15 +488,6 @@ export default function Account() {
             {activeTab === "profile" && (
               <>
                 <MemberShowcase targetAccountNumber={profile?.account_number} ownerView />
-                <section className="iste-social-panel iste-social-shortcuts">
-                  <div className="iste-social-section-head"><h2>{social.actions}</h2></div>
-                  <div className="iste-social-shortcut-grid">
-                    <Link to="/team"><DashboardIcon name="users"/><span>{social.team}</span><DashboardIcon name="arrow" size={15}/></Link>
-                    <Link to="/news"><DashboardIcon name="news"/><span>{social.news}</span><DashboardIcon name="arrow" size={15}/></Link>
-                    <Link to="/shop"><DashboardIcon name="shop"/><span>{social.shop}</span><DashboardIcon name="arrow" size={15}/></Link>
-                    <Link to="/users"><DashboardIcon name="search"/><span>{social.people}</span><DashboardIcon name="arrow" size={15}/></Link>
-                  </div>
-                </section>
               </>
             )}
 
