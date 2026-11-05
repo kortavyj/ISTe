@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "../lib/supabase.js";
+
 import "./MemberAwards.css";
 
 const CATALOG = {
@@ -23,10 +23,19 @@ export default function MemberAwards({ accountNumber, canManage }) {
   const [message, setMessage] = useState("");
 
   const refresh = useCallback(async () => {
-    const { data, error } = await supabase.rpc("member_awards_for_account", { p_account_number: accountNumber });
-    if (error) { setStatus("error"); return; }
-    setAwards((data || []).filter(item => CATALOG[item.award_code]));
-    setStatus("ready");
+    try {
+      const response = await fetch("/api/auth/session", {
+        method: "POST", credentials: "include", cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "member-awards-get", accountNumber }),
+      });
+      const result = await response.json();
+      if (!response.ok || result?.ok !== true) throw new Error(result?.message || "LOOKUP_FAILED");
+      setAwards((result.awards || []).filter(item => CATALOG[item.award_code]));
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
   }, [accountNumber]);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -36,17 +45,20 @@ export default function MemberAwards({ accountNumber, canManage }) {
     if (busy || !canManage) return;
     if (!window.confirm(received ? "Відкликати нагороду?" : "Видати нагороду?")) return;
     setBusy(true); setMessage("");
-    const { error } = await supabase.rpc("manage_member_award", {
-      p_account_number: accountNumber, p_award_code: code, p_grant: !received,
-    });
-    if (error) {
-      const reason = error.message || "";
-      setMessage(reason.includes("MFA_REQUIRED") ? "Потрібна двофакторна автентифікація." :
-        reason.includes("OWNER_PROTECTED") ? "Нагородами власника керує тільки власник." :
-        "Зміна нагороди не вдалася. Перевірте права доступу.");
-    } else {
+    try {
+      const response = await fetch("/api/auth/session", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "member-awards-manage", accountNumber, awardCode: code, grant: !received,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || result?.ok !== true) throw new Error(result?.message || "AWARD_UPDATE_FAILED");
       await refresh();
       setMessage(received ? "Нагороду відкликано." : "Нагороду видано.");
+    } catch (error) {
+      setMessage(error.message || "Не вдалося змінити нагороду.");
     }
     setBusy(false);
   }
