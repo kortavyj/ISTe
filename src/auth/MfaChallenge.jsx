@@ -1,3 +1,5 @@
+import { useLanguage } from "../i18n/LanguageContext.jsx";
+
 import {
   useCallback,
   useEffect,
@@ -65,6 +67,7 @@ export default function MfaChallenge({
   onSuccess,
   onCancel,
 }) {
+  const { t } = useLanguage();
   const startedRef = useRef(false);
 
   const [mode, setMode] = useState(
@@ -141,8 +144,7 @@ export default function MfaChallenge({
         );
       } catch (error) {
         setErrorMessage(
-          error?.message ||
-            "Не удалось подготовить 2FA.",
+          t("authMfa.setupFailed"),
         );
       } finally {
         setPreparing(false);
@@ -175,7 +177,7 @@ export default function MfaChallenge({
       normalizedCode.length > 10
     ) {
       setErrorMessage(
-        "Введите код из приложения аутентификатора.",
+        t("authMfa.codeRequired"),
       );
       return;
     }
@@ -197,8 +199,7 @@ export default function MfaChallenge({
       await onSuccess?.();
     } catch (error) {
       setErrorMessage(
-        error?.message ||
-          "Не удалось подтвердить 2FA.",
+        error?.code === "TOO_MANY_ATTEMPTS" ? t("authMfa.rateLimited") : error?.code === "INVALID_MFA_CODE" ? t("authMfa.invalidCode") : t("authMfa.verifyFailed"),
       );
     } finally {
       setSubmitting(false);
@@ -231,11 +232,11 @@ export default function MfaChallenge({
       );
 
       setCopyMessage(
-        "Резервный ключ скопирован.",
+        t("authMfa.copied"),
       );
     } catch {
       setCopyMessage(
-        "Не удалось скопировать ключ.",
+        t("authMfa.copyFailed"),
       );
     }
   }
@@ -248,18 +249,17 @@ export default function MfaChallenge({
       <div className="auth-shell">
         <header className="auth-heading">
           <p className="auth-kicker">
-            ISTe security
+            {t("authMfa.kicker")}
           </p>
 
           <h1>
-            Двухфакторная
-            аутентификация
+            {t("authMfa.title")}
           </h1>
 
           <p>
             {isSetup
-              ? "Для административного аккаунта 2FA обязательна. Добавьте ISTe в приложение аутентификатора и подтвердите код."
-              : "Пароль принят. Для завершения входа введите текущий код из приложения аутентификатора."}
+              ? t("authMfa.setupDescription")
+              : t("authMfa.verifyDescription")}
           </p>
         </header>
 
@@ -281,8 +281,7 @@ export default function MfaChallenge({
               />
 
               <p>
-                Подготавливаем защищённую
-                настройку 2FA…
+                {t("authMfa.preparing")}
               </p>
             </div>
           )}
@@ -293,15 +292,11 @@ export default function MfaChallenge({
               <>
                 <div className="mfa-setup-copy">
                   <h2>
-                    Сканируйте QR код
+                    {t("authMfa.scanTitle")}
                   </h2>
 
                   <p>
-                    Откройте приложение
-                    аутентификатора,
-                    добавьте новый аккаунт
-                    и отсканируйте этот
-                    QR код.
+                    {t("authMfa.scanDescription")}
                   </p>
                 </div>
 
@@ -309,7 +304,7 @@ export default function MfaChallenge({
                   <img
                     className="mfa-qr"
                     src={qrCode}
-                    alt="QR код для настройки двухфакторной аутентификации ISTe"
+                    alt={t("authMfa.qrAlt")}
                   />
                 </div>
 
@@ -317,16 +312,11 @@ export default function MfaChallenge({
                   <div className="mfa-secret">
                     <div>
                       <strong>
-                        Резервный ключ
+                        {t("authMfa.backupKey")}
                       </strong>
 
                       <p>
-                        Сохраните его в
-                        надёжном менеджере
-                        паролей. Он позволит
-                        восстановить тот же
-                        TOTP генератор при
-                        потере телефона.
+                        {t("authMfa.backupDescription")}
                       </p>
                     </div>
 
@@ -345,7 +335,7 @@ export default function MfaChallenge({
                         cancelling
                       }
                     >
-                      Копировать ключ
+                      {t("authMfa.copyKey")}
                     </button>
 
                     {copyMessage && (
@@ -372,7 +362,7 @@ export default function MfaChallenge({
                   cancelling
                 }
               >
-                Повторить подготовку
+                {t("authMfa.retry")}
               </button>
             )}
 
@@ -385,7 +375,7 @@ export default function MfaChallenge({
             >
               <label className="auth-field">
                 <span>
-                  Код из приложения
+                  {t("authMfa.codeLabel")}
                 </span>
 
                 <input
@@ -423,10 +413,10 @@ export default function MfaChallenge({
                 }
               >
                 {submitting
-                  ? "Проверяем..."
+                  ? t("authMfa.checking")
                   : isSetup
-                    ? "Включить 2FA"
-                    : "Подтвердить вход"}
+                    ? t("authMfa.enable")
+                    : t("authMfa.confirm")}
               </button>
             </form>
           )}
@@ -442,8 +432,8 @@ export default function MfaChallenge({
             }
           >
             {cancelling
-              ? "Отменяем..."
-              : "Вернуться к входу"}
+              ? t("authMfa.cancelling")
+              : t("authMfa.back")}
           </button>
         </div>
       </div>
