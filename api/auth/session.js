@@ -12,7 +12,7 @@ import {
 
 import { readJsonBody } from "../../server/apiLib/requestBody.js";
 import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
-import { createAvatarUpload, verifyAvatarUpload } from "../../server/lib/avatarUploads.js";
+import { createAvatarUpload, verifyAvatarUpload, createBannerUpload, verifyBannerUpload, isValidAvatarFrame } from "../../server/lib/avatarUploads.js";
 import {
   enforceMfaRateLimit,
   enforceNewsTranslationRateLimit,
@@ -22,10 +22,10 @@ import {
 
 
 const PROFILE_COLUMNS =
-  "id, username, display_name, avatar_url, bio, account_number, is_verified, created_at, updated_at";
+  "id, username, display_name, avatar_url, banner_url, avatar_frame, bio, account_number, is_verified, created_at, updated_at";
 
 const LEGACY_PROFILE_COLUMNS =
-  "id, username, display_name, avatar_url, bio, is_verified, created_at, updated_at";
+  "id, username, display_name, avatar_url, banner_url, avatar_frame, bio, is_verified, created_at, updated_at";
 
 const NEWS_COLUMNS =
   "id, title, slug, excerpt, content, cover_url, category, status, is_featured, author_id, updated_by, published_at, created_at, updated_at";
@@ -2113,6 +2113,61 @@ async function handleAvatarConfirm(request, response, body) {
   }
 }
 
+async function handleBannerCreateUpload(request, response, body) {
+  try {
+    const account = await requireAccount(request, response);
+    if (!account.ok) return sendAccountError(response, account);
+    const result = await createBannerUpload(account.user.id, body);
+    if (!result.ok) return sendError(response, result.status, result.error, "Не вдалося підготувати завантаження обкладинки.");
+    return response.status(200).json(result);
+  } catch (error) {
+    console.error("Banner upload preparation failed:", error);
+    return sendError(response, 503, "BANNER_UPLOAD_UNAVAILABLE", "Не вдалося підготувати завантаження обкладинки.");
+  }
+}
+
+async function handleBannerConfirm(request, response, body) {
+  try {
+    const account = await requireAccount(request, response);
+    if (!account.ok) return sendAccountError(response, account);
+    const result = await verifyBannerUpload(account.user.id, body?.path);
+    if (!result.ok) return sendError(response, result.status, result.error, "Не вдалося перевірити обкладинку.");
+    const { data, error } = await account.supabase.from("profiles")
+      .update({ banner_url: result.publicUrl })
+      .eq("id", account.user.id)
+      .select("id,banner_url").maybeSingle();
+    if (error || !data) {
+      console.error("Banner profile update failed:", error);
+      return sendError(response, 502, "BANNER_PROFILE_UPDATE_FAILED", "Не вдалося зберегти обкладинку.");
+    }
+    return response.status(200).json({ ok: true, bannerUrl: data.banner_url });
+  } catch (error) {
+    console.error("Banner confirmation failed:", error);
+    return sendError(response, 503, "BANNER_CONFIRMATION_UNAVAILABLE", "Не вдалося зберегти обкладинку.");
+  }
+}
+
+async function handleAvatarFrameSelect(request, response, body) {
+  if (!isValidAvatarFrame(body?.frame)) {
+    return sendError(response, 400, "INVALID_AVATAR_FRAME", "Оберіть рамку зі списку ISTe.");
+  }
+  try {
+    const account = await requireAccount(request, response);
+    if (!account.ok) return sendAccountError(response, account);
+    const { data, error } = await account.supabase.from("profiles")
+      .update({ avatar_frame: body.frame }).eq("id", account.user.id)
+      .select("id,avatar_frame").maybeSingle();
+    if (error || !data) {
+      console.error("Avatar frame update failed:", error);
+      return sendError(response, 502, "AVATAR_FRAME_UPDATE_FAILED", "Не вдалося зберегти рамку.");
+    }
+    return response.status(200).json({ ok: true, frame: data.avatar_frame });
+  } catch (error) {
+    console.error("Avatar frame update failed:", error);
+    return sendError(response, 503, "AVATAR_FRAME_UNAVAILABLE", "Не вдалося зберегти рамку.");
+  }
+}
+
 async function handleProfileUpdate(
 
   request,
@@ -3064,6 +3119,15 @@ if (action === "mfa-cancel") {
   );
 }
 
+if (action === "banner-create-upload") {
+  return handleBannerCreateUpload(request, response, body);
+}
+if (action === "banner-confirm") {
+  return handleBannerConfirm(request, response, body);
+}
+if (action === "avatar-frame-select") {
+  return handleAvatarFrameSelect(request, response, body);
+}
 if (action === "avatar-create-upload") {
   return handleAvatarCreateUpload(request, response, body);
 }
