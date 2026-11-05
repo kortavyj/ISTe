@@ -13,6 +13,11 @@ const CATALOG = {
   tournament_winner: ["Переможець турніру", "Нагорода за перемогу", "♜", "gold"],
   partner: ["Партнер ISTe", "Особливий статус партнера", "◆", "silver"],
   creator: ["Автор контенту", "Творчий внесок у ISTe", "✧", "red"],
+  month_member: ["30 днів разом", "Автоматично після 30 днів участі в ISTe", "30", "silver"],
+  year_member: ["Рік в ISTe", "Автоматично після 365 днів від дати реєстрації", "365", "gold"],
+  first_showcase: ["Перша вітрина", "За першу опубліковану вітрину", "▣", "red"],
+  first_comment: ["Перший відгук", "За перший коментар у профілі іншого учасника", "✎", "silver"],
+  ten_comments: ["Голос спільноти", "За 10 коментарів у профілях інших учасників", "❞", "gold"],
 };
 const MANUAL = ["early_member","community_helper","tournament_winner","partner","creator"];
 
@@ -69,7 +74,7 @@ export default function MemberAwards({ accountNumber, canManage }) {
       <h2><span aria-hidden="true">♛</span> Досягнення</h2>
       <span>{awards.length} нагород</span>
     </header>
-    <p className="iste-awards-caption">Нагороди та спеціальні відзнаки учасника ISTe.</p>
+    <p className="iste-awards-caption">Нагороди за активність і спеціальні відзнаки ISTe. Автоматичні досягнення з’являються після виконання умов.</p>
     {status === "loading" && <p className="iste-awards-muted">Завантажуємо нагороди…</p>}
     {status === "error" && <p className="iste-awards-muted" role="alert">Не вдалося отримати нагороди.</p>}
     {status === "ready" && <div className="iste-awards-grid">
