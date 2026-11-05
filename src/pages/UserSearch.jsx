@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import MemberShowcase from "../components/MemberShowcase.jsx";
 import VerifiedBadge from "../components/VerifiedBadge.jsx";
 
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -246,8 +245,7 @@ export default function UserSearch() {
             <span aria-hidden="true">?</span>
             <h2>Користувача не знайдено</h2>
             <p>
-              Проверьте цифры ID. Заблокированные аккаунты в поиске не
-              отображаются.
+              Перевірте цифри ID. Заблоковані акаунти в пошуку не відображаються.
             </p>
           </div>
         ) : null}
@@ -279,9 +277,13 @@ export default function UserSearch() {
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg>
                 <div><span>Дата приєднання</span><strong>{formatDate(result.created_at)}</strong></div>
               </div>
-              {resultIsCurrentUser ? (
-                <Link className="user-result-account-link" to="/account">Відкрити мій профіль <span aria-hidden="true">↗</span></Link>
-              ) : null}
+              <Link
+                className="user-result-account-link"
+                to={resultIsCurrentUser ? "/account" : `/users/${result.account_number}`}
+              >
+                {resultIsCurrentUser ? "Мій профіль" : "Переглянути профіль"}
+                <span aria-hidden="true">↗</span>
+              </Link>
               {canVerify ? (
                 <div className="user-result-verification-controls">
                   <div className="user-result-verification-status">
@@ -298,16 +300,13 @@ export default function UserSearch() {
               ) : null}
             </div>
           </article>
-          <MemberShowcase targetAccountNumber={result.account_number} />
           </>
         ) : null}
 
         <aside className="user-search-privacy">
           <strong>Приватність</strong>
           <p>
-            Поиск работает только для авторизованных пользователей и только по
-            точному ID. Почта, пароль, роль, статус доступа и внутренний UUID не
-            передаются.
+            Пошук доступний авторизованим учасникам за точним ID. Електронна пошта, пароль та внутрішній UUID залишаються прихованими.
           </p>
         </aside>
       </div>
