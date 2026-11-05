@@ -3,11 +3,10 @@
   align-items: center;
   justify-content: center;
   width: var(--verified-size, 15px);
-  height: var(--verified-size, 20px);
+  height: var(--verified-size, 15px);
   flex: none;
   vertical-align: middle;
-  position: relative;
-  top: -3px;
+  line-height: 0;
   filter: drop-shadow(0 0 1.5px rgba(255, 48, 48, .3));
 }
 .iste-verified-badge svg { display: block; width: 100%; height: 100%; overflow: visible; }
