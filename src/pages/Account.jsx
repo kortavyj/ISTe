@@ -544,6 +544,7 @@ export default function Account() {
               <MemberAwards
                 accountNumber={profile.account_number}
                 canManage={role === "owner"}
+                verificationType={profile.verification_type || "silver"}
               />
             ) : null}
             <section className="iste-social-panel iste-social-member-facts" aria-label={social.stats}>
