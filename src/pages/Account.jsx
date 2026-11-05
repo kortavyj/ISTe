@@ -8,6 +8,7 @@ import { formatAccountId } from "../utils/accountId.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import { supabase } from "../lib/supabase.js";
 import MemberShowcase from "../components/MemberShowcase.jsx";
+import MemberAwards from "../components/MemberAwards.jsx";
 import VerifiedBadge from "../components/VerifiedBadge.jsx";
 
 import "./Auth.css";
@@ -539,6 +540,12 @@ export default function Account() {
           </main>
 
           <aside className="iste-social-sidebar">
+            {profile?.account_number ? (
+              <MemberAwards
+                accountNumber={profile.account_number}
+                canManage={role === "owner"}
+              />
+            ) : null}
             <section className="iste-social-panel iste-social-member-facts" aria-label={social.stats}>
               <div className="iste-social-section-head"><h2>{social.stats}</h2></div>
               <dl>
