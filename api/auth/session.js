@@ -2294,6 +2294,40 @@ async function handleProfileUpdate(
   }
 }
 
+async function handleMemberAwards(request, response, body, manage = false) {
+  const number = Number(body.accountNumber);
+  if (!Number.isSafeInteger(number) || number <= 0) {
+    return sendError(response, 400, "INVALID_ACCOUNT_ID", "Невірний ID учасника.");
+  }
+  const account = await requireAccount(request, response, manage ? { manager: true } : {});
+  if (!account.ok) return sendAccountError(response, account);
+  if (manage) {
+    const allowed = new Set(["early_member", "community_helper", "tournament_winner", "partner", "creator"]);
+    if (!allowed.has(body.awardCode) || typeof body.grant !== "boolean") {
+      return sendError(response, 400, "INVALID_AWARD", "Некоректні дані нагороди.");
+    }
+    const { error } = await account.supabase.rpc("manage_member_award", {
+      p_account_number: number, p_award_code: body.awardCode, p_grant: body.grant,
+    });
+    if (error) {
+      const reason = error.message || "";
+      if (reason.includes("OWNER_PROTECTED")) return sendError(response, 403, "OWNER_PROTECTED", "Нагородами власника може керувати лише власник.");
+      if (reason.includes("MFA_REQUIRED")) return sendError(response, 403, "MFA_REQUIRED", "Потрібна двофакторна автентифікація.");
+      console.error("Member award update failed", error);
+      return sendError(response, 502, "AWARD_UPDATE_FAILED", "Не вдалося змінити нагороду.");
+    }
+    return response.status(200).json({ ok: true });
+  }
+  const { data, error } = await account.supabase.rpc("member_awards_for_account", {
+    p_account_number: number,
+  });
+  if (error) {
+    console.error("Member awards lookup failed", error);
+    return sendError(response, 502, "AWARDS_LOOKUP_FAILED", "Не вдалося завантажити нагороди.");
+  }
+  return response.status(200).json({ ok: true, awards: Array.isArray(data) ? data : [] });
+}
+
 async function handleUserSearch(
   request,
   response,
@@ -2390,6 +2424,16 @@ async function handleUserSearch(
         return sendError(response, 502, "VERIFICATION_LOOKUP_FAILED", "Не вдалося отримати статус профілю.");
       }
       profile.is_verified = verified === true;
+      const { data: banner, error: bannerError } = await account.supabase.rpc(
+        "member_public_banner_for_account",
+        { p_account_number: profile.account_number },
+      );
+      if (bannerError) {
+        console.error("Member banner lookup failed:", bannerError);
+      } else {
+        profile.banner_url = typeof banner === "string" ? banner : null;
+      }
+
     }
 
     return response.status(200).json({
@@ -3157,6 +3201,9 @@ if (action === "avatar-create-upload") {
 if (action === "avatar-confirm") {
   return handleAvatarConfirm(request, response, body);
 }
+
+if (action === "member-awards-get") return handleMemberAwards(request, response, body);
+if (action === "member-awards-manage") return handleMemberAwards(request, response, body, true);
 
 if (action === "find-user") {
 
