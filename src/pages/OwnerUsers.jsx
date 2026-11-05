@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../auth/AuthContext.jsx";
+import VerifiedBadge from "../components/VerifiedBadge.jsx";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 import "./Auth.css";
@@ -611,7 +612,7 @@ export default function OwnerUsers() {
   }
 
   async function toggleVerified(targetUser) {
-    if (currentRole !== "owner" || actionUserId) return;
+    if (!["owner", "admin"].includes(currentRole) || actionUserId || (currentRole === "admin" && targetUser.role === "owner")) return;
     const nextVerified = targetUser.is_verified !== true;
     const title = language === "en"
       ? (nextVerified ? "Verify this member?" : "Remove verification from this member?")
@@ -891,7 +892,7 @@ export default function OwnerUsers() {
                             </h2>
 
                             {item.is_verified === true ? (
-                              <span className="owner-chip owner-verified-chip" title={language === "en" ? "Verified by ISTe owner" : "Підтверджено власником ISTe"}>✓</span>
+                              <VerifiedBadge size={20} />
                             ) : null}
                             {isSelf ? (
                               <span className="owner-chip">
@@ -960,7 +961,7 @@ export default function OwnerUsers() {
                         </div>
                       </div>
 
-                      {currentRole === "owner" ? (
+                      {(["owner", "admin"].includes(currentRole) && (currentRole === "owner" || item.role !== "owner")) ? (
                         <div className="owner-verification-actions">
                           <button
                             className={item.is_verified ? "owner-button owner-button-secondary" : "owner-button owner-button-primary"}
@@ -969,8 +970,8 @@ export default function OwnerUsers() {
                             onClick={() => toggleVerified(item)}
                           >
                             {item.is_verified
-                              ? (language === "en" ? "Remove verification" : "Зняти галочку")
-                              : (language === "en" ? "Verify member" : "Видати галочку")}
+                              ? (language === "en" ? "Remove verification" : "Зняти верифікацію")
+                              : (language === "en" ? "Verify member" : "Видати верифікацію")}
                           </button>
                         </div>
                       ) : null}

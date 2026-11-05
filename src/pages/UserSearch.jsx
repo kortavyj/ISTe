@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import MemberShowcase from "../components/MemberShowcase.jsx";
+import VerifiedBadge from "../components/VerifiedBadge.jsx";
 
 import { useAuth } from "../auth/AuthContext.jsx";
 import {
@@ -61,13 +62,17 @@ async function readApiResponse(response) {
 }
 
 export default function UserSearch() {
-  const { profile: currentProfile } = useAuth();
+  const { profile: currentProfile, role } = useAuth();
 
   const [query, setQuery] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [verificationState, setVerificationState] = useState(null);
+  const [verificationBusy, setVerificationBusy] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState("");
+  const canVerify = role === "owner" || role === "admin";
 
   const ownAccountId = formatAccountId(currentProfile?.account_number);
 
@@ -87,6 +92,8 @@ export default function UserSearch() {
     setErrorMessage("");
     setResult(null);
     setHasSearched(false);
+    setVerificationState(null);
+    setVerificationMessage("");
 
     if (!isValidAccountId(query)) {
       setErrorMessage("Введите корректный ID, например ISTE 000001.");
@@ -121,8 +128,25 @@ export default function UserSearch() {
       const data =
         await readApiResponse(response);
 
-      setResult(data.profile ?? null);
+      const foundProfile = data.profile ?? null;
+      setResult(foundProfile);
       setHasSearched(true);
+
+      if (foundProfile?.account_number && canVerify) {
+        try {
+          const verificationResponse = await fetch(
+            `/api/owner/verification-status?accountNumber=${encodeURIComponent(foundProfile.account_number)}`,
+            { credentials: "include", cache: "no-store" },
+          );
+          const verification = await readApiResponse(verificationResponse);
+          setVerificationState(verification.verified === true);
+          setResult(current => current?.account_number === foundProfile.account_number
+            ? { ...current, is_verified: verification.verified === true }
+            : current);
+        } catch {
+          setVerificationMessage("Статус верифікації тимчасово недоступний.");
+        }
+      }
     } catch (error) {
       setErrorMessage(
         error?.message ||
@@ -130,6 +154,36 @@ export default function UserSearch() {
       );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function changeVerification() {
+    if (!canVerify || !result?.account_number || verificationState === null || verificationBusy) return;
+    const nextVerified = !verificationState;
+    const displayName = result.display_name || result.username || result.account_id;
+    if (!window.confirm(nextVerified
+      ? `Видати верифікацію профілю «${displayName}»?`
+      : `Зняти верифікацію з профілю «${displayName}»?`)) return;
+
+    setVerificationBusy(true);
+    setVerificationMessage("");
+    try {
+      const response = await fetch("/api/owner/set-verified", {
+        method: "POST",
+        credentials: "include",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ accountNumber: result.account_number, verified: nextVerified }),
+      });
+      await readApiResponse(response);
+      setVerificationState(nextVerified);
+      setResult(current => current ? { ...current, is_verified: nextVerified } : current);
+      setVerificationMessage(nextVerified
+        ? "Верифікацію успішно видано."
+        : "Верифікацію успішно знято.");
+    } catch (error) {
+      setVerificationMessage(error.message || "Не вдалося змінити верифікацію.");
+    } finally {
+      setVerificationBusy(false);
     }
   }
 
@@ -235,7 +289,7 @@ export default function UserSearch() {
               <div className="user-result-heading">
                 <div>
                   <p>{result.account_id}</p>
-                  <h2>{result.display_name || "Пользователь ISTe"}</h2>
+                  <h2>{result.display_name || "Пользователь ISTe"} {result.is_verified === true && <VerifiedBadge size={19} />}</h2>
                   <span>@{result.username || "без_ника"}</span>
                 </div>
 
@@ -251,6 +305,32 @@ export default function UserSearch() {
               <div className="user-result-meta">
                 <span>Участник с {formatDate(result.created_at)}</span>
               </div>
+
+              {canVerify && (
+                <div className="user-result-verification-controls">
+                  <div className="user-result-verification-status">
+                    {verificationState === true ? <VerifiedBadge size={20} /> : <span aria-hidden="true" className="user-result-verification-dot" />}
+                    <span>{verificationState === null
+                      ? "Перевіряємо статус верифікації"
+                      : verificationState
+                        ? "Профіль верифіковано"
+                        : "Профіль не верифіковано"}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={changeVerification}
+                    disabled={verificationBusy || verificationState === null}
+                    className={verificationState ? "user-result-verify-button is-revoke" : "user-result-verify-button"}
+                  >
+                    {verificationBusy
+                      ? "Зберігаємо..."
+                      : verificationState
+                        ? "Зняти верифікацію"
+                        : "Видати верифікацію"}
+                  </button>
+                  {verificationMessage && <p role="status" className="user-result-verification-message">{verificationMessage}</p>}
+                </div>
+              )}
 
               {resultIsCurrentUser ? (
                 <Link className="user-result-account-link" to="/account">
