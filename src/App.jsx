@@ -57,6 +57,7 @@ import SharedTactic from "./pages/SharedTactic.jsx";
 import Support from "./pages/Support.jsx";
 import Team from "./pages/Team.jsx";
 import UserSearch from "./pages/UserSearch.jsx";
+import PublicMemberProfile from "./pages/PublicMemberProfile.jsx";
 
 import "./App.css";
 import "./styles/Typography.css";
@@ -192,6 +193,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <UserSearch />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/users/:accountId"
+            element={
+              <ProtectedRoute>
+                <PublicMemberProfile />
               </ProtectedRoute>
             }
           />
