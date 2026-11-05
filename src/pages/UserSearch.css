@@ -124,3 +124,13 @@
   outline: 2px solid #ff5968;
   outline-offset: 3px;
 }
+
+.iste-verification-type-picker { display:grid; gap:7px; width:100%; min-width:0; }
+.iste-verification-type-picker > span { color:#bfb0b8; font-size:.73rem; font-weight:750; }
+.iste-verification-type-picker select {
+  width:100%; min-width:0; padding:10px 30px 10px 11px;
+  color:#f6edf1; background:#150d12; border:1px solid #66313e;
+  border-radius:10px; font:inherit; font-size:.77rem;
+}
+.iste-verification-type-picker select:focus-visible { outline:2px solid #ff6172; outline-offset:2px; }
+.user-result-verification-controls { grid-template-columns:1fr; align-items:stretch; }
