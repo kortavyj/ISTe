@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import MemberShowcase from "../components/MemberShowcase.jsx";
+import VerifiedBadge from "../components/VerifiedBadge.jsx";
 
 import { useAuth } from "../auth/AuthContext.jsx";
 import {
@@ -235,7 +236,7 @@ export default function UserSearch() {
               <div className="user-result-heading">
                 <div>
                   <p>{result.account_id}</p>
-                  <h2>{result.display_name || "Пользователь ISTe"}</h2>
+                  <h2>{result.display_name || "Пользователь ISTe"} {result.is_verified === true && <VerifiedBadge size={19} />}</h2>
                   <span>@{result.username || "без_ника"}</span>
                 </div>
 
