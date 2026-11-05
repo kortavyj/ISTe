@@ -12,6 +12,7 @@ import {
 
 import { readJsonBody } from "../../server/apiLib/requestBody.js";
 import { getSupabaseServerClient } from "../../server/apiLib/supabaseServer.js";
+import { createAvatarUpload, verifyAvatarUpload } from "../../server/lib/avatarUploads.js";
 import {
   enforceMfaRateLimit,
   enforceNewsTranslationRateLimit,
@@ -2070,6 +2071,48 @@ async function handleMfaCancel(
   });
 }
 
+async function handleAvatarCreateUpload(request, response, body) {
+  try {
+    const account = await requireAccount(request, response);
+    if (!account.ok) return sendAccountError(response, account);
+
+    const result = await createAvatarUpload(account.user.id, body);
+    if (!result.ok) {
+      return sendError(response, result.status, result.error, "Не вдалося підготувати завантаження фото.");
+    }
+    return response.status(200).json(result);
+  } catch (error) {
+    console.error("Avatar upload preparation error:", error);
+    return sendError(response, 503, "AVATAR_UPLOAD_UNAVAILABLE", "Не вдалося підготувати завантаження фото.");
+  }
+}
+
+async function handleAvatarConfirm(request, response, body) {
+  try {
+    const account = await requireAccount(request, response);
+    if (!account.ok) return sendAccountError(response, account);
+    const result = await verifyAvatarUpload(account.user.id, body?.path);
+    if (!result.ok) {
+      return sendError(response, result.status, result.error, "Фото не знайдено або його формат не підтримується.");
+    }
+
+    const { data, error } = await account.supabase.from("profiles")
+      .update({ avatar_url: result.publicUrl })
+      .eq("id", account.user.id)
+      .select("id, avatar_url")
+      .maybeSingle();
+
+    if (error || !data) {
+      console.error("Avatar profile update error:", error);
+      return sendError(response, 502, "AVATAR_PROFILE_UPDATE_FAILED", "Не вдалося зберегти фото профілю.");
+    }
+    return response.status(200).json({ ok: true, avatarUrl: data.avatar_url });
+  } catch (error) {
+    console.error("Avatar confirmation error:", error);
+    return sendError(response, 503, "AVATAR_CONFIRMATION_UNAVAILABLE", "Не вдалося зберегти фото профілю.");
+  }
+}
+
 async function handleProfileUpdate(
 
   request,
@@ -3019,6 +3062,13 @@ if (action === "mfa-cancel") {
   return handleMfaCancel(
     response,
   );
+}
+
+if (action === "avatar-create-upload") {
+  return handleAvatarCreateUpload(request, response, body);
+}
+if (action === "avatar-confirm") {
+  return handleAvatarConfirm(request, response, body);
 }
 
 if (action === "find-user") {
