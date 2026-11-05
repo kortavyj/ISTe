@@ -1,6 +1,6 @@
 import "./VerifiedBadge.css";
 
-export default function VerifiedBadge({ size = 20, className = "" }) {
+export default function VerifiedBadge({ size = 15, className = "" }) {
   return (
     <span
       className={`iste-verified-badge ${className}`.trim()}

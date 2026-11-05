@@ -1175,6 +1175,17 @@ function readProfileInput(body) {
     };
   }
 
+  // Official verification is rendered from a server-controlled boolean.
+  // Profile display names must not contain symbol/emoji lookalikes.
+  if (/[^\p{L}\p{N}\p{M} _.'’-]/u.test(displayName)) {
+    return {
+      ok: false,
+      status: 400,
+      error: "INVALID_DISPLAY_NAME_SYMBOLS",
+      message: "Ім'я може містити лише літери, цифри, пробіли та звичайні розділові знаки. Емодзі й символи верифікації заборонені.",
+    };
+  }
+
   if (bio.length > 500) {
     return {
       ok: false,

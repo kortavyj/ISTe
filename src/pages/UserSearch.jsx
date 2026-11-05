@@ -282,7 +282,7 @@ export default function UserSearch() {
               <div className="user-result-heading">
                 <div>
                   <p>{result.account_id}</p>
-                  <h2>{result.display_name || "Пользователь ISTe"} {result.is_verified === true && <VerifiedBadge size={19} />}</h2>
+                  <h2>{result.display_name || "Пользователь ISTe"} {result.is_verified === true && <VerifiedBadge size={15} />}</h2>
                   <span>@{result.username || "без_ника"}</span>
                 </div>
 
@@ -302,7 +302,7 @@ export default function UserSearch() {
               {canVerify && (
                 <div className="user-result-verification-controls">
                   <div className="user-result-verification-status">
-                    {verificationState === true ? <VerifiedBadge size={20} /> : <span aria-hidden="true" className="user-result-verification-dot" />}
+                    {verificationState === true ? <VerifiedBadge size={15} /> : <span aria-hidden="true" className="user-result-verification-dot" />}
                     <span>{verificationState === null
                       ? "Перевіряємо статус верифікації"
                       : verificationState
