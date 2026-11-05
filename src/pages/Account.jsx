@@ -430,7 +430,7 @@ export default function Account() {
             <div className="iste-social-identity-details">
               <div className="iste-social-name-row">
                 <h1>{profile?.display_name || t("accountPage.memberFallback")}</h1>
-                {profile?.is_verified === true && <VerifiedBadge size={16} />}
+                {profile?.is_verified === true && <VerifiedBadge size={16} type={profile?.verification_type || "silver"} />}
               </div>
               <p className="iste-social-handle">@{profile?.username || "iste"}</p>
               <div className="iste-social-member-state"><span aria-hidden="true" /> {social.member}</div>
