@@ -144,3 +144,42 @@
   .iste-award { transition: none; }
   .iste-award:hover:not(.iste-award--locked) { transform: none; }
 }
+
+/* Status meaning is strict: red = owner awarded, silver = verified, gold = media/partner. */
+.iste-award--neutral {
+  --medal-main: #73757e;
+  --medal-light: #adaeb7;
+  --medal-shadow: #373842;
+  border-color: rgba(118, 119, 130, .22);
+  background: radial-gradient(ellipse at 50% 30%, rgba(95, 98, 110, .08), transparent 80%), #0d0c10;
+}
+.iste-award--silver {
+  --medal-main: #b7bdc9;
+  --medal-light: #f4f5fa;
+  --medal-shadow: #626b7d;
+}
+.iste-award--gold {
+  --medal-main: #e1ad4c;
+  --medal-light: #fff0ba;
+  --medal-shadow: #8c581c;
+}
+.iste-awards-history-symbol {
+  --medal-main: #777780;
+  --medal-light: #c1c1ca;
+  --medal-shadow: #363741;
+}
+.iste-awards-history-item[data-tone="red"] .iste-awards-history-symbol {
+  --medal-main: #ff344e;
+  --medal-light: #ff8391;
+  --medal-shadow: #8e1023;
+}
+.iste-awards-history-item[data-tone="silver"] .iste-awards-history-symbol {
+  --medal-main: #b7bdc9;
+  --medal-light: #f4f5fa;
+  --medal-shadow: #626b7d;
+}
+.iste-awards-history-item[data-tone="gold"] .iste-awards-history-symbol {
+  --medal-main: #e1ad4c;
+  --medal-light: #fff0ba;
+  --medal-shadow: #8c581c;
+}
