@@ -44,7 +44,7 @@ export function validateCommentInput(text) {
 
 export function isOwnShowcaseImagePath(userId, path) {
   if (typeof userId !== "string" || !UUID.test(userId) || typeof path !== "string") return false;
-  return new RegExp(`^${userId}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.jpg$`, "i").test(path);
+  return new RegExp(`^${userId}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.jpg$`, "i").test(path);
 }
 
 async function checkMutationQuota(userId, action) {
