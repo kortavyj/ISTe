@@ -15,7 +15,7 @@ const COPY = {
     uploading: "Завантажуємо зображення…", imageInvalid: "Оберіть JPG, PNG або WebP до 8 МБ.",
     imageLarge: "Зображення завелике після обробки. Спробуй інше.",
     imageSaveHint: "Щоб опублікувати фото, натисни «Опублікувати».",
-    delete: "Видалити вітрину", deleteConfirm: "Видалити вітрину разом з усіма коментарями?",
+    delete: "Видалити вітрину", deleteConfirm: "Видалити вітрину? Коментарі у профілі залишаться.",
     comments: "Коментарі", noComments: "Коментарів поки немає. Будь першим.",
     commentPlaceholder: "Напиши коментар…", commentSend: "Надіслати", sending: "Надсилаємо…",
     commentDelete: "Видалити", commentDeleteConfirm: "Видалити цей коментар?",
@@ -23,7 +23,7 @@ const COPY = {
     loadError: "Не вдалося завантажити вітрину.", requestError: "Не вдалося виконати дію.",
     saved: "Вітрину оновлено.", commentSaved: "Коментар опубліковано.", deleted: "Вітрину видалено.",
     emptySubmission: "Додай текст або зображення.", imageAlt: "Зображення вітрини учасника",
-    commentsDisabled: "Коментарі з’являться після публікації вітрини.",
+    commentsDisabled: "Учасники можуть залишати коментарі навіть без вітрини.",
   },
   en: {
     heading: "Member showcase", subtitle: "Your space for stories, projects and ideas",
@@ -35,7 +35,7 @@ const COPY = {
     uploading: "Uploading image…", imageInvalid: "Choose JPG, PNG or WebP up to 8 MB.",
     imageLarge: "The image is still too large. Choose another one.",
     imageSaveHint: "Press Publish to save the uploaded image.",
-    delete: "Delete showcase", deleteConfirm: "Delete your showcase and all its comments?",
+    delete: "Delete showcase", deleteConfirm: "Delete your showcase? Profile comments will remain.",
     comments: "Comments", noComments: "No comments yet. Be the first.",
     commentPlaceholder: "Write a comment…", commentSend: "Post comment", sending: "Posting…",
     commentDelete: "Delete", commentDeleteConfirm: "Delete this comment?",
@@ -43,7 +43,7 @@ const COPY = {
     loadError: "Could not load showcase.", requestError: "Could not complete the action.",
     saved: "Showcase updated.", commentSaved: "Comment published.", deleted: "Showcase deleted.",
     emptySubmission: "Add text or an image.", imageAlt: "Member showcase image",
-    commentsDisabled: "Comments will be available once the showcase is published.",
+    commentsDisabled: "Members can leave comments even without a showcase.",
   },
 };
 
@@ -250,6 +250,7 @@ export default function MemberShowcase({ targetAccountNumber, ownerView = false 
   }
 
   return (
+    <>
     <section className="member-showcase" aria-labelledby="member-showcase-heading">
       <header className="member-showcase-header">
         <div>
@@ -322,13 +323,15 @@ export default function MemberShowcase({ targetAccountNumber, ownerView = false 
               {isOwner && <button type="button" onClick={startEditing}>{copy.edit}</button>}
             </div>
           )}
-          <section className="member-comments" aria-labelledby="member-comments-heading">
+        </>
+      )}
+    </section>
+    {!loading && (
+    <section className="member-comments member-comments-standalone" aria-labelledby="member-comments-heading">
             <header>
               <h3 id="member-comments-heading">{copy.comments}</h3>
               <span>{comments.length}</span>
             </header>
-            {showcase ? (
-              <>
                 {comments.length ? (
                   <div className="member-comments-list">
                     {comments.map((comment) => (
@@ -364,11 +367,8 @@ export default function MemberShowcase({ targetAccountNumber, ownerView = false 
                     </button>
                   </div>
                 </form>
-              </>
-            ) : <p className="member-comments-empty">{copy.commentsDisabled}</p>}
           </section>
-        </>
-      )}
-    </section>
+    )}
+    </>
   );
 }
