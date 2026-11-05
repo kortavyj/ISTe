@@ -309,7 +309,7 @@ export default function UserSearch() {
               {canVerify && (
                 <div className="user-result-verification-controls">
                   <div className="user-result-verification-status">
-                    <VerifiedBadge size={20} />
+                    {verificationState === true ? <VerifiedBadge size={20} /> : <span aria-hidden="true" className="user-result-verification-dot" />}
                     <span>{verificationState === null
                       ? "Перевіряємо статус верифікації"
                       : verificationState
