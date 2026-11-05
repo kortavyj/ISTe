@@ -611,9 +611,9 @@ export default function OwnerUsers() {
     }
   }
 
-  async function toggleVerified(targetUser) {
+  async function toggleVerified(targetUser, selectedType = "silver") {
     if (!["owner", "admin"].includes(currentRole) || actionUserId || (currentRole === "admin" && targetUser.role === "owner")) return;
-    const nextVerified = targetUser.is_verified !== true;
+    const nextVerified = targetUser.is_verified !== true || (currentRole === "owner" && targetUser.verification_type !== selectedType);
     const title = language === "en"
       ? (nextVerified ? "Verify this member?" : "Remove verification from this member?")
       : (nextVerified ? "Підтвердити цього учасника?" : "Зняти підтвердження з цього учасника?");
@@ -624,7 +624,7 @@ export default function OwnerUsers() {
     try {
       await apiRequest("/api/owner/set-verified", {
         method: "POST",
-        body: { userId: targetUser.user_id, verified: nextVerified },
+        body: { userId: targetUser.user_id, verified: nextVerified, verificationType: nextVerified ? selectedType : undefined },
       });
       setSuccessMessage(language === "en"
         ? (nextVerified ? "Member verified." : "Verification removed.")
@@ -892,7 +892,7 @@ export default function OwnerUsers() {
                             </h2>
 
                             {item.is_verified === true ? (
-                              <VerifiedBadge size={15} />
+                              <VerifiedBadge size={15} type={item.verification_type || "silver"} />
                             ) : null}
                             {isSelf ? (
                               <span className="owner-chip">
@@ -963,11 +963,23 @@ export default function OwnerUsers() {
 
                       {(["owner", "admin"].includes(currentRole) && (currentRole === "owner" || item.role !== "owner")) ? (
                         <div className="owner-verification-actions">
+                          {currentRole === "owner" && (
+                            <label className="owner-verification-type-selector">
+                              <span>Тип верифікації</span>
+                              <select id={`verification-type-${item.user_id}`} defaultValue={item.verification_type || "silver"}
+>
+                                <option value="silver">Срібна, підтверджений профіль</option>
+                                <option value="red">Червона, від власника</option>
+                                <option value="gold">Золота, медіа та партнери</option>
+                              </select>
+                            </label>
+                          )}
+
                           <button
                             className={item.is_verified ? "owner-button owner-button-secondary" : "owner-button owner-button-primary"}
                             type="button"
                             disabled={Boolean(actionUserId)}
-                            onClick={() => toggleVerified(item)}
+                            onClick={event => toggleVerified(item, event.currentTarget.closest(".owner-verification-actions")?.querySelector("select")?.value || "silver")}
                           >
                             {item.is_verified
                               ? (language === "en" ? "Remove verification" : "Зняти верифікацію")
