@@ -98,6 +98,10 @@ export default function Account() {
   const [activeTab, setActiveTab] = useState("profile");
   const [avatarSaving,setAvatarSaving] = useState(false);
   const [avatarMessage,setAvatarMessage] = useState("");
+  const [bannerSaving, setBannerSaving] = useState(false);
+  const [bannerMessage, setBannerMessage] = useState("");
+  const [frameSaving, setFrameSaving] = useState(false);
+  const [framePickerOpen, setFramePickerOpen] = useState(false);
   useEffect(() => {
     setForm({
       username: profile?.username ?? "",
@@ -202,6 +206,111 @@ export default function Account() {
     }
   }
 
+  const profileAppearance = (language === "en"
+    ? {
+        banner: "Change cover", bannerUploading: "Uploading cover…",
+        bannerSaved: "Cover updated.", bannerFailed: "Could not upload the cover.",
+        imageInvalid: "Choose JPG, PNG or WebP up to 8 MB.",
+        frame: "Choose avatar frame", frameSaved: "Frame updated.",
+        frameFailed: "Could not save the frame.", framePicker: "Avatar frames",
+        close: "Close", names: {
+          prism: "Prism", crimson: "Crimson", cyan: "Cyan",
+          violet: "Violet", gold: "Gold", minimal: "Minimal",
+        },
+      }
+    : {
+        banner: "Змінити обкладинку", bannerUploading: "Завантажуємо обкладинку…",
+        bannerSaved: "Обкладинку оновлено.", bannerFailed: "Не вдалося завантажити обкладинку.",
+        imageInvalid: "Оберіть JPG, PNG або WebP до 8 МБ.",
+        frame: "Вибрати рамку аватара", frameSaved: "Рамку змінено.",
+        frameFailed: "Не вдалося зберегти рамку.", framePicker: "Рамки аватара",
+        close: "Закрити", names: {
+          prism: "Призма", crimson: "Багряна", cyan: "Бірюзова",
+          violet: "Фіолетова", gold: "Золота", minimal: "Мінімальна",
+        },
+      });
+  const frameNames = ["prism", "crimson", "cyan", "violet", "gold", "minimal"];
+  const currentFrame = frameNames.includes(profile?.avatar_frame) ? profile.avatar_frame : "prism";
+
+  async function handleBannerChange(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || bannerSaving) return;
+    setBannerMessage("");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024) {
+      setBannerMessage(profileAppearance.imageInvalid);
+      return;
+    }
+    setBannerSaving(true);
+    try {
+      const bitmap = await createImageBitmap(file);
+      let blob;
+      try {
+        const canvas = document.createElement("canvas");
+        const w = 1600, h = 430;
+        canvas.width = w;
+        canvas.height = h;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("CANVAS_UNAVAILABLE");
+        const scale = Math.max(w / bitmap.width, h / bitmap.height);
+        context.drawImage(bitmap,
+          (w - bitmap.width * scale) / 2,
+          (h - bitmap.height * scale) / 2,
+          bitmap.width * scale,
+          bitmap.height * scale);
+        blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.78));
+      } finally {
+        bitmap.close();
+      }
+      if (!blob || blob.size > 1_400_000) throw new Error("BANNER_TOO_LARGE");
+      const prep = await fetch("/api/auth/session", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "banner-create-upload", fileType: "image/jpeg", fileSize: blob.size,
+        }),
+      });
+      const upload = await readApiResponse(prep, t);
+      const { error: uploadError } = await supabase.storage.from("iste-roster")
+        .uploadToSignedUrl(upload.path, upload.token, blob, { contentType: "image/jpeg" });
+      if (uploadError) throw uploadError;
+      const confirmation = await fetch("/api/auth/session", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "banner-confirm", path: upload.path }),
+      });
+      await readApiResponse(confirmation, t);
+      await refreshAccount();
+      setBannerMessage(profileAppearance.bannerSaved);
+    } catch (error) {
+      console.error("Banner update failed:", error);
+      setBannerMessage(profileAppearance.bannerFailed);
+    } finally {
+      setBannerSaving(false);
+    }
+  }
+
+  async function selectAvatarFrame(frame) {
+    if (!frameNames.includes(frame) || frameSaving) return;
+    setFrameSaving(true);
+    setAvatarMessage("");
+    try {
+      const response = await fetch("/api/auth/session", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "avatar-frame-select", frame }),
+      });
+      await readApiResponse(response, t);
+      await refreshAccount();
+      setAvatarMessage(profileAppearance.frameSaved);
+      setFramePickerOpen(false);
+    } catch {
+      setAvatarMessage(profileAppearance.frameFailed);
+    } finally {
+      setFrameSaving(false);
+    }
+  }
+
   async function handleCopyAccountId() {
     if (!accountId) {
       return;
@@ -292,17 +401,30 @@ export default function Account() {
     <section className="auth-page iste-account-page iste-social-page">
       <div className="auth-shell auth-shell-wide iste-social-shell">
         <header className="iste-social-header">
-          <div className="iste-social-cover">
+          <div className="iste-social-cover" style={profile?.banner_url ? { backgroundImage: `url("${profile.banner_url}")` } : undefined}>
             <span className="iste-social-cover-brand">ISTe <small>COMMUNITY</small></span>
+            <label className="iste-social-cover-edit" title={profileAppearance.banner}>
+              <span className="iste-social-cover-edit-icon" aria-hidden="true">✎</span>
+              <span>{bannerSaving ? profileAppearance.bannerUploading : profileAppearance.banner}</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp"
+                aria-label={profileAppearance.banner} disabled={bannerSaving} onChange={handleBannerChange} />
+            </label>
           </div>
           <div className="iste-social-identity">
-            <label className="iste-social-avatar-upload" title={avatarText.change}>
+            <div className="iste-social-avatar-controls">
+            <label className="iste-social-avatar-upload" data-frame={currentFrame} title={avatarText.change}>
               <span className="iste-social-avatar-inner">
                 {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span>{initials}</span>}
               </span>
               <span className="iste-social-avatar-pencil" aria-hidden="true">✎</span>
               <input type="file" accept="image/jpeg,image/png,image/webp" disabled={avatarSaving} onChange={handleAvatarChange} aria-label={avatarText.upload} />
             </label>
+            <button className="iste-social-frame-trigger" type="button" title={profileAppearance.frame}
+              aria-label={profileAppearance.frame} aria-expanded={framePickerOpen}
+              onClick={() => setFramePickerOpen(value => !value)}>
+              <span aria-hidden="true">◇</span> {profileAppearance.frame}
+            </button>
+            </div>
             <div className="iste-social-identity-details">
               <div className="iste-social-name-row">
                 <h1>{profile?.display_name || t("accountPage.memberFallback")}</h1>
@@ -322,16 +444,30 @@ export default function Account() {
                 {accountId && <span>{accountId}</span>}
               </div>
             </div>
-            <div className="iste-social-hero-side">
-              <span className="iste-social-hero-label">{social.progress}</span>
-              <div className="iste-social-meter"><span style={{ width: String(completeness / 3 * 100) + "%" }} /></div>
-              <strong>{Math.round(completeness / 3 * 100)}%</strong>
-              <button type="button" onClick={() => setActiveTab("edit")}>{social.settings} <DashboardIcon name="arrow" size={16} aria-hidden="true" /></button>
-            </div>
           </div>
           <div className="iste-social-avatar-feedback" role="status">
-            {avatarSaving ? avatarText.uploading : avatarMessage || ""}
+            {avatarSaving ? avatarText.uploading : avatarMessage || bannerMessage || ""}
           </div>
+          {framePickerOpen && (
+            <div className="iste-social-frame-picker" role="group" aria-label={profileAppearance.framePicker}>
+              <div className="iste-social-frame-picker-header">
+                <strong>{profileAppearance.framePicker}</strong>
+                <button type="button" onClick={() => setFramePickerOpen(false)} aria-label={profileAppearance.close}>×</button>
+              </div>
+              <div className="iste-social-frame-options">
+                {frameNames.map(frame => (
+                  <button key={frame} type="button" className={currentFrame === frame ? "is-selected" : ""}
+                    disabled={frameSaving} onClick={() => selectAvatarFrame(frame)}
+                    aria-pressed={currentFrame === frame}>
+                    <span className="iste-social-frame-sample" data-frame={frame}>
+                      <span>{initials}</span>
+                    </span>
+                    <span>{profileAppearance.names[frame]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </header>
 
         <nav className="iste-social-tabs" aria-label={social.profile}>
