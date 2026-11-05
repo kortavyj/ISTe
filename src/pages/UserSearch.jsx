@@ -149,11 +149,14 @@ export default function UserSearch() {
 
   async function changeVerification() {
     if (!canVerify || !result?.account_number || verificationState === null || verificationBusy) return;
-    const nextVerified = !verificationState || (role === "owner" && verificationType !== result.verification_type);
+    const changingType = verificationState && role === "owner" && verificationType !== result.verification_type;
+    const nextVerified = !verificationState || changingType;
     const displayName = result.display_name || result.username || result.account_id;
-    if (!window.confirm(nextVerified
-      ? `Видати верифікацію профілю «${displayName}»?`
-      : `Зняти верифікацію з профілю «${displayName}»?`)) return;
+    if (!window.confirm(changingType
+      ? `Змінити тип верифікації профілю «${displayName}»?`
+      : nextVerified
+        ? `Видати верифікацію профілю «${displayName}»?`
+        : `Зняти верифікацію з профілю «${displayName}»?`)) return;
 
     setVerificationBusy(true);
     setVerificationMessage("");
@@ -167,7 +170,7 @@ export default function UserSearch() {
       await readApiResponse(response);
       setVerificationState(nextVerified);
       setResult(current => current ? { ...current, is_verified: nextVerified, verification_type: nextVerified ? verificationType : null } : current);
-      setVerificationMessage(nextVerified
+      setVerificationMessage(changingType ? "Тип верифікації змінено." : nextVerified
         ? "Верифікацію успішно видано."
         : "Верифікацію успішно знято.");
     } catch (error) {
@@ -302,9 +305,9 @@ export default function UserSearch() {
                     </select>
                   </label>
                   <button type="button" onClick={changeVerification}
-                    disabled={verificationBusy || verificationState === null}
+                    disabled={verificationBusy || verificationState === null || (role === "admin" && verificationState && ["red", "gold"].includes(result.verification_type))}
                     className={verificationState ? "user-result-verify-button is-revoke" : "user-result-verify-button"}>
-                    {verificationBusy ? "Зберігаємо..." : verificationState ? "Зняти верифікацію" : "Видати верифікацію"}
+                    {verificationBusy ? "Зберігаємо..." : verificationState && role === "owner" && verificationType !== result.verification_type ? "Змінити тип" : verificationState ? "Зняти верифікацію" : "Видати верифікацію"}
                   </button>
                   {verificationMessage && <p role="status" className="user-result-verification-message">{verificationMessage}</p>}
                 </div>
