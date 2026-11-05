@@ -1177,7 +1177,7 @@ function readProfileInput(body) {
 
   // Official verification is rendered from a server-controlled boolean.
   // Profile display names must not contain symbol/emoji lookalikes.
-  if (/[^\\p{L}\\p{N}\\p{M} _.'’\\-]/u.test(displayName)) {
+  if (/[^\p{L}\p{N}\p{M} _.'’-]/u.test(displayName)) {
     return {
       ok: false,
       status: 400,
