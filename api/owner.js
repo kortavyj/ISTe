@@ -349,6 +349,22 @@ async function handleSetVerified(request, response) {
       p_verified: body.verified,
     });
     if (error) {
+      if (String(error.message || "").includes("Cannot change owner verification")) {
+        return sendError(
+          response,
+          403,
+          "OWNER_VERIFICATION_PROTECTED",
+          "Адміністратор не може змінювати верифікацію власника ISTe. Це може зробити лише власник.",
+        );
+      }
+      if (String(error.message || "").includes("Two-factor verification required")) {
+        return sendError(
+          response,
+          403,
+          "MFA_REQUIRED",
+          "Потрібно підтвердити двофакторну автентифікацію.",
+        );
+      }
       console.error("Owner verification update failed:", error);
       const mapped = mapOwnerRpcError(error, "Не вдалося змінити підтвердження профілю.");
       return sendError(response, mapped.status, mapped.error, mapped.message);
