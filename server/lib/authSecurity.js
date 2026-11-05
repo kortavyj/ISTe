@@ -402,3 +402,21 @@ export async function enforcePasswordSafetyRateLimit(request) {
     60 * 60,
   );
 }
+
+/**
+ * Independent per-member quotas for editable showcase content.
+ * Upload tokens and comments must not share authentication throttling buckets.
+ */
+export async function enforceShowcaseMutationRateLimit(userId, action) {
+  const limits = {
+    "showcase-image-upload": 8,
+    "showcase-save": 30,
+    "showcase-comment-add": 20,
+  };
+  const limit = limits[action];
+  if (!limit || !userId) {
+    throw new Error("Unsupported showcase rate limit action.");
+  }
+  const hash = digest(`showcase:${action}:${userId}`);
+  return consumeBucket(`member:showcase:${action}:${hash}`, limit, 3600, 3600);
+}
