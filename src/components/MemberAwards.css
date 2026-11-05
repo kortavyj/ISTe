@@ -19,3 +19,12 @@
 .iste-awards-admin button{padding:12px;border:1px solid #f14c61;border-radius:10px;background:linear-gradient(130deg,#e82c43,#a61229);color:white;font:inherit;font-weight:800;cursor:pointer}
 .iste-awards-admin button:disabled{opacity:.55;cursor:not-allowed}
 .iste-awards-admin p{font-size:.75rem;color:#f8aab9;margin:0;line-height:1.45}
+
+/* Accessible, individually illustrated ISTe awards. */
+.iste-award{position:relative;transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease}
+.iste-award:hover{transform:translateY(-3px);border-color:currentColor;box-shadow:0 8px 26px rgba(233,39,61,.13)}
+.iste-award-icon{width:60px;height:60px;clip-path:none;background:transparent!important;box-shadow:none!important;filter:drop-shadow(0 0 5px rgba(255,52,70,.22))}
+.iste-award-icon svg{width:55px;height:55px}
+.iste-award--gold .iste-award-icon{filter:drop-shadow(0 0 5px rgba(238,177,71,.25))}
+.iste-award--silver .iste-award-icon{filter:drop-shadow(0 0 4px rgba(188,190,210,.14))}
+@media(prefers-reduced-motion:reduce){.iste-award{transition:none}.iste-award:hover{transform:none}}

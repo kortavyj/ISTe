@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import "./MemberAwards.css";
+import AwardSymbol from "./AwardSymbol.jsx";
 
 const CATALOG = {
   verified: ["Верифікований профіль", "Офіційне підтвердження ISTe", "✓", "red"],
@@ -73,10 +74,10 @@ export default function MemberAwards({ accountNumber, canManage }) {
     {status === "error" && <p className="iste-awards-muted" role="alert">Не вдалося отримати нагороди.</p>}
     {status === "ready" && <div className="iste-awards-grid">
       {awards.map(item => {
-        const [title, description, symbol, tone] = CATALOG[item.award_code];
+        const [title, description, , tone] = CATALOG[item.award_code];
         return <div key={item.award_code} className={`iste-award iste-award--${tone}`}
           title={`${title}. ${description}`}>
-          <span className="iste-award-icon" aria-hidden="true">{symbol}</span>
+          <span className="iste-award-icon" aria-hidden="true"><AwardSymbol code={item.award_code} /></span>
           <strong>{title}</strong>
         </div>;
       })}

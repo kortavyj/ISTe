@@ -103,7 +103,7 @@ export default function PublicMemberProfile() {
               </section>
             </div>
             <aside className="public-member-aside">
-              <MemberAwards accountNumber={member.account_number} canManage={role === "owner" || role === "admin"} />
+              <MemberAwards accountNumber={member.account_number} canManage={role === "owner"} />
             </aside>
           </div>
         ) : null}

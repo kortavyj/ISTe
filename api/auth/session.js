@@ -2302,6 +2302,9 @@ async function handleMemberAwards(request, response, body, manage = false) {
   const account = await requireAccount(request, response, manage ? { manager: true } : {});
   if (!account.ok) return sendAccountError(response, account);
   if (manage) {
+    if (account.access?.role !== "owner") {
+      return sendError(response, 403, "OWNER_REQUIRED", "Видавати й відкликати нагороди може лише власник ISTe.");
+    }
     const allowed = new Set(["early_member", "community_helper", "tournament_winner", "partner", "creator"]);
     if (!allowed.has(body.awardCode) || typeof body.grant !== "boolean") {
       return sendError(response, 400, "INVALID_AWARD", "Некоректні дані нагороди.");
