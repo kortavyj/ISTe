@@ -610,6 +610,32 @@ export default function OwnerUsers() {
     }
   }
 
+  async function toggleVerified(targetUser) {
+    if (currentRole !== "owner" || actionUserId) return;
+    const nextVerified = targetUser.is_verified !== true;
+    const title = language === "en"
+      ? (nextVerified ? "Verify this member?" : "Remove verification from this member?")
+      : (nextVerified ? "Підтвердити цього учасника?" : "Зняти підтвердження з цього учасника?");
+    if (!window.confirm(title)) return;
+
+    setActionUserId(targetUser.user_id);
+    clearMessages();
+    try {
+      await apiRequest("/api/owner/set-verified", {
+        method: "POST",
+        body: { userId: targetUser.user_id, verified: nextVerified },
+      });
+      setSuccessMessage(language === "en"
+        ? (nextVerified ? "Member verified." : "Verification removed.")
+        : (nextVerified ? "Профіль підтверджено." : "Підтвердження знято."));
+      await loadUsers(search);
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error, t));
+    } finally {
+      setActionUserId("");
+    }
+  }
+
   function switchTab(nextTab) {
     setActiveTab(nextTab);
     clearMessages();
@@ -864,6 +890,9 @@ export default function OwnerUsers() {
                               )}
                             </h2>
 
+                            {item.is_verified === true ? (
+                              <span className="owner-chip owner-verified-chip" title={language === "en" ? "Verified by ISTe owner" : "Підтверджено власником ISTe"}>✓</span>
+                            ) : null}
                             {isSelf ? (
                               <span className="owner-chip">
                                 {t("ownerUsers.you")}
@@ -931,6 +960,20 @@ export default function OwnerUsers() {
                         </div>
                       </div>
 
+                      {currentRole === "owner" ? (
+                        <div className="owner-verification-actions">
+                          <button
+                            className={item.is_verified ? "owner-button owner-button-secondary" : "owner-button owner-button-primary"}
+                            type="button"
+                            disabled={Boolean(actionUserId)}
+                            onClick={() => toggleVerified(item)}
+                          >
+                            {item.is_verified
+                              ? (language === "en" ? "Remove verification" : "Зняти галочку")
+                              : (language === "en" ? "Verify member" : "Видати галочку")}
+                          </button>
+                        </div>
+                      ) : null}
                       <div className="owner-user-controls">
                         <label>
                           <span>{t("ownerUsers.role")}</span>
