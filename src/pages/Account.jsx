@@ -11,6 +11,7 @@ import { supabase } from "../lib/supabase.js";
 import "./Auth.css";
 import "./AccountId.css";
 import "./AccountDashboard.css";
+import "./AccountSocial.css";
 
 function DashboardIcon({ name, size = 23, ...props }) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", ...props };
