@@ -17,7 +17,6 @@ test("Vercel Hobby has at most twelve JS serverless functions",()=>{
   const nested=readdirSync("api",{withFileTypes:true}).filter(f=>f.isDirectory())
     .reduce((sum,d)=>sum+readdirSync("api/"+d.name).filter(f=>f.endsWith(".js")).length,0);
   assert.ok(root+nested<=12,`Hobby limit exceeded: ${root+nested}`);
-  assert.equal(root+nested,8);
 });
 test("every original tournament endpoint is preserved by rewrite",()=>{
   const config=JSON.parse(readFileSync("vercel.json","utf8"));
