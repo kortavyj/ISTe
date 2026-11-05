@@ -418,12 +418,12 @@ export default function Account() {
                     <div className="iste-social-news-list">
                       {latestNews.map((post) => (
                         <article className="iste-social-news-item" key={post.id}>
-                          <Link to="/news" className="iste-social-news-cover" aria-label={newsText(post,"title")}>
+                          <Link to={`/news?post=${encodeURIComponent(post.id)}`} className="iste-social-news-cover" aria-label={newsText(post,"title")}>
                             {post.cover_url ? <img src={post.cover_url} alt="" loading="lazy" /> : <span aria-hidden="true">ISTe</span>}
                           </Link>
                           <div className="iste-social-news-content">
                             <time dateTime={post.published_at}>{formatDate(post.published_at, language, "")}</time>
-                            <h3><Link to="/news">{newsText(post,"title")}</Link></h3>
+                            <h3><Link to={`/news?post=${encodeURIComponent(post.id)}`}>{newsText(post,"title")}</Link></h3>
                             {newsText(post,"excerpt") && <p>{newsText(post,"excerpt")}</p>}
                           </div>
                         </article>
