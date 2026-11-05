@@ -2369,6 +2369,18 @@ async function handleUserSearch(
         ? data[0] ?? null
         : data ?? null;
 
+    if (profile?.account_number) {
+      const { data: verified, error: statusError } = await account.supabase.rpc(
+        "profile_verification_for_member_search",
+        { p_account_number: profile.account_number },
+      );
+      if (statusError) {
+        console.error("Member verification lookup failed:", statusError);
+        return sendError(response, 502, "VERIFICATION_LOOKUP_FAILED", "Не вдалося отримати статус профілю.");
+      }
+      profile.is_verified = verified === true;
+    }
+
     return response.status(200).json({
       ok: true,
       profile,
