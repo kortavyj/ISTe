@@ -6,18 +6,18 @@ import AwardSymbol from "./AwardSymbol.jsx";
 const CATALOG = {
   verified: ["Верифікований профіль", "Офіційне підтвердження ISTe", "✓", "red"],
   owner: ["Власник ISTe", "Засновник і власник платформи", "♛", "gold"],
-  admin: ["Адміністратор", "Управління спільнотою ISTe", "✦", "red"],
+  admin: ["Адміністратор", "Управління спільнотою ISTe", "✦", "gold"],
   member: ["Учасник ISTe", "Частина спільноти ISTe", "◇", "silver"],
   early_member: ["Ранній учасник", "Особлива відзнака спільноти", "★", "silver"],
-  community_helper: ["Помічник спільноти", "Внесок у розвиток ISTe", "✚", "red"],
+  community_helper: ["Помічник спільноти", "Внесок у розвиток ISTe", "✚", "silver"],
   tournament_winner: ["Переможець турніру", "Нагорода за перемогу", "♜", "gold"],
-  partner: ["Партнер ISTe", "Особливий статус партнера", "◆", "silver"],
-  creator: ["Автор контенту", "Творчий внесок у ISTe", "✧", "red"],
-  month_member: ["30 днів разом", "Автоматично після 30 днів участі в ISTe", "30", "silver"],
+  partner: ["Партнер ISTe", "Особливий статус партнера", "◆", "red"],
+  creator: ["Автор контенту", "Творчий внесок у ISTe", "✧", "silver"],
+  month_member: ["30 днів разом", "Автоматично після 30 днів участі в ISTe", "30", "red"],
   year_member: ["Рік в ISTe", "Автоматично після 365 днів від дати реєстрації", "365", "gold"],
   first_showcase: ["Перша вітрина", "За першу опубліковану вітрину", "▣", "red"],
   first_comment: ["Перший відгук", "За перший коментар у профілі іншого учасника", "✎", "silver"],
-  ten_comments: ["Голос спільноти", "За 10 коментарів у профілях інших учасників", "❞", "gold"],
+  ten_comments: ["Голос спільноти", "За 10 коментарів у профілях інших учасників", "❞", "red"],
 };
 const MANUAL = ["early_member","community_helper","tournament_winner","partner","creator"];
 const DISPLAY_ORDER = ["member","verified","month_member","year_member","first_showcase","first_comment","ten_comments","early_member","community_helper","tournament_winner","partner","creator","admin","owner"];

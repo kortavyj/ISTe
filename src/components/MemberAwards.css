@@ -51,3 +51,96 @@
 .iste-awards-history-active,.iste-awards-history-archived{font-size:.63rem;white-space:nowrap;color:#eaa5b2}
 .iste-awards-history-archived{color:#8c7b86}
 @media(max-width:360px){.iste-awards-tabs button{font-size:.65rem}.iste-awards-history-item{gap:6px}}
+
+
+/* ISTe approved medallion visual system: black core, sculpted metallic rings, restrained neon. */
+.iste-awards {
+  background: linear-gradient(155deg, #150d12 0%, #0b090d 45%, #110a0e 100%);
+  border-color: rgba(219, 60, 81, .38);
+}
+.iste-awards-grid { gap: 10px; }
+.iste-award {
+  --medal-main: #ff344e;
+  --medal-light: #ff8391;
+  --medal-shadow: #8e1023;
+  position: relative;
+  min-height: 155px;
+  padding: 14px 7px 16px;
+  gap: 7px;
+  color: #f5f0f2;
+  background: radial-gradient(ellipse 83% 59% at 50% 34%, rgba(160, 31, 48, .13), transparent 87%), linear-gradient(155deg, #171116, #0e0b10);
+  border: 1px solid rgba(174, 69, 91, .37);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.iste-award--silver {
+  --medal-main: #b9bbc8;
+  --medal-light: #f3f3f8;
+  --medal-shadow: #555664;
+  border-color: rgba(172, 175, 190, .25);
+  background: radial-gradient(ellipse 83% 59% at 50% 34%, rgba(145, 150, 166, .11), transparent 87%), linear-gradient(155deg, #17151a, #0e0c11);
+}
+.iste-award--gold {
+  --medal-main: #dfa846;
+  --medal-light: #ffe8a2;
+  --medal-shadow: #7f4c17;
+  border-color: rgba(225, 161, 67, .3);
+  background: radial-gradient(ellipse 83% 59% at 50% 34%, rgba(211, 141, 31, .13), transparent 87%), linear-gradient(155deg, #19130e, #100d0e);
+}
+.iste-award-icon {
+  display: grid;
+  place-items: center;
+  width: 94px;
+  height: 94px;
+  color: #f4f1f3;
+  flex: none;
+  background: none !important;
+  clip-path: none;
+  filter: none !important;
+  box-shadow: none !important;
+}
+.iste-award-icon .iste-award-medallion {
+  display: block;
+  width: 94px;
+  height: 94px;
+  overflow: visible;
+}
+.iste-award strong {
+  margin: 0 auto;
+  max-width: 145px;
+  color: #f6f3f5;
+  font-size: .78rem;
+  font-weight: 850;
+  line-height: 1.26;
+  letter-spacing: -.012em;
+  text-wrap: balance;
+}
+.iste-award:hover:not(.iste-award--locked) {
+  border-color: var(--medal-main);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.32), 0 0 17px color-mix(in srgb, var(--medal-main) 16%, transparent);
+}
+.iste-award--locked {
+  opacity: .38;
+  filter: saturate(.15);
+  border-style: solid;
+}
+.iste-award--locked:hover {
+  opacity: .53;
+  border-color: rgba(150,150,158,.32);
+  box-shadow: none;
+  transform: none;
+}
+.iste-award small { font-size: .66rem; line-height: 1.2; color: #b4a7b0; }
+.iste-awards-history-symbol { --medal-main:#fc4359; --medal-light:#ff8995; --medal-shadow:#931322; }
+.iste-awards-history-symbol .iste-award-medallion { width: 38px; height: 38px; }
+@media (max-width: 390px) {
+  .iste-award { min-height: 133px; padding: 10px 3px; }
+  .iste-award-icon, .iste-award-icon .iste-award-medallion { width: 76px; height: 76px; }
+  .iste-award strong { font-size: .71rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iste-award { transition: none; }
+  .iste-award:hover:not(.iste-award--locked) { transform: none; }
+}

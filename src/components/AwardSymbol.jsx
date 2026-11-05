@@ -1,34 +1,45 @@
 import { useId } from "react";
 
-const SHAPES = {
-  verified: <path d="m13.5 23 5 5 11-12" strokeWidth="3.5" />,
-  owner: <><path d="m9 25-2-13 9 6 8-10 8 10 9-6-2 13Z" /><path d="M11 30h26" /></>,
-  admin: <><path d="M24 9 35 15v11c0 6-5 11-11 14-6-3-11-8-11-14V15Z" /><path d="m18 24 4 4 8-9" /></>,
-  member: <><circle cx="24" cy="18" r="6"/><path d="M13 36c0-7 5-11 11-11s11 4 11 11"/></>,
-  early_member: <><path d="m24 8 4.5 10 11 .9-8.4 7.3 2.6 10.8L24 31 14.3 37l2.6-10.8-8.4-7.3 11-.9Z"/></>,
-  community_helper: <><path d="M15 18c-6-6-14 5-7 12l16 11 16-11c7-7-1-18-7-12l-9 6Z"/><path d="M24 14v14M17 21h14"/></>,
-  tournament_winner: <><path d="M14 12h20v10c0 9-5 13-10 13s-10-4-10-13Z"/><path d="M14 15H8v6c0 5 3 7 8 7m18-13h6v6c0 5-3 7-8 7M24 35v6m-8 0h16"/></>,
-  partner: <><path d="m8 25 8-8 8 3 8-3 8 8-13 13h-6Z"/><path d="m17 26 7 6 8-7M16 17l5-5h7l4 5"/></>,
-  creator: <><path d="m24 8 3 12 12 4-12 4-3 12-3-12-12-4 12-4Z"/><path d="M36 8v7m-4-3.5h8M10 35v5m-2.5-2.5h5"/></>,
-  month_member: <><circle cx="24" cy="24" r="12"/><path d="M24 16v9l7 4M24 6v3"/></>,
-  year_member: <><path d="M12 32V15l12-7 12 7v17l-12 8Z"/><path d="m18 25 5 5 9-12"/></>,
-  first_showcase: <><rect x="12" y="14" width="24" height="21" rx="2"/><circle cx="20" cy="21" r="2"/><path d="m14 31 8-8 5 5 3-3 4 6"/></>,
-  first_comment: <><path d="M11 13h26v17H24l-9 7v-7h-4Z"/><path d="M17 20h14M17 25h9"/></>,
-  ten_comments: <><path d="M10 16h18v12H19l-6 5v-5h-3Z"/><path d="M22 12h16v15h-6l-4 4M15 21h8"/></>,
+const ICONS = {
+  verified: <path d="m38 61 15 15 31-32" strokeWidth="8" />,
+  member: <><text x="60" y="67" textAnchor="middle" fontSize="27" fontStyle="italic" fontWeight="900" fontFamily="Arial, sans-serif" fill="currentColor" stroke="none">ISTe</text><path d="M39 76h42" stroke="#f02c48" strokeWidth="3"/></>,
+  month_member: <><rect x="34" y="37" width="52" height="49" rx="7"/><path d="M45 29v16m30-16v16M35 52h50"/><text x="60" y="76" textAnchor="middle" fontSize="23" fontWeight="900" fontFamily="Arial, sans-serif" stroke="none" fill="#ff4961">30</text></>,
+  year_member: <><rect x="34" y="37" width="52" height="49" rx="7"/><path d="M45 29v16m30-16v16M35 52h50"/><text x="60" y="76" textAnchor="middle" fontSize="23" fontWeight="900" fontFamily="Arial, sans-serif" stroke="none" fill="#f3ba61">1Y</text></>,
+  first_showcase: <><rect x="35" y="43" width="47" height="37" rx="3"/><path d="M43 35h43v37"/><circle cx="65" cy="54" r="4" fill="#f15367" stroke="none"/><path d="m39 76 13-14 9 8 8-8 11 14"/></>,
+  first_comment: <><path d="M31 43h58v34H57L44 87V77H31Z"/><circle cx="46" cy="60" r="2.6" fill="currentColor" stroke="none"/><circle cx="60" cy="60" r="2.6" fill="currentColor" stroke="none"/><circle cx="74" cy="60" r="2.6" fill="currentColor" stroke="none"/></>,
+  ten_comments: <><circle cx="60" cy="45" r="8"/><path d="M43 76c0-12 7-19 17-19s17 7 17 19"/><circle cx="33" cy="55" r="6"/><circle cx="87" cy="55" r="6"/><path d="M18 77c0-10 5-15 15-15m69 15c0-10-5-15-15-15"/></>,
+  community_helper: <><path d="M28 65 45 55l14 6 14-6 19 10-14 14-18 7-18-7Z"/><path d="M37 71c10-7 19-3 23 2 7-8 14-10 23-3"/><path d="M60 50c-19-17-4-27 0-17 5-10 19 0 0 17Z" stroke="#f15367"/></>,
+  tournament_winner: <><path d="M39 39h42v22c0 17-10 25-21 25S39 78 39 61Z"/><path d="M39 46H28v12c0 12 9 15 17 15m36-27h11v12c0 12-9 15-17 15M60 86v9m-14 0h28"/><path d="m60 47 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z" fill="#f5c46d" stroke="none"/></>,
+  partner: <><path d="m22 57 19-16 18 5 18-5 21 16-16 20-17 10-21-10Z"/><path d="m43 58 13-10 10 4 13-3m-33 18 17 14m-9-22 22 20m-9-22 18 14"/></>,
+  creator: <><rect x="31" y="43" width="58" height="40" rx="8"/><path d="m54 53 19 10-19 10Z" fill="#f14359" stroke="none"/></>,
+  admin: <><path d="m28 76-5-34 22 13 15-27 15 27 22-13-5 34Z"/><path d="M30 84h60"/><circle cx="60" cy="65" r="3" fill="#f4bd63" stroke="none"/></>,
+  owner: <><path d="M31 83 26 41 45 54 60 26 75 54 94 41 89 83Z"/><path d="M34 89h52M60 47v20"/><circle cx="60" cy="73" r="3" fill="#f4bd63" stroke="none"/></>,
+  early_member: <><path d="m60 30 9 19 21 3-15 15 4 22-19-11-19 11 4-22-15-15 21-3Z" fill="currentColor" fillOpacity=".12"/></>,
 };
+
+const MEDALLION = "M60 9 C69 9 73 20 83 22 C95 24 100 23 105 33 C110 43 107 48 112 58 C117 69 107 75 106 85 C105 96 94 97 84 100 C73 103 70 111 60 111 C50 111 47 103 36 100 C26 97 15 96 14 85 C13 75 3 69 8 58 C13 48 10 43 15 33 C20 23 25 24 37 22 C47 20 51 9 60 9 Z";
 
 export default function AwardSymbol({ code }) {
   const gradientId = useId();
-  return <svg viewBox="0 0 48 48" width="46" height="46" fill="none" aria-hidden="true" focusable="false">
-    <defs>
-      <linearGradient id={gradientId} x1="5" x2="40" y1="4" y2="44" gradientUnits="userSpaceOnUse">
-        <stop stopColor="currentColor" stopOpacity=".9"/>
-        <stop offset="1" stopColor="currentColor" stopOpacity=".35"/>
-      </linearGradient>
-    </defs>
-    <path d="M24 3 40 12v24L24 45 8 36V12Z" fill="#09090c" stroke={`url(#${gradientId})`} strokeWidth="1.5"/>
-    <g stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      {SHAPES[code]}
-    </g>
-  </svg>;
+  const glowId = useId();
+  return (
+    <svg className="iste-award-medallion" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id={gradientId} x1="15" y1="12" x2="111" y2="111" gradientUnits="userSpaceOnUse">
+          <stop stopColor="var(--medal-light)" />
+          <stop offset=".47" stopColor="var(--medal-main)" />
+          <stop offset="1" stopColor="var(--medal-shadow)" />
+        </linearGradient>
+        <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3.6" />
+        </filter>
+      </defs>
+      <path d={MEDALLION} fill="none" stroke="var(--medal-main)" strokeWidth="5" opacity=".40" filter={`url(#${glowId})`} />
+      <path d={MEDALLION} fill="#100c10" stroke={`url(#${gradientId})`} strokeWidth="5.5" strokeLinejoin="round" />
+      <path d={MEDALLION} fill="none" stroke="var(--medal-light)" strokeWidth=".9" opacity=".50" transform="translate(60 60) scale(.92) translate(-60 -60)" />
+      <g stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+        {ICONS[code] || ICONS.member}
+      </g>
+    </svg>
+  );
 }
