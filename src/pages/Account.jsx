@@ -286,11 +286,47 @@ export default function Account() {
   return (
     <section className="auth-page iste-account-page">
       <div className="auth-shell auth-shell-wide">
-        <header className="auth-heading iste-account-heading">
-          <span className="iste-account-heading__eyebrow">{ui.welcome}</span>
-          <p className="auth-kicker">{t("accountPage.kicker")}</p>
-          <h1>{t("accountPage.title")}</h1>
-          <p>{ui.subtitle}</p>
+        <header className="iste-member-hero">
+          <div className="iste-member-cover" aria-hidden="true">
+            <span className="iste-member-cover__wordmark">ISTe</span>
+            <span className="iste-member-cover__orb iste-member-cover__orb--one" />
+            <span className="iste-member-cover__orb iste-member-cover__orb--two" />
+            <span className="iste-member-cover__grid" />
+          </div>
+          <div className="iste-member-hero__body">
+            <div className="iste-member-hero__identity">
+              <label className="iste-member-hero__avatar" title={avatarText.change}>
+                {profile?.avatar_url
+                  ? <img src={profile.avatar_url} alt="" />
+                  : <span>{initials}</span>}
+                <span className="iste-member-hero__avatar-edit" aria-hidden="true">✎</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={avatarSaving}
+                  onChange={handleAvatarChange}
+                  aria-label={avatarText.upload}
+                />
+              </label>
+              <div className="iste-member-hero__user">
+                <span className="iste-member-hero__eyebrow">{language === "en" ? "ISTe COMMUNITY MEMBER" : "УЧАСНИК СПІЛЬНОТИ ISTe"}</span>
+                <h1>{profile?.display_name || t("accountPage.memberFallback")}</h1>
+                <p>@{profile?.username || "iste"}</p>
+                <div className="iste-member-hero__badges">
+                  <span className="iste-member-hero__role">{KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}</span>
+                  {accountId ? <span className="iste-member-hero__id">{accountId}</span> : null}
+                </div>
+              </div>
+            </div>
+            <div className="iste-member-hero__aside">
+              <div className="iste-member-hero__progress-label"><span>{ui.completeness}</span><strong>{Math.round(completeness / 3 * 100)}%</strong></div>
+              <div className="iste-member-hero__progress-track"><span style={{ width: `${completeness / 3 * 100}%` }} /></div>
+              <button type="button" className="iste-member-hero__edit" onClick={() => setActiveTab("edit")}>{ui.edit}<DashboardIcon name="arrow" size={16} aria-hidden="true" /></button>
+            </div>
+          </div>
+          <div className="iste-member-hero__feedback" aria-live="polite">
+            {avatarSaving ? avatarText.uploading : avatarMessage || ""}
+          </div>
         </header>
 
         <nav className="iste-account-tabs" aria-label={ui.profile}>
@@ -299,19 +335,10 @@ export default function Account() {
         </nav>
         <div className="account-grid">
           <aside className="auth-card account-summary">
-            <div className="iste-account-summary-top"><span className="iste-account-section-label">{ui.identity}</span><span className="iste-account-live-dot">{language === "en" ? "ISTe MEMBER" : "УЧАСНИК ISTe"}</span></div>
-            <label className="iste-avatar-upload" title={avatarText.change}>
-              <span className="account-avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}</span>
-              <span className="iste-avatar-edit-icon" aria-hidden="true">✎</span>
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarChange} disabled={avatarSaving} aria-label={avatarText.upload} />
-            </label>
-            <p className="iste-avatar-help">{avatarSaving ? avatarText.uploading : avatarText.help}</p>
-            {avatarMessage ? <p className="iste-avatar-message" role="status">{avatarMessage}</p> : null}
-
-            <h2>{profile?.display_name || t("accountPage.memberFallback")}</h2>
-            <p className="iste-account-handle">@{profile?.username || "iste"}</p>
-            <div className="iste-account-progress"><div className="iste-account-progress__heading"><span>{ui.completeness}</span><strong>{Math.round(completeness / 3 * 100)}%</strong></div><div className="iste-account-progress__bar"><span style={{ width: `${completeness / 3 * 100}%` }} /></div></div>
-
+            <div className="iste-member-side-title">
+              <span className="iste-account-section-label">{ui.security}</span>
+              <span className="iste-member-side-title__dot" aria-hidden="true" />
+            </div>
             <dl className="account-details">
               <div className="account-detail account-id-detail">
                 <dt>{t("accountPage.accountId")}</dt>
@@ -392,13 +419,22 @@ export default function Account() {
           <div className="iste-account-main-column">
           {activeTab === "profile" ? (
             <>
-            <div className="iste-account-welcome"><span>{language === "uk" ? "ПРИВІТ, " : language === "en" ? "HELLO, " : "ПРИВЕТ, "}{(profile?.display_name || profile?.username || "ISTe").toUpperCase()}!</span><h2>{language === "uk" ? "Ласкаво просимо до " : language === "en" ? "Welcome to " : "Добро пожаловать в "}<em>ISTe!</em></h2><p>{ui.subtitle}</p></div>
+            <div className="iste-member-section-intro">
+              <div>
+                <span className="iste-account-section-label">{language === "en" ? "YOUR SPACE" : "ТВІЙ ПРОСТІР"}</span>
+                <h2>{ui.overview}</h2>
+                <p>{ui.subtitle}</p>
+              </div>
+              <span className="iste-member-section-intro__mark" aria-hidden="true">ISTe</span>
+            </div>
             <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="users" /></span><span className="iste-quick-title">{ui.explore}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/news" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="news" /></span><span className="iste-quick-title">{ui.news}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/shop" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="shop" /></span><span className="iste-quick-title">{language === "uk" ? "Магазин" : language === "en" ? "Shop" : "Магазин"}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/users" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="search" /></span><span className="iste-quick-title">{t("accountPage.findUser")}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link></div></div>
-            <div className="auth-card iste-account-preview">
-              <div className="iste-account-preview__heading"><span className="iste-account-section-label">{language === "uk" ? "ІНФОРМАЦІЯ ПРО ТЕБЕ" : language === "en" ? "ABOUT YOU" : "ИНФОРМАЦИЯ О ТЕБЕ"}</span><span className="iste-account-preview__star">✦ ISTe</span></div>
-              <div className="iste-account-preview__identity"><div className="iste-account-preview__avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}</div><div><h2>{profile?.display_name || t("accountPage.memberFallback")}</h2><p>@{profile?.username || "iste"}</p><span className="account-role">{KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}</span></div></div>
-              <p className="iste-account-preview__bio">{profile?.bio || ui.bioEmpty}</p>
-              <button type="button" className="iste-account-outline-button" onClick={() => setActiveTab("edit")}>{ui.edit} <span aria-hidden="true">↗</span></button>
+            <div className="auth-card iste-member-about">
+              <div className="iste-member-about__heading">
+                <span className="iste-account-section-label">{language === "en" ? "ABOUT MEMBER" : "ПРО УЧАСНИКА"}</span>
+                <span className="iste-member-about__symbol" aria-hidden="true">✦</span>
+              </div>
+              <p>{profile?.bio || ui.bioEmpty}</p>
+              <button type="button" className="iste-account-outline-button" onClick={() => setActiveTab("edit")}>{ui.edit} <DashboardIcon name="arrow" size={16} aria-hidden="true" /></button>
             </div>
             <section className="auth-card iste-account-activity" aria-label={language === "uk" ? "Інформація про активність" : "Account activity"}>
               <span className="iste-account-section-label">◷ {language === "uk" ? "АКТИВНІСТЬ ПРОФІЛЮ" : language === "en" ? "PROFILE ACTIVITY" : "АКТИВНОСТЬ ПРОФИЛЯ"}</span>
