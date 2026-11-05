@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.member_showcases (
   CONSTRAINT member_showcase_not_empty CHECK (char_length(btrim(body)) > 0 OR image_path IS NOT NULL),
   CONSTRAINT member_showcase_owned_image CHECK (
     image_path IS NULL OR image_path ~ (
-      '^' || owner_id::text || '/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.jpg$'
+      '^' || owner_id::text || '/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg$'
     )
   )
 );
