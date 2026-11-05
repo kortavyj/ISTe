@@ -130,44 +130,72 @@ export default function Account() {
     };
   }
 
+  const avatarText = {
+    uk: {
+      upload: "Завантажити аватар", change: "Змінити аватар",
+      help: "Натисніть на фото, щоб змінити аватар", uploading: "Завантаження фото…",
+      invalid: "Оберіть JPG, PNG або WebP розміром до 8 МБ.",
+      saved: "Фото профілю оновлено.", failed: "Не вдалося завантажити фото.",
+      processing: "Не вдалося обробити фото. Спробуйте інше зображення.",
+    },
+    en: {
+      upload: "Upload avatar", change: "Change avatar",
+      help: "Click the picture to change your avatar", uploading: "Uploading photo…",
+      invalid: "Choose a JPG, PNG or WebP image under 8 MB.",
+      saved: "Profile picture updated.", failed: "Could not upload the photo.",
+      processing: "Could not process the photo. Try another image.",
+    },
+  }[language] || {};
+
   async function handleAvatarChange(event) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file) return;
+    if (!file || avatarSaving) return;
     setAvatarMessage("");
-    if (!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024) {
-      setAvatarMessage(language === "uk" ? "Оберіть JPG, PNG або WebP до 8 МБ." : "Выберите JPG, PNG или WebP до 8 МБ.");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024) {
+      setAvatarMessage(avatarText.invalid);
       return;
     }
     setAvatarSaving(true);
     try {
       const bitmap = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
-      canvas.width = canvas.height = 440;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas is unavailable");
-      const scale = Math.max(440 / bitmap.width,440 / bitmap.height);
-      const width = bitmap.width * scale, height = bitmap.height * scale;
-      ctx.drawImage(bitmap,(440-width)/2,(440-height)/2,width,height);
-      bitmap.close();
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve,"image/jpeg",0.82));
-      if (!blob || blob.size > 650000) throw new Error("Изображение слишком большое.");
-      const prep = await fetch("/api/auth/session",{
-        method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"avatar-create-upload",fileSize:blob.size,fileType:"image/jpeg"})
+      let blob;
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 440;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("CANVAS_UNAVAILABLE");
+        const scale = Math.max(440 / bitmap.width, 440 / bitmap.height);
+        ctx.drawImage(bitmap,
+          (440 - bitmap.width * scale) / 2,
+          (440 - bitmap.height * scale) / 2,
+          bitmap.width * scale,
+          bitmap.height * scale);
+        blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.82));
+      } finally {
+        bitmap.close();
+      }
+      if (!blob || blob.size > 650000) throw new Error("INVALID_IMAGE");
+      const prep = await fetch("/api/auth/session", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "avatar-create-upload", fileSize: blob.size, fileType: "image/jpeg" }),
       });
-      const uploadInfo = await readApiResponse(prep,t);
-      const {error:uploadError} = await supabase.storage.from("iste-roster").uploadToSignedUrl(uploadInfo.path,uploadInfo.token,blob,{contentType:"image/jpeg"});
-      if(uploadError) throw uploadError;
-      const confirmation = await fetch("/api/auth/session",{
-        method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"avatar-confirm",path:uploadInfo.path})
+      const uploadInfo = await readApiResponse(prep, t);
+      const { error: uploadError } = await supabase.storage.from("iste-roster")
+        .uploadToSignedUrl(uploadInfo.path, uploadInfo.token, blob, { contentType: "image/jpeg" });
+      if (uploadError) throw new Error("AVATAR_UPLOAD_FAILED");
+      const confirmation = await fetch("/api/auth/session", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "avatar-confirm", path: uploadInfo.path }),
       });
-      await readApiResponse(confirmation,t);
+      await readApiResponse(confirmation, t);
       await refreshAccount();
-      setAvatarMessage(language === "uk" ? "Аватар оновлено!" : "Аватар обновлён!");
-    } catch(error) {
-      setAvatarMessage(error?.message || "Не удалось загрузить аватар.");
+      setAvatarMessage(avatarText.saved);
+    } catch (error) {
+      setAvatarMessage(error?.message === "INVALID_IMAGE" || error?.message === "CANVAS_UNAVAILABLE"
+        ? avatarText.processing : avatarText.failed);
     } finally {
       setAvatarSaving(false);
     }
@@ -271,13 +299,13 @@ export default function Account() {
         </nav>
         <div className="account-grid">
           <aside className="auth-card account-summary">
-            <div className="iste-account-summary-top"><span className="iste-account-section-label">{ui.identity}</span><span className="iste-account-live-dot">ISTe MEMBER</span></div>
-            <label className="iste-avatar-upload" title={language === "uk" ? "Змінити аватар" : "Изменить аватар"}>
+            <div className="iste-account-summary-top"><span className="iste-account-section-label">{ui.identity}</span><span className="iste-account-live-dot">{language === "en" ? "ISTe MEMBER" : "УЧАСНИК ISTe"}</span></div>
+            <label className="iste-avatar-upload" title={avatarText.change}>
               <span className="account-avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}</span>
               <span className="iste-avatar-edit-icon" aria-hidden="true">✎</span>
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarChange} disabled={avatarSaving} aria-label={language === "uk" ? "Завантажити аватар" : "Загрузить аватар"} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarChange} disabled={avatarSaving} aria-label={avatarText.upload} />
             </label>
-            <p className="iste-avatar-help">{avatarSaving ? (language === "uk" ? "Завантаження..." : "Загрузка...") : (language === "uk" ? "Натисни на фото, щоб змінити аватар" : "Нажми на фото, чтобы сменить аватар")}</p>
+            <p className="iste-avatar-help">{avatarSaving ? avatarText.uploading : avatarText.help}</p>
             {avatarMessage ? <p className="iste-avatar-message" role="status">{avatarMessage}</p> : null}
 
             <h2>{profile?.display_name || t("accountPage.memberFallback")}</h2>
