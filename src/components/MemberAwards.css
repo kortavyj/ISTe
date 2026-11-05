@@ -28,3 +28,26 @@
 .iste-award--gold .iste-award-icon{filter:drop-shadow(0 0 5px rgba(238,177,71,.25))}
 .iste-award--silver .iste-award-icon{filter:drop-shadow(0 0 4px rgba(188,190,210,.14))}
 @media(prefers-reduced-motion:reduce){.iste-award{transition:none}.iste-award:hover{transform:none}}
+
+.iste-awards-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:0 0 17px;padding:4px;border:1px solid #3e252d;border-radius:12px;background:#100b10}
+.iste-awards-tabs button{padding:9px 3px;border:0;border-radius:9px;background:transparent;color:#a99aa3;font:inherit;font-size:.72rem;font-weight:800;cursor:pointer}
+.iste-awards-tabs button.is-active{background:#62202f;color:#fff;box-shadow:0 0 15px #d82d4730}
+.iste-award--locked{opacity:.46;filter:saturate(.3);border-style:dashed}
+.iste-award--locked:hover{opacity:.66;transform:none;box-shadow:none;border-color:#6f5660}
+.iste-award small{font-size:.65rem;font-weight:750;color:#cbbdc3}
+.iste-awards-notice{margin-bottom:18px;padding:17px;border:1px solid #f45163;border-radius:15px;background:radial-gradient(circle at top left,#5c1929,#1b0e16 75%);box-shadow:0 0 27px #ef28402b;text-align:center}
+.iste-awards-notice-symbol{font-size:1.7rem;color:#ff7380;filter:drop-shadow(0 0 8px #e43e64a0)}
+.iste-awards-notice strong{display:block;margin:7px 0;color:#fff;font-size:1rem}
+.iste-awards-notice p{color:#ead6dc;font-size:.83rem;margin:7px 0 15px}
+.iste-awards-notice button{cursor:pointer;border:1px solid #f95163;border-radius:9px;padding:10px 15px;background:#c7243b;color:#fff;font:inherit;font-size:.78rem;font-weight:850}
+.iste-awards-notice button:disabled{opacity:.6;cursor:wait}
+.iste-awards-history{display:grid;gap:9px}
+.iste-awards-history-item{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 9px;border:1px solid #48242e;border-radius:12px;background:#110d12}
+.iste-awards-history-symbol{display:grid;place-items:center;width:37px;height:37px;flex:none;color:#ff6a7c}
+.iste-awards-history-symbol svg{width:34px;height:34px}
+.iste-awards-history-item>span:nth-child(2){display:grid;min-width:0;flex:1;gap:3px}
+.iste-awards-history-item strong{font-size:.75rem;overflow-wrap:anywhere}
+.iste-awards-history-item small{color:#988992;font-size:.68rem}
+.iste-awards-history-active,.iste-awards-history-archived{font-size:.63rem;white-space:nowrap;color:#eaa5b2}
+.iste-awards-history-archived{color:#8c7b86}
+@media(max-width:360px){.iste-awards-tabs button{font-size:.65rem}.iste-awards-history-item{gap:6px}}
