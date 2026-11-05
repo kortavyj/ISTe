@@ -102,7 +102,7 @@ async function getShowcase(account, body) {
   if (error) throw error;
 
   let comments = [];
-  if (showcase) {
+  {
     const { data, error: commentsError } = await account.supabase
       .from("member_showcase_comments")
       .select("id,author_id,body,created_at")
@@ -200,7 +200,7 @@ async function addComment(account, body) {
     .select("id").maybeSingle();
   if (error) {
     if (error.code === "P0001") return failure(429, "COMMENT_COOLDOWN", "Зачекайте 15 секунд перед наступним коментарем.");
-    if (error.code === "23503") return failure(404, "SHOWCASE_NOT_FOUND", "Вітрина ще не створена.");
+    if (error.code === "23503") return failure(404, "PROFILE_NOT_FOUND", "Профіль не знайдено.");
     console.error("Showcase comment insert:", error);
     return failure(502, "COMMENT_SAVE_FAILED", "Не вдалося додати коментар.");
   }
