@@ -8,6 +8,7 @@ import { formatAccountId } from "../utils/accountId.js";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import { supabase } from "../lib/supabase.js";
 import MemberShowcase from "../components/MemberShowcase.jsx";
+import VerifiedBadge from "../components/VerifiedBadge.jsx";
 
 import "./Auth.css";
 import "./AccountId.css";
@@ -428,14 +429,7 @@ export default function Account() {
             <div className="iste-social-identity-details">
               <div className="iste-social-name-row">
                 <h1>{profile?.display_name || t("accountPage.memberFallback")}</h1>
-                {profile?.is_verified === true && (
-                  <span className="iste-social-verified" title={social.confirmed} aria-label={social.confirmed}>
-                    <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
-                      <path d="M12 1.8 15 3l3.1-.15 1.35 2.85 2.45 1.95-.65 3.2.65 3.2-2.45 1.95-1.35 2.85L15 19.5 12 22.2 9 19.5l-3.1.15-1.35-2.85L2.1 14.85l.65-3.2-.65-3.2L4.55 6.5 5.9 3.65 9 3.8Z" fill="currentColor"/>
-                      <path d="m7.7 12.2 2.6 2.6 5.9-6" fill="none" stroke="#07131a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
-                )}
+                {profile?.is_verified === true && <VerifiedBadge size={22} />}
               </div>
               <p className="iste-social-handle">@{profile?.username || "iste"}</p>
               <div className="iste-social-member-state"><span aria-hidden="true" /> {social.member}</div>
