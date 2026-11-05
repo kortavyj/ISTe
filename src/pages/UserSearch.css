@@ -434,3 +434,12 @@
   font-size: .76rem;
   color: #e8b5b5;
 }
+
+.user-result-verification-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid #746262;
+  background: #282020;
+  flex: none;
+}
