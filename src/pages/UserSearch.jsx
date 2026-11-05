@@ -69,6 +69,7 @@ export default function UserSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [verificationState, setVerificationState] = useState(null);
+  const [verificationType, setVerificationType] = useState("silver");
   const [verificationBusy, setVerificationBusy] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState("");
   const canVerify = role === "owner" || role === "admin";
@@ -92,6 +93,7 @@ export default function UserSearch() {
     setResult(null);
     setHasSearched(false);
     setVerificationState(null);
+    setVerificationType("silver");
     setVerificationMessage("");
 
     if (!isValidAccountId(query)) {
@@ -133,6 +135,7 @@ export default function UserSearch() {
 
       if (foundProfile?.account_number && canVerify) {
         setVerificationState(foundProfile.is_verified === true);
+        setVerificationType(foundProfile.verification_type || "silver");
       }
     } catch (error) {
       setErrorMessage(
@@ -146,7 +149,7 @@ export default function UserSearch() {
 
   async function changeVerification() {
     if (!canVerify || !result?.account_number || verificationState === null || verificationBusy) return;
-    const nextVerified = !verificationState;
+    const nextVerified = !verificationState || (role === "owner" && verificationType !== result.verification_type);
     const displayName = result.display_name || result.username || result.account_id;
     if (!window.confirm(nextVerified
       ? `Видати верифікацію профілю «${displayName}»?`
@@ -159,11 +162,11 @@ export default function UserSearch() {
         method: "POST",
         credentials: "include",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ accountNumber: result.account_number, verified: nextVerified }),
+        body: JSON.stringify({ accountNumber: result.account_number, verified: nextVerified, verificationType: nextVerified ? verificationType : undefined }),
       });
       await readApiResponse(response);
       setVerificationState(nextVerified);
-      setResult(current => current ? { ...current, is_verified: nextVerified } : current);
+      setResult(current => current ? { ...current, is_verified: nextVerified, verification_type: nextVerified ? verificationType : null } : current);
       setVerificationMessage(nextVerified
         ? "Верифікацію успішно видано."
         : "Верифікацію успішно знято.");
@@ -265,7 +268,7 @@ export default function UserSearch() {
               <div className="user-result-heading">
                 <div>
                   <p>{result.account_id}</p>
-                  <h2><span>{result.display_name || "Учасник ISTe"}</span>{result.is_verified === true && <VerifiedBadge size={15} />}</h2>
+                  <h2><span>{result.display_name || "Учасник ISTe"}</span>{result.is_verified === true && <VerifiedBadge size={15} type={result.verification_type || "silver"} />}</h2>
                   <span>@{result.username || "без_ніка"}</span>
                 </div>
                 {resultIsCurrentUser ? <span className="user-result-self">Це ви</span> : null}
@@ -290,6 +293,14 @@ export default function UserSearch() {
                     {verificationState === true ? <VerifiedBadge size={15} /> : <span aria-hidden="true" className="user-result-verification-dot" />}
                     <span>{verificationState === null ? "Перевірка статусу" : verificationState ? "Профіль верифіковано" : "Профіль не верифіковано"}</span>
                   </div>
+                  <label className="iste-verification-type-picker">
+                    <span>Тип верифікації</span>
+                    <select value={verificationType} disabled={verificationBusy} onChange={event => setVerificationType(event.target.value)}>
+                      <option value="silver">Срібна, підтверджений профіль</option>
+                      {role === "owner" && <option value="red">Червона, від власника</option>}
+                      {role === "owner" && <option value="gold">Золота, медіа та партнери</option>}
+                    </select>
+                  </label>
                   <button type="button" onClick={changeVerification}
                     disabled={verificationBusy || verificationState === null}
                     className={verificationState ? "user-result-verify-button is-revoke" : "user-result-verify-button"}>
