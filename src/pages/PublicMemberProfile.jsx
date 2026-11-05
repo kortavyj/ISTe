@@ -88,7 +88,7 @@ export default function PublicMemberProfile() {
                     <p className="public-member-id">{member.account_id}</p>
                     <div className="public-member-name">
                       <h1>{member.display_name || "Учасник ISTe"}</h1>
-                      {member.is_verified === true && <VerifiedBadge size={16} />}
+                      {member.is_verified === true && <VerifiedBadge size={16} type={member.verification_type || "silver"} />}
                     </div>
                     <p className="public-member-handle">@{member.username || "без_ніка"}</p>
                     <p className="public-member-bio">{member.bio || "Користувач поки нічого не розповів про себе."}</p>
