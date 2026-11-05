@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { isValidAccountId, normalizeAccountId } from "../utils/accountId.js";
 import MemberShowcase from "../components/MemberShowcase.jsx";
 import VerifiedBadge from "../components/VerifiedBadge.jsx";
+import MemberAwards from "../components/MemberAwards.jsx";
 import "./PublicMemberProfile.css";
 
 function readableDate(value) {
@@ -17,7 +18,7 @@ function initials(profile) {
 
 export default function PublicMemberProfile() {
   const { accountId } = useParams();
-  const { profile: currentProfile } = useAuth();
+  const { profile: currentProfile, role } = useAuth();
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -69,27 +70,42 @@ export default function PublicMemberProfile() {
         {loading ? <div className="public-member-notice" role="status">Завантажуємо профіль…</div> : null}
         {!loading && message ? <div className="public-member-notice" role="alert">{message}</div> : null}
         {member ? (
-          <>
-            <section className="public-member-card">
-              <div className="public-member-avatar" aria-hidden="true">
-                <span>{initials(member)}</span>
-                {member.avatar_url && <img src={member.avatar_url} alt="" referrerPolicy="no-referrer"
-                  onError={(event) => { event.currentTarget.hidden = true; }} />}
-              </div>
-              <div className="public-member-main">
-                <p className="public-member-id">{member.account_id}</p>
-                <div className="public-member-name">
-                  <h1>{member.display_name || "Учасник ISTe"}</h1>
-                  {member.is_verified === true && <VerifiedBadge size={16} />}
+          <div className="public-member-layout">
+            <div className="public-member-primary">
+              <section className="public-member-card">
+                <div className="public-member-cover" style={member.banner_url
+                  ? { backgroundImage: `linear-gradient(0deg,rgba(5,4,7,.55),transparent 65%),url("${member.banner_url}")` }
+                  : undefined}>
+                  <span className="public-member-cover-brand">ISTe <small>COMMUNITY</small></span>
                 </div>
-                <p className="public-member-handle">@{member.username || "без_ніка"}</p>
-                <p className="public-member-bio">{member.bio || "Користувач поки нічого не розповів про себе."}</p>
-                <div className="public-member-meta">Учасник ISTe з {readableDate(member.created_at)}</div>
-              </div>
-              {isMine && <Link className="public-member-edit" to="/account">Мій кабінет ↗</Link>}
-            </section>
-            <MemberShowcase key={member.account_number} targetAccountNumber={member.account_number} />
-          </>
+                <div className="public-member-identity">
+                  <div className="public-member-avatar" aria-hidden="true">
+                    <span>{initials(member)}</span>
+                    {member.avatar_url && <img src={member.avatar_url} alt="" referrerPolicy="no-referrer"
+                      onError={event => { event.currentTarget.hidden = true; }} />}
+                  </div>
+                  <div className="public-member-main">
+                    <p className="public-member-id">{member.account_id}</p>
+                    <div className="public-member-name">
+                      <h1>{member.display_name || "Учасник ISTe"}</h1>
+                      {member.is_verified === true && <VerifiedBadge size={16} />}
+                    </div>
+                    <p className="public-member-handle">@{member.username || "без_ніка"}</p>
+                    <p className="public-member-bio">{member.bio || "Користувач поки нічого не розповів про себе."}</p>
+                    <div className="public-member-meta">Учасник ISTe з {readableDate(member.created_at)}</div>
+                  </div>
+                  {isMine && <Link className="public-member-edit" to="/account">Редагувати профіль ↗</Link>}
+                </div>
+              </section>
+              <section className="public-member-content">
+                <div className="public-member-section-heading">Вітрина та коментарі</div>
+                <MemberShowcase key={member.account_number} targetAccountNumber={member.account_number} />
+              </section>
+            </div>
+            <aside className="public-member-aside">
+              <MemberAwards accountNumber={member.account_number} canManage={role === "owner" || role === "admin"} />
+            </aside>
+          </div>
         ) : null}
       </div>
     </main>
