@@ -892,7 +892,7 @@ export default function OwnerUsers() {
                             </h2>
 
                             {item.is_verified === true ? (
-                              <VerifiedBadge size={20} />
+                              <VerifiedBadge size={15} />
                             ) : null}
                             {isSelf ? (
                               <span className="owner-chip">
