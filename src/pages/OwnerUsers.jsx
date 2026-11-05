@@ -612,7 +612,7 @@ export default function OwnerUsers() {
   }
 
   async function toggleVerified(targetUser) {
-    if (currentRole !== "owner" || actionUserId) return;
+    if (!["owner", "admin"].includes(currentRole) || actionUserId || (currentRole === "admin" && targetUser.role === "owner")) return;
     const nextVerified = targetUser.is_verified !== true;
     const title = language === "en"
       ? (nextVerified ? "Verify this member?" : "Remove verification from this member?")
@@ -961,7 +961,7 @@ export default function OwnerUsers() {
                         </div>
                       </div>
 
-                      {currentRole === "owner" ? (
+                      {(["owner", "admin"].includes(currentRole) && (currentRole === "owner" || item.role !== "owner")) ? (
                         <div className="owner-verification-actions">
                           <button
                             className={item.is_verified ? "owner-button owner-button-secondary" : "owner-button owner-button-primary"}
