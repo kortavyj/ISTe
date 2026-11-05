@@ -418,8 +418,8 @@ export default function Account() {
           </main>
 
           <aside className="iste-social-sidebar">
-            <section className="iste-social-panel iste-social-member-facts" aria-label={editorial.member}>
-              <div className="iste-social-section-head"><h2>{editorial.member}</h2></div>
+            <section className="iste-social-panel iste-social-member-facts" aria-label={social.stats}>
+              <div className="iste-social-section-head"><h2>{social.stats}</h2></div>
               <dl>
                 <div><dt>{t("accountPage.role")}</dt><dd>{KNOWN_ROLES.has(role) ? t("roles." + role) : role}</dd></div>
                 <div><dt>{social.joined}</dt><dd>{formatDate(profile?.created_at, language, t("accountPage.notSpecified"))}</dd></div>
