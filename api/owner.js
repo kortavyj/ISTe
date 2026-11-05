@@ -284,8 +284,8 @@ async function handleSetVerified(request, response) {
 
   const owner = await getOwner(request, response);
   if (!owner) return;
-  if (owner.role !== "owner") {
-    return sendError(response, 403, "OWNER_REQUIRED", "Тільки власник ISTe може підтверджувати профілі.");
+  if (!["owner", "admin"].includes(owner.role)) {
+    return sendError(response, 403, "ADMIN_OR_OWNER_REQUIRED", "Підтверджувати профілі можуть лише власник або адміністратор ISTe.");
   }
 
   try {
