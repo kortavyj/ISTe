@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../auth/AuthContext.jsx";
+import VerifiedBadge from "../components/VerifiedBadge.jsx";
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 
 import "./Auth.css";
@@ -891,7 +892,7 @@ export default function OwnerUsers() {
                             </h2>
 
                             {item.is_verified === true ? (
-                              <span className="owner-chip owner-verified-chip" title={language === "en" ? "Verified by ISTe owner" : "Підтверджено власником ISTe"}>✓</span>
+                              <VerifiedBadge size={20} />
                             ) : null}
                             {isSelf ? (
                               <span className="owner-chip">
@@ -969,8 +970,8 @@ export default function OwnerUsers() {
                             onClick={() => toggleVerified(item)}
                           >
                             {item.is_verified
-                              ? (language === "en" ? "Remove verification" : "Зняти галочку")
-                              : (language === "en" ? "Verify member" : "Видати галочку")}
+                              ? (language === "en" ? "Remove verification" : "Зняти верифікацію")
+                              : (language === "en" ? "Verify member" : "Видати верифікацію")}
                           </button>
                         </div>
                       ) : null}
