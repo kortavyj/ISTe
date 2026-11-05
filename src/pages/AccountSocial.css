@@ -447,3 +447,10 @@
 @media(prefers-reduced-motion:reduce) {
   .iste-social-cover-edit,.iste-social-avatar-pencil {transition:none;}
 }
+
+/* Account achievements appear above member details in the right sidebar. */
+.iste-social-sidebar > .iste-awards { width: 100%; min-width: 0; margin: 0; }
+.iste-social-sidebar > .iste-awards .iste-awards-head h2 { letter-spacing: 0; text-transform: none; }
+.iste-social-sidebar > .iste-awards .iste-awards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.iste-social-sidebar > .iste-awards .iste-awards-history-item { min-width: 0; }
+@media (max-width: 760px) { .iste-social-sidebar > .iste-awards { order: -1; } }
