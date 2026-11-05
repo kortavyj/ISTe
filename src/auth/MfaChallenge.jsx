@@ -245,9 +245,9 @@ export default function MfaChallenge({
     mode === "setup";
 
   return (
-    <section className="auth-page">
-      <div className="auth-shell">
-        <header className="auth-heading">
+    <section className="auth-page auth-page-mfa">
+      <div className="auth-shell auth-shell-mfa">
+        <header className="auth-heading auth-heading-mfa">
           <p className="auth-kicker">
             {t("authMfa.kicker")}
           </p>
