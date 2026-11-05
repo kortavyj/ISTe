@@ -11,6 +11,7 @@ import { supabase } from "../lib/supabase.js";
 import "./Auth.css";
 import "./AccountId.css";
 import "./AccountDashboard.css";
+import "./AccountSocial.css";
 
 function DashboardIcon({ name, size = 23, ...props }) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", ...props };
@@ -283,238 +284,193 @@ export default function Account() {
     }
   }
 
+  const social = language === "en"
+    ? { overview: "Overview", community: "Community", about: "About", settings: "Edit profile", posts: "Posts", emptyTitle: "Your story starts here", emptyText: "Member posts are coming later. For now, explore ISTe news and the community.", news: "Explore news", actions: "Quick links", team: "Team", shop: "Shop", people: "Find members", stats: "Member details", joined: "Joined ISTe", profile: "Profile", copyId: "Copy ID", confirmed: "Verified by ISTe", member: "ISTe member", noBio: "Tell the community about yourself in your profile settings.", details: "Account details", progress: "Profile completion", security: "Account management" }
+    : { overview: "Огляд", community: "Спільнота", about: "Про мене", settings: "Редагувати", posts: "Публікації", emptyTitle: "Твоя історія починається тут", emptyText: "Публікації учасників з'являться пізніше. Поки можеш переглянути новини ISTe та спільноту.", news: "Переглянути новини", actions: "Швидкий доступ", team: "Команда", shop: "Магазин", people: "Знайти учасників", stats: "Дані учасника", joined: "В ISTe з", profile: "Профіль", copyId: "Копіювати ID", confirmed: "Підтверджено ISTe", member: "Учасник ISTe", noBio: "Розкажи про себе у налаштуваннях профілю.", details: "Дані акаунта", progress: "Заповнення профілю", security: "Керування акаунтом" };
+
   return (
-    <section className="auth-page iste-account-page">
-      <div className="auth-shell auth-shell-wide">
-        <header className="iste-member-hero">
-          <div className="iste-member-cover" aria-hidden="true">
-            <span className="iste-member-cover__wordmark">ISTe</span>
-            <span className="iste-member-cover__orb iste-member-cover__orb--one" />
-            <span className="iste-member-cover__orb iste-member-cover__orb--two" />
-            <span className="iste-member-cover__grid" />
+    <section className="auth-page iste-account-page iste-social-page">
+      <div className="auth-shell auth-shell-wide iste-social-shell">
+        <header className="iste-social-header">
+          <div className="iste-social-cover">
+            <span className="iste-social-cover-brand">ISTe <small>COMMUNITY</small></span>
           </div>
-          <div className="iste-member-hero__body">
-            <div className="iste-member-hero__identity">
-              <label className="iste-member-hero__avatar" title={avatarText.change}>
-                {profile?.avatar_url
-                  ? <img src={profile.avatar_url} alt="" />
-                  : <span>{initials}</span>}
-                <span className="iste-member-hero__avatar-edit" aria-hidden="true">✎</span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={avatarSaving}
-                  onChange={handleAvatarChange}
-                  aria-label={avatarText.upload}
-                />
-              </label>
-              <div className="iste-member-hero__user">
-                <span className="iste-member-hero__eyebrow">{language === "en" ? "ISTe COMMUNITY MEMBER" : "УЧАСНИК СПІЛЬНОТИ ISTe"}</span>
+          <div className="iste-social-identity">
+            <label className="iste-social-avatar-upload" title={avatarText.change}>
+              <span className="iste-social-avatar-inner">
+                {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span>{initials}</span>}
+              </span>
+              <span className="iste-social-avatar-pencil" aria-hidden="true">✎</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp" disabled={avatarSaving} onChange={handleAvatarChange} aria-label={avatarText.upload} />
+            </label>
+            <div className="iste-social-identity-details">
+              <div className="iste-social-name-row">
                 <h1>{profile?.display_name || t("accountPage.memberFallback")}</h1>
-                <p>@{profile?.username || "iste"}</p>
-                <div className="iste-member-hero__badges">
-                  <span className="iste-member-hero__role">{KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}</span>
-                  {accountId ? <span className="iste-member-hero__id">{accountId}</span> : null}
-                </div>
+                {profile?.is_verified === true && (
+                  <span className="iste-social-verified" title={social.confirmed} aria-label={social.confirmed}>
+                    <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
+                      <path d="M12 1.8 15 3l3.1-.15 1.35 2.85 2.45 1.95-.65 3.2.65 3.2-2.45 1.95-1.35 2.85L15 19.5 12 22.2 9 19.5l-3.1.15-1.35-2.85L2.1 14.85l.65-3.2-.65-3.2L4.55 6.5 5.9 3.65 9 3.8Z" fill="currentColor"/>
+                      <path d="m7.7 12.2 2.6 2.6 5.9-6" fill="none" stroke="#07131a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                )}
+              </div>
+              <p className="iste-social-handle">@{profile?.username || "iste"}</p>
+              <div className="iste-social-member-state"><span aria-hidden="true" /> {social.member}</div>
+              <div className="iste-social-badges">
+                <span>{KNOWN_ROLES.has(role) ? t("roles." + role) : role}</span>
+                {accountId && <span>{accountId}</span>}
               </div>
             </div>
-            <div className="iste-member-hero__aside">
-              <div className="iste-member-hero__progress-label"><span>{ui.completeness}</span><strong>{Math.round(completeness / 3 * 100)}%</strong></div>
-              <div className="iste-member-hero__progress-track"><span style={{ width: `${completeness / 3 * 100}%` }} /></div>
-              <button type="button" className="iste-member-hero__edit" onClick={() => setActiveTab("edit")}>{ui.edit}<DashboardIcon name="arrow" size={16} aria-hidden="true" /></button>
+            <div className="iste-social-hero-side">
+              <span className="iste-social-hero-label">{social.progress}</span>
+              <div className="iste-social-meter"><span style={{ width: String(completeness / 3 * 100) + "%" }} /></div>
+              <strong>{Math.round(completeness / 3 * 100)}%</strong>
+              <button type="button" onClick={() => setActiveTab("edit")}>{social.settings} <DashboardIcon name="arrow" size={16} aria-hidden="true" /></button>
             </div>
           </div>
-          <div className="iste-member-hero__feedback" aria-live="polite">
+          <div className="iste-social-avatar-feedback" role="status">
             {avatarSaving ? avatarText.uploading : avatarMessage || ""}
           </div>
         </header>
 
-        <nav className="iste-account-tabs" aria-label={ui.profile}>
-          <button type="button" className={activeTab === "profile" ? "is-active" : ""} onClick={() => setActiveTab("profile")}>{ui.overview}</button>
-          <button type="button" className={activeTab === "edit" ? "is-active" : ""} onClick={() => setActiveTab("edit")}>{ui.edit}{isDirty ? <span className="iste-account-dirty-dot" /> : null}</button>
+        <nav className="iste-social-tabs" aria-label={social.profile}>
+          {[
+            ["profile",social.overview],
+            ["community",social.community],
+            ["about",social.about],
+            ["edit",social.settings],
+          ].map(([key,label]) => (
+            <button key={key} type="button" className={activeTab === key ? "is-active" : ""}
+              aria-current={activeTab === key ? "page" : undefined}
+              onClick={() => setActiveTab(key)}>{label}</button>
+          ))}
         </nav>
-        <div className="account-grid">
-          <aside className="auth-card account-summary">
-            <div className="iste-member-side-title">
-              <span className="iste-account-section-label">{ui.security}</span>
-              <span className="iste-member-side-title__dot" aria-hidden="true" />
-            </div>
-            <dl className="account-details">
-              <div className="account-detail account-id-detail">
-                <dt>{t("accountPage.accountId")}</dt>
-                <dd className="account-id-value">
-                  <code>{accountId || t("accountPage.notCreated")}</code>
-                  <button
-                    className="account-id-copy"
-                    type="button"
-                    onClick={handleCopyAccountId}
-                    disabled={!accountId}
-                  >
-                    {t("accountPage.copy")}
+
+        <div className="iste-social-layout">
+          <main className="iste-social-main">
+            {activeTab === "profile" && (
+              <>
+                <section className="iste-social-feed">
+                  <div className="iste-social-section-head">
+                    <h2>{social.posts}</h2>
+                    <span>ISTe</span>
+                  </div>
+                  <div className="iste-social-feed-empty">
+                    <div className="iste-social-empty-mark" aria-hidden="true">✦</div>
+                    <h3>{social.emptyTitle}</h3>
+                    <p>{social.emptyText}</p>
+                    <Link to="/news">{social.news} <DashboardIcon name="arrow" size={15} aria-hidden="true" /></Link>
+                  </div>
+                </section>
+                <section className="iste-social-panel iste-social-shortcuts">
+                  <div className="iste-social-section-head"><h2>{social.actions}</h2></div>
+                  <div className="iste-social-shortcut-grid">
+                    <Link to="/team"><DashboardIcon name="users"/><span>{social.team}</span><DashboardIcon name="arrow" size={15}/></Link>
+                    <Link to="/news"><DashboardIcon name="news"/><span>{social.news}</span><DashboardIcon name="arrow" size={15}/></Link>
+                    <Link to="/shop"><DashboardIcon name="shop"/><span>{social.shop}</span><DashboardIcon name="arrow" size={15}/></Link>
+                    <Link to="/users"><DashboardIcon name="search"/><span>{social.people}</span><DashboardIcon name="arrow" size={15}/></Link>
+                  </div>
+                </section>
+              </>
+            )}
+
+            {activeTab === "community" && (
+              <section className="iste-social-panel iste-social-shortcuts">
+                <div className="iste-social-section-head"><h2>{social.community}</h2></div>
+                <div className="iste-social-shortcut-grid">
+                  <Link to="/team"><DashboardIcon name="users"/><span>{social.team}</span><DashboardIcon name="arrow" size={15}/></Link>
+                  <Link to="/news"><DashboardIcon name="news"/><span>{social.news}</span><DashboardIcon name="arrow" size={15}/></Link>
+                  <Link to="/shop"><DashboardIcon name="shop"/><span>{social.shop}</span><DashboardIcon name="arrow" size={15}/></Link>
+                  <Link to="/users"><DashboardIcon name="search"/><span>{social.people}</span><DashboardIcon name="arrow" size={15}/></Link>
+                </div>
+              </section>
+            )}
+
+            {activeTab === "about" && (
+              <section className="iste-social-panel iste-social-about">
+                <div className="iste-social-section-head"><h2>{social.about}</h2></div>
+                <p>{profile?.bio || social.noBio}</p>
+                <button className="iste-social-outline-btn" type="button" onClick={() => setActiveTab("edit")}>{social.settings}</button>
+              </section>
+            )}
+
+            {activeTab === "edit" && (
+              <section className="iste-social-panel iste-social-editor">
+                <div className="iste-social-section-head"><h2>{t("accountPage.editProfile")}</h2></div>
+                {isDirty && <p className="iste-account-unsaved">{ui.unsaved}</p>}
+                <form className="auth-form" onSubmit={handleSave}>
+                  {(errorMessage || accountError) && <div className="auth-message auth-message-error" role="alert">{errorMessage || accountError}</div>}
+                  {successMessage && <div className="auth-message auth-message-success" role="status">{successMessage}</div>}
+                  <label className="auth-field">
+                    <span>{t("accountPage.nickname")}</span>
+                    <input className="auth-input" type="text" autoComplete="username"
+                      value={form.username} onChange={updateField("username")}
+                      minLength={3} maxLength={32} required disabled={saving} />
+                  </label>
+                  <label className="auth-field">
+                    <span>{t("accountPage.displayName")}</span>
+                    <input className="auth-input" type="text" autoComplete="name"
+                      value={form.displayName} onChange={updateField("displayName")}
+                      minLength={2} maxLength={60} required disabled={saving} />
+                  </label>
+                  <label className="auth-field">
+                    <span>{t("accountPage.about")}</span>
+                    <textarea className="auth-textarea" value={form.bio}
+                      onChange={updateField("bio")} maxLength={500} disabled={saving}/>
+                    <small className="auth-hint">{t("accountPage.bioHint")} ({form.bio.length}/500)</small>
+                  </label>
+                  <button className="auth-button" type="submit" disabled={saving}>
+                    {saving ? t("accountPage.saving") : t("accountPage.saveChanges")}
                   </button>
-                </dd>
-                <span className="account-id-help">
-                  {t("accountPage.accountIdHelp")}
-                </span>
-                <span className="account-id-copy-message" aria-live="polite">
-                  {copyMessage}
-                </span>
+                </form>
+              </section>
+            )}
+          </main>
+
+          <aside className="iste-social-sidebar">
+            <section className="iste-social-panel iste-social-stats">
+              <div className="iste-social-stat">
+                <small>{social.progress}</small>
+                <strong>{Math.round(completeness / 3 * 100)}%</strong>
               </div>
-
-              <div className="account-detail">
-                <dt>{t("accountPage.email")}</dt>
-                <dd>{user.email}</dd>
+              <div className="iste-social-stat">
+                <small>{t("accountPage.role")}</small>
+                <strong>{KNOWN_ROLES.has(role) ? t("roles." + role) : role}</strong>
               </div>
-
-              <div className="account-detail">
-                <dt>{t("accountPage.nickname")}</dt>
-                <dd>{profile?.username || t("accountPage.notSpecified")}</dd>
+              <div className="iste-social-stat">
+                <small>{social.joined}</small>
+                <strong>{formatDate(profile?.created_at, language, t("accountPage.notSpecified"))}</strong>
               </div>
-
-              <div className="account-detail">
-                <dt>{t("accountPage.role")}</dt>
-                <dd>
-                  <span className="account-role">
-                    {KNOWN_ROLES.has(role) ? t(`roles.${role}`) : role}
-                  </span>
-                </dd>
-              </div>
-
-              <div className="account-detail">
-                <dt>{t("accountPage.registeredAt")}</dt>
-                <dd>
-                  {formatDate(
-                    profile?.created_at,
-                    language,
-                    t("accountPage.notSpecified"),
-                  )}
-                </dd>
-              </div>
-            </dl>
-
-            <div className="account-summary-actions">
-              {role === "game_manager" || role === "owner" ? (
-                <Link
-                  className="auth-button"
-                  to="/control/roster"
-                >
-                  {t("accountPage.rosterManager")}
-                </Link>
-              ) : null}
-
-              <Link className="auth-button account-search-button" to="/users">
-                {t("accountPage.findUser")}
-              </Link>
-
-              <button
-                className="auth-button auth-button-secondary"
-                type="button"
-                onClick={handleSignOut}
-              >
-                {t("accountPage.signOut")}
-              </button>
-            </div>
-          </aside>
-
-          <div className="iste-account-main-column">
-          {activeTab === "profile" ? (
-            <>
-            <div className="iste-member-section-intro">
-              <div>
-                <span className="iste-account-section-label">{language === "en" ? "YOUR SPACE" : "ТВІЙ ПРОСТІР"}</span>
-                <h2>{ui.overview}</h2>
-                <p>{ui.subtitle}</p>
-              </div>
-              <span className="iste-member-section-intro__mark" aria-hidden="true">ISTe</span>
-            </div>
-            <div className="auth-card iste-account-quick"><span className="iste-account-section-label">{ui.shortcuts}</span><div className="iste-account-quick__grid"><Link to="/team" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="users" /></span><span className="iste-quick-title">{ui.explore}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/news" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="news" /></span><span className="iste-quick-title">{ui.news}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/shop" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="shop" /></span><span className="iste-quick-title">{language === "uk" ? "Магазин" : language === "en" ? "Shop" : "Магазин"}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link><Link to="/users" className="iste-account-quick__item"><span className="iste-quick-icon" aria-hidden="true"><DashboardIcon name="search" /></span><span className="iste-quick-title">{t("accountPage.findUser")}</span><DashboardIcon name="arrow" size={18} className="iste-quick-arrow" aria-hidden="true" /></Link></div></div>
-            <div className="auth-card iste-member-about">
-              <div className="iste-member-about__heading">
-                <span className="iste-account-section-label">{language === "en" ? "ABOUT MEMBER" : "ПРО УЧАСНИКА"}</span>
-                <span className="iste-member-about__symbol" aria-hidden="true">✦</span>
-              </div>
-              <p>{profile?.bio || ui.bioEmpty}</p>
-              <button type="button" className="iste-account-outline-button" onClick={() => setActiveTab("edit")}>{ui.edit} <DashboardIcon name="arrow" size={16} aria-hidden="true" /></button>
-            </div>
-            <section className="auth-card iste-account-activity" aria-label={language === "uk" ? "Інформація про активність" : "Account activity"}>
-              <span className="iste-account-section-label">◷ {language === "uk" ? "АКТИВНІСТЬ ПРОФІЛЮ" : language === "en" ? "PROFILE ACTIVITY" : "АКТИВНОСТЬ ПРОФИЛЯ"}</span>
-              <div className="iste-account-activity__row"><span className="iste-account-activity__icon" aria-hidden="true">◎</span><div><strong>{language === "uk" ? "Реєстрація в ISTe" : language === "en" ? "Joined ISTe" : "Регистрация в ISTe"}</strong><small>{formatDate(profile?.created_at, language, t("accountPage.notSpecified"))}</small></div><span className="iste-account-activity__indicator">{language === "uk" ? "Підтверджено" : language === "en" ? "Confirmed" : "Подтверждено"}</span></div>
-              {profile?.updated_at ? <div className="iste-account-activity__row"><span className="iste-account-activity__icon" aria-hidden="true">✎</span><div><strong>{language === "uk" ? "Оновлення профілю" : language === "en" ? "Profile updated" : "Обновление профиля"}</strong><small>{formatDate(profile.updated_at, language, t("accountPage.notSpecified"))}</small></div><span className="iste-account-activity__indicator">✓</span></div> : null}
             </section>
-            </>
-          ) : null}
-          <div className={`auth-card account-editor ${activeTab === "profile" ? "iste-account-editor-hidden" : ""}`}>
-            <div className="iste-account-editor-head"><div><span className="iste-account-section-label">{ui.profile}</span><h2>{t("accountPage.editProfile")}</h2></div><button type="button" className="iste-account-back" onClick={() => setActiveTab("profile")}>{ui.back}</button></div>
-            {isDirty ? <p className="iste-account-unsaved">{ui.unsaved}</p> : null}
-            <form className="auth-form" onSubmit={handleSave}>
-              {(errorMessage || accountError) && (
-                <div className="auth-message auth-message-error">
-                  {errorMessage || accountError}
-                </div>
-              )}
 
-              {successMessage && (
-                <div className="auth-message auth-message-success">
-                  {successMessage}
-                </div>
-              )}
+            <section className="iste-social-panel iste-social-side-card">
+              <div className="iste-social-section-head"><h2>{social.about}</h2><span>✦</span></div>
+              <p className="iste-social-side-bio">{profile?.bio || social.noBio}</p>
+              <button className="iste-social-outline-btn" type="button" onClick={() => setActiveTab("about")}>{social.about}</button>
+            </section>
 
-              <label className="auth-field">
-                <span>{t("accountPage.nickname")}</span>
-                <input
-                  className="auth-input"
-                  type="text"
-                  autoComplete="username"
-                  value={form.username}
-                  onChange={updateField("username")}
-                  minLength={3}
-                  maxLength={32}
-                  required
-                  disabled={saving}
-                />
-              </label>
+            <section className="iste-social-panel iste-social-side-card">
+              <div className="iste-social-section-head"><h2>{social.details}</h2></div>
+              <dl className="iste-social-details">
+                <div><dt>{t("accountPage.accountId")}</dt><dd><code>{accountId || t("accountPage.notCreated")}</code>
+                <button type="button" onClick={handleCopyAccountId} disabled={!accountId}>{t("accountPage.copy")}</button></dd></div>
+                <div><dt>{t("accountPage.email")}</dt><dd>{user?.email}</dd></div>
+                <div><dt>{t("accountPage.nickname")}</dt><dd>@{profile?.username || "iste"}</dd></div>
+              </dl>
+              <span className="iste-social-copied" aria-live="polite">{copyMessage}</span>
+            </section>
 
-              <label className="auth-field">
-                <span>{t("accountPage.displayName")}</span>
-                <input
-                  className="auth-input"
-                  type="text"
-                  autoComplete="name"
-                  value={form.displayName}
-                  onChange={updateField("displayName")}
-                  minLength={2}
-                  maxLength={60}
-                  required
-                  disabled={saving}
-                />
-              </label>
-
-              <label className="auth-field">
-                <span>{t("accountPage.about")}</span>
-                <textarea
-                  className="auth-textarea"
-                  value={form.bio}
-                  onChange={updateField("bio")}
-                  maxLength={500}
-                  disabled={saving}
-                />
-                <small className="auth-hint">
-                  {t("accountPage.bioHint")} ({form.bio.length}/500)
-                </small>
-              </label>
-
-              <button
-                className="auth-button"
-                type="submit"
-                disabled={saving}
-              >
-                {saving
-                  ? t("accountPage.saving")
-                  : t("accountPage.saveChanges")}
-              </button>
-            </form>
-          </div>
-          </div>
+            <section className="iste-social-panel iste-social-side-card">
+              <div className="iste-social-section-head"><h2>{social.security}</h2></div>
+              <div className="iste-social-side-actions">
+                {(role === "game_manager" || role === "owner") && <Link to="/control/roster">{t("accountPage.rosterManager")}</Link>}
+                {role === "owner" && <Link to="/owner/users">{language === "en" ? "Manage members" : "Керування учасниками"}</Link>}
+                <Link to="/users">{t("accountPage.findUser")}</Link>
+                <button type="button" onClick={handleSignOut}>{t("accountPage.signOut")}</button>
+              </div>
+            </section>
+          </aside>
         </div>
       </div>
     </section>

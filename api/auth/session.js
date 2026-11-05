@@ -22,10 +22,10 @@ import {
 
 
 const PROFILE_COLUMNS =
-  "id, username, display_name, avatar_url, bio, account_number, created_at, updated_at";
+  "id, username, display_name, avatar_url, bio, account_number, is_verified, created_at, updated_at";
 
 const LEGACY_PROFILE_COLUMNS =
-  "id, username, display_name, avatar_url, bio, created_at, updated_at";
+  "id, username, display_name, avatar_url, bio, is_verified, created_at, updated_at";
 
 const NEWS_COLUMNS =
   "id, title, slug, excerpt, content, cover_url, category, status, is_featured, author_id, updated_by, published_at, created_at, updated_at";

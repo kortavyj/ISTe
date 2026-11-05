@@ -106,6 +106,10 @@
       "destination": "/api/owner?action=set-blocked"
     },
     {
+      "source": "/api/owner/set-verified",
+      "destination": "/api/owner?action=set-verified"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
