@@ -128,3 +128,27 @@
   .member-comment-form > div{align-items:stretch;flex-direction:column}
   .member-comment-form button{width:100%}
 }
+
+/* Independent profile guestbook, not part of the showcase publication card. */
+.member-comments-standalone {
+  margin-top: 18px;
+  padding-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid #302a38;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(189, 47, 104, .035), transparent 58%), #0d0c12;
+}
+.member-comments-standalone > header {
+  padding: 19px 23px;
+  background: rgba(255, 255, 255, .015);
+}
+.member-comments-standalone .member-comments-empty {
+  padding: 21px 23px;
+}
+.member-comments-standalone .member-comment-form {
+  border-top: 1px solid #282530;
+}
+@media (max-width: 760px) {
+  .member-comments-standalone { margin-top: 14px; }
+  .member-comments-standalone > header { padding: 16px 18px; }
+}
