@@ -2321,14 +2321,20 @@ async function handleMemberAwards(request, response, body, manage = false) {
     }
     return response.status(200).json({ ok: true });
   }
-  const { data, error } = await account.supabase.rpc("member_awards_for_account", {
+  const { data, error } = await account.supabase.rpc("member_awards_snapshot", {
     p_account_number: number,
   });
   if (error) {
-    console.error("Member awards lookup failed", error);
+    console.error("Member awards snapshot failed", error);
     return sendError(response, 502, "AWARDS_LOOKUP_FAILED", "Не вдалося завантажити нагороди.");
   }
-  return response.status(200).json({ ok: true, awards: Array.isArray(data) ? data : [] });
+  return response.status(200).json({
+    ok: true,
+    awards: data?.awards || [],
+    history: data?.history || [],
+    unread: data?.unread || [],
+    isSelf: data?.isSelf === true,
+  });
 }
 
 async function handleUserSearch(
@@ -3205,6 +3211,16 @@ if (action === "avatar-confirm") {
   return handleAvatarConfirm(request, response, body);
 }
 
+if (action === "member-awards-mark-read") {
+  const account = await requireAccount(request, response);
+  if (!account.ok) return sendAccountError(response, account);
+  const { error } = await account.supabase.rpc("member_awards_mark_read");
+  if (error) {
+    console.error("Member award receipt failed:", error);
+    return sendError(response, 502, "AWARDS_READ_FAILED", "Не вдалося оновити сповіщення.");
+  }
+  return response.status(200).json({ ok: true });
+}
 if (action === "member-awards-get") return handleMemberAwards(request, response, body);
 if (action === "member-awards-manage") return handleMemberAwards(request, response, body, true);
 
