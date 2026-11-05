@@ -86,6 +86,10 @@
       "destination": "/api/tournaments?route=status-transition"
     },
     {
+      "source": "/api/member-showcase",
+      "destination": "/api/owner?module=showcase"
+    },
+    {
       "source": "/api/shop",
       "destination": "/api/owner?module=shop"
     },
