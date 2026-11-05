@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 430" preserveAspectRatio="xMidYMid slice">
+<defs>
+<linearGradient id="base" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#340c42"/><stop offset=".36" stop-color="#1b102b"/><stop offset=".78" stop-color="#301024"/><stop offset="1" stop-color="#7a1947"/></linearGradient>
+<radialGradient id="magenta"><stop stop-color="#ed388d" stop-opacity=".75"/><stop offset="1" stop-color="#b21870" stop-opacity="0"/></radialGradient>
+<radialGradient id="violet"><stop stop-color="#9651ff" stop-opacity=".75"/><stop offset="1" stop-color="#5f1d9c" stop-opacity="0"/></radialGradient>
+<linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#241b36"/><stop offset=".53" stop-color="#100f1d"/><stop offset="1" stop-color="#070810"/></linearGradient>
+<linearGradient id="eyes"><stop stop-color="#ffbd51"/><stop offset="1" stop-color="#c84118"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="10"/></filter>
+<pattern id="lines" width="170" height="140" patternUnits="userSpaceOnUse" patternTransform="skewX(-35)"><path d="M0 0H170 M0 50H170" stroke="#ed65df" stroke-opacity=".11" stroke-width="2"/></pattern>
+</defs>
+<rect width="1600" height="430" fill="url(#base)"/>
+<ellipse cx="200" cy="100" rx="390" ry="260" fill="url(#magenta)"/>
+<ellipse cx="1420" cy="40" rx="400" ry="290" fill="url(#violet)"/>
+<rect width="1600" height="430" fill="url(#lines)"/>
+<g fill="none" stroke="#f25bca" stroke-opacity=".24" stroke-width="3"><path d="M0 110L390 40 585 130M1600 72L1260 15 1040 120M0 258L370 202 540 278M1600 264L1240 175 1040 260"/></g>
+<g opacity=".66"><path d="M0 115Q130 100 205 175L402 300 473 100 560 100 456 405 0 350Z" fill="#0e0e22"/><path d="M1600 115Q1470 100 1395 175L1198 300 1127 100 1040 100 1144 405 1600 350Z" fill="#0e0e22"/><path d="M15 145L225 208 366 322M1585 145L1375 208 1234 322" fill="none" stroke="#df3290" stroke-width="9" stroke-opacity=".36"/></g>
+<g transform="translate(800 235)">
+<path d="M-225 -80L-302 -241 -142 -187 -95 -235 0 -199 95 -235 142 -187 302 -241 225 -80 244 24 149 142 0 185 -149 142 -244 24Z" fill="url(#armor)" stroke="#62516c" stroke-width="8"/>
+<path d="M-211 -107L-249 -204 -141 -143 -132 -72M211 -107L249 -204 141 -143 132 -72" stroke="#b94895" stroke-opacity=".5" stroke-width="14" fill="none"/>
+<path d="M-172 -105Q-100 -174 0 -157Q100 -174 172 -105L145 -6 82 42 0 18 -82 42 -145 -6Z" fill="#15101e" stroke="#382d49" stroke-width="8"/>
+<path d="M-166 -70Q-99 -97 -51 -65L-66 -25 -134 -30Z" fill="url(#eyes)" stroke="#a84a25" stroke-width="5"/>
+<path d="M166 -70Q99 -97 51 -65L66 -25 134 -30Z" fill="url(#eyes)" stroke="#a84a25" stroke-width="5"/>
+<path d="M-165 -62L-90 -51M165 -62L90 -51" stroke="#110d19" stroke-width="13"/>
+<path d="M-72 30L0 12 72 30 44 93 0 114 -44 93Z" fill="#0b0b14" stroke="#3f3049" stroke-width="7"/>
+<path d="M-35 49L0 62 35 49 -1 87Z" fill="#47253c" stroke="#ee4c93" stroke-opacity=".46" stroke-width="3"/>
+<path d="M-132 50L-200 23 -147 113 -58 140M132 50L200 23 147 113 58 140" fill="none" stroke="#5c3656" stroke-width="13"/>
+<path d="M-91 -137L-23 -84 0 -163 23 -84 91 -137" fill="none" stroke="#a6478c" stroke-opacity=".44" stroke-width="8"/>
+</g>
+<rect y="310" width="1600" height="120" fill="#050608" opacity=".53"/>
+<rect y="345" width="1600" height="85" fill="#050507" opacity=".53"/>
+</svg>
