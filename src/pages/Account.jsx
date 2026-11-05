@@ -97,6 +97,46 @@ export default function Account() {
   const [activeTab, setActiveTab] = useState("profile");
   const [avatarSaving,setAvatarSaving] = useState(false);
   const [avatarMessage,setAvatarMessage] = useState("");
+  const [latestNews, setLatestNews] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+  const [newsFailed, setNewsFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    async function loadLatestNews() {
+      setNewsLoading(true);
+      setNewsFailed(false);
+      const { data, error } = await supabase.from("news_posts")
+        .select("id, title, excerpt, cover_url, published_at")
+        .eq("status", "published")
+        .lte("published_at", new Date().toISOString())
+        .order("published_at", { ascending: false })
+        .limit(3);
+
+      if (!active) return;
+      if (error) {
+        setLatestNews([]);
+        setNewsFailed(true);
+        setNewsLoading(false);
+        return;
+      }
+
+      const posts = Array.isArray(data) ? data : [];
+      if (posts.length > 0) {
+        const { data: translated } = await supabase.from("news_posts")
+          .select("id, translations").in("id", posts.map((post) => post.id));
+        if (!active) return;
+        const byId = new Map((translated || []).map((item) => [item.id, item.translations]));
+        setLatestNews(posts.map((post) => ({ ...post, translations: byId.get(post.id) || null })));
+      } else {
+        setLatestNews([]);
+      }
+      setNewsLoading(false);
+    }
+    void loadLatestNews();
+    return () => { active = false; };
+  }, []);
+
 
   useEffect(() => {
     setForm({
@@ -284,9 +324,20 @@ export default function Account() {
     }
   }
 
+  function newsText(post, field) {
+    const translated = post?.translations?.[language]?.[field];
+    return typeof translated === "string" && translated.trim()
+      ? translated.trim()
+      : String(post?.[field] || "").trim();
+  }
+
   const social = language === "en"
     ? { overview: "Overview", community: "Community", about: "About", settings: "Edit profile", posts: "Posts", emptyTitle: "Your story starts here", emptyText: "Member posts are coming later. For now, explore ISTe news and the community.", news: "Explore news", actions: "Quick links", team: "Team", shop: "Shop", people: "Find members", stats: "Member details", joined: "Joined ISTe", profile: "Profile", copyId: "Copy ID", confirmed: "Verified by ISTe", member: "ISTe member", noBio: "Tell the community about yourself in your profile settings.", details: "Account details", progress: "Profile completion", security: "Account management" }
     : { overview: "Огляд", community: "Спільнота", about: "Про мене", settings: "Редагувати", posts: "Публікації", emptyTitle: "Твоя історія починається тут", emptyText: "Публікації учасників з'являться пізніше. Поки можеш переглянути новини ISTe та спільноту.", news: "Переглянути новини", actions: "Швидкий доступ", team: "Команда", shop: "Магазин", people: "Знайти учасників", stats: "Дані учасника", joined: "В ISTe з", profile: "Профіль", copyId: "Копіювати ID", confirmed: "Підтверджено ISTe", member: "Учасник ISTe", noBio: "Розкажи про себе у налаштуваннях профілю.", details: "Дані акаунта", progress: "Заповнення профілю", security: "Керування акаунтом" };
+
+  const editorial = language === "en"
+    ? { latest: "Latest from ISTe", allNews: "All news", loading: "Loading the latest news…", noNews: "No published news yet.", unavailable: "News are temporarily unavailable.", updates: "Community posts", coming: "Member posts and reactions will appear here when this feature launches.", join: "Explore ISTe", member: "Member details", settings: "Account controls" }
+    : { latest: "Останні новини ISTe", allNews: "Усі новини", loading: "Завантажуємо останні новини…", noNews: "Опублікованих новин поки немає.", unavailable: "Новини тимчасово недоступні.", updates: "Публікації учасників", coming: "Публікації та реакції учасників з’являться після запуску цієї функції.", join: "Переглянути ISTe", member: "Про учасника", settings: "Керування акаунтом" };
 
   return (
     <section className="auth-page iste-account-page iste-social-page">
@@ -351,17 +402,38 @@ export default function Account() {
           <main className="iste-social-main">
             {activeTab === "profile" && (
               <>
-                <section className="iste-social-feed">
+                <section className="iste-social-feed iste-social-news" aria-labelledby="iste-latest-news-title">
                   <div className="iste-social-section-head">
-                    <h2>{social.posts}</h2>
-                    <span>ISTe</span>
+                    <h2 id="iste-latest-news-title">{editorial.latest}</h2>
+                    <Link to="/news">{editorial.allNews} <DashboardIcon name="arrow" size={14} aria-hidden="true" /></Link>
                   </div>
-                  <div className="iste-social-feed-empty">
-                    <div className="iste-social-empty-mark" aria-hidden="true">✦</div>
-                    <h3>{social.emptyTitle}</h3>
-                    <p>{social.emptyText}</p>
-                    <Link to="/news">{social.news} <DashboardIcon name="arrow" size={15} aria-hidden="true" /></Link>
-                  </div>
+                  {newsLoading ? (
+                    <p className="iste-social-news-message" role="status">{editorial.loading}</p>
+                  ) : newsFailed || latestNews.length === 0 ? (
+                    <div className="iste-social-news-fallback">
+                      <p>{newsFailed ? editorial.unavailable : editorial.noNews}</p>
+                      <Link to="/news">{editorial.allNews}</Link>
+                    </div>
+                  ) : (
+                    <div className="iste-social-news-list">
+                      {latestNews.map((post) => (
+                        <article className="iste-social-news-item" key={post.id}>
+                          <Link to={`/news?post=${encodeURIComponent(post.id)}`} className="iste-social-news-cover" aria-label={newsText(post,"title")}>
+                            {post.cover_url ? <img src={post.cover_url} alt="" loading="lazy" /> : <span aria-hidden="true">ISTe</span>}
+                          </Link>
+                          <div className="iste-social-news-content">
+                            <time dateTime={post.published_at}>{formatDate(post.published_at, language, "")}</time>
+                            <h3><Link to={`/news?post=${encodeURIComponent(post.id)}`}>{newsText(post,"title")}</Link></h3>
+                            {newsText(post,"excerpt") && <p>{newsText(post,"excerpt")}</p>}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </section>
+                <section className="iste-social-posts-note" aria-label={editorial.updates}>
+                  <span className="iste-social-posts-mark" aria-hidden="true">✦</span>
+                  <div><h2>{editorial.updates}</h2><p>{editorial.coming}</p></div>
                 </section>
                 <section className="iste-social-panel iste-social-shortcuts">
                   <div className="iste-social-section-head"><h2>{social.actions}</h2></div>
@@ -429,19 +501,13 @@ export default function Account() {
           </main>
 
           <aside className="iste-social-sidebar">
-            <section className="iste-social-panel iste-social-stats">
-              <div className="iste-social-stat">
-                <small>{social.progress}</small>
-                <strong>{Math.round(completeness / 3 * 100)}%</strong>
-              </div>
-              <div className="iste-social-stat">
-                <small>{t("accountPage.role")}</small>
-                <strong>{KNOWN_ROLES.has(role) ? t("roles." + role) : role}</strong>
-              </div>
-              <div className="iste-social-stat">
-                <small>{social.joined}</small>
-                <strong>{formatDate(profile?.created_at, language, t("accountPage.notSpecified"))}</strong>
-              </div>
+            <section className="iste-social-panel iste-social-member-facts" aria-label={editorial.member}>
+              <div className="iste-social-section-head"><h2>{editorial.member}</h2></div>
+              <dl>
+                <div><dt>{t("accountPage.role")}</dt><dd>{KNOWN_ROLES.has(role) ? t("roles." + role) : role}</dd></div>
+                <div><dt>{social.joined}</dt><dd>{formatDate(profile?.created_at, language, t("accountPage.notSpecified"))}</dd></div>
+                {profile?.is_verified === true && <div><dt>{social.confirmed}</dt><dd className="iste-social-member-verified"><span aria-hidden="true">✓</span> {social.confirmed}</dd></div>}
+              </dl>
             </section>
 
             <section className="iste-social-panel iste-social-side-card">
@@ -461,6 +527,7 @@ export default function Account() {
               <span className="iste-social-copied" aria-live="polite">{copyMessage}</span>
             </section>
 
+            {activeTab === "edit" && (
             <section className="iste-social-panel iste-social-side-card">
               <div className="iste-social-section-head"><h2>{social.security}</h2></div>
               <div className="iste-social-side-actions">
@@ -470,6 +537,7 @@ export default function Account() {
                 <button type="button" onClick={handleSignOut}>{t("accountPage.signOut")}</button>
               </div>
             </section>
+            )}
           </aside>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../i18n/LanguageContext.jsx";
 import { supabase } from "../lib/supabase.js";
@@ -337,7 +338,21 @@ export default function News() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [featuredIndex, setFeaturedIndex] = useState(0);
-  const [selectedPostId, setSelectedPostId] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedPostId, setSelectedPostId] = useState(() => searchParams.get("post"));
+
+  useEffect(() => {
+    setSelectedPostId(searchParams.get("post"));
+  }, [searchParams]);
+
+  function closeSelectedPost() {
+    setSelectedPostId(null);
+    if (searchParams.has("post")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("post");
+      setSearchParams(next, { replace: true });
+    }
+  }
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -544,7 +559,7 @@ export default function News() {
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
-              setSelectedPostId(null);
+              closeSelectedPost();
             }
           }}
         >
@@ -557,7 +572,7 @@ export default function News() {
             <button
               className="news-modal-close"
               type="button"
-              onClick={() => setSelectedPostId(null)}
+              onClick={() => closeSelectedPost()}
               aria-label={copy.close}
             >
               ×
