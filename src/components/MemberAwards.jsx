@@ -27,7 +27,7 @@ function formattedDate(value) {
   return new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
 }
 
-export default function MemberAwards({ accountNumber, canManage }) {
+export default function MemberAwards({ accountNumber, canManage, verificationType = "silver" }) {
   const [awards, setAwards] = useState([]);
   const [history, setHistory] = useState([]);
   const [unread, setUnread] = useState([]);
@@ -127,7 +127,8 @@ export default function MemberAwards({ accountNumber, canManage }) {
     {status === "error" && <p className="iste-awards-muted" role="alert">Не вдалося отримати нагороди.</p>}
     {status === "ready" && activeTab !== "history" && <div className="iste-awards-grid">
       {(activeTab === "catalog" ? DISPLAY_ORDER.map(award_code => ({ award_code })) : awards).map(item => {
-        const [title, description, , tone] = CATALOG[item.award_code];
+        const [title, description, , categoryTone] = CATALOG[item.award_code];
+        const tone = item.award_code === "verified" && ["red", "silver", "gold"].includes(verificationType) ? verificationType : categoryTone;
         const earned = earnedCodes.has(item.award_code);
         const achieved = awards.find(entry => entry.award_code === item.award_code);
         return <div key={item.award_code}
@@ -141,7 +142,7 @@ export default function MemberAwards({ accountNumber, canManage }) {
     </div>}
     {status === "ready" && activeTab === "earned" && awards.length === 0 && <p className="iste-awards-muted">Нагороди ще не отримано.</p>}
     {status === "ready" && activeTab === "history" && <div className="iste-awards-history">
-      {history.map(item => <div className="iste-awards-history-item" data-tone={CATALOG[item.award_code][3]} key={item.award_code}>
+      {history.map(item => <div className="iste-awards-history-item" data-tone={item.award_code === "verified" && ["red", "silver", "gold"].includes(verificationType) ? verificationType : CATALOG[item.award_code][3]} key={item.award_code}>
         <span className="iste-awards-history-symbol"><AwardSymbol code={item.award_code} /></span>
         <span><strong>{CATALOG[item.award_code][0]}</strong><small>{formattedDate(item.granted_at)}</small></span>
         <span className={item.active ? "iste-awards-history-active" : "iste-awards-history-archived"}>{item.active ? "Активна" : "В архіві"}</span>

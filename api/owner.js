@@ -108,17 +108,18 @@ async function handleUsers(request, response) {
     const ids = users.map((entry) => entry.user_id);
     const { data: verificationRows, error: verificationError } =
       await owner.supabase.from("profiles")
-        .select("id, is_verified").in("id", ids);
+        .select("id, is_verified, verification_type").in("id", ids);
     if (verificationError) {
       console.error("Owner verification list failed:", verificationError);
       return sendError(response, 502, "VERIFICATION_LIST_FAILED", "Не вдалося перевірити статуси профілів.");
     }
-    const verifiedMap = new Map((verificationRows || []).map((row) => [row.id, row.is_verified === true]));
+    const verifiedMap = new Map((verificationRows || []).map((row) => [row.id, { verified: row.is_verified === true, type: row.is_verified ? row.verification_type || "silver" : null }]));
     return response.status(200).json({
       ok: true,
       users: users.map((entry) => ({
         ...entry,
-        is_verified: verifiedMap.get(entry.user_id) === true,
+        is_verified: verifiedMap.get(entry.user_id)?.verified === true,
+        verification_type: verifiedMap.get(entry.user_id)?.type || null,
       })),
     });
   } catch {
@@ -286,7 +287,7 @@ async function handleVerificationStatus(request, response) {
 
   const { data, error } = await actor.supabase
     .from("profiles")
-    .select("id, is_verified")
+    .select("id, is_verified, verification_type")
     .eq("account_number", accountNumber)
     .maybeSingle();
 
@@ -300,6 +301,7 @@ async function handleVerificationStatus(request, response) {
   return response.status(200).json({
     ok: true,
     verified: data.is_verified === true,
+    verificationType: data.is_verified ? data.verification_type || "silver" : null,
   });
 }
 
@@ -318,7 +320,7 @@ async function handleSetVerified(request, response) {
   const byAccountNumber = body?.accountNumber !== undefined
     && Number.isSafeInteger(accountNumber)
     && accountNumber > 0;
-  if (!body || (!byUuid && !byAccountNumber) || typeof body.verified !== "boolean") {
+  if (!body || (!byUuid && !byAccountNumber) || typeof body.verified !== "boolean" || (body.verificationType !== undefined && !["red", "silver", "gold"].includes(body.verificationType))) {
     return sendError(response, 400, "INVALID_VERIFICATION_REQUEST", "Невірні дані підтвердження.");
   }
 
@@ -344,9 +346,13 @@ async function handleSetVerified(request, response) {
       }
       userId = target.id;
     }
-    const { data, error } = await owner.supabase.rpc("owner_set_profile_verified", {
+    const requestedType = body.verified ? (body.verificationType || "silver") : null;
+    if (owner.role === "admin" && requestedType && requestedType !== "silver") {
+      return sendError(response, 403, "OWNER_REQUIRED", "Червону та золоту верифікацію може видавати лише власник ISTe.");
+    }
+    const { data, error } = await owner.supabase.rpc("owner_set_profile_verification_type", {
       p_user_id: userId,
-      p_verified: body.verified,
+      p_type: requestedType,
     });
     if (error) {
       console.error("Owner verification update failed:", error);

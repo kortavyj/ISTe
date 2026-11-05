@@ -22,10 +22,10 @@ import {
 
 
 const PROFILE_COLUMNS =
-  "id, username, display_name, avatar_url, banner_url, avatar_frame, bio, account_number, is_verified, created_at, updated_at";
+  "id, username, display_name, avatar_url, banner_url, avatar_frame, bio, account_number, is_verified, verification_type, created_at, updated_at";
 
 const LEGACY_PROFILE_COLUMNS =
-  "id, username, display_name, avatar_url, banner_url, avatar_frame, bio, is_verified, created_at, updated_at";
+  "id, username, display_name, avatar_url, banner_url, avatar_frame, bio, is_verified, verification_type, created_at, updated_at";
 
 const NEWS_COLUMNS =
   "id, title, slug, excerpt, content, cover_url, category, status, is_featured, author_id, updated_by, published_at, created_at, updated_at";
@@ -2424,15 +2424,16 @@ async function handleUserSearch(
         : data ?? null;
 
     if (profile?.account_number) {
-      const { data: verified, error: statusError } = await account.supabase.rpc(
-        "profile_verification_for_member_search",
+      const { data: verificationType, error: statusError } = await account.supabase.rpc(
+        "profile_verification_type_for_member_search",
         { p_account_number: profile.account_number },
       );
       if (statusError) {
         console.error("Member verification lookup failed:", statusError);
         return sendError(response, 502, "VERIFICATION_LOOKUP_FAILED", "Не вдалося отримати статус профілю.");
       }
-      profile.is_verified = verified === true;
+      profile.verification_type = ["red", "silver", "gold"].includes(verificationType) ? verificationType : null;
+      profile.is_verified = profile.verification_type !== null;
       const { data: banner, error: bannerError } = await account.supabase.rpc(
         "member_public_banner_for_account",
         { p_account_number: profile.account_number },

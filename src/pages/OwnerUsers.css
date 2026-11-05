@@ -659,3 +659,13 @@
 .owner-verification-actions { display:flex;justify-content:flex-end;margin:12px 0 0; }
 .owner-verification-actions .owner-button { width:auto;min-width:174px; }
 .owner-verified-chip { color:#62dce9!important;background:rgba(72,202,232,.12)!important;border:1px solid rgba(72,202,232,.4)!important; }
+
+.owner-verification-actions { flex-wrap:wrap;align-items:flex-end;gap:10px; }
+.owner-verification-type-selector { display:grid;gap:6px;min-width:180px;max-width:260px;flex:1; }
+.owner-verification-type-selector span { font-size:.73rem;color:#b7a8b2;font-weight:750; }
+.owner-verification-type-selector select {
+  min-height:39px;width:100%;padding:9px;
+  border:1px solid #794050;border-radius:9px;background:#191018;
+  color:#f6f0f4;font:inherit;font-size:.75rem;
+}
+.owner-verification-type-selector select:focus-visible { outline:2px solid #f35370;outline-offset:2px; }
