@@ -10,6 +10,11 @@ const SHAPES = {
   tournament_winner: <><path d="M14 12h20v10c0 9-5 13-10 13s-10-4-10-13Z"/><path d="M14 15H8v6c0 5 3 7 8 7m18-13h6v6c0 5-3 7-8 7M24 35v6m-8 0h16"/></>,
   partner: <><path d="m8 25 8-8 8 3 8-3 8 8-13 13h-6Z"/><path d="m17 26 7 6 8-7M16 17l5-5h7l4 5"/></>,
   creator: <><path d="m24 8 3 12 12 4-12 4-3 12-3-12-12-4 12-4Z"/><path d="M36 8v7m-4-3.5h8M10 35v5m-2.5-2.5h5"/></>,
+  month_member: <><circle cx="24" cy="24" r="12"/><path d="M24 16v9l7 4M24 6v3"/></>,
+  year_member: <><path d="M12 32V15l12-7 12 7v17l-12 8Z"/><path d="m18 25 5 5 9-12"/></>,
+  first_showcase: <><rect x="12" y="14" width="24" height="21" rx="2"/><circle cx="20" cy="21" r="2"/><path d="m14 31 8-8 5 5 3-3 4 6"/></>,
+  first_comment: <><path d="M11 13h26v17H24l-9 7v-7h-4Z"/><path d="M17 20h14M17 25h9"/></>,
+  ten_comments: <><path d="M10 16h18v12H19l-6 5v-5h-3Z"/><path d="M22 12h16v15h-6l-4 4M15 21h8"/></>,
 };
 
 export default function AwardSymbol({ code }) {
