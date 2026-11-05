@@ -99,9 +99,25 @@ async function handleUsers(request, response) {
       );
     }
 
+    const users = Array.isArray(data) ? data : [];
+    if (users.length === 0) {
+      return response.status(200).json({ ok: true, users: [] });
+    }
+    const ids = users.map((entry) => entry.user_id);
+    const { data: verificationRows, error: verificationError } =
+      await owner.supabase.from("profiles")
+        .select("id, is_verified").in("id", ids);
+    if (verificationError) {
+      console.error("Owner verification list failed:", verificationError);
+      return sendError(response, 502, "VERIFICATION_LIST_FAILED", "Не вдалося перевірити статуси профілів.");
+    }
+    const verifiedMap = new Map((verificationRows || []).map((row) => [row.id, row.is_verified === true]));
     return response.status(200).json({
       ok: true,
-      users: Array.isArray(data) ? data : [],
+      users: users.map((entry) => ({
+        ...entry,
+        is_verified: verifiedMap.get(entry.user_id) === true,
+      })),
     });
   } catch {
     return sendError(
@@ -247,6 +263,43 @@ async function handleUpdateRole(request, response) {
       "INTERNAL_SERVER_ERROR",
       "Не удалось изменить роль пользователя.",
     );
+  }
+}
+
+async function handleSetVerified(request, response) {
+  const guard = guardRequest(request, {
+    methods: ["POST"],
+    requireJson: true,
+    requireOrigin: true,
+    maxBodyBytes: 8 * 1024,
+  });
+  if (!guard.ok) return sendGuardError(response, guard);
+
+  const body = readJsonBody(request);
+  if (!body || !isUuid(body.userId) || typeof body.verified !== "boolean") {
+    return sendError(response, 400, "INVALID_VERIFICATION_REQUEST", "Невірні дані підтвердження.");
+  }
+
+  const owner = await getOwner(request, response);
+  if (!owner) return;
+  if (owner.role !== "owner") {
+    return sendError(response, 403, "OWNER_REQUIRED", "Тільки власник ISTe може підтверджувати профілі.");
+  }
+
+  try {
+    const { data, error } = await owner.supabase.rpc("owner_set_profile_verified", {
+      p_user_id: body.userId,
+      p_verified: body.verified,
+    });
+    if (error) {
+      console.error("Owner verification update failed:", error);
+      const mapped = mapOwnerRpcError(error, "Не вдалося змінити підтвердження профілю.");
+      return sendError(response, mapped.status, mapped.error, mapped.message);
+    }
+    return response.status(200).json({ ok: true, result: data });
+  } catch (error) {
+    console.error("Unexpected verification update error:", error);
+    return sendError(response, 500, "VERIFICATION_UPDATE_FAILED", "Не вдалося змінити підтвердження профілю.");
   }
 }
 
@@ -415,6 +468,10 @@ export default async function handler(request, response) {
 
   if (action === "update-role") {
     return handleUpdateRole(request, response);
+  }
+
+  if (action === "set-verified") {
+    return handleSetVerified(request, response);
   }
 
   if (action === "set-blocked") {
