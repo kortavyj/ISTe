@@ -133,19 +133,7 @@ export default function UserSearch() {
       setHasSearched(true);
 
       if (foundProfile?.account_number && canVerify) {
-        try {
-          const verificationResponse = await fetch(
-            `/api/owner/verification-status?accountNumber=${encodeURIComponent(foundProfile.account_number)}`,
-            { credentials: "include", cache: "no-store" },
-          );
-          const verification = await readApiResponse(verificationResponse);
-          setVerificationState(verification.verified === true);
-          setResult(current => current?.account_number === foundProfile.account_number
-            ? { ...current, is_verified: verification.verified === true }
-            : current);
-        } catch {
-          setVerificationMessage("Статус верифікації тимчасово недоступний.");
-        }
+        setVerificationState(foundProfile.is_verified === true);
       }
     } catch (error) {
       setErrorMessage(
@@ -181,7 +169,12 @@ export default function UserSearch() {
         ? "Верифікацію успішно видано."
         : "Верифікацію успішно знято.");
     } catch (error) {
-      setVerificationMessage(error.message || "Не вдалося змінити верифікацію.");
+      const failureMessage = error?.message || "Не вдалося змінити верифікацію.";
+      setVerificationMessage(
+        /two.factor|mfa|двофактор|двухфактор/i.test(failureMessage)
+          ? "Для видачі верифікації потрібна активна двофакторна автентифікація. Увійдіть із підтвердженням 2FA."
+          : failureMessage,
+      );
     } finally {
       setVerificationBusy(false);
     }
