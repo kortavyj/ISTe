@@ -560,3 +560,8 @@
   .auth-heading-mfa > p:last-child { font-size: .9rem; }
   .auth-page-mfa .mfa-login-panel { padding: 23px 20px; gap: 19px; }
 }
+
+/* During MFA the screen itself owns the only return-to-sign-in action. */
+body:has(.auth-page-mfa) .navbar-login-button {
+  display: none;
+}
