@@ -302,3 +302,337 @@
  .iste-account-page .iste-account-quick__item{min-height:128px}
 }
 @media(max-width:340px){.iste-account-page .iste-account-quick__grid{grid-template-columns:1fr}}
+
+/* 2026 ISTe esports member profile. Reference-inspired composition, original artwork. */
+.iste-account-page {
+  min-height: 100vh;
+  padding-top: calc(var(--navbar-height) + 30px);
+  padding-bottom: 88px;
+  background:
+    radial-gradient(ellipse 58% 22% at 50% 1%, rgba(115, 15, 51, .17), transparent 78%),
+    #050507;
+}
+.iste-account-page::before { display: none; }
+.iste-account-page .auth-shell-wide {
+  width: min(1320px, calc(100% - 64px));
+}
+.iste-member-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 365px;
+  border: 1px solid rgba(200, 74, 102, .19);
+  border-radius: 22px;
+  background: #0e0d13;
+  box-shadow: 0 26px 80px rgba(0,0,0,.4);
+}
+.iste-member-cover {
+  position: relative;
+  height: 234px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 42% 72% at 77% 23%, rgba(234, 49, 84, .45), transparent 90%),
+    radial-gradient(ellipse 38% 100% at 25% 5%, rgba(113, 59, 159, .37), transparent 84%),
+    linear-gradient(113deg, #14111d 0%, #221024 48%, #4c112e 100%);
+}
+.iste-member-cover::before {
+  content: "";
+  position: absolute;
+  inset: -85px -6%;
+  opacity: .30;
+  background: repeating-linear-gradient(140deg, transparent 0, transparent 45px, rgba(255,255,255,.10) 46px, transparent 47px);
+  transform: skewX(-9deg);
+}
+.iste-member-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(8,8,12,.94), rgba(8,8,12,.12) 40%, transparent 75%);
+}
+.iste-member-cover__wordmark {
+  position: absolute;
+  z-index: 1;
+  right: 5.3%;
+  top: -42px;
+  font-size: clamp(9rem, 23vw, 20rem);
+  line-height: 1.15;
+  letter-spacing: -.105em;
+  font-weight: 950;
+  font-style: italic;
+  color: rgba(255,255,255,.065);
+  transform: rotate(-6deg);
+  user-select: none;
+}
+.iste-member-cover__orb {
+  position: absolute;
+  display: block;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 28%;
+  transform: rotate(33deg);
+  filter: drop-shadow(0 0 30px rgba(250,33,83,.14));
+}
+.iste-member-cover__orb--one {
+  width: 350px; height: 350px;
+  top: -240px; right: 20%;
+  background: linear-gradient(135deg, rgba(237,56,97,.11), transparent 65%);
+}
+.iste-member-cover__orb--two {
+  width: 280px; height: 280px;
+  top: -200px; right: -40px;
+  background: linear-gradient(135deg, rgba(133,91,190,.11), transparent 65%);
+}
+.iste-member-cover__grid {
+  position: absolute;
+  inset: 0;
+  opacity: .15;
+  background-image: linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px);
+  background-size: 55px 55px;
+  transform: perspective(500px) rotateX(32deg) scale(1.2);
+}
+.iste-member-hero__body {
+  position: relative;
+  z-index: 2;
+  margin-top: -96px;
+  padding: 0 45px 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+}
+.iste-member-hero__identity { display:flex; gap: 25px; min-width:0; align-items:flex-end; }
+.iste-member-hero__avatar {
+  position: relative;
+  flex: none;
+  display:grid;
+  place-items:center;
+  width: 146px;
+  height: 146px;
+  overflow: visible;
+  border: 5px solid #0e0d13;
+  border-radius: 30px;
+  background: radial-gradient(circle at 40% 20%,#532038,#160d18 67%);
+  color:white;
+  font-size:3.5rem;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 0 0 1px rgba(244,68,98,.55), 0 16px 50px rgba(0,0,0,.55);
+}
+.iste-member-hero__avatar img {
+  width:100%;height:100%;display:block;object-fit:cover;border-radius:25px;
+}
+.iste-member-hero__avatar > span:first-child:not(.iste-member-hero__avatar-edit) {
+  line-height:1;
+}
+.iste-member-hero__avatar input {
+  position:absolute;
+  width:1px;height:1px;opacity:0;
+}
+.iste-member-hero__avatar:focus-within {outline:2px solid #fa536b;outline-offset:5px;}
+.iste-member-hero__avatar-edit {
+  position:absolute;
+  right:-11px;bottom:-9px;
+  display:grid;place-items:center;
+  width:34px;height:34px;
+  border:3px solid #0e0d13;border-radius:50%;
+  background:#f12a4c;color:white;font-size:1rem;
+  box-shadow:0 4px 12px rgba(239,33,68,.36);
+}
+.iste-member-hero__user {min-width:0; padding-bottom:7px;}
+.iste-member-hero__eyebrow {
+  display:block;margin-bottom:8px;color:#f4a7b6;
+  font-size:.71rem;letter-spacing:.18em;font-weight:800;
+}
+.iste-member-hero__user h1 {
+  margin:0;
+  color:#fff;
+  font-size:clamp(1.8rem,3.5vw,3.25rem);
+  font-weight:900;
+  line-height:1.08;
+  overflow-wrap:anywhere;
+}
+.iste-member-hero__user p {
+  margin:6px 0 12px;
+  color:#aaa4b2;
+  font-size:.97rem;
+}
+.iste-member-hero__badges {display:flex;align-items:center;flex-wrap:wrap;gap:9px;}
+.iste-member-hero__role,.iste-member-hero__id {
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  border-radius:7px;
+  padding:4px 10px;
+  font-size:.71rem;
+  font-weight:800;
+  letter-spacing:.055em;
+}
+.iste-member-hero__role {border:1px solid rgba(241,50,84,.43);background:rgba(236,40,77,.15);color:#ff7389;}
+.iste-member-hero__id {border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#d9d5dc;}
+.iste-member-hero__aside {width:min(270px,100%);flex:none;padding-bottom:9px;}
+.iste-member-hero__progress-label {display:flex;justify-content:space-between;gap:12px;color:#c8c0cc;font-size:.76rem;font-weight:650;}
+.iste-member-hero__progress-label strong {color:white;}
+.iste-member-hero__progress-track {
+  height:6px;margin:12px 0 19px;border-radius:99px;overflow:hidden;background:#302631;
+}
+.iste-member-hero__progress-track > span {
+  display:block;height:100%;border-radius:inherit;
+  background:linear-gradient(90deg,#f32147,#ff7d65);
+}
+.iste-member-hero__edit {
+  display:inline-flex;gap:12px;align-items:center;justify-content:center;
+  width:100%;min-height:43px;padding:0 15px;
+  border:1px solid rgba(246,86,113,.5);border-radius:10px;
+  background:rgba(235,43,75,.11);color:white;
+  font-size:.81rem;font-weight:750;cursor:pointer;
+  transition:background .2s,border-color .2s;
+}
+.iste-member-hero__edit:hover,.iste-member-hero__edit:focus-visible {
+  border-color:#fa6a81;background:rgba(235,43,75,.23);
+}
+.iste-member-hero__feedback {
+  position:relative;z-index:2;min-height:18px;padding:0 45px 12px;color:#f4b1c0;font-size:.77rem;
+}
+.iste-account-page .iste-account-tabs {
+  display:flex;align-items:center;
+  margin:19px 0 24px;gap:4px;padding:0;
+  border:0;border-bottom:1px solid #2b2932;
+  border-radius:0;background:none;
+  width:100%;
+}
+.iste-account-page .iste-account-tabs button {
+  position:relative;
+  flex:0 0 auto;
+  min-width:125px;
+  min-height:45px;
+  padding:10px 17px;
+  border:0;border-radius:0;
+  color:#a6a0ad;background:transparent;
+  font-size:.83rem;font-weight:700;
+}
+.iste-account-page .iste-account-tabs button.is-active {
+  color:#fff;background:rgba(255,255,255,.025);
+}
+.iste-account-page .iste-account-tabs button.is-active::after {
+  content:"";position:absolute;bottom:-1px;left:0;right:0;height:2px;
+  background:#fa365c;box-shadow:0 0 12px rgba(248,48,89,.46);
+}
+.iste-account-page .account-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1.8fr) minmax(275px,.75fr);
+  gap:24px;
+  align-items:start;
+}
+.iste-account-page .iste-account-main-column {order:1;min-width:0;gap:19px;}
+.iste-account-page .account-summary {order:2;min-width:0;position:static;}
+.iste-account-page .auth-card {
+  border:1px solid rgba(255,255,255,.105);
+  background:linear-gradient(150deg,rgba(255,255,255,.02),transparent 58%),#0f0e12;
+  box-shadow:0 16px 45px rgba(0,0,0,.18);
+  border-radius:16px;
+}
+.iste-account-page .account-summary {padding:24px;border-color:rgba(255,255,255,.12);}
+.iste-member-side-title,.iste-member-about__heading {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:20px;
+}
+.iste-member-side-title__dot {width:7px;height:7px;border-radius:50%;background:#f63255;box-shadow:0 0 12px rgba(246,50,85,.65);}
+.iste-account-page .account-details {margin:0 0 15px;gap:15px;}
+.iste-account-page .account-detail {padding:0 0 13px;}
+.iste-account-page .account-detail dt {font-size:.67rem;}
+.iste-account-page .account-detail dd {font-size:.86rem;line-height:1.45;overflow-wrap:anywhere;}
+.iste-account-page .account-id-detail code {font-size:.75rem;}
+.iste-account-page .account-summary-actions {display:grid;gap:10px;}
+.iste-account-page .account-summary-actions .auth-button {
+  min-height:42px;font-size:.75rem;border-radius:9px;
+}
+.iste-account-page .account-summary-actions .auth-button-secondary {
+  background:transparent;border-color:rgba(255,255,255,.18);box-shadow:none;
+}
+.iste-member-section-intro {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:20px;min-height:94px;padding:6px 3px 10px;
+}
+.iste-member-section-intro h2 {
+  margin:5px 0 4px;color:#f9f7fa;
+  font-size:clamp(1.45rem,2.6vw,2.1rem);font-weight:850;letter-spacing:-.045em;
+}
+.iste-member-section-intro p {margin:0;color:#99949f;font-size:.86rem;line-height:1.55;}
+.iste-member-section-intro__mark {color:rgba(252,75,111,.28);font-size:2.2rem;font-weight:950;font-style:italic;letter-spacing:-.1em;}
+.iste-account-page .iste-account-quick {padding:25px;}
+.iste-account-page .iste-account-quick__grid {grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;}
+.iste-account-page .iste-account-quick__item {
+  min-height:147px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.09);
+  background:#141318;
+}
+.iste-account-page .iste-account-quick__item:hover {
+  transform:translateY(-3px);
+  border-color:rgba(248,76,107,.43);
+  background:#1a151b;
+}
+.iste-account-page .iste-account-quick__item > .iste-quick-icon {background:#261721;color:#fb506e;}
+.iste-account-page .iste-account-quick__item > .iste-quick-title {font-size:.77rem;}
+.iste-account-page .iste-account-quick__item > .iste-quick-arrow {color:#847c8b;}
+.iste-member-about {padding:27px 29px;}
+.iste-member-about p {
+  max-width:65ch;margin:0 0 21px;color:#bcb6c1;
+  font-size:.94rem;line-height:1.78;white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.iste-member-about__symbol {color:#ef6582;font-size:1.15rem;}
+.iste-account-page .iste-account-activity {padding:25px 29px;}
+.iste-account-page .account-editor {padding:30px;}
+.iste-account-page .iste-account-section-label {color:#f37a91;}
+@media(max-width:1050px) {
+  .iste-account-page .account-grid {grid-template-columns:minmax(0,1.4fr) minmax(255px,.8fr);gap:16px;}
+  .iste-account-page .iste-account-quick__grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:800px) {
+  .iste-account-page .auth-shell-wide {width:min(700px,100%);}
+  .iste-member-cover {height:205px;}
+  .iste-member-hero__body {padding:0 25px 16px;gap:14px;}
+  .iste-member-hero__identity {gap:15px;}
+  .iste-member-hero__avatar {width:116px;height:116px;border-radius:25px;font-size:2.7rem;}
+  .iste-member-hero__avatar img {border-radius:20px;}
+  .iste-member-hero__aside {width:185px;}
+  .iste-member-hero__feedback {padding:0 25px 13px;}
+  .iste-account-page .account-grid {grid-template-columns:1fr;}
+  .iste-account-page .account-summary {order:2;}
+}
+@media(max-width:580px) {
+  .iste-account-page {padding-inline:14px;}
+  .iste-account-page .auth-shell-wide {width:100%;}
+  .iste-member-hero {border-radius:17px;min-height:0;}
+  .iste-member-cover {height:172px;}
+  .iste-member-cover__wordmark {top:-8px;right:5%;font-size:9rem;}
+  .iste-member-hero__body {
+    display:block;margin-top:-64px;
+    padding:0 19px 14px;
+  }
+  .iste-member-hero__identity {align-items:flex-end;gap:12px;}
+  .iste-member-hero__avatar {width:100px;height:100px;border-width:4px;border-radius:22px;font-size:2.25rem;}
+  .iste-member-hero__avatar img {border-radius:18px;}
+  .iste-member-hero__user {padding-bottom:0;}
+  .iste-member-hero__user h1 {font-size:clamp(1.45rem,6vw,2rem);}
+  .iste-member-hero__eyebrow {font-size:.57rem;letter-spacing:.08em;}
+  .iste-member-hero__user p {font-size:.8rem;margin:5px 0 8px;}
+  .iste-member-hero__badges {gap:5px;}
+  .iste-member-hero__role,.iste-member-hero__id {font-size:.61rem;padding:4px 7px;}
+  .iste-member-hero__aside {width:100%;padding:16px 0 0;}
+  .iste-member-hero__feedback {padding:0 19px 10px;}
+  .iste-account-page .iste-account-tabs {margin:14px 0 19px;}
+  .iste-account-page .iste-account-tabs button {min-width:0;flex:1;}
+  .iste-account-page .iste-account-quick {padding:19px;}
+  .iste-account-page .iste-account-quick__grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+  .iste-account-page .iste-account-quick__item {min-height:126px;padding:14px 12px;}
+  .iste-member-section-intro__mark {display:none;}
+  .iste-member-section-intro p {font-size:.77rem;}
+  .iste-account-page .iste-account-activity,.iste-member-about,.iste-account-page .account-editor {padding:20px;}
+}
+@media(max-width:350px) {
+  .iste-account-page .iste-account-quick__grid {grid-template-columns:1fr;}
+  .iste-member-hero__avatar {width:88px;height:88px;}
+  .iste-member-hero__user h1 {font-size:1.36rem;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .iste-member-hero__edit,.iste-account-page .iste-account-quick__item {transition:none;}
+}
