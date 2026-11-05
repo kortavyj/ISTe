@@ -611,12 +611,15 @@ export default function OwnerUsers() {
     }
   }
 
+  const [verificationTypeDrafts, setVerificationTypeDrafts] = useState({});
+
   async function toggleVerified(targetUser, selectedType = "silver") {
-    if (!["owner", "admin"].includes(currentRole) || actionUserId || (currentRole === "admin" && targetUser.role === "owner")) return;
-    const nextVerified = targetUser.is_verified !== true || (currentRole === "owner" && targetUser.verification_type !== selectedType);
+    if (!["owner", "admin"].includes(currentRole) || actionUserId || (currentRole === "admin" && (targetUser.role === "owner" || ["red", "gold"].includes(targetUser.verification_type)))) return;
+    const changingType = targetUser.is_verified === true && targetUser.verification_type !== selectedType;
+    const nextVerified = targetUser.is_verified !== true || changingType;
     const title = language === "en"
-      ? (nextVerified ? "Verify this member?" : "Remove verification from this member?")
-      : (nextVerified ? "Підтвердити цього учасника?" : "Зняти підтвердження з цього учасника?");
+      ? changingType ? "Change verification type?" : nextVerified ? "Verify this member?" : "Remove verification from this member?"
+      : changingType ? "Змінити тип верифікації?" : nextVerified ? "Підтвердити цього учасника?" : "Зняти підтвердження з цього учасника?";
     if (!window.confirm(title)) return;
 
     setActionUserId(targetUser.user_id);
@@ -966,7 +969,8 @@ export default function OwnerUsers() {
                           {currentRole === "owner" && (
                             <label className="owner-verification-type-selector">
                               <span>Тип верифікації</span>
-                              <select id={`verification-type-${item.user_id}`} defaultValue={item.verification_type || "silver"}
+                              <select id={`verification-type-${item.user_id}`} value={verificationTypeDrafts[item.user_id] || item.verification_type || "silver"}
+                                onChange={event => setVerificationTypeDrafts(current => ({ ...current, [item.user_id]: event.target.value }))}
 >
                                 <option value="silver">Срібна, підтверджений профіль</option>
                                 <option value="red">Червона, від власника</option>
@@ -978,12 +982,14 @@ export default function OwnerUsers() {
                           <button
                             className={item.is_verified ? "owner-button owner-button-secondary" : "owner-button owner-button-primary"}
                             type="button"
-                            disabled={Boolean(actionUserId)}
-                            onClick={event => toggleVerified(item, event.currentTarget.closest(".owner-verification-actions")?.querySelector("select")?.value || "silver")}
+                            disabled={Boolean(actionUserId) || (currentRole === "admin" && ["red", "gold"].includes(item.verification_type))}
+                            onClick={() => toggleVerified(item, verificationTypeDrafts[item.user_id] || item.verification_type || "silver")}
                           >
-                            {item.is_verified
-                              ? (language === "en" ? "Remove verification" : "Зняти верифікацію")
-                              : (language === "en" ? "Verify member" : "Видати верифікацію")}
+                            {item.is_verified && currentRole === "owner" && (verificationTypeDrafts[item.user_id] || item.verification_type || "silver") !== item.verification_type
+                              ? (language === "en" ? "Change verification type" : "Змінити тип")
+                              : item.is_verified
+                                ? (language === "en" ? "Remove verification" : "Зняти верифікацію")
+                                : (language === "en" ? "Verify member" : "Видати верифікацію")}
                           </button>
                         </div>
                       ) : null}
