@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import MemberShowcase from "../components/MemberShowcase.jsx";
 
 import { useAuth } from "../auth/AuthContext.jsx";
 import {
@@ -214,6 +215,7 @@ export default function UserSearch() {
         ) : null}
 
         {result ? (
+          <>
           <article className="user-result">
             <div className="user-result-avatar" aria-hidden="true">
               <span>{getInitials(result)}</span>
@@ -257,6 +259,8 @@ export default function UserSearch() {
               ) : null}
             </div>
           </article>
+          <MemberShowcase targetAccountNumber={result.account_number} />
+          </>
         ) : null}
 
         <aside className="user-search-privacy">

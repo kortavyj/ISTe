@@ -1,4 +1,6 @@
 import { guardRequest } from "../server/apiLib/requestGuard.js";
+import { requireAccount } from "./auth/session.js";
+import { handleMemberShowcase } from "../server/lib/memberShowcase.js";
 import {
   mapOwnerRpcError,
   requireAdminOrOwner,
@@ -415,6 +417,22 @@ export default async function handler(request, response) {
     typeof rawModule === "string"
       ? rawModule.trim().toLowerCase()
       : "";
+
+  if (moduleName === "showcase") {
+    response.setHeader("Cache-Control", "private, no-store");
+    const guard = guardRequest(request, {
+      methods: ["POST"], requireJson: true, requireOrigin: true, maxBodyBytes: 20 * 1024,
+    });
+    if (!guard.ok) return sendGuardError(response, guard);
+    const body = readJsonBody(request);
+    if (!body || typeof body.action !== "string") {
+      return sendError(response, 400, "INVALID_SHOWCASE_REQUEST", "Недопустимі дані.");
+    }
+    const account = await requireAccount(request, response);
+    if (!account.ok) return sendError(response, account.status, account.error, account.message);
+    const result = await handleMemberShowcase(account, body.action, body);
+    return response.status(result.status).json(result.payload);
+  }
 
   if (moduleName === "shop") {
     return shopHandler(request, response);
