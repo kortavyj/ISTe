@@ -422,3 +422,71 @@
 .news-page .news-feature-controls--progress .news-progress-arrow{display:grid;place-items:center;width:24px;min-width:24px;height:27px;min-height:27px;padding:0;border:0;border-radius:0;background:transparent;color:#a89da3;font-size:1.1rem;box-shadow:none}
 .news-page .news-feature-controls--progress .news-progress-arrow:hover,.news-page .news-feature-controls--progress .news-progress-arrow:focus-visible{color:#ff4555;background:transparent;transform:none}
 @media(prefers-reduced-motion:reduce){.news-page .news-progress-track>span{transition:none}}
+
+/* Easy sharing of a real article, with a direct permalink visitors can reuse. */
+.news-page .news-modal-share {
+  display: grid;
+  gap: 11px;
+  margin-top: 25px;
+  padding: 20px 0 0;
+  border-top: 1px solid rgba(238, 72, 92, .25);
+}
+.news-page .news-modal-share-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.news-page .news-modal-share-actions button,
+.news-page .news-modal-share-actions a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 17px;
+  border: 1px solid rgba(244, 77, 95, .46);
+  border-radius: 8px;
+  background: #9f2237;
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: none;
+}
+.news-page .news-modal-share-actions a {
+  border-color: #51404a;
+  background: #211720;
+}
+.news-page .news-modal-share-actions button:hover,
+.news-page .news-modal-share-actions a:hover {
+  border-color: #ff7a87;
+  background: #ad2b42;
+  transform: none;
+}
+.news-page .news-modal-share input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #3b3036;
+  border-radius: 7px;
+  background: #0c0b0f;
+  color: #afa4ad;
+  font: inherit;
+  font-size: .73rem;
+}
+.news-page .news-modal-share input:focus-visible {
+  outline: 2px solid #db5065;
+  outline-offset: 2px;
+}
+.news-page .news-modal-share p {
+  margin: 0;
+  color: #f2b9c5;
+  font-size: .78rem;
+  line-height: 1.5;
+}
+@media (max-width: 460px) {
+  .news-page .news-modal-share-actions button,
+  .news-page .news-modal-share-actions a { flex: 1; }
+}
