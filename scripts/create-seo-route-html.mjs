@@ -98,18 +98,24 @@ export function renderRouteHtml(original, route) {
     "canonical",
   );
 
-  for (const [property, value] of [
-    ["og:title", title],
-    ["og:description", description],
-    ["og:url", canonical],
-  ]) {
-    html = updateTag(
-      html,
-      new RegExp(`<meta\\s+property="${property}"\\s+content="[^"]*"\\s*\\/>`, "s"),
-      `<meta property="${property}" content="${value}" />`,
-      property,
-    );
-  }
+  html = updateTag(
+    html,
+    /<meta\s+property="og:title"\s+content="[^"]*"\s*\/>/s,
+    `<meta property="og:title" content="${title}" />`,
+    "og:title",
+  );
+  html = updateTag(
+    html,
+    /<meta\s+property="og:description"\s+content="[^"]*"\s*\/>/s,
+    `<meta property="og:description" content="${description}" />`,
+    "og:description",
+  );
+  html = updateTag(
+    html,
+    /<meta\s+property="og:url"\s+content="[^"]*"\s*\/>/s,
+    `<meta property="og:url" content="${canonical}" />`,
+    "og:url",
+  );
 
   html = updateTag(
     html,
