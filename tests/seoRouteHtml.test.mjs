@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { seoRoutes, renderRouteHtml } from "../scripts/create-seo-route-html.mjs";
 
-const base = await readFile("index.html", "utf8");
+const base = await readFile("dist/index.html", "utf8");
 const sitemap = await readFile("public/sitemap.xml", "utf8");
 
 test("static HTML metadata shells cover all and only indexable sitemap routes", () => {
