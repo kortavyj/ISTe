@@ -324,7 +324,6 @@ export default function Matches() {
         className="matches-page__glow"
         aria-hidden="true"
       />
-      <div className="matches-page__watermark" aria-hidden="true">ISTe</div>
 
       <header className="matches-page__header">
         <p className="page-eyebrow">
