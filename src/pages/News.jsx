@@ -18,6 +18,10 @@ const NEWS_COPY = {
     featured: "Головна новина",
     readMore: "Читати повністю",
     close: "Закрити новину",
+    share: "Поділитися новиною",
+    telegram: "У Telegram",
+    copied: "Посилання на новину скопійовано.",
+    shareFailed: "Не вдалося скопіювати посилання. Можна скопіювати адресу нижче.",
   },
   en: {
     eyebrow: "LATEST UPDATES",
@@ -30,6 +34,10 @@ const NEWS_COPY = {
     featured: "Featured news",
     readMore: "Read full article",
     close: "Close article",
+    share: "Share article",
+    telegram: "Telegram",
+    copied: "Article link copied.",
+    shareFailed: "Could not copy the link. You can copy the address below.",
   },
 };
 
@@ -340,6 +348,28 @@ export default function News() {
   const [featuredIndex, setFeaturedIndex] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedPostId, setSelectedPostId] = useState(() => searchParams.get("post"));
+  const [shareFeedback, setShareFeedback] = useState("");
+  const shareUrl = selectedPostId && /^[0-9a-f-]{20,64}$/i.test(selectedPostId)
+    ? `https://www.istesport.com/news?post=${encodeURIComponent(selectedPostId)}`
+    : null;
+
+  async function shareSelectedPost() {
+    if (!selectedPost || !shareUrl) return;
+    setShareFeedback("");
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: selectedPost.title, url: shareUrl });
+        return;
+      }
+      if (!navigator.clipboard?.writeText) throw new Error("CLIPBOARD_UNAVAILABLE");
+      await navigator.clipboard.writeText(shareUrl);
+      setShareFeedback(copy.copied);
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      setShareFeedback(copy.shareFailed);
+    }
+  }
+
 
   useEffect(() => {
     setSelectedPostId(searchParams.get("post"));
@@ -604,6 +634,17 @@ export default function News() {
             <div className="news-modal-content">
               {selectedPost.content}
             </div>
+            {shareUrl && (
+              <div className="news-modal-share">
+                <div className="news-modal-share-actions">
+                  <button type="button" onClick={shareSelectedPost}>{copy.share}</button>
+                  <a href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(selectedPost.title)}`}
+                    target="_blank" rel="noopener noreferrer">{copy.telegram}</a>
+                </div>
+                {shareFeedback && <p role="status">{shareFeedback}</p>}
+                <input readOnly aria-label={copy.share} value={shareUrl} onFocus={(event) => event.currentTarget.select()} />
+              </div>
+            )}
           </article>
         </div>
       ) : null}
