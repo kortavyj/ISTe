@@ -368,3 +368,86 @@
   .member-comments-standalone .member-comment-form textarea,
   .member-comments-standalone .member-comment-form button[type="submit"] { transition: none; }
 }
+
+/* Dark crimson member showcase and discussion styling on the account page. */
+.iste-social-page .member-showcase {
+  border-color: #56303a;
+  background: linear-gradient(140deg, rgba(124, 23, 43, .11), transparent 62%), #10090e;
+}
+.iste-social-page .member-showcase-header,
+.iste-social-page .member-comments-standalone > .member-comments-heading {
+  border-bottom-color: #402631;
+}
+.iste-social-page .member-showcase-kicker,
+.iste-social-page .member-comments-heading-icon,
+.iste-social-page .member-comments-welcome-art {
+  color: #ec6074;
+}
+.iste-social-page .member-showcase-header h2,
+.iste-social-page .member-comments-heading-copy h3 {
+  color: #fff4f5;
+}
+.iste-social-page .member-showcase-edit,
+.iste-social-page .member-showcase-empty button,
+.iste-social-page .member-showcase-submit,
+.iste-social-page .member-comment-form button,
+.iste-social-page .member-comments-standalone .member-comment-form button[type="submit"] {
+  background: linear-gradient(130deg, #be2941, #8e1e33);
+  border-color: #d84961;
+  color: #fff;
+  box-shadow: 0 6px 22px rgba(141, 20, 42, .17);
+}
+.iste-social-page .member-showcase-edit:hover:not(:disabled),
+.iste-social-page .member-showcase-empty button:hover:not(:disabled),
+.iste-social-page .member-showcase-submit:hover:not(:disabled),
+.iste-social-page .member-comments-standalone .member-comment-form button[type="submit"]:hover:not(:disabled) {
+  background: linear-gradient(130deg, #d63852, #a6253d);
+}
+.iste-social-page .member-showcase-empty > span,
+.iste-social-page .member-comments-welcome-art {
+  background: radial-gradient(circle at 25% 15%, #4a1b2b, #1b0e15 78%);
+  border-color: #643140;
+}
+.iste-social-page .member-comments.member-comments-standalone {
+  border-color: #56303a;
+  background:
+    radial-gradient(ellipse 85% 80% at 100% 0%, rgba(136, 26, 43, .12), transparent 72%),
+    #100a0e;
+}
+.iste-social-page .member-comments-heading-icon {
+  background: linear-gradient(145deg, rgba(182, 43, 65, .18), rgba(71, 18, 30, .17));
+  border-color: #61303d;
+}
+.iste-social-page .member-comments-standalone .member-comments-count {
+  background: #2b151e;
+  border-color: #623342;
+  color: #f6c4cd;
+}
+.iste-social-page .member-comments-welcome,
+.iste-social-page .member-comments-standalone .member-comments-list,
+.iste-social-page .member-comments-standalone .member-comment {
+  border-color: #38232c;
+}
+.iste-social-page .member-comment-avatar {
+  background: linear-gradient(140deg, #5c2738, #231018);
+  border-color: #703143;
+}
+.iste-social-page .member-comment-form textarea,
+.iste-social-page .member-showcase-form textarea,
+.iste-social-page .member-showcase-form input[type="text"] {
+  background: #0a070a;
+  border-color: #51303c;
+  color: #fff;
+}
+.iste-social-page .member-comments-standalone .member-comment-form textarea:focus-visible,
+.iste-social-page .member-showcase-form textarea:focus-visible,
+.iste-social-page .member-showcase-form input[type="text"]:focus-visible {
+  border-color: #df5b70;
+  box-shadow: 0 0 0 3px rgba(176, 37, 59, .15);
+}
+.iste-social-page .member-showcase-image-controls button,
+.iste-social-page .member-showcase-upload,
+.iste-social-page .member-showcase-form-actions > button:not(.member-showcase-submit) {
+  background: #26131b;
+  border-color: #633241;
+}
