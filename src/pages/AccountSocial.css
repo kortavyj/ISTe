@@ -454,3 +454,121 @@
 .iste-social-sidebar > .iste-awards .iste-awards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .iste-social-sidebar > .iste-awards .iste-awards-history-item { min-width: 0; }
 @media (max-width: 760px) { .iste-social-sidebar > .iste-awards { order: -1; } }
+
+/* ISTe profile dark crimson palette. Scoped to member profile pages.
+   Keep member artwork, uploaded banners, role-based medals and selected avatar frames intact. */
+.iste-social-page {
+  --sp-panel: #12090e;
+  --sp-border: #332028;
+  --sp-muted: #b7a5a9;
+  --sp-accent: #d5324b;
+  --sp-cyan: #ef6270;
+  background:
+    radial-gradient(ellipse 55% 38% at 50% -12%, rgba(111, 13, 29, .18), transparent 80%),
+    #080507;
+}
+.iste-social-page .iste-social-header {
+  background: #0b070a;
+}
+.iste-social-page .iste-social-cover {
+  border-color: #612535;
+}
+.iste-social-page .iste-social-cover::after {
+  background: linear-gradient(0deg, rgba(10, 4, 8, .87), transparent 57%);
+}
+.iste-social-page .iste-social-identity {
+  border-bottom-color: #332029;
+}
+.iste-social-page .iste-social-tabs {
+  border-bottom-color: #332028;
+}
+.iste-social-page .iste-social-tabs button.is-active {
+  color: #ff7181;
+}
+.iste-social-page .iste-social-tabs button.is-active::after {
+  background: #ed455b;
+  box-shadow: 0 0 10px rgba(210, 37, 63, .35);
+}
+.iste-social-page .iste-social-badges span {
+  border-color: #65303f;
+  background: #241118;
+  color: #f6b9c5;
+}
+.iste-social-page .iste-social-member-state span {
+  background: #c43a52;
+}
+.iste-social-page .iste-social-panel,
+.iste-social-page .iste-social-feed,
+.iste-social-page .iste-social-member-facts {
+  border-color: #33232c;
+  background: linear-gradient(145deg, rgba(99, 21, 39, .08), transparent 67%), #100b0f;
+}
+.iste-social-page .iste-social-section-head {
+  border-bottom-color: #37232d;
+}
+.iste-social-page .iste-social-section-head h2 {
+  color: #f8eff1;
+}
+.iste-social-page .iste-social-shortcut-grid a,
+.iste-social-page .iste-social-side-actions a,
+.iste-social-page .iste-social-side-actions button {
+  background: #1b1117;
+  border-color: #442b34;
+}
+.iste-social-page .iste-social-shortcut-grid a:hover,
+.iste-social-page .iste-social-side-actions a:hover,
+.iste-social-page .iste-social-side-actions button:hover {
+  background: #2c141e;
+  border-color: #aa4054;
+}
+.iste-social-page .iste-social-shortcut-grid a svg:first-child,
+.iste-social-page .iste-social-posts-mark {
+  color: #e0546c;
+}
+.iste-social-page .iste-social-member-facts dl > div,
+.iste-social-page .iste-social-details > div {
+  border-bottom-color: #38252c;
+}
+.iste-social-page .iste-social-side-card .iste-social-outline-btn,
+.iste-social-page .iste-social-outline-btn,
+.iste-social-page .iste-social-hero-side button {
+  background: #25131b;
+  border-color: #66303e;
+  color: #f9e8ed;
+}
+.iste-social-page .iste-social-outline-btn:hover,
+.iste-social-page .iste-social-hero-side button:hover {
+  background: #351720;
+  border-color: #c44c65;
+}
+.iste-social-page .iste-social-side-actions button {
+  color: #ffa4af;
+}
+.iste-social-page .iste-social-frame-trigger,
+.iste-social-page .iste-social-frame-picker {
+  background: #1b1017;
+  border-color: #643240;
+}
+.iste-social-page .iste-social-frame-options button {
+  background: #1d1218;
+  border-color: #46303a;
+}
+.iste-social-page .iste-social-frame-options button.is-selected {
+  background: #3b1928;
+  border-color: #e16a82;
+}
+.iste-social-page .iste-social-cover-edit,
+.iste-social-page .iste-social-avatar-pencil {
+  background-color: #a92640;
+}
+.iste-social-page .iste-social-cover-edit:hover {
+  background-color: #8f1e35;
+}
+/* Awards keep their type-specific gold and silver illustration colors. */
+.iste-social-page .iste-social-sidebar > .iste-awards {
+  background: linear-gradient(155deg, #200e15, #0d090d 72%);
+  border-color: #773040;
+}
+.iste-social-page .iste-social-sidebar > .iste-awards .iste-awards-caption {
+  color: #c9aab4;
+}
