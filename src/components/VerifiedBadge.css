@@ -1,5 +1,6 @@
 .iste-verified-badge {
   --verified-ring: #b7bdc9;
+  --verified-check: #0d0c11;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -10,12 +11,12 @@
   line-height: 0;
   filter: drop-shadow(0 0 1.6px color-mix(in srgb, var(--verified-ring) 42%, transparent));
 }
-.iste-verified-badge--red { --verified-ring: #ff4055; }
+.iste-verified-badge--red { --verified-ring: #ff4055; --verified-check: #fff; }
 .iste-verified-badge--silver { --verified-ring: #bbc4d2; }
 .iste-verified-badge--gold { --verified-ring: #e6b75f; }
 .iste-verified-badge svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.iste-verified-badge-ring { fill: #0c0c0e; stroke: var(--verified-ring); stroke-width: 2.3; }
-.iste-verified-badge-inner { fill: none; stroke: var(--verified-ring); stroke-width: .65; opacity: .45; }
+.iste-verified-badge-seal { fill: var(--verified-ring); stroke: color-mix(in srgb, var(--verified-ring) 70%, #fff); stroke-width: .65; }
+.iste-verified-badge-check { stroke: var(--verified-check); }
 @media (prefers-reduced-motion: no-preference) {
   .iste-verified-badge { transition: filter .18s ease; }
 }
