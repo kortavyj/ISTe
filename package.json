@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run security:check && vite build",
+    "build": "npm run security:check && vite build && node scripts/create-seo-route-html.mjs && node --test tests/seoRouteHtml.test.mjs",
     "lint": "oxlint src",
     "preview": "vite preview",
     "faceit:update": "node scripts/update-faceit-stats.mjs",
