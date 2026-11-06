@@ -1,0 +1,31 @@
+.iste-explore{
+  position:relative;
+  padding:clamp(48px,6vw,88px) 24px;
+  background:radial-gradient(ellipse 55% 65% at 50% 0%,rgba(126,19,38,.13),transparent 75%),#080608;
+}
+.iste-explore-inner{width:min(1280px,100%);margin:0 auto}
+.iste-explore-head{max-width:740px;margin:0 auto 30px;text-align:center}
+.iste-explore-kicker{display:block;color:#f1677b;font-size:.72rem;letter-spacing:.2em;font-weight:850;margin-bottom:12px}
+.iste-explore-head h2{color:#fff;margin:0;font-size:clamp(1.8rem,3.4vw,3rem);line-height:1.13}
+.iste-explore-head p{margin:15px 0 0;color:#b9aeb5;line-height:1.7;font-size:clamp(.86rem,1.15vw,1rem)}
+.iste-explore-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.iste-explore-card{
+  display:flex;flex-direction:column;gap:12px;
+  padding:25px 22px;min-height:232px;
+  border:1px solid rgba(171,74,92,.31);border-radius:16px;
+  background:linear-gradient(145deg,rgba(120,19,39,.15),transparent 70%),#100c10;
+  text-decoration:none;color:#fff;
+  transition:transform .18s,border-color .18s,background .18s;
+}
+.iste-explore-card:hover,.iste-explore-card:focus-visible{
+  transform:translateY(-3px);border-color:#cb455c;
+  background:linear-gradient(145deg,rgba(151,28,53,.23),transparent 75%),#140d12;
+}
+.iste-explore-card:focus-visible{outline:2px solid #fa889c;outline-offset:3px}
+.iste-explore-number{font-size:.75rem;letter-spacing:.12em;color:#e75e77;font-weight:850}
+.iste-explore-card h3{margin:0;font-size:1.16rem;line-height:1.3}
+.iste-explore-card p{flex:1;margin:0;color:#b4a6af;line-height:1.6;font-size:.84rem}
+.iste-explore-more{display:flex;justify-content:space-between;align-items:center;margin-top:6px;color:#fb8a9c;font-weight:800;font-size:.81rem}
+@media(max-width:940px){.iste-explore-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.iste-explore-card{min-height:210px}}
+@media(max-width:520px){.iste-explore{padding:50px 15px}.iste-explore-grid{grid-template-columns:1fr;gap:11px}.iste-explore-card{min-height:160px;padding:20px}}
+@media(prefers-reduced-motion:reduce){.iste-explore-card{transition:none}.iste-explore-card:hover{transform:none}}
