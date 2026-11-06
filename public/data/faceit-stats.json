@@ -35,29 +35,45 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/VaLaF",
       "level": 10,
-      "elo": 2460,
+      "elo": 2520,
       "role": "AWP",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
-      "winRate": 50,
-      "kd": 1.39
+      "winRate": 51,
+      "kd": 1.4
     },
     {
-      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
-      "nickname": "vladikavkaz0",
-      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
+      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
+      "nickname": "Droni452",
+      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
-      "level": 9,
-      "elo": 1994,
+      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
+      "level": 10,
+      "elo": 2355,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
+      "winRate": 50,
+      "kd": 1
+    },
+    {
+      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
+      "nickname": "Manocivnyk",
+      "avatar": null,
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "level": 10,
+      "elo": 2631,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
+      "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.1
+      "kd": 1.15
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -92,36 +108,20 @@
       "kd": 0.98
     },
     {
-      "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
-      "nickname": "Droni452",
-      "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
+      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
+      "nickname": "vladikavkaz0",
+      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
-      "level": 10,
-      "elo": 2295,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 49,
-      "kd": 1.01
-    },
-    {
-      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
-      "nickname": "Manocivnyk",
-      "avatar": null,
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
-      "level": 10,
-      "elo": 2571,
+      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
+      "level": 9,
+      "elo": 1994,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.15
+      "kd": 1.1
     }
   ],
   "teamMatches": [
@@ -3717,5 +3717,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-06T10:19:22.688Z"
+  "updatedAt": "2026-11-06T17:33:21.755Z"
 }
