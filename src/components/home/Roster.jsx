@@ -271,37 +271,27 @@ function PlayerCard({ player, rosterStatus = "main" }) {
         player={player}
       />
 
-      <div className="player-card__identity">
-        <h3>
-          {displayName}
-        </h3>
-
+      <div className="player-card__nameplate">
         {isCaptain ? (
           <span
-            className="player-card__inline-crown"
+            className="player-card__nameplate-crown"
             title={captainTitle}
             aria-label={captainTitle}
           >
             <CrownIcon />
           </span>
         ) : null}
-
+        <div className="player-card__identity">
+          <h3>{displayName}</h3>
+        </div>
         {flag ? (
-          <span
-            className="player-country"
-            title={player.country}
-          >
-            {flag}
+          <span className="player-card__nationality" title={player.country}>
+            <span aria-hidden="true">{flag}</span>
+            <span>{String(player.country).toUpperCase()}</span>
           </span>
         ) : null}
+        <p className="player-role" title={roleDescription}>{roleLabel}</p>
       </div>
-
-      <p
-        className="player-role"
-        title={roleDescription}
-      >
-        {roleLabel}
-      </p>
 
 
       <span className="player-role-note">
