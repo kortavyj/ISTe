@@ -639,3 +639,313 @@
   .roster-section .iste-roster-tabs{margin-bottom:16px}
   .roster-section .roster-showcase-grid{padding-top:28px;column-gap:10px}
 }
+
+/* ISTe roster portrait cards, designed to match the approved glowing crimson reference.
+   Each card remains an accessible FACEIT link with live player data. */
+.roster-section {
+  background:
+    radial-gradient(ellipse 55% 32% at 50% 77%, rgba(116, 0, 19, .18), transparent 84%),
+    #000 !important;
+}
+.roster-section .roster-showcase-grid {
+  width: min(1390px, 100%);
+  min-height: 0;
+  padding-top: 56px;
+  padding-bottom: 30px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(12px, 1.5vw, 23px);
+  align-items: end;
+  overflow: visible;
+  background: transparent !important;
+  border: 0;
+}
+.roster-section .roster-showcase-grid .player-card {
+  --roster-cut: 18px;
+  position: relative;
+  isolation: isolate;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: clamp(390px, 36vw, 455px);
+  padding: 2px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(145deg, #ff7182 0%, #ed203b 20%, #741123 49%, #f22946 77%, #ff6b83 100%) !important;
+  clip-path: polygon(var(--roster-cut) 0, calc(100% - var(--roster-cut)) 0, 100% var(--roster-cut), 100% calc(100% - var(--roster-cut)), calc(100% - var(--roster-cut)) 100%, var(--roster-cut) 100%, 0 calc(100% - var(--roster-cut)), 0 var(--roster-cut));
+  box-shadow: none;
+  filter: drop-shadow(0 0 8px rgba(207, 14, 39, .3));
+  transition: transform .25s ease, filter .25s ease;
+}
+.roster-section .roster-showcase-grid .player-card--captain {
+  z-index: 2;
+  height: clamp(425px, 40vw, 495px);
+  background: linear-gradient(145deg, #ffb2aa, #ff2c49 24%, #9c162d 55%, #ff3957 82%, #ffaaa7) !important;
+  filter: drop-shadow(0 0 12px rgba(248, 24, 52, .50));
+}
+.roster-section .roster-showcase-grid .player-card::before {
+  position: absolute;
+  z-index: 0;
+  inset: 2px;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  content: "";
+  opacity: 1;
+  filter: none;
+  background:
+    linear-gradient(136deg, transparent 0 19%, rgba(175, 9, 30, .20) 19.2%, transparent 27%),
+    radial-gradient(ellipse 90% 53% at 50% 65%, rgba(221, 15, 35, .39), transparent 72%),
+    linear-gradient(160deg, #23080e, #0b0306 55%, #180609);
+  clip-path: polygon(var(--roster-cut) 0, calc(100% - var(--roster-cut)) 0, 100% var(--roster-cut), 100% calc(100% - var(--roster-cut)), calc(100% - var(--roster-cut)) 100%, var(--roster-cut) 100%, 0 calc(100% - var(--roster-cut)), 0 var(--roster-cut));
+}
+.roster-section .roster-showcase-grid .player-card::after {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  top: 10%;
+  right: 6%;
+  left: auto;
+  bottom: auto;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  content: "ISTe";
+  font-size: clamp(1.7rem, 3vw, 3.3rem);
+  font-style: italic;
+  font-weight: 950;
+  letter-spacing: -.09em;
+  color: rgba(240, 48, 70, .15);
+  background: none;
+  transform: rotate(-14deg);
+  pointer-events: none;
+}
+.roster-section .roster-showcase-grid .player-avatar,
+.roster-section .roster-showcase-grid .player-card--captain .player-avatar {
+  position: absolute;
+  z-index: 2;
+  inset: 2px 2px 95px;
+  width: calc(100% - 4px);
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
+  isolation: isolate;
+}
+.roster-section .roster-showcase-grid .player-avatar::before,
+.roster-section .roster-showcase-grid .player-card--captain .player-avatar::before {
+  position: absolute;
+  z-index: -1;
+  inset: 30% -20% 1%;
+  width: auto;
+  height: auto;
+  opacity: 1;
+  content: "";
+  background:
+    radial-gradient(ellipse 67% 45% at 52% 85%, rgba(255, 27, 52, .58), transparent 84%),
+    radial-gradient(ellipse 49% 47% at 44% 53%, rgba(180, 13, 30, .23), transparent 83%);
+  filter: blur(17px);
+}
+.roster-section .roster-showcase-grid .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(1) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(2) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(3) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(4) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:nth-child(5) .player-avatar img,
+.roster-section .roster-showcase-grid .player-card--captain .player-avatar img {
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 33%;
+  transform: scale(1.05);
+  transform-origin: 50% 35%;
+  mix-blend-mode: lighten;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+  filter: brightness(.89) contrast(1.24) saturate(1.13) drop-shadow(0 0 10px rgba(255, 39, 65, .3));
+  transition: filter .25s ease, transform .25s ease;
+}
+.roster-section .roster-showcase-grid .player-card--captain .player-avatar img {
+  transform: scale(1.08);
+  filter: brightness(.97) contrast(1.24) saturate(1.15) drop-shadow(0 0 13px rgba(255, 43, 73, .42));
+}
+.roster-section .roster-showcase-grid .player-card__nameplate {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  min-width: 0;
+  height: 132px;
+  padding: 24px 6px 18px;
+  background:
+    linear-gradient(145deg, rgba(133, 10, 29, .28), transparent 36%),
+    linear-gradient(180deg, rgba(5, 0, 3, .57), #120509 40%, #100509);
+  border-top: 1px solid rgba(255, 61, 86, .65);
+  box-shadow: inset 0 12px 24px rgba(0, 0, 0, .40);
+}
+.roster-section .roster-showcase-grid .player-card__identity {
+  display: flex;
+  width: 100%;
+  min-height: 30px;
+  margin: 0;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+}
+.roster-section .roster-showcase-grid .player-card__identity::after {
+  display: none;
+}
+.roster-section .roster-showcase-grid .player-card__identity h3 {
+  margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.12rem, 1.7vw, 1.85rem);
+  line-height: 1.15;
+  color: #fff;
+  font-weight: 950;
+  letter-spacing: -.04em;
+  text-shadow: 0 2px 13px #000;
+}
+.roster-section .roster-showcase-grid .player-card__nationality {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 24px;
+  margin: 7px 0 6px;
+  padding: 2px 10px;
+  border: 1px solid rgba(255, 70, 91, .58);
+  border-radius: 999px;
+  background: #080508;
+  color: #f4eef0;
+  font-size: .69rem;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .07em;
+}
+.roster-section .roster-showcase-grid .player-card__nationality > span:first-child {
+  font-size: 1.01rem;
+}
+.roster-section .roster-showcase-grid .player-role {
+  margin: 0;
+  color: #ff3e54;
+  font-size: clamp(.74rem, .95vw, .94rem);
+  line-height: 1.15;
+  font-weight: 950;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.roster-section .roster-showcase-grid .player-card__nameplate-crown {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  top: -24px;
+  left: 50%;
+  width: 42px;
+  height: 29px;
+  color: #ffda73;
+  filter: drop-shadow(0 0 9px rgba(255, 193, 64, .57));
+  transform: translateX(-50%);
+}
+.roster-section .roster-showcase-grid .player-card__nameplate-crown .player-crown {
+  width: 27px;
+  height: 27px;
+}
+.roster-section .roster-showcase-grid .player-card__captain-mark,
+.roster-section .roster-showcase-grid .player-card__inline-crown {
+  display: none;
+}
+.roster-section .roster-showcase-grid .player-card__external {
+  position: absolute;
+  z-index: 6;
+  top: 20px;
+  right: 22px;
+  opacity: 0;
+  color: #fff;
+  font-size: 1rem;
+}
+.roster-section .roster-showcase-grid .player-card:hover,
+.roster-section .roster-showcase-grid .player-card:focus-visible {
+  transform: translateY(-10px);
+  filter: drop-shadow(0 0 17px rgba(255, 35, 63, .55));
+  outline: none;
+}
+.roster-section .roster-showcase-grid .player-card:focus-visible {
+  outline: 3px solid #ff8194;
+  outline-offset: 4px;
+}
+.roster-section .roster-showcase-grid .player-card:hover .player-avatar img,
+.roster-section .roster-showcase-grid .player-card:focus-visible .player-avatar img {
+  filter: brightness(1.1) contrast(1.2) saturate(1.16);
+}
+.roster-section .roster-showcase-grid .player-card:hover .player-card__external,
+.roster-section .roster-showcase-grid .player-card:focus-visible .player-card__external {
+  opacity: 1;
+}
+@media (max-width: 1090px) {
+  .roster-section .roster-showcase-grid {
+    width: 100%;
+    grid-template-columns: repeat(5, minmax(185px, 1fr));
+    gap: 12px;
+    padding: 44px 6px 30px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-color: #a82239 #170609;
+  }
+  .roster-section .roster-showcase-grid .player-card,
+  .roster-section .roster-showcase-grid .player-card--captain {
+    height: 425px;
+    scroll-snap-align: center;
+  }
+  .roster-section .roster-showcase-grid .player-card--captain {
+    height: 460px;
+  }
+}
+@media (max-width: 620px) {
+  .roster-section .roster-showcase-grid {
+    width: calc(100% + 24px);
+    margin-inline: -12px;
+    grid-template-columns: repeat(5, 200px);
+    gap: 12px;
+    padding: 36px 12px 22px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .roster-section .roster-showcase-grid .player-card {
+    height: 390px;
+  }
+  .roster-section .roster-showcase-grid .player-card--captain {
+    height: 430px;
+  }
+  .roster-section .roster-showcase-grid .player-card__identity h3 {
+    font-size: 1.3rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .roster-section .roster-showcase-grid .player-card,
+  .roster-section .roster-showcase-grid .player-avatar img {
+    transition: none;
+  }
+  .roster-section .roster-showcase-grid .player-card:hover {
+    transform: none;
+  }
+}
