@@ -114,6 +114,54 @@
       "destination": "/api/owner?action=set-verified"
     },
     {
+      "source": "/team",
+      "destination": "/_seo/team.html"
+    },
+    {
+      "source": "/team/academy",
+      "destination": "/_seo/team__academy.html"
+    },
+    {
+      "source": "/matches",
+      "destination": "/_seo/matches.html"
+    },
+    {
+      "source": "/tournaments",
+      "destination": "/_seo/tournaments.html"
+    },
+    {
+      "source": "/news",
+      "destination": "/_seo/news.html"
+    },
+    {
+      "source": "/history",
+      "destination": "/_seo/history.html"
+    },
+    {
+      "source": "/partners",
+      "destination": "/_seo/partners.html"
+    },
+    {
+      "source": "/collaborate",
+      "destination": "/_seo/collaborate.html"
+    },
+    {
+      "source": "/discord",
+      "destination": "/_seo/discord.html"
+    },
+    {
+      "source": "/highlights",
+      "destination": "/_seo/highlights.html"
+    },
+    {
+      "source": "/contacts",
+      "destination": "/_seo/contacts.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/_seo/support.html"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

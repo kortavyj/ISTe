@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 
+Disallow: /_seo/
 Disallow: /account
 Disallow: /users
 Disallow: /login
