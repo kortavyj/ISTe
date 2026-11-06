@@ -16,7 +16,7 @@ const COPY = {
     imageLarge: "Зображення завелике після обробки. Спробуй інше.",
     imageSaveHint: "Щоб опублікувати фото, натисни «Опублікувати».",
     delete: "Видалити вітрину", deleteConfirm: "Видалити вітрину? Коментарі у профілі залишаться.",
-    comments: "Коментарі", noComments: "Коментарів поки немає. Будь першим.",
+    comments: "Коментарі", commentsSubtitle: "Спілкування з учасником", noComments: "Тут поки тихо", noCommentsDetail: "Залиш перше повідомлення та почни розмову.", commentYourMessage: "Твоє повідомлення",
     commentPlaceholder: "Напиши коментар…", commentSend: "Надіслати", sending: "Надсилаємо…",
     commentDelete: "Видалити", commentDeleteConfirm: "Видалити цей коментар?",
     commentHint: "Коментарі доступні учасникам ISTe. До 600 символів.",
@@ -36,7 +36,7 @@ const COPY = {
     imageLarge: "The image is still too large. Choose another one.",
     imageSaveHint: "Press Publish to save the uploaded image.",
     delete: "Delete showcase", deleteConfirm: "Delete your showcase? Profile comments will remain.",
-    comments: "Comments", noComments: "No comments yet. Be the first.",
+    comments: "Comments", commentsSubtitle: "Member conversation", noComments: "No comments yet", noCommentsDetail: "Leave the first message and start a conversation.", commentYourMessage: "Your message",
     commentPlaceholder: "Write a comment…", commentSend: "Post comment", sending: "Posting…",
     commentDelete: "Delete", commentDeleteConfirm: "Delete this comment?",
     commentHint: "Only ISTe members can comment. Up to 600 characters.",
@@ -328,46 +328,82 @@ export default function MemberShowcase({ targetAccountNumber, ownerView = false 
     </section>
     {!loading && (
     <section className="member-comments member-comments-standalone" aria-labelledby="member-comments-heading">
-            <header>
-              <h3 id="member-comments-heading">{copy.comments}</h3>
-              <span>{comments.length}</span>
-            </header>
-                {comments.length ? (
-                  <div className="member-comments-list">
-                    {comments.map((comment) => (
-                      <article className="member-comment" key={comment.id}>
-                        <div className="member-comment-avatar">
-                          {comment.authorAvatar ? <img src={comment.authorAvatar} alt="" loading="lazy"/> :
-                            <span>{initials(comment.authorName)}</span>}
-                        </div>
-                        <div className="member-comment-main">
-                          <div className="member-comment-meta">
-                            <strong>{comment.authorName}</strong>
-                            {comment.authorVerified && <span className="member-comment-verified" title="ISTe verified">✓</span>}
-                            <time dateTime={comment.createdAt}>{readableDate(comment.createdAt, language)}</time>
-                            {comment.canDelete && <button type="button" disabled={busy} onClick={() => removeComment(comment.id)}>
-                              {copy.commentDelete}
-                            </button>}
-                          </div>
-                          <p>{comment.body}</p>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                ) : <p className="member-comments-empty">{copy.noComments}</p>}
-                <form className="member-comment-form" onSubmit={addComment}>
-                  <label htmlFor="member-comment-input">{copy.commentPlaceholder}</label>
-                  <textarea id="member-comment-input" maxLength={600} rows={3} value={commentDraft}
-                    onChange={(event) => setCommentDraft(event.target.value)}
-                    placeholder={copy.commentPlaceholder} disabled={busy}/>
-                  <div>
-                    <small>{copy.commentHint} {commentDraft.length}/600</small>
-                    <button type="submit" disabled={busy || commentDraft.trim().length < 2 || commentDraft.trim().length > 600}>
-                      {busy ? copy.sending : copy.commentSend}
+      <header className="member-comments-heading">
+        <div className="member-comments-heading-copy">
+          <span className="member-comments-heading-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 11.5a7.8 7.8 0 0 1-8 7.5 9 9 0 0 1-3.3-.6L4 20l1.4-4A7.5 7.5 0 0 1 4 11.5a7.8 7.8 0 0 1 8-7.5 7.8 7.8 0 0 1 8 7.5Z"/>
+              <path d="M8.5 11.5h7"/>
+            </svg>
+          </span>
+          <div>
+            <h3 id="member-comments-heading">{copy.comments}</h3>
+            <p>{copy.commentsSubtitle}</p>
+          </div>
+        </div>
+        <span className="member-comments-count" aria-label={String(comments.length)}>{comments.length}</span>
+      </header>
+
+      {comments.length > 0 ? (
+        <div className="member-comments-list">
+          {comments.map((comment) => (
+            <article className="member-comment" key={comment.id}>
+              <div className="member-comment-avatar">
+                {comment.authorAvatar ? <img src={comment.authorAvatar} alt="" loading="lazy" /> :
+                  <span>{initials(comment.authorName)}</span>}
+              </div>
+              <div className="member-comment-main">
+                <div className="member-comment-meta">
+                  <strong>{comment.authorName}</strong>
+                  {comment.authorVerified && <span className="member-comment-verified" title="ISTe verified">✓</span>}
+                  <time dateTime={comment.createdAt}>{readableDate(comment.createdAt, language)}</time>
+                  {comment.canDelete && (
+                    <button type="button" disabled={busy} onClick={() => removeComment(comment.id)}>
+                      {copy.commentDelete}
                     </button>
-                  </div>
-                </form>
-          </section>
+                  )}
+                </div>
+                <p>{comment.body}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="member-comments-welcome">
+          <span className="member-comments-welcome-art" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <rect x="8" y="10" width="42" height="32" rx="12" stroke="currentColor" strokeWidth="2"/>
+              <path d="m17 41-2 11 13-10" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M20 24h18M20 31h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="m50 47 2 4 4 2-4 2-2 4-2-4-4-2 4-2 2-4Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <div>
+            <h4>{copy.noComments}</h4>
+            <p>{copy.noCommentsDetail}</p>
+          </div>
+        </div>
+      )}
+
+      <form className="member-comment-form" onSubmit={addComment}>
+        <label htmlFor="member-comment-input">{copy.commentYourMessage}</label>
+        <textarea id="member-comment-input" maxLength={600} rows={3} value={commentDraft}
+          onChange={(event) => setCommentDraft(event.target.value)}
+          placeholder={copy.commentPlaceholder} disabled={busy}/>
+        <div className="member-comment-form-footer">
+          <small>{copy.commentHint}</small>
+          <div className="member-comment-form-actions">
+            <span className={commentDraft.length >= 550 ? "member-comment-length member-comment-length-near-limit" : "member-comment-length"}>
+              {commentDraft.length}/600
+            </span>
+            <button type="submit" disabled={busy || commentDraft.trim().length < 2 || commentDraft.trim().length > 600}>
+              {busy ? copy.sending : copy.commentSend}
+              {!busy && <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 14-8-4 16-4-7-6-1Z"/><path d="m11 13 8-9"/></svg>}
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
     )}
     </>
   );
