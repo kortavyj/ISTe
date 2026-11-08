@@ -44,14 +44,14 @@
       "kd": 1.44
     },
     {
-      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
-      "nickname": "Manocivnyk",
-      "avatar": null,
+      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
+      "nickname": "vladikavkaz0",
+      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
       "level": 10,
-      "elo": 2571,
+      "elo": 2014,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -108,14 +108,14 @@
       "kd": 0.99
     },
     {
-      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
-      "nickname": "vladikavkaz0",
-      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
+      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
+      "nickname": "Manocivnyk",
+      "avatar": null,
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
+      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
       "level": 10,
-      "elo": 2014,
+      "elo": 2571,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
@@ -3717,5 +3717,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-07T22:49:23.462Z"
+  "updatedAt": "2026-11-08T01:53:28.106Z"
 }
