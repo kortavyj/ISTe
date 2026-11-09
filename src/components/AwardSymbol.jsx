@@ -1,7 +1,7 @@
 import { useId } from "react";
 
 const ICONS = {
-  verified: <path d="m38 61 15 15 31-32" strokeWidth="8" />,
+  verified: <><path d="M60 29 88 40V61C88 78 74 87 60 94 46 87 32 78 32 61V40Z" fill="#a01328" stroke="var(--medal-light)" strokeWidth="3.5"/><path d="M43 60 55 71 78 48" stroke="#fff" strokeWidth="7" fill="none"/></>,
   member: <><text x="60" y="67" textAnchor="middle" fontSize="27" fontStyle="italic" fontWeight="900" fontFamily="Arial, sans-serif" fill="currentColor" stroke="none">ISTe</text><path d="M39 76h42" stroke="currentColor" strokeWidth="3"/></>,
   month_member: <><rect x="34" y="37" width="52" height="49" rx="7"/><path d="M45 29v16m30-16v16M35 52h50"/><text x="60" y="76" textAnchor="middle" fontSize="23" fontWeight="900" fontFamily="Arial, sans-serif" stroke="none" fill="currentColor">30</text></>,
   year_member: <><rect x="34" y="37" width="52" height="49" rx="7"/><path d="M45 29v16m30-16v16M35 52h50"/><text x="60" y="76" textAnchor="middle" fontSize="23" fontWeight="900" fontFamily="Arial, sans-serif" stroke="none" fill="currentColor">1Y</text></>,
@@ -14,88 +14,114 @@ const ICONS = {
   creator: <><rect x="31" y="43" width="58" height="40" rx="8"/><path d="m54 53 19 10-19 10Z" fill="currentColor" stroke="none"/></>,
   admin: <><path d="m28 76-5-34 22 13 15-27 15 27 22-13-5 34Z"/><path d="M30 84h60"/><circle cx="60" cy="65" r="3" fill="currentColor" stroke="none"/></>,
   owner: <><path d="M31 83 26 41 45 54 60 26 75 54 94 41 89 83Z"/><path d="M34 89h52M60 47v20"/><circle cx="60" cy="73" r="3" fill="#f4bd63" stroke="none"/></>,
-  early_member: <><path d="m60 30 9 19 21 3-15 15 4 22-19-11-19 11 4-22-15-15 21-3Z" fill="currentColor" fillOpacity=".12"/></>,
+  early_member: <><path d="m60 28 10 20 22 4-16 15 4 23-20-11-20 11 4-23-16-15 22-4Z" fill="var(--medal-main)" stroke="var(--medal-light)" strokeWidth="3"/><path d="M60 30V78M40 53h40" stroke="#fff" strokeWidth="1" opacity=".45"/></>,
 };
 
-const MEDALLION = "M60 12 A48 48 0 1 1 60 108 A48 48 0 1 1 60 12 Z";
-const HEXAGON = "M60 8 103 31 103 83 60 110 17 83 17 31 Z";
-const PENTAGON = "M60 7 108 40 91 98 60 112 29 98 12 40 Z";
-const LAUREL_CODES = new Set(["owner", "verified", "tournament_winner", "early_member", "first_comment", "partner", "creator"]);
-const ROUND_CODES = new Set(["member"]);
-const SHIELD_CODES = new Set(["month_member", "year_member", "first_showcase", "first_comment", "ten_comments", "verified", "tournament_winner"]);
 
-
+/*
+ * ISTe Awards Variant 1: the actual metallic-medallion design is SVG,
+ * rather than a CSS sketch or a cropped concept poster.
+ * Every asset is resolution independent and shared by cards/history.
+ */
 export default function AwardSymbol({ code }) {
-  const gradientId = useId();
-  const glowId = useId();
-  const medallionPath = ROUND_CODES.has(code) ? MEDALLION : SHIELD_CODES.has(code) ? PENTAGON : HEXAGON;
-  const decorated = LAUREL_CODES.has(code);
-  const innerId = useId();
-  const shineId = useId();
-  const shadowId = useId();
-  const ringId = useId();
-  const isRound = ROUND_CODES.has(code);
+  const id = useId().replace(/:/g, "");
+  const steel = `iste-steel-${id}`;
+  const rim = `iste-rim-${id}`;
+  const inset = `iste-inset-${id}`;
+  const glint = `iste-glint-${id}`;
+  const shine = `iste-shine-${id}`;
+  const bevel = `iste-bevel-${id}`;
+  const shadow = `iste-shadow-${id}`;
+  const crest = `iste-crest-${id}`;
   return (
     <svg className="iste-award-medallion" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
       <defs>
-        <linearGradient id={gradientId} x1="14" y1="9" x2="101" y2="111" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="var(--medal-light)" />
-          <stop offset=".18" stopColor="var(--medal-main)" />
-          <stop offset=".36" stopColor="var(--medal-shadow)" />
-          <stop offset=".54" stopColor="var(--medal-light)" />
-          <stop offset=".75" stopColor="var(--medal-main)" />
+        <linearGradient id={steel} x1="10%" y1="5%" x2="89%" y2="100%">
+          <stop offset="0" stopColor="#fff" />
+          <stop offset=".12" stopColor="var(--medal-light)" />
+          <stop offset=".29" stopColor="var(--medal-shadow)" />
+          <stop offset=".42" stopColor="var(--medal-light)" />
+          <stop offset=".57" stopColor="#18121b" />
+          <stop offset=".74" stopColor="var(--medal-main)" />
+          <stop offset=".91" stopColor="#fef1eb" />
           <stop offset="1" stopColor="var(--medal-shadow)" />
         </linearGradient>
-        <radialGradient id={innerId} cx="50%" cy="30%" r="75%">
-          <stop offset="0" stopColor="#30202a" />
-          <stop offset=".48" stopColor="#190f17" />
-          <stop offset="1" stopColor="#08070b" />
+        <linearGradient id={rim} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0" stopColor="var(--medal-light)"/>
+          <stop offset=".26" stopColor="#22202a"/>
+          <stop offset=".48" stopColor="var(--medal-main)"/>
+          <stop offset=".65" stopColor="#0a090e"/>
+          <stop offset=".84" stopColor="var(--medal-light)"/>
+          <stop offset="1" stopColor="var(--medal-shadow)"/>
+        </linearGradient>
+        <radialGradient id={inset} cx="49%" cy="31%" r="77%">
+          <stop offset="0" stopColor="#30212b"/>
+          <stop offset=".39" stopColor="#150e15"/>
+          <stop offset=".81" stopColor="#09090e"/>
+          <stop offset="1" stopColor="#020307"/>
         </radialGradient>
-        <linearGradient id={shineId} x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#fff" stopOpacity=".58"/>
-          <stop offset=".28" stopColor="#fff" stopOpacity=".04"/>
-          <stop offset=".72" stopColor="#fff" stopOpacity=".02"/>
-          <stop offset="1" stopColor="#fff" stopOpacity=".22"/>
+        <linearGradient id={shine} x1="20%" y1="0%" x2="85%" y2="100%">
+          <stop stopColor="#fff" stopOpacity=".62"/>
+          <stop offset=".24" stopColor="#fff" stopOpacity=".03"/>
+          <stop offset=".63" stopColor="#fff" stopOpacity="0"/>
+          <stop offset="1" stopColor="#fff" stopOpacity=".2"/>
         </linearGradient>
-        <linearGradient id={ringId} x1="0" y1="0" x2=".9" y2="1">
-          <stop stopColor="var(--medal-light)" />
-          <stop offset=".28" stopColor="#24202a" />
-          <stop offset=".52" stopColor="var(--medal-light)" />
-          <stop offset=".7" stopColor="var(--medal-shadow)" />
-          <stop offset="1" stopColor="var(--medal-main)" />
+        <linearGradient id={bevel} x1="0%" y1="0%" x2="88%" y2="100%">
+          <stop stopColor="var(--medal-light)"/>
+          <stop offset=".46" stopColor="var(--medal-main)"/>
+          <stop offset=".62" stopColor="var(--medal-shadow)"/>
+          <stop offset="1" stopColor="#fff"/>
         </linearGradient>
-        <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4.6" />
+        <radialGradient id={glint}><stop stopColor="var(--medal-main)" stopOpacity=".58"/><stop offset="1" stopColor="var(--medal-main)" stopOpacity="0"/></radialGradient>
+        <filter id={shadow} x="-30%" y="-30%" width="160%" height="170%">
+          <feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#000" floodOpacity=".8" />
         </filter>
-        <filter id={shadowId} x="-35%" y="-35%" width="170%" height="170%">
-          <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#000" floodOpacity=".8" />
-        </filter>
+        <clipPath id={crest}><circle cx="60" cy="57" r="38"/></clipPath>
       </defs>
-      <path d={medallionPath} fill="none" stroke="var(--medal-main)" strokeWidth="9" opacity=".42" filter={`url(#${glowId})`} />
-      <g filter={`url(#${shadowId})`}>
-        <path d={medallionPath} fill="#050509" stroke="#211620" strokeWidth="10" strokeLinejoin="round" />
-        <path d={medallionPath} fill={`url(#${innerId})`} stroke={`url(#${gradientId})`} strokeWidth="7.6" strokeLinejoin="round" />
-        <path d={medallionPath} fill="none" stroke="#fff" strokeWidth=".95" opacity=".54" transform="translate(60 60) scale(.91) translate(-60 -60)" />
-        <path d={medallionPath} fill="none" stroke={`url(#${shineId})`} strokeWidth="2" transform="translate(60 60) scale(.8) translate(-60 -60)" />
+
+      <ellipse cx="60" cy="58" rx="56" ry="56" fill={`url(#${glint})`} opacity=".42"/>
+      <g filter={`url(#${shadow})`}>
+        <circle cx="60" cy="57" r="49.4" fill="#0a080d" stroke="var(--medal-shadow)" strokeWidth="1.5"/>
+        <circle cx="60" cy="57" r="47.1" fill="none" stroke={`url(#${steel})`} strokeWidth="5.8"/>
+        <circle cx="60" cy="57" r="42.9" fill="none" stroke="#07070b" strokeWidth="3.4"/>
+        <circle cx="60" cy="57" r="40.7" fill="none" stroke={`url(#${rim})`} strokeWidth="2.3"/>
+        <circle cx="60" cy="57" r="38.2" fill={`url(#${inset})`} stroke="#08090c" strokeWidth="2"/>
+        <g clipPath={`url(#${crest})`}>
+          <path d="M16 48Q58 3 105 31V53Q59 33 16 74Z" fill={`url(#${shine})`} opacity=".14"/>
+          <path d="M28 27 89 91" stroke="#fff" strokeWidth=".55" opacity=".07"/>
+          <path d="M26 90 89 27" stroke="#fff" strokeWidth=".55" opacity=".07"/>
+          <circle cx="60" cy="57" r="36" fill="none" stroke="#fff" opacity=".18" strokeWidth=".6"/>
+        </g>
+        <path d="M23 23A48 48 0 0 1 79 12" stroke="#fff" strokeWidth="1.35" fill="none" opacity=".74" strokeLinecap="round"/>
+        <path d="M96 84A48 48 0 0 1 37 101" stroke="var(--medal-main)" strokeWidth="2" fill="none" opacity=".88" strokeLinecap="round"/>
+        <path d="M15 67A48 48 0 0 0 25 86" stroke="#ff4265" strokeWidth="2.8" fill="none" opacity=".94" strokeLinecap="round"/>
+        <path d="M103 47A48 48 0 0 1 104 66" stroke="#ff4265" strokeWidth="2.6" fill="none" opacity=".85" strokeLinecap="round"/>
       </g>
-      {isRound && <>
-        <circle cx="60" cy="60" r="44" fill="none" stroke={`url(#${ringId})`} strokeWidth="3.6" />
-        <circle cx="60" cy="60" r="37.5" fill="none" stroke="var(--medal-light)" strokeWidth=".7" opacity=".48" />
-        <path d="M30 28 38 22 M83 96 91 89" stroke="#fff" opacity=".72" strokeWidth="2.4" />
-      </>}
-      {decorated && <g stroke="var(--medal-main)" fill="var(--medal-main)" fillOpacity=".88">
-        <path d="M21 92C9 75 8 56 18 39M99 92c12-17 13-36 3-53" fill="none" strokeWidth="1.8" />
-        <path d="M18 84C5 80 5 71 8 65c10 6 11 13 10 19Zm-4-18C4 59 6 50 12 45c6 9 5 16 2 21Zm0-21c-5-12 1-19 8-22 2 11-1 18-8 22Zm88 39c13-4 13-13 10-19-10 6-11 13-10 19Zm4-18c10-7 8-16 2-21-6 9-5 16-2 21Zm0-21c5-12-1-19-8-22-2 11 1 18 8 22Z" stroke="none" />
-      </g>}
-      <g stroke="#09070b" strokeWidth="6.2" strokeLinecap="round" strokeLinejoin="round" transform="translate(0 2)" opacity=".76">
-        {ICONS[code] || ICONS.member}
+
+      <g className="iste-medal-laurels" fill={`url(#${bevel})`} stroke="var(--medal-shadow)" strokeWidth=".6">
+        <path d="M32 92C18 83 14 72 15 57" fill="none" stroke="var(--medal-main)" strokeWidth="1.4"/>
+        <path d="M88 92C102 83 106 72 105 57" fill="none" stroke="var(--medal-main)" strokeWidth="1.4"/>
+        <path d="M23 82C12 80 10 75 9 68c9 3 14 8 14 14ZM19 70C10 64 10 58 13 51c8 6 9 12 6 19ZM21 58C16 50 18 43 23 38c4 10 4 14-2 20ZM27 87C18 89 15 85 12 80c8-1 12 2 15 7Z"/>
+        <path d="M97 82c11-2 13-7 14-14-9 3-14 8-14 14ZM101 70c9-6 9-12 6-19-8 6-9 12-6 19ZM99 58c5-8 3-15-2-20-4 10-4 14 2 20ZM93 87c9 2 12-2 15-7-8-1-12 2-15 7Z"/>
       </g>
-      <g>
-        <g stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round">
+
+      <g strokeLinecap="round" strokeLinejoin="round">
+        <g stroke="#000" strokeWidth="6.2" opacity=".64" transform="translate(0 2)">
+          {ICONS[code] || ICONS.member}
+        </g>
+        <g fill="none" stroke="currentColor" strokeWidth="3.4">
           {ICONS[code] || ICONS.member}
         </g>
       </g>
-      <path d="M31 25Q59 11 86 27" fill="none" stroke="#fff" strokeWidth="1.3" opacity=".32" />
+
+      <path d="M60 3 64.3 12 73 15 64.3 18 60 27 55.7 18 47 15 55.7 12Z" fill={`url(#${steel})`} stroke="#21141d" strokeWidth=".9"/>
+      <path d="M60 7V22M52 15h16" stroke="#fff" strokeWidth=".9" opacity=".55"/>
+
+      <g filter={`url(#${shadow})`}>
+        <path d="M44 96 60 90 76 96 76 108 60 116 44 108Z" fill="#09090d" stroke={`url(#${steel})`} strokeWidth="2.8"/>
+        <path d="M47 98 60 93 73 98V106L60 112 47 106Z" fill="#1d111a" stroke="var(--medal-main)" strokeWidth=".9"/>
+        <text x="60" y="104.6" textAnchor="middle" fontSize="11.5" fontStyle="italic" fontWeight="900" fontFamily="Arial, sans-serif" letterSpacing="-.65" fill="#fff" stroke="#07070a" strokeWidth="1.7" paintOrder="stroke">ISTe</text>
+      </g>
     </svg>
   );
 }
