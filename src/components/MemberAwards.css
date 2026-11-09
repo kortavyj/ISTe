@@ -773,3 +773,87 @@
     aspect-ratio: 1;
   }
 }
+
+/* Compact profile awards gallery, dark-red ISTe styling. */
+.iste-awards {
+  padding: 17px 15px 18px;
+  border: 1px solid #831526;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 94% 100%, rgba(110, 4, 20, .18), transparent 55%),
+    linear-gradient(155deg, #140609, #090507 74%);
+  box-shadow: inset 0 1px 0 rgba(210, 42, 57, .10), 0 15px 36px rgba(0, 0, 0, .36);
+}
+.iste-awards-head h2 { font-size: clamp(1.08rem, 2vw, 1.4rem); }
+.iste-awards-caption { margin: 10px 0 15px; font-size: .79rem; }
+.iste-awards-tabs { margin-bottom: 13px; padding: 3px; border-color: rgba(130, 20, 37, .5); }
+.iste-awards-tabs button { min-height: 37px; font-size: .72rem; }
+.iste-awards-tabs button.is-active {
+  border-color: #b82437;
+  background: linear-gradient(145deg, #971629, #570b16);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .08);
+}
+.iste-awards-grid { gap: 9px; }
+.iste-award {
+  min-height: 155px;
+  gap: 6px;
+  padding: 11px 6px 12px;
+  border-radius: 14px;
+  border-color: rgba(130, 30, 43, .65);
+  background: radial-gradient(ellipse at 50% 32%, rgba(125, 14, 29, .18), transparent 72%), #10080b;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+.iste-award strong {
+  font-size: .81rem;
+  line-height: 1.25;
+  padding: 0 2px;
+}
+.iste-award:hover:not(.iste-award--locked) {
+  transform: translateY(-2px);
+  border-color: #bf263a;
+  box-shadow: 0 7px 18px rgba(0,0,0,.27), 0 0 13px rgba(150,12,30,.15);
+}
+.iste-awards-admin {
+  margin-top: 16px;
+  padding-top: 15px;
+  gap: 8px;
+  border-top-color: rgba(143, 20, 37, .5);
+}
+.iste-awards-admin select { padding: 9px 10px; border-color: #69202b; background: #14080c; }
+.iste-awards-admin button {
+  padding: 10px;
+  border-color: #b52438;
+  background: linear-gradient(135deg, #ba1b32, #770e21);
+}
+@container iste-awards (max-width: 649px) {
+  .iste-awards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .iste-award {
+    min-height: 148px;
+    gap: 6px;
+    padding: 10px 4px 11px;
+    border-radius: 14px;
+  }
+  .iste-award-icon,
+  .iste-award-icon .iste-award-medallion {
+    width: min(82px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .iste-award strong { max-width: 100%; font-size: .77rem; line-height: 1.25; }
+  .iste-award small { font-size: .62rem; }
+}
+@container iste-awards (min-width: 650px) {
+  .iste-award { min-height: 170px; }
+  .iste-award-icon,
+  .iste-award-icon .iste-award-medallion {
+    width: min(108px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+@container iste-awards (max-width: 225px) {
+  .iste-awards-grid { grid-template-columns: minmax(0, 1fr); }
+}
