@@ -480,3 +480,131 @@
   .iste-awards-tabs button { transition: none; }
   .iste-awards-notice button:hover:not(:disabled) { transform: none; }
 }
+
+/* Approved mockup fidelity: spacious trophy-gallery rather than tiny badges. */
+.iste-awards {
+  container-type: inline-size;
+  container-name: iste-awards;
+  padding: clamp(18px, 3.5%, 34px);
+  border: 1.5px solid #e5264b;
+  border-radius: 28px;
+  background:
+    linear-gradient(132deg, transparent 77%, rgba(208, 14, 45, .12) 77.3%, transparent 89%) top right/95% 43% no-repeat,
+    linear-gradient(139deg, rgba(122, 14, 35, .11), transparent 31%),
+    radial-gradient(ellipse at 90% 100%, rgba(100, 0, 23, .22), transparent 48%),
+    #0d070c;
+  box-shadow: inset 0 0 0 1px rgba(255, 90, 113, .04), 0 22px 52px rgba(0, 0, 0, .48);
+}
+.iste-awards-head h2 {
+  font-size: clamp(1.3rem, 3.2vw, 2.1rem);
+}
+.iste-awards-caption {
+  font-size: .91rem;
+  margin: 15px 0 25px;
+  color: #c5b7bd;
+}
+.iste-awards-notice {
+  padding: 29px 16px 27px;
+  margin-bottom: 26px;
+  border-radius: 20px;
+  border: 1.5px solid #ff4263;
+  background:
+    linear-gradient(136deg, rgba(223, 22, 55, .22) 0 12%, transparent 12.2%),
+    linear-gradient(320deg, rgba(234, 23, 56, .21) 0 11%, transparent 11.2%),
+    radial-gradient(ellipse at 50% 12%, rgba(248, 39, 73, .29), transparent 67%),
+    linear-gradient(140deg, #350d1a, #10070d 78%);
+  box-shadow: inset 0 0 0 1px rgba(255, 134, 154, .085), 0 0 24px rgba(234, 31, 69, .2);
+}
+.iste-awards-notice strong { font-size: clamp(1.25rem, 3.1vw, 1.8rem); }
+.iste-awards-notice-symbol { font-size: 2.8rem; }
+.iste-awards-notice p { font-size: .95rem; }
+.iste-awards-tabs {
+  margin-bottom: 24px;
+  border-color: rgba(255, 80, 104, .33);
+}
+.iste-awards-tabs button { min-height: 48px; font-size: .82rem; }
+.iste-awards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+.iste-award {
+  min-width: 0;
+  min-height: 217px;
+  gap: 12px;
+  padding: 24px 12px 20px;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 50% 31%, color-mix(in srgb, var(--medal-main) 12%, transparent), transparent 64%),
+    linear-gradient(150deg, #1c1016, #0b090e 75%);
+  border-color: color-mix(in srgb, var(--medal-main) 35%, #110b12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .065), 0 12px 28px rgba(0, 0, 0, .25);
+}
+.iste-award-icon,
+.iste-award-icon .iste-award-medallion {
+  width: clamp(112px, 13vw, 145px);
+  height: clamp(112px, 13vw, 145px);
+  max-width: 100%;
+}
+.iste-award-icon {
+  color: var(--medal-light);
+  filter: drop-shadow(0 7px 7px rgba(0, 0, 0, .65)) !important;
+}
+.iste-award strong {
+  max-width: 195px;
+  color: #fff;
+  font-size: clamp(.9rem, 1.3vw, 1.05rem);
+  line-height: 1.27;
+  font-weight: 900;
+}
+.iste-award small { font-size: .75rem; }
+.iste-award--neutral {
+  --medal-main: #b9b5c0;
+  --medal-light: #f1eff7;
+  --medal-shadow: #5d5267;
+}
+.iste-award--red {
+  --medal-main: #f93258;
+  --medal-light: #ffadbe;
+  --medal-shadow: #830e2a;
+}
+.iste-award--silver {
+  --medal-main: #cbd1e1;
+  --medal-light: #ffffff;
+  --medal-shadow: #626577;
+}
+.iste-award--gold {
+  --medal-main: #f3a743;
+  --medal-light: #ffe7ad;
+  --medal-shadow: #955016;
+}
+.iste-award--locked {
+  opacity: .65;
+  filter: grayscale(.95);
+}
+.iste-award--locked strong { color: #aea4ac; }
+.iste-award--locked .iste-award-icon { filter: grayscale(1) drop-shadow(0 4px 3px rgba(0, 0, 0, .4)) !important; }
+.iste-award-earned-mark { display: none; }
+.iste-awards-history-symbol { color: var(--medal-light); }
+@container iste-awards (min-width: 730px) {
+  .iste-awards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 19px; }
+  .iste-award { min-height: 237px; }
+  .iste-award-icon, .iste-award-icon .iste-award-medallion { width: 147px; height: 147px; }
+  .iste-award strong { font-size: 1.03rem; }
+}
+@container iste-awards (max-width: 439px) {
+  .iste-awards-grid { grid-template-columns: 1fr; gap: 13px; }
+  .iste-award {
+    min-height: 190px;
+    padding: 21px 15px;
+    gap: 9px;
+  }
+  .iste-award-icon, .iste-award-icon .iste-award-medallion { width: 124px; height: 124px; }
+  .iste-award strong { font-size: 1.02rem; }
+  .iste-awards-tabs button { font-size: .72rem; gap: 3px; padding-inline: 2px; }
+}
+@container iste-awards (max-width: 275px) {
+  .iste-awards-head { flex-wrap: wrap; }
+  .iste-awards-tabs button { font-size: .67rem; }
+  .iste-awards-tab-icon { display: none; }
+}
