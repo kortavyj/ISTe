@@ -106,12 +106,12 @@ export default function MemberAwards({ accountNumber, canManage, verificationTyp
 
   return <section className="iste-awards">
     <header className="iste-awards-head">
-      <h2><span aria-hidden="true">♛</span> Досягнення</h2>
-      <span>{awards.length} нагород</span>
+      <h2><span className="iste-awards-head-crown" aria-hidden="true">♛</span> Досягнення</h2>
+      <span className="iste-awards-count"><span aria-hidden="true">❧</span> {awards.length} нагород</span>
     </header>
     <p className="iste-awards-caption">Відкривайте нагороди за активність і досягнення в ISTe.</p>
     {isSelf && unread.length > 0 && <div className="iste-awards-notice" role="status">
-      <div className="iste-awards-notice-symbol" aria-hidden="true">✦</div>
+      <div className="iste-awards-notice-symbol" aria-hidden="true"><span>❧</span>✦<span>❧</span></div>
       <strong>Нове досягнення!</strong>
       <p>{unread.length === 1 ? CATALOG[unread[0].award_code][0] : `Відкрито ${unread.length} нових нагород`}</p>
       <button type="button" onClick={acknowledgeAwards} disabled={notificationBusy}>
@@ -119,9 +119,9 @@ export default function MemberAwards({ accountNumber, canManage, verificationTyp
       </button>
     </div>}
     <div className="iste-awards-tabs" role="group" aria-label="Каталог досягнень">
-      <button type="button" className={activeTab === "earned" ? "is-active" : ""} aria-pressed={activeTab === "earned"} onClick={() => setActiveTab("earned")}>Отримані</button>
-      <button type="button" className={activeTab === "catalog" ? "is-active" : ""} aria-pressed={activeTab === "catalog"} onClick={() => setActiveTab("catalog")}>Усі нагороди</button>
-      <button type="button" className={activeTab === "history" ? "is-active" : ""} aria-pressed={activeTab === "history"} onClick={() => setActiveTab("history")}>Історія</button>
+      <button type="button" className={activeTab === "earned" ? "is-active" : ""} aria-pressed={activeTab === "earned"} onClick={() => setActiveTab("earned")}><span className="iste-awards-tab-icon" aria-hidden="true">♙</span> Отримані</button>
+      <button type="button" className={activeTab === "catalog" ? "is-active" : ""} aria-pressed={activeTab === "catalog"} onClick={() => setActiveTab("catalog")}><span className="iste-awards-tab-icon" aria-hidden="true">▦</span> Усі нагороди</button>
+      <button type="button" className={activeTab === "history" ? "is-active" : ""} aria-pressed={activeTab === "history"} onClick={() => setActiveTab("history")}><span className="iste-awards-tab-icon" aria-hidden="true">◷</span> Історія</button>
     </div>
     {status === "loading" && <p className="iste-awards-muted">Завантажуємо нагороди…</p>}
     {status === "error" && <p className="iste-awards-muted" role="alert">Не вдалося отримати нагороди.</p>}
@@ -136,6 +136,7 @@ export default function MemberAwards({ accountNumber, canManage, verificationTyp
           title={`${title}. ${description}${earned && achieved?.granted_at ? `. Отримано: ${formattedDate(achieved.granted_at)}` : ""}`}>
           <span className="iste-award-icon" aria-hidden="true"><AwardSymbol code={item.award_code} /></span>
           <strong>{title}</strong>
+          {earned && <span className="iste-award-earned-mark" aria-label="Отримано">✓</span>}
           {activeTab === "catalog" && <small>{earned ? "Отримано" : AUTOMATIC.has(item.award_code) ? "Ще не відкрито" : "Відзнака власника"}</small>}
         </div>;
       })}
