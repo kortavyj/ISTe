@@ -669,3 +669,50 @@
 @media (prefers-reduced-motion: reduce) {
   .iste-award-icon .iste-award-medallion { transition: none; }
 }
+
+/* Narrow member-profile column: preserve actual badge visibility instead of squeezing a two-column grid. */
+@container iste-awards (max-width: 649px) {
+  .iste-awards-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+  }
+  .iste-award {
+    min-height: 219px;
+    padding: 20px 14px 19px;
+    gap: 7px;
+    border-radius: 18px;
+  }
+  .iste-award-icon,
+  .iste-award-icon .iste-award-medallion {
+    width: 151px;
+    height: 151px;
+    max-width: 100%;
+  }
+  .iste-award strong {
+    font-size: 1.01rem;
+    line-height: 1.34;
+    max-width: 94%;
+    text-wrap: balance;
+  }
+  .iste-award small {
+    font-size: .77rem;
+  }
+  .iste-award--locked {
+    opacity: .64;
+    filter: grayscale(.88);
+  }
+  .iste-awards-tabs button {
+    min-height: 43px;
+    font-size: .72rem;
+  }
+  .iste-awards-tab-icon { font-size: .9rem; }
+}
+@container iste-awards (max-width: 249px) {
+  .iste-awards { padding-inline: 10px; }
+  .iste-awards-head h2 { font-size: 1rem; }
+  .iste-awards-head .iste-awards-count { padding: 6px; }
+  .iste-award-icon,
+  .iste-award-icon .iste-award-medallion { width: 125px; height: 125px; }
+  .iste-awards-tab-icon { display: none; }
+  .iste-awards-tabs button { font-size: .69rem; }
+}
