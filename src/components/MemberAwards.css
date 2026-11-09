@@ -716,3 +716,60 @@
   .iste-awards-tab-icon { display: none; }
   .iste-awards-tabs button { font-size: .69rem; }
 }
+
+/* Clean symmetrical medals: no tiny extra plaque, SVG filter haze or clipped glyphs. */
+.iste-award-icon {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: visible;
+  filter: none !important;
+}
+.iste-award-icon .iste-award-medallion {
+  display: block;
+  margin: auto;
+  overflow: visible;
+  filter: none !important;
+  shape-rendering: geometricPrecision;
+}
+.iste-award:hover:not(.iste-award--locked) .iste-award-medallion {
+  filter: none !important;
+}
+.iste-award {
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.iste-award strong {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 5px;
+  font-size: clamp(.9rem, 1.2vw, 1.02rem);
+  line-height: 1.35;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+@container iste-awards (max-width: 649px) {
+  .iste-award {
+    min-height: 220px;
+    gap: 9px;
+    padding: 18px 14px;
+  }
+  .iste-award-icon,
+  .iste-award-icon .iste-award-medallion {
+    width: min(144px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .iste-award strong { font-size: 1rem; }
+}
+@container iste-awards (min-width: 650px) {
+  .iste-award-icon,
+  .iste-award-icon .iste-award-medallion {
+    width: min(144px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
