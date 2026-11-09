@@ -608,3 +608,64 @@
   .iste-awards-tabs button { font-size: .67rem; }
   .iste-awards-tab-icon { display: none; }
 }
+
+/* Variant 1 material finish. Badge artwork itself is scalable vector graphics. */
+.iste-award {
+  border-color: color-mix(in srgb, var(--medal-main) 32%, #17101a);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 39%, color-mix(in srgb, var(--medal-main) 14%, transparent), transparent 74%),
+    linear-gradient(158deg, #191015, #0b090d 67%);
+}
+.iste-award--red {
+  --medal-main: #ed2949;
+  --medal-light: #ff9aaf;
+  --medal-shadow: #850f27;
+}
+.iste-award--silver {
+  --medal-main: #c3c6d1;
+  --medal-light: #f8f6fe;
+  --medal-shadow: #575967;
+}
+.iste-award--gold {
+  --medal-main: #eab047;
+  --medal-light: #fff0b3;
+  --medal-shadow: #82521e;
+}
+.iste-award-icon,
+.iste-award-icon .iste-award-medallion {
+  overflow: visible;
+}
+.iste-award-icon {
+  filter: drop-shadow(0 8px 8px rgba(0,0,0,.62)) !important;
+}
+.iste-award-icon .iste-award-medallion {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--medal-main) 18%, transparent));
+}
+.iste-award:hover:not(.iste-award--locked) .iste-award-medallion {
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--medal-main) 35%, transparent));
+}
+.iste-award--locked {
+  opacity: .67;
+  filter: grayscale(1);
+}
+.iste-award--locked .iste-award-medallion {
+  filter: grayscale(1);
+}
+.iste-awards-history-item[data-tone="red"] .iste-awards-history-symbol {
+  --medal-main: #ed2949;
+  --medal-light: #ff9aaf;
+  --medal-shadow: #850f27;
+}
+.iste-awards-history-item[data-tone="silver"] .iste-awards-history-symbol {
+  --medal-main: #c3c6d1;
+  --medal-light: #f8f6fe;
+  --medal-shadow: #575967;
+}
+.iste-awards-history-item[data-tone="gold"] .iste-awards-history-symbol {
+  --medal-main: #eab047;
+  --medal-light: #fff0b3;
+  --medal-shadow: #82521e;
+}
+@media (prefers-reduced-motion: reduce) {
+  .iste-award-icon .iste-award-medallion { transition: none; }
+}
