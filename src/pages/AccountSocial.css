@@ -448,12 +448,22 @@
   .iste-social-cover-edit,.iste-social-avatar-pencil {transition:none;}
 }
 
-/* Account achievements appear above member details in the right sidebar. */
-.iste-social-sidebar > .iste-awards { width: 100%; min-width: 0; margin: 0; }
-.iste-social-sidebar > .iste-awards .iste-awards-head h2 { letter-spacing: 0; text-transform: none; }
-.iste-social-sidebar > .iste-awards .iste-awards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.iste-social-sidebar > .iste-awards .iste-awards-history-item { min-width: 0; }
-@media (max-width: 760px) { .iste-social-sidebar > .iste-awards { order: -1; } }
+/* Achievements belong in the wide profile content, not the narrow sidebar. */
+.iste-social-main > .iste-awards {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.iste-social-main > .iste-awards .iste-awards-head h2 {
+  letter-spacing: 0;
+  text-transform: none;
+}
+.iste-social-main > .iste-awards .iste-awards-history-item { min-width: 0; }
+@container iste-awards (min-width: 650px) and (max-width: 729px) {
+  .iste-social-main > .iste-awards .iste-awards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
 /* ISTe profile dark crimson palette. Scoped to member profile pages.
    Keep member artwork, uploaded banners, role-based medals and selected avatar frames intact. */
@@ -565,10 +575,10 @@
   background-color: #8f1e35;
 }
 /* Awards keep their type-specific gold and silver illustration colors. */
-.iste-social-page .iste-social-sidebar > .iste-awards {
+.iste-social-page .iste-social-main > .iste-awards {
   background: linear-gradient(155deg, #200e15, #0d090d 72%);
   border-color: #773040;
 }
-.iste-social-page .iste-social-sidebar > .iste-awards .iste-awards-caption {
+.iste-social-page .iste-social-main > .iste-awards .iste-awards-caption {
   color: #c9aab4;
 }
