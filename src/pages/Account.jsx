@@ -537,9 +537,6 @@ export default function Account() {
                 </form>
               </section>
             )}
-          </main>
-
-          <aside className="iste-social-sidebar">
             {profile?.account_number ? (
               <MemberAwards
                 accountNumber={profile.account_number}
@@ -547,6 +544,9 @@ export default function Account() {
                 verificationType={profile.verification_type || "silver"}
               />
             ) : null}
+          </main>
+
+          <aside className="iste-social-sidebar">
             <section className="iste-social-panel iste-social-member-facts" aria-label={social.stats}>
               <div className="iste-social-section-head"><h2>{social.stats}</h2></div>
               <dl>
