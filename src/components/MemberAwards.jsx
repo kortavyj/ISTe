@@ -22,6 +22,19 @@ const CATALOG = {
 const MANUAL = ["early_member","community_helper","tournament_winner","partner","creator"];
 const DISPLAY_ORDER = ["member","verified","month_member","year_member","first_showcase","first_comment","ten_comments","early_member","community_helper","tournament_winner","partner","creator","admin","owner"];
 const AUTOMATIC = new Set(["member","verified","month_member","year_member","first_showcase","first_comment","ten_comments","admin","owner"]);
+/* Artwork palette follows approved metallic-medallion variant 1.
+   Verification retains the account's actual badge tier. */
+const VISUAL_TONE = {
+  member: "silver", month_member: "gold", year_member: "gold",
+  first_showcase: "silver", first_comment: "silver", ten_comments: "silver",
+  early_member: "gold", community_helper: "red", tournament_winner: "gold",
+  partner: "red", creator: "silver", admin: "silver", owner: "gold",
+};
+function awardTone(awardCode, verificationType) {
+  if (awardCode === "verified") return ["red", "silver", "gold"].includes(verificationType) ? verificationType : "silver";
+  return VISUAL_TONE[awardCode] || CATALOG[awardCode]?.[3] || "silver";
+}
+
 function formattedDate(value) {
   if (!value || Number.isNaN(new Date(value).getTime())) return "Дата невідома";
   return new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
@@ -127,8 +140,8 @@ export default function MemberAwards({ accountNumber, canManage, verificationTyp
     {status === "error" && <p className="iste-awards-muted" role="alert">Не вдалося отримати нагороди.</p>}
     {status === "ready" && activeTab !== "history" && <div className="iste-awards-grid">
       {(activeTab === "catalog" ? DISPLAY_ORDER.map(award_code => ({ award_code })) : awards).map(item => {
-        const [title, description, , categoryTone] = CATALOG[item.award_code];
-        const tone = item.award_code === "verified" && ["red", "silver", "gold"].includes(verificationType) ? verificationType : categoryTone;
+        const [title, description] = CATALOG[item.award_code];
+        const tone = awardTone(item.award_code, verificationType);
         const earned = earnedCodes.has(item.award_code);
         const achieved = awards.find(entry => entry.award_code === item.award_code);
         return <div key={item.award_code}
@@ -143,7 +156,7 @@ export default function MemberAwards({ accountNumber, canManage, verificationTyp
     </div>}
     {status === "ready" && activeTab === "earned" && awards.length === 0 && <p className="iste-awards-muted">Нагороди ще не отримано.</p>}
     {status === "ready" && activeTab === "history" && <div className="iste-awards-history">
-      {history.map(item => <div className="iste-awards-history-item" data-tone={item.award_code === "verified" && ["red", "silver", "gold"].includes(verificationType) ? verificationType : CATALOG[item.award_code][3]} key={item.award_code}>
+      {history.map(item => <div className="iste-awards-history-item" data-tone={awardTone(item.award_code, verificationType)} key={item.award_code}>
         <span className="iste-awards-history-symbol"><AwardSymbol code={item.award_code} /></span>
         <span><strong>{CATALOG[item.award_code][0]}</strong><small>{formattedDate(item.granted_at)}</small></span>
         <span className={item.active ? "iste-awards-history-active" : "iste-awards-history-archived"}>{item.active ? "Активна" : "В архіві"}</span>
