@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 44,
-  "matches": 96,
-  "wins": 77,
+  "matches": 97,
+  "wins": 78,
   "winRate": 80,
   "players": 7,
   "roster": [
@@ -41,7 +41,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.46
+      "kd": 1.49
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -89,7 +89,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 0.99
+      "kd": 1
     },
     {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
@@ -105,7 +105,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.01
+      "kd": 1
     },
     {
       "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
@@ -121,10 +121,34 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.11
+      "kd": 1.12
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-d03814a5-b419-4588-97a5-89b3cc2ee30c",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-d03814a5-b419-4588-97a5-89b3cc2ee30c",
+      "tournamentId": "3b1873c0-4401-4a4e-8aef-111138b9a3c4",
+      "competitionName": "S59 EU Open10 B - Regular Season",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-11-10T19:09:20.000Z",
+      "startedAt": "2026-11-10T19:09:20.000Z",
+      "finishedAt": "2026-11-10T19:48:58.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "VARI",
+        "avatar": "https://distribution.faceit-cdn.net/images/3d320c9e-3c39-46b3-8727-d3c765258a1b.jpg",
+        "score": 6
+      }
+    },
     {
       "matchId": "1-f6587840-0369-4570-8d83-38ebd09e5724",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-f6587840-0369-4570-8d83-38ebd09e5724",
@@ -3726,14 +3750,14 @@
       }
     }
   ],
-  "teamMatchCount": 150,
+  "teamMatchCount": 151,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 8,
-    "historyMatchesFound": 18,
+    "historyMatchesFound": 19,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3741,5 +3765,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-10T18:13:14.803Z"
+  "updatedAt": "2026-11-10T23:20:54.753Z"
 }
