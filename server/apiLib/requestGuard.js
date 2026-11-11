@@ -55,11 +55,20 @@ function getAllowedOrigins() {
 }
 
 function getSourceOrigin(request) {
+  const originHeader = request.headers?.origin;
+  const hasOrigin = Object.prototype.hasOwnProperty.call(
+    request.headers ?? {}, "origin",
+  );
+
+  // Reject duplicate Origin fields instead of silently trusting the first.
+  if (Array.isArray(originHeader) && originHeader.length !== 1) {
+    return null;
+  }
+
   const rawOrigin = getHeader(request, "origin");
 
-  // A supplied Origin is authoritative even if malformed or "null".
-  // Do not fall back to Referer and accidentally accept conflicting headers.
-  if (rawOrigin) {
+  // Even an empty Origin is authoritative: never fall back to Referer.
+  if (hasOrigin) {
     const origin = normalizeOrigin(rawOrigin);
     // Origin must be a single serialized origin, not an arbitrary URL.
     // Reject paths, credentials, query strings and origin lists.
