@@ -34,14 +34,14 @@
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/VaLaF",
-      "level": 10,
-      "elo": 2489,
+      "level": null,
+      "elo": null,
       "role": "AWP",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
-      "winRate": 51,
-      "kd": 1.48
+      "winRate": null,
+      "kd": 1.51
     },
     {
       "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
@@ -83,7 +83,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
-      "elo": 2444,
+      "elo": 2437,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -114,14 +114,14 @@
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
-      "level": 10,
-      "elo": 2570,
+      "level": null,
+      "elo": null,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.09
+      "kd": 1.11
     }
   ],
   "teamMatches": [
@@ -3765,5 +3765,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-13T16:05:35.396Z"
+  "updatedAt": "2026-11-13T21:55:48.769Z"
 }
