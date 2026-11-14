@@ -35,13 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/VaLaF",
       "level": 10,
-      "elo": 2640,
+      "elo": 2520,
       "role": "AWP",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.5
+      "kd": 1.47
     },
     {
       "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
@@ -72,7 +72,7 @@
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
-      "winRate": null,
+      "winRate": 51,
       "kd": 1.11
     },
     {
@@ -83,12 +83,12 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
-      "elo": 2452,
+      "elo": 2512,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": null,
+      "winRate": 50,
       "kd": 1.03
     },
     {
@@ -121,7 +121,7 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.04
+      "kd": 1.12
     }
   ],
   "teamMatches": [
@@ -3765,5 +3765,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-14T15:10:49.819Z"
+  "updatedAt": "2026-11-14T19:54:37.635Z"
 }
