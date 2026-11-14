@@ -18,14 +18,14 @@
       "country": "ua",
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
-      "level": 8,
-      "elo": 1598,
+      "level": null,
+      "elo": null,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
       "roleSource": "FACEIT statistical inference",
       "winRate": 49,
-      "kd": 1.24
+      "kd": 1.23
     },
     {
       "playerId": "1c507ca5-ae1e-40b8-bce5-f8ef30cc6c9e",
@@ -34,13 +34,13 @@
       "country": "ua",
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/VaLaF",
-      "level": null,
-      "elo": null,
+      "level": 10,
+      "elo": 2639,
       "role": "AWP",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
-      "winRate": null,
+      "winRate": 51,
       "kd": 1.51
     },
     {
@@ -51,7 +51,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
       "level": 10,
-      "elo": 2054,
+      "elo": 2035,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -73,7 +73,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.11
+      "kd": 1.15
     },
     {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
@@ -83,13 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
-      "elo": 2437,
+      "elo": 2452,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 1.02
+      "kd": 1.03
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -121,7 +121,7 @@
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.11
+      "kd": 2641.9
     }
   ],
   "teamMatches": [
@@ -3765,5 +3765,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-13T21:55:48.769Z"
+  "updatedAt": "2026-11-14T01:55:13.892Z"
 }
