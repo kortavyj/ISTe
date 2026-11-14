@@ -9,7 +9,7 @@
       "elo": 1802,
       "kd": 1.25,
       "winRate": 54,
-      "matches": 281,
+      "matches": 284,
       "faceitUrl": "https://www.faceit.com/ru/players/ivan1love"
     },
     {
@@ -21,7 +21,7 @@
       "elo": 2056,
       "kd": 1.32,
       "winRate": 53,
-      "matches": 856,
+      "matches": 859,
       "faceitUrl": "https://www.faceit.com/ru/players/S1Zapooo"
     },
     {
@@ -30,10 +30,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/b1cdce43-4629-4739-af8f-1e4dbfb2107b.jpg",
       "level": 7,
-      "elo": 1399,
+      "elo": 1430,
       "kd": 0.97,
       "winRate": 49,
-      "matches": 664,
+      "matches": 668,
       "faceitUrl": "https://www.faceit.com/ru/players/DETT3N"
     },
     {
@@ -45,7 +45,7 @@
       "elo": 1898,
       "kd": 1.06,
       "winRate": 53,
-      "matches": 762,
+      "matches": 765,
       "faceitUrl": "https://www.faceit.com/ru/players/AGREGAT"
     },
     {
@@ -53,11 +53,11 @@
       "playerId": "c70ca7e0-1e3a-45ab-9975-ff7632a97a5e",
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/2138965a-96b6-4af9-a5f4-16ba0b8aed6b.jpg",
-      "level": 6,
-      "elo": 1350,
+      "level": 7,
+      "elo": 1378,
       "kd": 0.97,
       "winRate": 53,
-      "matches": 413,
+      "matches": 417,
       "faceitUrl": "https://www.faceit.com/ru/players/syro_S"
     }
   ]
