@@ -35,13 +35,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/VaLaF",
       "level": 10,
-      "elo": 2639,
+      "elo": 2640,
       "role": "AWP",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.51
+      "kd": 1.5
     },
     {
       "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
@@ -60,6 +60,22 @@
       "kd": 1.16
     },
     {
+      "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
+      "nickname": "tw3ntyq",
+      "avatar": "https://distribution.faceit-cdn.net/images/78893d81-b58e-4510-8843-7b40689ba588.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
+      "level": 10,
+      "elo": 2558,
+      "role": "RIFLER",
+      "reason": "Закреплённая роль основного состава ISTe",
+      "confidence": 100,
+      "roleSource": "ISTe manual roster override",
+      "winRate": null,
+      "kd": 1.11
+    },
+    {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
       "nickname": "Droni452",
       "avatar": "https://distribution.faceit-cdn.net/images/7e1a445c-b864-4b05-a7e2-8fb434c5fba4.jpg",
@@ -72,7 +88,7 @@
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": 50,
+      "winRate": null,
       "kd": 1.03
     },
     {
@@ -92,22 +108,6 @@
       "kd": 1
     },
     {
-      "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
-      "nickname": "tw3ntyq",
-      "avatar": "https://distribution.faceit-cdn.net/images/78893d81-b58e-4510-8843-7b40689ba588.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
-      "level": null,
-      "elo": null,
-      "role": "RIFLER",
-      "reason": "Закреплённая роль основного состава ISTe",
-      "confidence": 100,
-      "roleSource": "ISTe manual roster override",
-      "winRate": 51,
-      "kd": 1.11
-    },
-    {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
       "nickname": "Manocivnyk",
       "avatar": null,
@@ -115,13 +115,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
       "level": 10,
-      "elo": 2660,
+      "elo": 2661,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.11
+      "kd": 1.04
     }
   ],
   "teamMatches": [
@@ -3765,5 +3765,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-14T08:19:18.181Z"
+  "updatedAt": "2026-11-14T15:10:49.819Z"
 }

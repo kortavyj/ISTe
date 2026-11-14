@@ -42,10 +42,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/951bc299-9b42-40c6-9570-9a34812e4d53.jpg",
       "level": 9,
-      "elo": 1873,
+      "elo": 1898,
       "kd": 1.06,
       "winRate": 53,
-      "matches": 760,
+      "matches": 761,
       "faceitUrl": "https://www.faceit.com/ru/players/AGREGAT"
     },
     {
@@ -57,7 +57,7 @@
       "elo": 1381,
       "kd": 0.97,
       "winRate": 53,
-      "matches": 409,
+      "matches": 411,
       "faceitUrl": "https://www.faceit.com/ru/players/syro_S"
     }
   ]
