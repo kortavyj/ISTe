@@ -1217,3 +1217,30 @@
     font-size: .75rem;
   }
 }
+
+
+/* Keep the main roster card content aligned when nicknames wrap. */
+.team-page .team-roster-showcase .team-profiles--grid > .team-profile--grid-card .team-profile__heading h2 {
+  min-height: 2.2em;
+  max-height: 2.2em;
+  margin-bottom: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.team-page .team-roster-showcase .team-profiles--grid > .team-profile--grid-card .team-profile__title {
+  min-height: 1.2em;
+}
+.team-page .team-roster-showcase .team-profiles--grid > .team-profile--grid-card .team-profile__description {
+  min-height: calc(1.55em * 4);
+  max-height: calc(1.55em * 4);
+}
+.team-page .team-roster-showcase .team-profiles--grid > .team-profile--grid-card .team-profile__strengths {
+  align-content: flex-start;
+  min-height: 32px;
+}
+.team-page .team-roster-showcase .team-profiles--grid > .team-profile--grid-card .team-profile__actions {
+  margin-top: auto;
+  align-items: center;
+}
