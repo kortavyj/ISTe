@@ -29,11 +29,13 @@ const PROFILE_ORDER = Object.freeze([
   "lor9n",
   "sssoo",
   "fatalexcept",
+  "vladikavkaz0",
 ]);
 
 const SUBSTITUTE_PLAYERS = new Set([
   "sssoo",
   "fatalexcept",
+  "vladikavkaz0",
 ]);
 
 const ROSTER_FALLBACKS = Object.freeze([
@@ -71,6 +73,27 @@ const ROSTER_FALLBACKS = Object.freeze([
   },
 ]);
 
+
+const ADDITIONAL_SUBSTITUTES = Object.freeze([
+  {
+    nickname: "VLADIKAVKAZ0",
+    displayName: "VLADIKAVKAZ0",
+    realNameUk: "ВЛАДИСЛАВ",
+    realNameEn: "Vladyslav",
+    country: "ua",
+    role: "RIFLER",
+    rosterStatus: "substitute",
+    officialRoster: true,
+    sortOrder: 95,
+    captain: false,
+    isCaptain: false,
+    faceitUrl: "https://www.faceit.com/ru/players/vladikavkaz0",
+    socials: [
+      { type: "twitch", url: "https://www.twitch.tv/vasap_my_boy" },
+      { type: "telegram", url: "https://t.me/oknaxyi" },
+    ],
+  },
+]);
 
 const PAGE_COPY = Object.freeze({
   uk: {
@@ -260,6 +283,31 @@ const CUSTOM_PROFILES = Object.freeze([
     portrait: sharedPlayerPortrait,
     portraitMode: "cutout",
     socials: [],
+  },
+  {
+    sourceNickname: "vladikavkaz0",
+    nickname: "VLADIKAVKAZ0",
+    roleLabel: "RIFLER",
+    copy: {
+      uk: {
+        title: "ВЛАДИСЛАВ",
+        description:
+          "Універсальний рифлер ISTe. Впевнено тримає позиції, вчасно підтримує команду розмінами та стабільно закриває важливі раунди завдяки швидкій реакції.",
+        strengths: ["Холоднокровність", "Реакція", "Точність"],
+      },
+      en: {
+        title: "VLADYSLAV",
+        description:
+          "A versatile ISTe rifler. Holds positions with confidence, supports teammates with timely trades and consistently closes important rounds thanks to his quick reactions.",
+        strengths: ["Composure", "Reaction", "Precision"],
+      },
+    },
+    portrait: sharedPlayerPortrait,
+    portraitMode: "cutout",
+    socials: [
+      { name: "Twitch", url: "https://www.twitch.tv/vasap_my_boy", icon: "twitch" },
+      { name: "Telegram", url: "https://t.me/oknaxyi", icon: "telegram" },
+    ],
   },
   {
     sourceNickname: "fatalexcept",
@@ -850,6 +898,15 @@ export default function Team({ initialRoster = "main" }) {
       }
     });
   }
+
+  // Show announced substitutes even when the official roster API is active.
+  // An existing official entry takes precedence, preventing duplicate cards.
+  ADDITIONAL_SUBSTITUTES.forEach((player) => {
+    const key = normalizeNickname(player.nickname);
+    if (!rosterByNickname.has(key)) {
+      rosterByNickname.set(key, player);
+    }
+  });
 
   const players = [...rosterByNickname.values()]
     .filter(
