@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 44,
-  "matches": 98,
-  "wins": 79,
+  "matches": 99,
+  "wins": 80,
   "winRate": 81,
   "players": 7,
   "roster": [
@@ -41,7 +41,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.31
+      "kd": 1.32
     },
     {
       "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
@@ -51,12 +51,12 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
       "level": 10,
-      "elo": 2207,
+      "elo": 2203,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
       "roleSource": "FACEIT statistical inference",
-      "winRate": null,
+      "winRate": 51,
       "kd": 1.16
     },
     {
@@ -83,7 +83,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
-      "elo": 2350,
+      "elo": 2320,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-8b0c96c2-9fe0-48c0-b8b7-0853e6bf56da",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-8b0c96c2-9fe0-48c0-b8b7-0853e6bf56da",
+      "tournamentId": "3b1873c0-4401-4a4e-8aef-111138b9a3c4",
+      "competitionName": "S59 EU Open10 B - Regular Season",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-11-19T19:08:19.000Z",
+      "startedAt": "2026-11-19T19:08:19.000Z",
+      "finishedAt": "2026-11-19T19:54:16.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "NUBs",
+        "avatar": "https://distribution.faceit-cdn.net/images/a075fda0-ff4e-4838-ab67-b7b79777caa6.jpg",
+        "score": 11
+      }
+    },
     {
       "matchId": "1-aa882b99-5ddf-4779-854b-ed1f1cccaf4f",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-aa882b99-5ddf-4779-854b-ed1f1cccaf4f",
@@ -3774,14 +3798,14 @@
       }
     }
   ],
-  "teamMatchCount": 152,
+  "teamMatchCount": 153,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 8,
-    "historyMatchesFound": 19,
+    "historyMatchesFound": 20,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3789,5 +3813,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-19T13:49:20.041Z"
+  "updatedAt": "2026-11-19T21:51:34.213Z"
 }
