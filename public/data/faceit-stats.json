@@ -18,8 +18,8 @@
       "country": "ua",
       "captain": true,
       "faceitUrl": "https://www.faceit.com/ru/players/Kortavyj",
-      "level": null,
-      "elo": null,
+      "level": 7,
+      "elo": 1462,
       "role": "IGL",
       "reason": "Капитан команды на FACEIT",
       "confidence": 95,
@@ -44,20 +44,20 @@
       "kd": 1.32
     },
     {
-      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
-      "nickname": "Manocivnyk",
-      "avatar": null,
+      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
+      "nickname": "vladikavkaz0",
+      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
       "level": 10,
-      "elo": 2571,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
+      "elo": 2207,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.1
+      "kd": 1.14
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -67,7 +67,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
-      "elo": 2558,
+      "elo": 2533,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
@@ -88,8 +88,8 @@
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
-      "winRate": null,
-      "kd": null
+      "winRate": 50,
+      "kd": 1
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -108,20 +108,20 @@
       "kd": 1.02
     },
     {
-      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
-      "nickname": "vladikavkaz0",
-      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
+      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
+      "nickname": "Manocivnyk",
+      "avatar": null,
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
+      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
       "level": 10,
-      "elo": 2207,
+      "elo": 2571,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
-      "winRate": null,
-      "kd": 1.15
+      "winRate": 51,
+      "kd": 1.1
     }
   ],
   "teamMatches": [
@@ -3813,5 +3813,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-21T07:18:16.416Z"
+  "updatedAt": "2026-11-21T15:26:14.989Z"
 }
