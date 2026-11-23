@@ -51,7 +51,7 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
       "level": 10,
-      "elo": 2210,
+      "elo": 2211,
       "role": "ENTRY",
       "reason": "Сильнейшие показатели первых контактов",
       "confidence": 80,
@@ -3813,5 +3813,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-22T21:16:07.253Z"
+  "updatedAt": "2026-11-23T01:46:33.189Z"
 }
