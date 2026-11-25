@@ -5,9 +5,9 @@
   "teamName": "ISTe",
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
-  "tournaments": 44,
-  "matches": 99,
-  "wins": 80,
+  "tournaments": 45,
+  "matches": 101,
+  "wins": 82,
   "winRate": 81,
   "players": 7,
   "roster": [
@@ -41,23 +41,23 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.37
+      "kd": 1.39
     },
     {
-      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
-      "nickname": "vladikavkaz0",
-      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
+      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
+      "nickname": "Manocivnyk",
+      "avatar": null,
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
+      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
       "level": 10,
-      "elo": 2142,
-      "role": "ENTRY",
-      "reason": "Сильнейшие показатели первых контактов",
-      "confidence": 80,
+      "elo": 2571,
+      "role": "RIFLER",
+      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
+      "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.13
+      "kd": 1.11
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -67,13 +67,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/tw3ntyq",
       "level": 10,
-      "elo": 2483,
+      "elo": 2508,
       "role": "RIFLER",
       "reason": "Закреплённая роль основного состава ISTe",
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.09
+      "kd": 1.11
     },
     {
       "playerId": "a9e3d469-bb70-4ae5-8cf3-dee726c8a82d",
@@ -83,13 +83,13 @@
       "captain": false,
       "faceitUrl": "https://www.faceit.com/ru/players/Droni452",
       "level": 10,
-      "elo": 2380,
+      "elo": 2410,
       "role": "RIFLER",
       "reason": "Универсальная стрелковая роль по сбалансированной статистике",
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 0.99
+      "kd": 1
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -105,26 +105,50 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.02
+      "kd": 1.03
     },
     {
-      "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
-      "nickname": "Manocivnyk",
-      "avatar": null,
+      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
+      "nickname": "vladikavkaz0",
+      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
       "country": "ua",
       "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/Manocivnyk",
+      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
       "level": 10,
-      "elo": 2571,
+      "elo": 2116,
       "role": "SUPPORT",
       "reason": "Лучший вклад гранатами и ассистами",
       "confidence": 78,
       "roleSource": "FACEIT statistical inference",
       "winRate": 51,
-      "kd": 1.11
+      "kd": 1.17
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-9857f6cf-22f2-4dce-aae2-84636a2073c4",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-9857f6cf-22f2-4dce-aae2-84636a2073c4",
+      "tournamentId": "ef507b5e-9286-42cd-8e4d-cf9b4b25d58c",
+      "competitionName": "S59 EU Open10 B - Playoffs",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "win",
+      "scheduledAt": "2026-11-24T18:59:47.000Z",
+      "startedAt": "2026-11-24T18:59:47.000Z",
+      "finishedAt": "2026-11-24T19:34:48.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Twenty One",
+        "avatar": "https://distribution.faceit-cdn.net/images/5894bb65-7b62-4a57-a353-150e2cffb3b1.jpg",
+        "score": 8
+      }
+    },
     {
       "matchId": "1-8b0c96c2-9fe0-48c0-b8b7-0853e6bf56da",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-8b0c96c2-9fe0-48c0-b8b7-0853e6bf56da",
@@ -3798,14 +3822,14 @@
       }
     }
   ],
-  "teamMatchCount": 153,
+  "teamMatchCount": 154,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 8,
-    "historyMatchesFound": 20,
+    "historyMatchesFound": 21,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3813,5 +3837,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-24T16:14:43.567Z"
+  "updatedAt": "2026-11-25T00:45:48.125Z"
 }
