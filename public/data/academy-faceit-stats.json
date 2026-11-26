@@ -29,11 +29,11 @@
       "playerId": "898b0d1f-e1fd-494a-9547-21507a4f0204",
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/b1cdce43-4629-4739-af8f-1e4dbfb2107b.jpg",
-      "level": 7,
-      "elo": 1479,
+      "level": 8,
+      "elo": 1548,
       "kd": 0.97,
       "winRate": 49,
-      "matches": 736,
+      "matches": 742,
       "faceitUrl": "https://www.faceit.com/ru/players/DETT3N"
     },
     {
@@ -54,10 +54,10 @@
       "country": "ua",
       "avatar": "https://distribution.faceit-cdn.net/images/2138965a-96b6-4af9-a5f4-16ba0b8aed6b.jpg",
       "level": 7,
-      "elo": 1424,
+      "elo": 1453,
       "kd": 0.96,
       "winRate": 52,
-      "matches": 447,
+      "matches": 448,
       "faceitUrl": "https://www.faceit.com/ru/players/syro_S"
     }
   ]
