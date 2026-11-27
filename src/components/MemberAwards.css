@@ -1302,3 +1302,20 @@
   .steam-achievement,.steam-achievements__progress > span {transition:none;}
   .steam-achievements__spinner {animation:none;}
 }
+
+
+/* Portaled details remain responsive outside the profile's CSS container. */
+@media (max-width: 530px) {
+  .steam-achievements__dialog {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 36px 22px 22px;
+    text-align: center;
+    max-height: 88vh;
+  }
+  .steam-achievements__dialog-art .iste-award-medallion {
+    width: 118px;
+    height: 118px;
+  }
+  .steam-achievements__dialog-result { text-align: left; }
+}
