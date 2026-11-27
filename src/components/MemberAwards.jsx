@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import "./MemberAwards.css";
 import AwardSymbol from "./AwardSymbol.jsx";
@@ -89,12 +90,20 @@ export default function MemberAwards({ accountNumber, canManage, verificationTyp
 
   useEffect(() => {
     if (!selectedCode) return undefined;
-    const closeOnEscape = event => {
+    const previouslyFocused = document.activeElement;
+    const handleDialogKeys = event => {
       if (event.key === "Escape") setSelectedCode("");
+      if (event.key === "Tab") {
+        event.preventDefault();
+        dialogCloseRef.current?.focus();
+      }
     };
-    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("keydown", handleDialogKeys);
     dialogCloseRef.current?.focus();
-    return () => document.removeEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("keydown", handleDialogKeys);
+      previouslyFocused?.focus?.();
+    };
   }, [selectedCode]);
 
   const earnedMap = useMemo(() => new Map(awards.map(item => [item.award_code, item])), [awards]);
@@ -301,7 +310,7 @@ export default function MemberAwards({ accountNumber, canManage, verificationTyp
       )}
       {message && <p className="steam-achievements__message" role="status">{message}</p>}
 
-      {selected && (
+      {selected && createPortal(
         <div className="steam-achievements__backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setSelectedCode(""); }}>
           <div className="steam-achievements__dialog" role="dialog" aria-modal="true" aria-labelledby={dialogTitleId}>
             <button className="steam-achievements__dialog-close" type="button" ref={dialogCloseRef} onClick={() => setSelectedCode("")} aria-label="Закрити подробиці">×</button>
@@ -315,7 +324,8 @@ export default function MemberAwards({ accountNumber, canManage, verificationTyp
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
