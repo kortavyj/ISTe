@@ -48,8 +48,8 @@ const ROSTER_FALLBACKS = Object.freeze([
     faceitUrl: "https://www.faceit.com/ru/players/Droni452",
     level: 10,
     elo: 2423,
-    role: "IGL",
-    reason: "Капітан основного складу ISTe",
+    role: "RIFLER",
+    reason: "Рифлер основного складу ISTe",
     confidence: 100,
     roleSource: "ISTe manual roster",
     winRate: 50,
@@ -163,19 +163,19 @@ const CUSTOM_PROFILES = Object.freeze([
   {
     sourceNickname: "1sagi",
     nickname: "1sagi",
-    roleLabel: "Rifle",
+    roleLabel: "IGL",
     copy: {
       uk: {
         title: "Serhii",
         description:
-          "Зірковий рифлер. Ламає раунд першим дуелем, забирає сайт і тягне карту мультикілами. Диктує темп різкими піками, щільним спреєм і безстрашною агресією.",
-        strengths: ["Ентрі-дуелі", "Мультикіли", "Безстрашний аім"],
+          "Капітан та ігровий лідер ISTe. Відповідає за координацію команди, колли, прийняття рішень і контроль темпу раундів.",
+        strengths: ["Коллинг", "Координація", "Тактика"],
       },
       en: {
         title: "Serhii",
         description:
-          "Star rifler. Breaks rounds open with the first duel, takes sites and carries maps with multikills. Sets the pace with sharp peeks, tight sprays and fearless aggression.",
-        strengths: ["Entry duels", "Multikills", "Fearless aim"],
+          "ISTe captain and in-game leader. Coordinates the team, makes mid-round calls and decisions, and controls the pace of each round.",
+        strengths: ["Calling", "Coordination", "Tactics"],
       },
     },
     portrait: sharedPlayerPortrait,
@@ -196,18 +196,18 @@ const CUSTOM_PROFILES = Object.freeze([
   {
     sourceNickname: "droni452",
     nickname: "DRONI",
-    roleLabel: "IGL",
+    roleLabel: "RIFLER",
     copy: {
       uk: {
         title: "Никита",
         description:
-          "Капітан команди. Відповідає за колли під час раунду, читання гри суперника та побудову структури раундів.",
+          "Рифлер основного складу ISTe. Підтримує партнерів у розмінах, допомагає контролювати позиції та працює на командний результат.",
         strengths: ["Читання гри", "Макро-гра", "Позитив"],
       },
       en: {
         title: "Nikita",
         description:
-          "Team captain. Responsible for in-round calls, reading the opponent's game and building the team's round structure.",
+          "ISTe main roster rifler. Supports teammates in trades, helps hold positions and contributes to the team's performance.",
         strengths: ["Game reading", "Macro play", "Positive mindset"],
       },
     },
@@ -919,6 +919,16 @@ export default function Team({ initialRoster = "main" }) {
         ? true
         : PROFILE_BY_NICKNAME.has(normalizeNickname(player.nickname)),
     )
+    .map((player) => {
+      const nickname = normalizeNickname(player.nickname);
+      if (nickname === "1sagi") {
+        return { ...player, role: "IGL", isCaptain: true };
+      }
+      if (nickname === "droni452" || nickname === "droni") {
+        return { ...player, role: "RIFLER", isCaptain: false };
+      }
+      return player;
+    })
     .sort((left, right) => {
       if (
         left.officialRoster &&
@@ -944,7 +954,7 @@ export default function Team({ initialRoster = "main" }) {
   );
 
   const centeredMainPlayers = centerCaptain(mainPlayers);
-  const featuredPlayer = centeredMainPlayers.find((player) => player.isCaptain === true || normalizeNickname(player.nickname) === "droni452") || centeredMainPlayers[0];
+  const featuredPlayer = centeredMainPlayers.find((player) => normalizeNickname(player.nickname) === "1sagi") || centeredMainPlayers.find((player) => player.isCaptain === true) || centeredMainPlayers[0];
   const remainingPlayers = centeredMainPlayers.filter((player) => player !== featuredPlayer);
   const academyFeatured = academyPlayers.find((player) => player.isCaptain === true || player.captain === true) || academyPlayers[0];
   const academyRemaining = academyPlayers.filter((player) => player !== academyFeatured);
