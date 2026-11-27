@@ -6,8 +6,8 @@
   "teamAvatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
   "gameId": "cs2",
   "tournaments": 45,
-  "matches": 103,
-  "wins": 83,
+  "matches": 104,
+  "wins": 84,
   "winRate": 81,
   "players": 7,
   "roster": [
@@ -41,7 +41,23 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.38
+      "kd": 1.4
+    },
+    {
+      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
+      "nickname": "vladikavkaz0",
+      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
+      "country": "ua",
+      "captain": false,
+      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
+      "level": 10,
+      "elo": 2127,
+      "role": "ENTRY",
+      "reason": "Сильнейшие показатели первых контактов",
+      "confidence": 80,
+      "roleSource": "FACEIT statistical inference",
+      "winRate": 51,
+      "kd": 1.2
     },
     {
       "playerId": "e3a6472a-262c-4476-b17f-3901210a2c86",
@@ -57,7 +73,7 @@
       "confidence": 100,
       "roleSource": "ISTe manual roster override",
       "winRate": 51,
-      "kd": 1.11
+      "kd": 1.12
     },
     {
       "playerId": "2f447791-fb9c-43eb-b191-a04b51a17b1d",
@@ -89,23 +105,7 @@
       "confidence": 62,
       "roleSource": "FACEIT statistical inference",
       "winRate": 50,
-      "kd": 0.98
-    },
-    {
-      "playerId": "4d0fc965-7c1e-4f7b-82c3-db5181680c61",
-      "nickname": "vladikavkaz0",
-      "avatar": "https://distribution.faceit-cdn.net/images/a76f7c5c-99bc-4aa3-b643-0366220f7802.jpg",
-      "country": "ua",
-      "captain": false,
-      "faceitUrl": "https://www.faceit.com/ru/players/vladikavkaz0",
-      "level": 10,
-      "elo": 2127,
-      "role": "RIFLER",
-      "reason": "Универсальная стрелковая роль по сбалансированной статистике",
-      "confidence": 62,
-      "roleSource": "FACEIT statistical inference",
-      "winRate": 51,
-      "kd": 1.2
+      "kd": 0.99
     },
     {
       "playerId": "9eca438a-e63a-416b-8e4b-42daf6491da8",
@@ -125,6 +125,30 @@
     }
   ],
   "teamMatches": [
+    {
+      "matchId": "1-161235c7-1a3f-4489-a9df-c38fbbcac6ae",
+      "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-161235c7-1a3f-4489-a9df-c38fbbcac6ae",
+      "tournamentId": "ef507b5e-9286-42cd-8e4d-cf9b4b25d58c",
+      "competitionName": "S59 EU Open10 B - Playoffs",
+      "competitionType": "championship",
+      "bestOf": null,
+      "round": null,
+      "status": "finished",
+      "result": "loss",
+      "scheduledAt": "2026-11-26T19:53:54.000Z",
+      "startedAt": "2026-11-26T19:53:54.000Z",
+      "finishedAt": "2026-11-26T20:30:15.000Z",
+      "ownTeam": {
+        "name": "ISTe",
+        "avatar": "https://distribution.faceit-cdn.net/images/64381166-2ad6-40ea-960d-552b20a65948.jpg",
+        "score": 13
+      },
+      "opponent": {
+        "name": "Valara Polkuautot",
+        "avatar": "https://distribution.faceit-cdn.net/images/99cbb9a0-4fdf-45bf-8f67-e31423e444f4.jpg",
+        "score": 16
+      }
+    },
     {
       "matchId": "1-9857f6cf-22f2-4dce-aae2-84636a2073c4",
       "faceitUrl": "https://www.faceit.com/ru/cs2/room/1-9857f6cf-22f2-4dce-aae2-84636a2073c4",
@@ -3822,14 +3846,14 @@
       }
     }
   ],
-  "teamMatchCount": 154,
+  "teamMatchCount": 155,
   "matchSync": {
     "source": "FACEIT tournaments and verified team roster history",
     "fullSync": false,
     "tournamentsScanned": 0,
     "failedTournaments": 0,
     "historyPlayersScanned": 8,
-    "historyMatchesFound": 21,
+    "historyMatchesFound": 22,
     "lastFullSyncAt": "2026-08-05T10:03:26.143Z"
   },
   "roleModel": {
@@ -3837,5 +3861,5 @@
     "version": 1,
     "disclaimer": "Roles are estimates based on available FACEIT statistics and team captain status."
   },
-  "updatedAt": "2026-11-26T19:58:50.972Z"
+  "updatedAt": "2026-11-27T02:40:56.682Z"
 }
