@@ -857,3 +857,448 @@
 @container iste-awards (max-width: 225px) {
   .iste-awards-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* Steam-inspired achievement collection. ISTe's own visual identity and badges. */
+.iste-awards.steam-achievements {
+  --steam-surface: #101923;
+  --steam-surface-raised: #182534;
+  --steam-border: rgba(124, 157, 181, .2);
+  --steam-text: #eff5fa;
+  --steam-muted: #93a8b9;
+  --steam-accent: #f32b4a;
+  padding: 0;
+  border: 1px solid #354252;
+  border-radius: 16px;
+  background: linear-gradient(152deg, #142535 0%, #101722 38%, #0b1019 100%);
+  box-shadow: 0 20px 54px rgba(0, 0, 0, .35), inset 0 1px rgba(255,255,255,.055);
+  color: var(--steam-text);
+  overflow: visible;
+  isolation: isolate;
+}
+.steam-achievements button,
+.steam-achievements input,
+.steam-achievements select { font: inherit; }
+.steam-achievements button { cursor: pointer; }
+.steam-achievements button:disabled { cursor: not-allowed; }
+.steam-achievements button:focus-visible,
+.steam-achievements input:focus-visible,
+.steam-achievements select:focus-visible {
+  outline: 2px solid #87cffa;
+  outline-offset: 3px;
+}
+.steam-achievements__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 22px;
+  padding: 27px 28px 25px;
+  border-bottom: 1px solid var(--steam-border);
+  background: radial-gradient(ellipse at 84% 0%, rgba(225, 38, 65, .12), transparent 59%), linear-gradient(110deg, rgba(37, 58, 76, .75), rgba(17, 27, 39, .4));
+  border-radius: 16px 16px 0 0;
+}
+.steam-achievements__heading { min-width: 0; }
+.steam-achievements__eyebrow {
+  display: block;
+  color: #8fcbe8;
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .15em;
+}
+.steam-achievements__head h2 {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  margin: 9px 0 6px;
+  color: #fff;
+  font-size: clamp(1.4rem, 2.8vw, 1.95rem);
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -.025em;
+}
+.steam-achievements__head h2 > span {
+  color: #f6536c;
+  font-size: .9em;
+  filter: drop-shadow(0 0 10px rgba(250, 31, 65, .3));
+}
+.steam-achievements__head p {
+  margin: 0;
+  max-width: 500px;
+  color: #aebfcb;
+  font-size: .85rem;
+  line-height: 1.6;
+}
+.steam-achievements__score {
+  min-width: 158px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 4px 0 4px 22px;
+  border-left: 1px solid rgba(157, 184, 206, .15);
+  text-align: right;
+}
+.steam-achievements__score strong {
+  color: #fff;
+  font-weight: 850;
+  font-size: clamp(1.9rem, 3.4vw, 2.55rem);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.steam-achievements__score strong span { color: #8da3b2; font-size: .6em; font-weight: 650; }
+.steam-achievements__score small {
+  margin-top: 6px;
+  color: #93a7b6;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.steam-achievements__overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  gap: 15px;
+  padding: 18px 24px;
+  background: rgba(6, 12, 20, .25);
+  border-bottom: 1px solid var(--steam-border);
+}
+.steam-achievements__progress-section,
+.steam-achievements__latest {
+  min-width: 0;
+  padding: 17px 19px;
+  border: 1px solid rgba(98, 127, 150, .16);
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(42, 62, 78, .42), rgba(20, 31, 43, .55));
+}
+.steam-achievements__progress-label { display:flex;justify-content:space-between;gap:8px;align-items:center; }
+.steam-achievements__progress-label strong { font-size:.85rem;font-weight:750; }
+.steam-achievements__progress-label span { color:#8fd7f9;font-size:1rem;font-weight:900;font-variant-numeric:tabular-nums; }
+.steam-achievements__progress {
+  height: 10px;
+  margin: 12px 0 10px;
+  border: 1px solid #415568;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #060c12;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.48);
+}
+.steam-achievements__progress > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2b7fa9, #66c4ed);
+  box-shadow: 0 0 12px rgba(93, 197, 240, .32);
+  transition: width .3s ease;
+}
+.steam-achievements__progress-section p { margin: 0;color: var(--steam-muted);font-size: .72rem; }
+.steam-achievements__latest-label { color: var(--steam-muted);font-size: .66rem;font-weight: 800;letter-spacing: .1em; }
+.steam-achievements__latest-content {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  gap: 9px;
+  margin-top: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--steam-text);
+}
+.steam-achievements__latest-content:hover strong { color:#a9def8; }
+.steam-achievements__latest-content > span:last-child { color:#85acbf;font-size:1.75rem; }
+.steam-achievements__latest-content strong { display:block;font-size:.78rem;line-height:1.2; }
+.steam-achievements__latest-content small { display:block;margin-top:5px;color:var(--steam-muted);font-size:.67rem; }
+.steam-achievements__latest-empty { display:block;margin-top:12px;color:var(--steam-muted);font-size:.76rem; }
+.steam-achievements__latest-medal,
+.steam-achievements__history-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  color: var(--medal-light);
+  --medal-main: #c5ccdf;
+  --medal-light: #fff;
+  --medal-shadow: #5f6677;
+}
+.steam-achievements__latest-medal .iste-award-medallion,
+.steam-achievements__history-icon .iste-award-medallion { width: 47px;height: 47px; }
+.steam-achievements__notice { margin:16px 24px 4px; }
+.steam-achievements__toolbar { padding: 19px 24px 15px; }
+.steam-achievements__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid #3a5263;
+}
+.steam-achievements__tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 5px 5px 0 0;
+  background: transparent;
+  color: #a5b3c2;
+  font-size: .8rem;
+  font-weight: 750;
+  transition: background .15s, color .15s;
+}
+.steam-achievements__tabs button:hover { background:rgba(86,120,146,.15);color:#fff; }
+.steam-achievements__tabs button.is-active {
+  color: #fff;
+  border-bottom-color: #fc3859;
+  background: linear-gradient(180deg,rgba(96,127,150,.22),rgba(96,127,150,.035));
+}
+.steam-achievements__tabs button span {
+  padding: 1px 6px;
+  color:#c4d4df;
+  border-radius: 4px;
+  background: rgba(6,12,20,.45);
+  font-size: .7rem;
+  font-variant-numeric: tabular-nums;
+}
+.steam-achievements__tools {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  align-items:center;
+  gap: 9px;
+  margin-top: 14px;
+}
+.steam-achievements__search {
+  display:flex;
+  flex: 1 1 205px;
+  min-width: 160px;
+  align-items:center;
+  gap: 7px;
+  height: 39px;
+  padding: 0 11px;
+  border: 1px solid #43596c;
+  border-radius: 5px;
+  background: #080f17;
+  color:#9eb2c1;
+}
+.steam-achievements__search > span { font-size: 1.4rem;line-height:1; }
+.steam-achievements__search input {
+  min-width:0;
+  flex:1;
+  width:100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #f4f7fb;
+  font-size: .78rem;
+}
+.steam-achievements__search input::placeholder { color:#71899b; }
+.steam-achievements__sort { display:flex;align-items:center;gap:9px;color:#94a9b9;font-size:.72rem; }
+.steam-achievements__sort select {
+  width: auto;
+  height: 39px;
+  max-width:100%;
+  padding: 0 29px 0 10px;
+  border: 1px solid #43596c;
+  border-radius: 5px;
+  background:#0c1721;
+  color:#d9e6ee;
+  font-size: .72rem;
+}
+.steam-achievements__view { display:flex;gap:3px;padding:3px;border:1px solid #364f62;border-radius:5px;background:#080e16; }
+.steam-achievements__view button {
+  display:grid;
+  place-items:center;
+  width:31px;height:31px;
+  border:0;border-radius:3px;
+  background:transparent;
+  color:#a1b0be;
+  font-size: 1.25rem;
+}
+.steam-achievements__view button[aria-pressed="true"] { background:#2c5068;color:#fff; }
+.steam-achievements__items { display:grid;gap:8px;padding:0 24px 23px; }
+.steam-achievement {
+  --medal-main: #d6d9e2;
+  --medal-light: #fff;
+  --medal-shadow: #565c6f;
+  display:grid;
+  grid-template-columns: 78px minmax(0,1fr) minmax(104px,max-content);
+  width:100%;
+  min-width:0;
+  min-height:110px;
+  align-items:center;
+  gap: 15px;
+  padding: 14px 18px;
+  border:1px solid rgba(111, 143, 162, .26);
+  border-radius: 6px;
+  background:linear-gradient(105deg,rgba(39,58,73,.95),rgba(20,32,45,.95));
+  color:#e7eef3;
+  text-align:left;
+  transition:border-color .15s,background .15s,transform .15s;
+}
+.steam-achievement:hover {
+  transform:translateY(-1px);
+  border-color:rgba(116,196,231,.64);
+  background:linear-gradient(105deg,#344d61,#1d3345);
+}
+.steam-achievement--gold { --medal-main:#e7b351;--medal-light:#fff1be;--medal-shadow:#77511d; }
+.steam-achievement--silver { --medal-main:#c3cbd6;--medal-light:#fff;--medal-shadow:#697180; }
+.steam-achievement--red { --medal-main:#f14464;--medal-light:#ffbecd;--medal-shadow:#77192e; }
+.steam-achievement__art { display:grid;place-items:center;width:76px;height:76px;color:var(--medal-light); }
+.steam-achievement__art .iste-award-medallion { width:76px;height:76px; }
+.steam-achievement__text { display:flex;flex-direction:column;min-width:0;gap:5px; }
+.steam-achievement__text strong {font-weight:850;color:#fff;font-size:.91rem;line-height:1.2;overflow-wrap:anywhere;}
+.steam-achievement__desc {color:#b8c9d4;font-size:.75rem;line-height:1.45;overflow-wrap:anywhere;}
+.steam-achievement__type {margin-top:3px;color:#7eb5ce;font-size:.63rem;font-weight:750;letter-spacing:.025em;}
+.steam-achievement__status { display:flex;align-items:flex-end;flex-direction:column;justify-content:center;min-width:0;gap:5px;text-align:right; }
+.steam-achievement__unlocked { color:#a7db91;font-size:.67rem;font-weight:850;white-space:nowrap; }
+.steam-achievement__pending { color:#a4acb6;font-size:.67rem;font-weight:750;white-space:nowrap; }
+.steam-achievement__status small { color:#94b5c9;font-size:.66rem; }
+.steam-achievement__chevron { color:#6c97aa;font-size:1.25rem;line-height:1; }
+.steam-achievement--locked { opacity:.75;background:linear-gradient(105deg,#1c2732,#121b25); }
+.steam-achievement--locked .steam-achievement__art { filter:grayscale(1);opacity:.42; }
+.steam-achievement--locked .steam-achievement__text strong {color:#b9c1c9;}
+.steam-achievement--locked .steam-achievement__desc {color:#8c9baa;}
+.steam-achievement--locked:hover {opacity:1;}
+.steam-achievements__items--grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.steam-achievements__items--grid .steam-achievement { grid-template-columns:70px minmax(0,1fr);min-height:146px;gap:10px;padding:12px; }
+.steam-achievements__items--grid .steam-achievement__status { grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;text-align:left; }
+.steam-achievements__items--grid .steam-achievement__art,
+.steam-achievements__items--grid .steam-achievement__art .iste-award-medallion { width:68px;height:68px; }
+.steam-achievements__items--grid .steam-achievement__chevron { margin-left:auto; }
+.steam-achievements__history { display:grid;gap:8px;padding:0 24px 25px; }
+.steam-achievements__history-entry {
+  display:flex;
+  align-items:center;
+  gap:13px;
+  min-width:0;
+  padding:12px 15px;
+  border:1px solid rgba(120,147,169,.23);
+  border-radius:6px;
+  background:rgba(37,57,73,.52);
+  text-align:left;
+  color:#eaf2f7;
+}
+.steam-achievements__history-entry:hover {background:rgba(59,90,112,.6);border-color:#51768d;}
+.steam-achievements__history-details {display:grid;gap:5px;flex:1;min-width:0;}
+.steam-achievements__history-details strong {font-size:.79rem;overflow-wrap:anywhere;}
+.steam-achievements__history-details small {font-size:.7rem;color:#9bb2c4;}
+.steam-achievements__history-active,.steam-achievements__history-archived {
+  font-size:.67rem;
+  font-weight:800;
+  white-space:nowrap;
+  color:#9cdc99;
+}
+.steam-achievements__history-archived {color:#a2a5b2;}
+.steam-achievements__state {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  min-height:120px;
+  margin:0 24px 24px;
+  padding:22px;
+  border:1px dashed #40576a;
+  border-radius:7px;
+  color:#b2c5d3;
+  font-size:.82rem;
+  text-align:center;
+}
+.steam-achievements__state button {padding:8px 12px;border:1px solid #4e839e;border-radius:5px;background:#1e4259;color:#eaf9ff;font-weight:750;}
+.steam-achievements__spinner { width:17px;height:17px;border:2px solid #4c6779;border-top-color:#a6daf3;border-radius:50%;animation:steamAwardsSpin .9s linear infinite; }
+@keyframes steamAwardsSpin { to {transform:rotate(360deg)} }
+.steam-achievements__empty { flex-direction:column; }
+.steam-achievements__empty > span {font-size:2.2rem;color:#7f91a3;line-height:1;}
+.steam-achievements__empty strong {color:#eff5fa;font-size:.9rem;}
+.steam-achievements__empty small {font-size:.74rem;color:#9baebe;}
+.steam-achievements__admin {margin:0 24px 20px;padding:16px 0 0;gap:8px;border-top:1px solid #3b4d5e;}
+.steam-achievements__admin select {background:#101d28;border-color:#43596a;}
+.steam-achievements__admin button {background:linear-gradient(125deg,#d91f40,#8a142d);border-color:#ed445e;}
+.steam-achievements__message {margin:0 24px 22px;color:#f5bac5;font-size:.8rem;}
+.steam-achievements__backdrop {
+  position:fixed;
+  z-index:9999;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:18px;
+  background:rgba(0,5,12,.83);
+  backdrop-filter:blur(7px);
+}
+.steam-achievements__dialog {
+  position:relative;
+  display:grid;
+  grid-template-columns: minmax(128px,190px) minmax(0,1fr);
+  align-items:center;
+  gap:22px;
+  width:min(640px,100%);
+  max-height:min(660px,90vh);
+  overflow-y:auto;
+  padding:32px 30px;
+  border:1px solid #5c849a;
+  border-radius:12px;
+  background:linear-gradient(145deg,#20374a,#101d2a 70%);
+  box-shadow:0 35px 100px #000b,inset 0 1px 0 rgba(255,255,255,.07);
+  color:#fff;
+}
+.steam-achievements__dialog-close {
+  position:absolute;
+  top:9px;right:11px;
+  width:32px;height:32px;
+  border:1px solid #4a6273;
+  border-radius:6px;
+  background:#1d3040;
+  color:#dbeaf2;
+  font-size:1.6rem !important;
+  line-height:1;
+}
+.steam-achievements__dialog-close:hover {background:#36566d;}
+.steam-achievements__dialog-art {display:grid;place-items:center;color:var(--medal-light);--medal-main:#c5cbd6;--medal-light:#fff;--medal-shadow:#626879;}
+.steam-achievements__dialog-art .iste-award-medallion {width:min(180px,100%);height:auto;}
+.steam-achievements__dialog-info h3 {margin:8px 0 12px;color:#fff;font-size:clamp(1.2rem,3vw,1.65rem);line-height:1.25;}
+.steam-achievements__dialog-info > p {margin:0 0 18px;color:#c5d5de;line-height:1.65;font-size:.87rem;}
+.steam-achievements__dialog-result {display:grid;gap:6px;padding-top:15px;border-top:1px solid #3e586d;}
+.steam-achievements__dialog-result strong {color:#abdfac;font-size:.81rem;}
+.steam-achievements__dialog-result span {color:#9fb6c8;font-size:.75rem;line-height:1.4;}
+.steam-achievements__dialog-info .steam-achievements__eyebrow {color:#91b9d2;}
+@container iste-awards (max-width:650px) {
+  .steam-achievements__head {padding:20px 17px;gap:12px;}
+  .steam-achievements__score {min-width:96px;padding-left:12px;}
+  .steam-achievements__score small {font-size:.53rem;}
+  .steam-achievements__overview {grid-template-columns:1fr;padding:12px 15px;gap:9px;}
+  .steam-achievements__progress-section,.steam-achievements__latest {padding:14px;}
+  .steam-achievements__toolbar {padding:16px 15px 13px;}
+  .steam-achievements__tabs {gap:2px;}
+  .steam-achievements__tabs button {padding:9px 8px 11px;font-size:.72rem;}
+  .steam-achievements__tools {gap:7px;}
+  .steam-achievements__search {flex-basis:100%;}
+  .steam-achievements__items,.steam-achievements__history {padding:0 15px 16px;}
+  .steam-achievements__items--grid {grid-template-columns:1fr;}
+  .steam-achievements__notice {margin:13px 15px 4px;}
+  .steam-achievements__admin {margin:0 15px 16px;}
+}
+@container iste-awards (max-width:460px) {
+  .steam-achievements__head {flex-wrap:wrap;}
+  .steam-achievements__score {align-items:flex-start;text-align:left;border-left:0;border-top:1px solid #385267;min-width:100%;padding:11px 0 0;}
+  .steam-achievements__score strong {font-size:1.6rem;}
+  .steam-achievements__tabs {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;border-bottom:0;}
+  .steam-achievements__tabs button {justify-content:center;border:1px solid #3c5263;border-radius:5px;padding:9px 4px;}
+  .steam-achievements__tabs button.is-active {border-color:#b3354a;}
+  .steam-achievements__sort {flex:1;}
+  .steam-achievements__sort > span {display:none;}
+  .steam-achievements__sort select {width:100%;}
+  .steam-achievement {grid-template-columns:55px minmax(0,1fr);gap:9px;padding:12px;min-height:100px;}
+  .steam-achievement__art,.steam-achievement__art .iste-award-medallion {width:54px;height:54px;}
+  .steam-achievement__status {grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center;text-align:left;padding-top:8px;border-top:1px solid #ffffff13;}
+  .steam-achievement__text strong {font-size:.83rem;}
+  .steam-achievement__desc {font-size:.7rem;}
+  .steam-achievements__state {margin:0 15px 15px;}
+  .steam-achievements__dialog {grid-template-columns:1fr;gap:8px;padding:28px 19px 22px;text-align:center;}
+  .steam-achievements__dialog-art .iste-award-medallion {width:115px;}
+  .steam-achievements__dialog-result {text-align:left;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .steam-achievement,.steam-achievements__progress > span {transition:none;}
+  .steam-achievements__spinner {animation:none;}
+}
