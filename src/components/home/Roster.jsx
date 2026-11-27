@@ -28,7 +28,7 @@ const MAIN_ROSTER_ORDER = Object.freeze([
   "tw3ntyq",
 ]);
 
-const CAPTAIN_NICKNAME = "droni452";
+const CAPTAIN_NICKNAME = "1sagi";
 
 const SUBSTITUTE_PLAYERS = new Set([
   "sssoo",
@@ -42,8 +42,8 @@ const ROSTER_FALLBACKS = Object.freeze([
     country: "ua",
     faceitUrl: "https://www.faceit.com/ru/players/Droni452",
     level: 10,
-    role: "IGL",
-    reason: "Капітан основного складу ISTe",
+    role: "RIFLER",
+    reason: "Рифлер основного складу ISTe",
   },
   {
     playerId: "e4e7f4b2-fe47-4b64-ba56-e9a341417626",
@@ -59,9 +59,9 @@ const ROSTER_FALLBACKS = Object.freeze([
 
 const ROLE_OVERRIDES = Object.freeze({
   valaf: "AWP",
-  "1sagi": "RIFLER",
+  "1sagi": "IGL",
   tw3ntyq: "RIFLER",
-  droni452: "IGL",
+  droni452: "RIFLER",
   anubis: "IGL",
   lor9n: "AWP",
   silryd: "RIFLER",
@@ -191,20 +191,26 @@ function PlayerCard({ player, rosterStatus = "main" }) {
     );
 
   const isCaptain =
-    player.officialRoster
-      ? player.isCaptain === true
-      : nickname === CAPTAIN_NICKNAME;
+    nickname === CAPTAIN_NICKNAME
+      ? true
+      : nickname === "droni452" || nickname === "droni"
+        ? false
+        : player.officialRoster
+          ? player.isCaptain === true
+          : false;
 
   const roleOverride = ROLE_OVERRIDES[nickname];
 
   const roleLabel =
     rosterStatus === "substitute"
       ? t("home.roster.substituteRole")
-      : player.officialRoster
-        ? player.role || "RIFLER"
-        : typeof roleOverride === "object"
-          ? roleOverride[language] || roleOverride.uk || player.role || "RIFLER"
-          : roleOverride || player.role || "RIFLER";
+      : (nickname === "1sagi" || nickname === "droni452" || nickname === "droni")
+        ? roleOverride || "RIFLER"
+        : player.officialRoster
+          ? player.role || "RIFLER"
+          : typeof roleOverride === "object"
+            ? roleOverride[language] || roleOverride.uk || player.role || "RIFLER"
+            : roleOverride || player.role || "RIFLER";
 
   const displayName =
     player.displayName ||
@@ -391,7 +397,16 @@ export default function Roster() {
   const roster =
     [
       ...rosterByNickname.values(),
-    ].filter(
+    ].map((player) => {
+      const nickname = normalizeNickname(player.nickname);
+      if (nickname === "1sagi") {
+        return { ...player, role: "IGL", isCaptain: true };
+      }
+      if (nickname === "droni452" || nickname === "droni") {
+        return { ...player, role: "RIFLER", isCaptain: false };
+      }
+      return player;
+    }).filter(
       (player) =>
         !EXCLUDED_PLAYERS.has(
           normalizeNickname(
